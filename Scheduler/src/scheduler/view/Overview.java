@@ -192,7 +192,7 @@ public class Overview extends VBox {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                AppointmentDAO.FactoryImpl factory = AppointmentDAO.getFactory();
+                AppointmentDAO.FactoryImpl factory = AppointmentDAO.FACTORY;
                 final LocalDateTime start = LocalDateTime.now();
                 LocalDateTime end = start.toLocalDate().atStartOfDay().plusDays(1);
                 appointmentsTomorrow = factory.countByRange(dbConnector.getConnection(), end, end.plusDays(1));

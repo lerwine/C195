@@ -24,6 +24,7 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
+import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
@@ -31,7 +32,6 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.model.CustomerAddress;
 
 /**
  * Data access object for the {@code customer} database table.
@@ -58,7 +58,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
      */
     public static final String PROP_ACTIVE = "active";
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -201,7 +201,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return CustomerFilter.of(CustomerFilter.expressionOf(active));
         }
 
-        public DaoFilter<CustomerDAO> getByAddressFilter(CustomerAddress address) {
+        public DaoFilter<CustomerDAO> getByAddressFilter(Address address) {
             return CustomerFilter.of(CustomerFilter.expressionOf(address));
         }
 
@@ -234,7 +234,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CustomerDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
-                private final CustomerAddress oldAddress = dao.address;
+                private final Address oldAddress = dao.address;
                 private final boolean oldActive = dao.active;
 
                 @Override
@@ -251,7 +251,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 }
             };
             dao.name = asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString()));
-            dao.address = AddressDAO.getFactory().fromJoinedResultSet(rs);
+            dao.address = AddressDAO.FACTORY.fromJoinedResultSet(rs);
             dao.active = rs.getBoolean(DbColumn.ACTIVE.toString());
             if (rs.wasNull()) {
                 dao.active = false;
@@ -262,7 +262,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         ICustomerDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Related(rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString()),
                     asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString())),
-                    AddressDAO.getFactory().fromJoinedResultSet(rs), rs.getBoolean(DbColumn.ACTIVE.toString()));
+                    AddressDAO.FACTORY.fromJoinedResultSet(rs), rs.getBoolean(DbColumn.ACTIVE.toString()));
         }
 
         public Optional<CustomerDAO> findByName(Connection connection, String value) throws SQLException {
@@ -306,7 +306,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
-            int count = AppointmentDAO.getFactory().countByCustomer(connection, dao.getPrimaryKey(), null, null);
+            int count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
             // PENDING: Internationalize these
             switch (count) {
                 case 0:
@@ -320,9 +320,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
-            CustomerAddress address = ICustomerDAO.assertValidCustomer(dao).getAddress();
+            Address address = ICustomerDAO.assertValidCustomer(dao).getAddress();
             if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
-                AddressDAO.getFactory().save((AddressDAO) address, connection, force);
+                AddressDAO.FACTORY.save((AddressDAO) address, connection, force);
             }
             super.save(dao, connection, force);
         }

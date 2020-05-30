@@ -48,11 +48,6 @@
                                 <PropertyValueFactory property="language" />
                             </cellValueFactory>
                         </TableColumn>
-                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="125.0" prefWidth="125.0" text="%defaultTimeZone">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="defaultTimeZoneDisplay" />
-                            </cellValueFactory>
-                        </TableColumn>
                         <TableColumn editable="false" minWidth="75.0" prefWidth="-1.0" text="%createdOn" visible="false">
                             <cellValueFactory>
                                 <PropertyValueFactory property="createDate" />

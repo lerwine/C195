@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.concurrent.Task;
@@ -80,29 +81,15 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S> result = new EditItem<>(editorRegion, model, keepOpen);
-        StageManager.showAndWait(result, parentWindow, (t) -> {
-            ViewControllerLoader.initializeCustomControl(result);
-            try {
-                AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
-                AnnotationHelper.injectModelEditorField(result.waitBorderPane, "waitBorderPane", editorRegion);
-            } catch (IllegalAccessException ex) {
-                throw new IOException("Error injecting fields", ex);
-            }
-            ViewControllerLoader.initializeCustomControl(editorRegion);
-            t.titleProperty().bind(editorRegion.windowTitleProperty());
-            result.saveChangesButton.disableProperty().bind(editorRegion.validProperty().not());
-            if (model.isNewRow()) {
-                result.deleteButton.setDisable(true);
-                collapseNode(result.deleteButton);
-                collapseNode(result.createdLabel);
-                collapseNode(result.createdValue);
-                collapseNode(result.lastUpdateLabel);
-                collapseNode(result.lastUpdateValue);
-                editorRegion.onEditNew();
-            } else {
-                result.onEditExisting(true);
-            }
-        });
+        ViewControllerLoader.initializeCustomControl(result);
+        try {
+            AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
+            AnnotationHelper.injectModelEditorField(result.waitBorderPane, "waitBorderPane", editorRegion);
+        } catch (IllegalAccessException ex) {
+            throw new IOException("Error injecting fields", ex);
+        }
+        ViewControllerLoader.initializeCustomControl(editorRegion);
+        StageManager.showAndWait(result, parentWindow);
         return (result.model.isNewRow()) ? null : result.model;
     }
 
@@ -168,6 +155,14 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         this.editorRegion = editorRegion;
         this.model = model;
         this.keepOpen = keepOpen;
+        Bindings.<Window>select(sceneProperty(), "window").addListener((observable, oldValue, newValue) -> {
+            if (null != oldValue && oldValue instanceof Stage) {
+                ((Stage) oldValue).titleProperty().unbind();
+            }
+            if (null != newValue && newValue instanceof Stage) {
+                ((Stage) oldValue).titleProperty().bind(editorRegion.windowTitleProperty());
+            }
+        });
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -184,9 +179,20 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         parentVBox.getChildren().add(0, editorRegion);
         VBox.setVgrow(editorRegion, Priority.ALWAYS);
         VBox.setMargin(editorRegion, new Insets(8.0));
+        saveChangesButton.disableProperty().bind(editorRegion.validProperty().and(editorRegion.modifiedProperty().or(model.newRowProperty())).not());
+        if (model.isNewRow()) {
+            deleteButton.setDisable(true);
+            collapseNode(deleteButton);
+            collapseNode(createdLabel);
+            collapseNode(createdValue);
+            collapseNode(lastUpdateLabel);
+            collapseNode(lastUpdateValue);
+        } else {
+            onEditMode();
+        }
     }
 
-    private void onEditExisting(boolean isInitialize) {
+    private void onEditMode() {
         restoreNode(deleteButton);
         deleteButton.setDisable(false);
         DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
@@ -197,7 +203,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         restoreNode(lastUpdateLabel);
         restoreLabeled(lastUpdateValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
                 dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
-        editorRegion.onEditExisting(isInitialize);
     }
 
     @FXML
@@ -257,26 +262,25 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         boolean isValid();
 
+        /**
+         * The inverse value of this property is bound to the {@link Button#disableProperty()} of the {@link EditItem#saveChangesButton}.
+         *
+         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled,
+         * otherwise {@code true} if it is to be enabled.
+         */
         ReadOnlyBooleanProperty validProperty();
 
-        /**
-         * This gets called to initialize the current control when editing a new {@link FxRecordModel} item. This will only be called one time during
-         * initialization.
-         */
-        void onEditNew();
+        boolean isModified();
+
+        ReadOnlyBooleanProperty modifiedProperty();
 
         /**
-         * This gets called to initialize the current control for editing an {@link FxRecordModel} item that already exists in the database. This will
-         * be called once during initialization when editing an existing {@link FxRecordModel}. This will also be called after saving a new new
-         * {@link FxRecordModel} and the edit window is supposed to stay open.
-         *
-         * @param isInitialize {@code true} if this is called during initialization; otherwise, {@code false} if a new {@link FxRecordModel} was just
-         * successfully saved and it is being re-initialized for continued editing.
+         * This gets called to re-initialize the controller for edit mode after a new model has been inserted into the database
          */
-        void onEditExisting(boolean isInitialize);
+        void onNewModelSaved();
 
         void updateModel();
-        
+
     }
 
     private class SaveTask extends Task<String> {
@@ -300,7 +304,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                 if (closeOnSuccess) {
                     getScene().getWindow().hide();
                 } else {
-                    onEditExisting(false);
+                    onEditMode();
                 }
             } else {
                 AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,

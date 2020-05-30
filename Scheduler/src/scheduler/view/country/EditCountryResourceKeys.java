@@ -43,7 +43,7 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_CREATEDON = "createdOn";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Default Time Zone"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Default Time Zone:"}.
      */
     public static final String RESOURCEKEY_DEFAULTTIMEZONE = "defaultTimeZone";
 
@@ -96,6 +96,11 @@ public interface EditCountryResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Open"}.
      */
     public static final String RESOURCEKEY_OPEN = "open";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Region / Language:"}.
+     */
+    public static final String RESOURCEKEY_REGIONLANGUAGE = "regionLanguage";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.

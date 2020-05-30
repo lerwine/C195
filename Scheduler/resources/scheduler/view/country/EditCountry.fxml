@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.String?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
@@ -15,7 +14,6 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.fx.CountryListCell?>
 <?import scheduler.fx.CountryListCellFactory?>
@@ -33,50 +31,26 @@
             <rowConstraints>
                 <RowConstraints vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
-                <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-                <Label styleClass="leftControlLabel" text="%nameFieldLabel" />
-                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.halignment="LEFT">
-                    <children>
-                        <Label fx:id="countryNameValueLabel">
-                            <styleClass>
-                                <String fx:value="leftLabeledControl" />
-                                <String fx:value="collapsed" />
-                            </styleClass>
-                        </Label>
-                        <ComboBox fx:id="countryNameComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl">
-                            <cellFactory>
-                                <CountryListCellFactory />
-                            </cellFactory>
-                            <buttonCell>
-                                <CountryListCell />
-                            </buttonCell>
-                        </ComboBox>
-                    </children>
-                </StackPane>
-                <Label fx:id="nameValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <Label styleClass="leftControlLabel" text="%regionLanguage" />
+                  <ComboBox fx:id="localeComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" GridPane.columnIndex="1">
+                      <cellFactory>
+                          <CountryListCellFactory />
+                      </cellFactory>
+                      <buttonCell>
+                          <CountryListCell wrapText="true" />
+                      </buttonCell>
+                  </ComboBox>
+                <Label fx:id="languageValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <styleClass>
                         <String fx:value="validationMessage" />
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <Label styleClass="leftControlLabel" text="%language" GridPane.rowIndex="2" />
-                <Label fx:id="languageLabel" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                <Label styleClass="leftControlLabel" text="%defaultTimeZone" GridPane.rowIndex="3" />
-                <Label fx:id="defaultTimeZoneLabel" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="3" />
             </children>
         </GridPane>
-        <Label fx:id="citiesLabel" maxWidth="1.7976931348623157E308" text="%cities">
-            <VBox.margin>
-                <Insets top="16.0" />
-            </VBox.margin>
-            <styleClass>
-                <String fx:value="topControlLabel" />
-                <String fx:value="collapsed" />
-            </styleClass>
-        </Label>
+        <Label fx:id="citiesLabel" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%cities" />
         <TableView fx:id="citiesTableView" maxHeight="1.7976931348623157E308" onKeyReleased="#onCitiesTableViewKeyReleased" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="%nameColumnHeading">

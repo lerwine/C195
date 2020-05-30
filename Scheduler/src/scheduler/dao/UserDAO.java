@@ -61,7 +61,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
      */
     public static final String PROP_STATUS = "status";
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -211,7 +211,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             UserDAO result = super.fromResultSet(rs);
             UserDAO currentUser = Scheduler.getCurrentUser();
             if (null != currentUser && currentUser.getPrimaryKey() == result.getPrimaryKey()) {
-                UserDAO.getFactory().cloneProperties(currentUser, result);
+                UserDAO.FACTORY.cloneProperties(currentUser, result);
                 return currentUser;
             }
             return result;
@@ -349,7 +349,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             if (dao.getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey()) {
                 return "Cannot delete the currently signed on user.";
             }
-            int count = AppointmentDAO.getFactory().countByUser(connection, dao.getPrimaryKey(), null, null);
+            int count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
             switch (count) {
                 case 0:
                     return "";

@@ -144,7 +144,7 @@ public class AppointmentsByRegion extends VBox {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                return AppointmentDAO.getFactory().getCountsByCustomerRegion(dbConnector.getConnection(), start.atStartOfDay(), start.plusMonths(1).atStartOfDay());
+                return AppointmentDAO.FACTORY.getCountsByCustomerRegion(dbConnector.getConnection(), start.atStartOfDay(), start.plusMonths(1).atStartOfDay());
             }
         }
 

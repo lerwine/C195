@@ -94,7 +94,6 @@ public final class Login extends Scheduler.LoginBorderPane {
 
     @FXML
     void onLoginButtonAction(ActionEvent event) {
-        Stage stage = (Stage) getScene().getWindow();
         tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
     }
 

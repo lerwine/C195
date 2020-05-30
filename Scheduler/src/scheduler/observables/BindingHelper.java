@@ -251,7 +251,7 @@ public class BindingHelper {
         return Bindings.createStringBinding(() -> Values.asNonNullAndTrimmed(observableString.getValue()), observableString);
     }
 
-    public static StringBinding asNormalized(final ObservableValue<String> observableString) {
+    public static StringBinding asNonNullAndWsNormalized(final ObservableValue<String> observableString) {
         return Bindings.createStringBinding(() -> Values.asNonNullAndWsNormalized(observableString.getValue()), observableString);
     }
 
@@ -277,7 +277,7 @@ public class BindingHelper {
      * @return The new {@link javafx.beans.binding.BooleanBinding}.
      * @throws NullPointerException The source {@link javafx.beans.property.StringProperty} was {@code null}.
      */
-    public static BooleanBinding notNullOrWhiteSpace(final ObservableValue<String> observableString) {
+    public static BooleanBinding isNotNullOrWhiteSpace(final ObservableValue<String> observableString) {
         return Bindings.createBooleanBinding(() -> {
             String s = observableString.getValue();
             return null != s && !s.trim().isEmpty();

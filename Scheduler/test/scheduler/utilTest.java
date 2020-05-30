@@ -109,12 +109,12 @@ public class utilTest {
     }
 
     /**
-     * Test of notNullOrWhiteSpace method, of class Bindings.
+     * Test of isNotNullOrWhiteSpace method, of class Bindings.
      */
     @Test
     public void testNotNullOrWhiteSpace() {
         TextField targetControl = new TextField();
-        BooleanBinding targetBinding = BindingHelper.notNullOrWhiteSpace(targetControl.textProperty());
+        BooleanBinding targetBinding = BindingHelper.isNotNullOrWhiteSpace(targetControl.textProperty());
         
         String inputString = "!";
         boolean expResult = true;

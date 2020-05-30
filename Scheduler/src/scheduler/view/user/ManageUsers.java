@@ -204,12 +204,12 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = UserDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
+                String message = UserDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                UserDAO.getFactory().delete(dao, connector.getConnection());
+                UserDAO.FACTORY.delete(dao, connector.getConnection());
                 if (dao.getRowState() == DataRowState.DELETED) {
                     UserModel.getFactory().updateItem(model, dao);
                 }

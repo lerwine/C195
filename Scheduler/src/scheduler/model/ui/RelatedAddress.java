@@ -15,12 +15,12 @@ import scheduler.dao.AddressDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
-import scheduler.model.CustomerAddress;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
+import scheduler.model.Address;
 
 /**
  *
@@ -194,7 +194,7 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
 
     @Override
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof CustomerAddress && ModelHelper.areSameRecord(this, (CustomerAddress) obj);
+        return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
     }
 
     @Override

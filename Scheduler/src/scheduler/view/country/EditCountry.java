@@ -1,13 +1,18 @@
 package scheduler.view.country;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -34,18 +39,16 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.event.CityDaoEvent;
-import scheduler.model.CustomerCity;
+import scheduler.model.CityProperties;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.observables.ObservableObjectDerivitive;
-import scheduler.observables.ObservableStringDerivitive;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.Values;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -80,9 +83,11 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CityModel> itemList;
-    private final ObservableList<CountryModel> countryList;
+    private final ObservableList<Locale> localeList;
+    private ObjectBinding<Locale> selectedLocale;
 
     @ModelEditor
     private CountryModel model;
@@ -93,20 +98,11 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="countryNameValueLabel"
-    private Label countryNameValueLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="localeComboBox"
+    private ComboBox<Locale> localeComboBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="countryNameComboBox"
-    private ComboBox<CountryModel> countryNameComboBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="nameValidationLabel"
-    private Label nameValidationLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="languageLabel"
-    private Label languageLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="defaultTimeZoneLabel"
-    private Label defaultTimeZoneLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="languageValidationLabel"
+    private Label languageValidationLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="citiesLabel"
     private Label citiesLabel; // Value injected by FXMLLoader
@@ -116,37 +112,14 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML // fx:id="newButtonBar"
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
-    private ObservableObjectDerivitive<CountryModel> selectedCountryName;
 
     public EditCountry() {
-        windowTitle = new ReadOnlyStringWrapper();
-        valid = new ReadOnlyBooleanWrapper();
+        windowTitle = new ReadOnlyStringWrapper("");
+        valid = new ReadOnlyBooleanWrapper(false);
+        modified = new ReadOnlyBooleanWrapper(false);
         itemList = FXCollections.observableArrayList();
-        countryList = FXCollections.observableArrayList();
-        addEventHandler(CityDaoEvent.CITY_DAO_INSERT, (CityDaoEvent event) -> {
-            LOG.info("Caught event!");
-        });
-    }
-
-    private void deleteCity(CityModel item) {
-        if (null != item) {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
-            }
-        }
-    }
-
-    private void openCity(CityModel item) {
-        if (null != item) {
-            try {
-                EditCity.edit(item, getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
-            }
-        }
+        localeList = FXCollections.observableArrayList();
+        Arrays.stream(Locale.getAvailableLocales()).filter((t) -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage())).forEach((t) -> localeList.add(t));
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -199,61 +172,69 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
+    private void deleteCity(CityModel item) {
+        if (null != item) {
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
+            }
+        }
+    }
+
+    private void openCity(CityModel item) {
+        if (null != item) {
+            try {
+                EditCity.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
+        }
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     protected void initialize() {
-        assert countryNameValueLabel != null : "fx:id=\"countryNameValueLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
-        assert countryNameComboBox != null : "fx:id=\"countryNameComboBox\" was not injected: check your FXML file 'EditCountry.fxml'.";
-        assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
-        assert languageLabel != null : "fx:id=\"languageLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
-        assert defaultTimeZoneLabel != null : "fx:id=\"defaultTimeZoneLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert localeComboBox != null : "fx:id=\"localeComboBox\" was not injected: check your FXML file 'EditCountry.fxml'.";
+        assert languageValidationLabel != null : "fx:id=\"languageValidationLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesLabel != null : "fx:id=\"citiesLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesTableView != null : "fx:id=\"citiesTableView\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert newButtonBar != null : "fx:id=\"newButtonBar\" was not injected: check your FXML file 'EditCountry.fxml'.";
-
-    }
-
-    @Override
-    public void onEditNew() {
-        collapseNode(countryNameValueLabel);
-        collapseNode(citiesLabel);
-        collapseNode(citiesTableView);
-        restoreNode(countryNameComboBox);
-        collapseNode(newButtonBar);
-        restoreNode(nameValidationLabel);
-        windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
-        // TODO: Filter out existing items (since we won't be able to add duplicate-named countries, anyway)
-//        PredefinedData.getCountryOptions(null).sorted(CustomerCountry::compare).forEach((c) -> countryList.add(new CountryModel(c)));
-        countryNameComboBox.setItems(countryList);
-        selectedCountryName = ObservableObjectDerivitive.ofSelection(countryNameComboBox);
-        valid.bind(selectedCountryName.isNotNull());
-        languageLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.languageProperty()));
-        //defaultTimeZoneLabel.textProperty().bind(ObservableStringDerivitive.ofNested(selectedCountryName, (t) -> t.defaultTimeZoneDisplayProperty()));
-        nameValidationLabel.visibleProperty().bind(selectedCountryName.isNull());
-//        CountryDAO.PredefinedCountryElement pdc = model.getPredefinedElement();
-//        if (null != pdc) {
-//            String rc = pdc.getLocale().getCountry();
-//            countryList.stream().filter((t) -> t.getPredefinedElement().getLocale().getCountry().equals(rc)).findFirst().ifPresent((t)
-//                    -> countryNameComboBox.getSelectionModel().select(t));
-//        }
-    }
-
-    @Override
-    public void onEditExisting(boolean isInitialize) {
-        if (!isInitialize) {
-            valid.unbind();
-            languageLabel.textProperty().unbind();
-            defaultTimeZoneLabel.textProperty().unbind();
-            nameValidationLabel.visibleProperty().unbind();
+        localeComboBox.setItems(localeList);
+        selectedLocale = Bindings.select(localeComboBox.selectionModelProperty(), "selectedItem");
+        languageValidationLabel.visibleProperty().bind(selectedLocale.isNull());
+        BooleanBinding validationBinding = selectedLocale.isNotNull();
+        validationBinding.addListener((observable, oldValue, newValue) -> {
+            valid.set(newValue);
+        });
+        valid.set(validationBinding.get());
+        BooleanBinding modificationBinding = selectedLocale.isNotEqualTo(model.localeProperty());
+        modificationBinding.addListener((observable, oldValue, newValue) -> {
+            modified.set(newValue);
+        });
+        modified.set(modificationBinding.get());
+        Locale locale = model.getLocale();
+        if (null != locale) {
+            if (!localeList.contains(locale)) {
+                localeList.add(locale);
+            }
+            localeComboBox.getSelectionModel().select(locale);
         }
-        valid.set(true);
-        nameValidationLabel.setVisible(false);
-        restoreLabeled(countryNameValueLabel, model.getName());
-        restoreNode(citiesLabel);
-        restoreNode(citiesTableView);
-        collapseNode(countryNameComboBox);
-        restoreNode(newButtonBar);
-        languageLabel.setText(model.getLanguage());
-        //defaultTimeZoneLabel.setText(model.getDefaultTimeZoneDisplay());
+        if (model.isNewRow()) {
+            collapseNode(citiesLabel);
+            collapseNode(citiesTableView);
+            collapseNode(newButtonBar);
+            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
+        } else {
+            initializeEditMode();
+            WaitTitledPane pane = new WaitTitledPane();
+            pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                    .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+            waitBorderPane.startNow(pane, new ItemsLoadTask());
+        }
+    }
+
+    void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
         sceneProperty().addListener(new InvalidationListener() {
@@ -288,10 +269,14 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 onChange(null != ((ObservableObjectValue<?>) observable).get());
             }
         });
-        WaitTitledPane pane = new WaitTitledPane();
-        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
-                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
-        waitBorderPane.startNow(pane, new ItemsLoadTask());
+    }
+
+    @Override
+    public void onNewModelSaved() {
+        restoreNode(citiesLabel);
+        restoreNode(citiesTableView);
+        restoreNode(newButtonBar);
+        initializeEditMode();
     }
 
     private void onCityAdded(CityDaoEvent event) {
@@ -336,6 +321,16 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @Override
+    public boolean isModified() {
+        return modified.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty modifiedProperty() {
+        return modified.getReadOnlyProperty();
+    }
+
+    @Override
     public String getWindowTitle() {
         return windowTitle.get();
     }
@@ -352,7 +347,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @Override
     public void updateModel() {
-//        model.setPredefinedElement(countryNameComboBox.getSelectionModel().getSelectedItem().getPredefinedElement());
+        model.setLocale(selectedLocale.get());
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {
@@ -370,7 +365,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             List<CityDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 CityModel.Factory factory = CityModel.getFactory();
-                result.stream().sorted(CustomerCity::compare).forEach((t) -> {
+                result.stream().sorted(CityProperties::compare).forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });
             }
@@ -381,7 +376,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CityDAO.FactoryImpl cf = CityDAO.getFactory();
+                CityDAO.FactoryImpl cf = CityDAO.FACTORY;
                 return cf.load(dbConnector.getConnection(), cf.getByCountryFilter(pk));
             }
         }
@@ -414,12 +409,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = CityDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
+                String message = CityDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                CityDAO.getFactory().delete(dao, connector.getConnection());
+                CityDAO.FACTORY.delete(dao, connector.getConnection());
                 if (dao.getRowState() == DataRowState.DELETED) {
                     CityModel.getFactory().updateItem(model, dao);
                 }

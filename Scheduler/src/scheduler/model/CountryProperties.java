@@ -1,15 +1,15 @@
 package scheduler.model;
 
+import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Interface for objects that contain either partial or complete information from the {@code country} database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface CustomerCountry extends Country, DataObject {
+public interface CountryProperties {
 
-    public static String toString(CustomerCountry country) {
+    public static String toString(CountryProperties country) {
         if (null != country) {
             String n = country.getName();
             return (null == n) ? "" : n;
@@ -17,7 +17,7 @@ public interface CustomerCountry extends Country, DataObject {
         return "";
     }
 
-    public static boolean arePropertiesEqual(CustomerCountry a, CustomerCountry b) {
+    public static boolean arePropertiesEqual(CountryProperties a, CountryProperties b) {
         if (null == a) {
             return null == b;
         }
@@ -25,7 +25,7 @@ public interface CustomerCountry extends Country, DataObject {
         return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName()) && Objects.equals(a.getLocale(), b.getLocale())));
     }
 
-    public static int compare(CustomerCountry a, CustomerCountry b) {
+    public static int compare(CountryProperties a, CountryProperties b) {
         if (Objects.equals(a, b)) {
             return 0;
         }
@@ -44,5 +44,19 @@ public interface CustomerCountry extends Country, DataObject {
         }
         return result;
     }
+
+    /**
+     * Gets the name of the current country.
+     *
+     * @return The name of the current country.
+     */
+    String getName();
+
+    /**
+     * Gets the {@link Locale} for the current country.
+     *
+     * @return The {@link Locale} for the current country.
+     */
+    Locale getLocale();
 
 }

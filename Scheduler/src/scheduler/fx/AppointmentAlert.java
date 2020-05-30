@@ -517,7 +517,7 @@ public class AppointmentAlert extends BorderPane {
         private CheckAppointmentsTask(int alertLeadTime) {
             this.alertLeadTime = alertLeadTime;
             user = Objects.requireNonNull(getCurrentUser());
-            factory = AppointmentDAO.getFactory();
+            factory = AppointmentDAO.FACTORY;
         }
 
         @Override

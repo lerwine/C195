@@ -55,8 +55,6 @@ public interface IAppointmentDAO extends DbObject, Appointment<Timestamp> {
         }
         
         s = target.getLocation();
-        String u = target.getUrl();
-        String c = target.getContact();
         
         switch (target.getType()) {
             case CORPORATE_LOCATION:

@@ -564,7 +564,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
         @Override
         public DaoFactory<AppointmentDAO> getDaoFactory() {
-            return AppointmentDAO.getFactory();
+            return AppointmentDAO.FACTORY;
         }
 
         @Override

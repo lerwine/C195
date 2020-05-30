@@ -43,7 +43,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 @DatabaseTable(DbTable.APPOINTMENT)
 public final class AppointmentDAO extends DataAccessObject implements AppointmentDbRecord {
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     /**
      * The name of the 'customer' property.
@@ -449,8 +449,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 }
             };
 
-            dao.customer = CustomerDAO.getFactory().fromJoinedResultSet(rs);
-            dao.user = UserDAO.getFactory().fromJoinedResultSet(rs);
+            dao.customer = CustomerDAO.FACTORY.fromJoinedResultSet(rs);
+            dao.user = UserDAO.FACTORY.fromJoinedResultSet(rs);
             dao.title = asNonNullAndTrimmed(rs.getString(DbColumn.TITLE.toString()));
             dao.description = asNonNullAndTrimmed(rs.getString(DbColumn.DESCRIPTION.toString()));
             dao.location = asNonNullAndTrimmed(rs.getString(DbColumn.LOCATION.toString()));
@@ -676,11 +676,11 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         public void save(AppointmentDAO dao, Connection connection, boolean force) throws SQLException {
             Customer customer = IAppointmentDAO.assertValidAppointment(dao).getCustomer();
             if (customer instanceof CustomerDAO) {
-                CustomerDAO.getFactory().save((CustomerDAO) customer, connection, force);
+                CustomerDAO.FACTORY.save((CustomerDAO) customer, connection, force);
             }
             User user = dao.getUser();
             if (user instanceof UserDAO) {
-                UserDAO.getFactory().save((UserDAO) user, connection, force);
+                UserDAO.FACTORY.save((UserDAO) user, connection, force);
             }
             super.save(dao, connection, force);
         }

@@ -21,7 +21,11 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import scheduler.AppResources;
+import scheduler.SupportedLocale;
+import scheduler.dao.CountryDAO;
 import scheduler.util.LogHelper;
+import scheduler.util.PropertyBindable;
 
 /**
  * Contains static methods for getting pre-defined location and time zone information.
@@ -42,51 +46,22 @@ public class PredefinedData {
     private static Map<String, CorporateCountry> COUNTRY_MAP;
     private static Map<String, CorporateAddress> ADDRESS_MAP;
 
-    private static Map<String, String> LOCALE_DISPLAY_MAP;
-
-    /**
-     * Gets a {@link Map} that maps language tags to country-first display values.
-     *
-     * @return A {@link Map} that maps country codes to a {@link List} of {@link ZoneId}s for that country.
-     */
-    public static Map<String, String> getLocaleDisplayMap() {
-        if (null == LOCALE_DISPLAY_MAP) {
-            HashMap<String, String> map = new HashMap<>();
-            LOCALE_DISPLAY_MAP = Collections.unmodifiableMap(map);
-            HashMap<String, ArrayList<Locale>> localeMap = new HashMap<>();
-            for (Locale locale : Locale.getAvailableLocales()) {
-                String displayCountry = locale.getDisplayCountry();
-                if (!displayCountry.isEmpty()) {
-                    if (localeMap.containsKey(displayCountry)) {
-                        localeMap.get(displayCountry).add(locale);
-                    } else {
-                        ArrayList<Locale> list = new ArrayList<>();
-                        list.add(locale);
-                        localeMap.put(displayCountry, list);
-                    }
+    public static String getLocaleCountryDisplayName(Locale locale, Locale displayLocale) {
+        if (null != locale) {
+            String c = locale.getDisplayCountry(displayLocale);
+            if (!c.isEmpty()) {
+                String d = locale.getDisplayLanguage(displayLocale);
+                if (d.isEmpty()) {
+                    return c;
                 }
+                String v = locale.getDisplayVariant(displayLocale);
+                if (!(v.isEmpty() && (v = locale.getDisplayScript(displayLocale)).isEmpty())) {
+                    return String.format("%s (%s, %s)", c, d, v);
+                }
+                return String.format("%s (%s)", c, d);
             }
-            localeMap.keySet().forEach((t) -> {
-                ArrayList<Locale> locales = localeMap.get(t);
-                if (locales.size() > 1) {
-                    locales.forEach((u) -> {
-                        String v = u.getDisplayVariant();
-                        if (v.isEmpty()) {
-                            v = u.getDisplayScript();
-                        }
-                        if (v.isEmpty()) {
-                            map.put(u.toLanguageTag(), String.format("%s (%s)", u.getDisplayCountry(), u.getDisplayLanguage()));
-                        } else {
-                            map.put(u.toLanguageTag(), String.format("%s (%s, %s)", u.getDisplayCountry(), u.getDisplayLanguage(), v));
-                        }
-                    });
-                } else {
-                    Locale l = locales.get(0);
-                    map.put(l.toLanguageTag(), l.getDisplayCountry());
-                }
-            });
         }
-        return LOCALE_DISPLAY_MAP;
+        return "";
     }
 
     private static void CheckLoadAddresses() {
@@ -97,7 +72,6 @@ public class PredefinedData {
         HashMap<String, CorporateAddress> addressMap = new HashMap<>();
         COUNTRY_MAP = Collections.unmodifiableMap(countryMap);
         ADDRESS_MAP = Collections.unmodifiableMap(addressMap);
-        Map<String, String> displayMap = getLocaleDisplayMap();
         try (InputStream stream = PredefinedData.class.getClassLoader().getResourceAsStream(ADDRESSES_XML_FILE)) {
             if (stream == null) {
                 LOG.log(Level.SEVERE, String.format("File \"%s\" not found.", ADDRESSES_XML_FILE));
@@ -105,10 +79,13 @@ public class PredefinedData {
                 JAXBContext jaxbContext = JAXBContext.newInstance(PredefinedData.class);
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
                 PredefinedData result = (PredefinedData) unmarshaller.unmarshal(stream);
+                SupportedLocale sl = AppResources.getCurrentLocale();
+                Locale displayLocale = sl.getLocale();
                 result.countries.forEach((t) -> {
                     PredefinedCountry predefinedCountry = (PredefinedCountry) t;
                     predefinedCountry.locale = Locale.forLanguageTag(predefinedCountry.languageTag);
-                    predefinedCountry.name = displayMap.get(predefinedCountry.languageTag);
+                    predefinedCountry.displayLocale = sl;
+                    predefinedCountry.name = getLocaleCountryDisplayName(predefinedCountry.locale, displayLocale);
                     String countryMapKey = predefinedCountry.locale.getCountry();
                     countryMap.put(countryMapKey, t);
                     List<CorporateCity> cities = t.getCities();
@@ -188,6 +165,7 @@ public class PredefinedData {
     private static PredefinedData createInstanceJAXB() {
         return new PredefinedData();
     }
+
     @XmlElement(name = CorporateCountry.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
     private List<CorporateCountry> countries;
 
@@ -195,7 +173,7 @@ public class PredefinedData {
         countries = new ArrayList<>();
     }
 
-    public static abstract class PredefinedCountry implements Country {
+    public static abstract class PredefinedCountry extends PropertyBindable implements CountryProperties {
 
         @XmlAttribute
         private String languageTag;
@@ -205,6 +183,8 @@ public class PredefinedData {
 
         @XmlTransient
         private Locale locale;
+
+        private SupportedLocale displayLocale;
 
         @XmlElement(name = CorporateCity.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
         private List<CorporateCity> cities;
@@ -220,6 +200,11 @@ public class PredefinedData {
 
         @Override
         public String getName() {
+            if (!AppResources.getCurrentLocale().equals(displayLocale)) {
+                String oldName = name;
+                name = getLocaleCountryDisplayName(locale, (displayLocale = AppResources.getCurrentLocale()).getLocale());
+                firePropertyChange(CountryDAO.PROP_NAME, oldName, name);
+            }
             return name;
         }
 
@@ -234,7 +219,7 @@ public class PredefinedData {
 
     }
 
-    public static abstract class PredefinedCity implements City {
+    public static abstract class PredefinedCity implements CityProperties {
 
         @XmlAttribute(name = "zoneId")
         private String zoneIdText;
@@ -268,7 +253,7 @@ public class PredefinedData {
 
     }
 
-    public static abstract class PredefinedAddress implements Address {
+    public static abstract class PredefinedAddress implements AddressProperties {
 
         @XmlTransient
         private CorporateCity city;

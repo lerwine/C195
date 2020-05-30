@@ -65,7 +65,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                         cityZipCountry.get(), phone.get()));
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                .and(Bindings.selectBoolean(address, "valid")).and(Bindings.select(address, "rowState").isNotEqualTo(DataRowState.DELETED)));
+                        .and(Bindings.selectBoolean(address, "valid")).and(Bindings.select(address, "rowState").isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -244,7 +244,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
         @Override
         public DaoFactory<CustomerDAO> getDaoFactory() {
-            return CustomerDAO.getFactory();
+            return CustomerDAO.FACTORY;
         }
 
         @Override

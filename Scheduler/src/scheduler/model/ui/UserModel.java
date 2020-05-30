@@ -144,7 +144,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         @Override
         public DaoFactory<UserDAO> getDaoFactory() {
-            return UserDAO.getFactory();
+            return UserDAO.FACTORY;
         }
 
         @Override

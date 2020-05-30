@@ -6,8 +6,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -15,6 +13,7 @@ import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.model.PredefinedData;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
@@ -32,34 +31,34 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return FACTORY;
     }
 
-    private final StringProperty name;
-    private final ReadOnlyStringProperty language;
     private final ObjectProperty<Locale> locale;
+    private final ReadOnlyStringBindingProperty name;
+    private final ReadOnlyStringBindingProperty language;
     private final ReadOnlyBooleanProperty valid;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        name = new SimpleStringProperty(this, "name");
         locale = new SimpleObjectProperty<>(this, "locale");
+        name = new ReadOnlyStringBindingProperty(this, "name", () -> PredefinedData.getLocaleCountryDisplayName(locale.get(),
+                AppResources.getCurrentLocale().getLocale()));
         language = new ReadOnlyStringBindingProperty(this, "language", () -> {
             Locale l = locale.get();
-            return (null == l) ? "" : l.getDisplayLanguage();
+            if (null != l) {
+                String d = l.getDisplayLanguage();
+                if (!d.isEmpty()) {
+                    String v = l.getDisplayVariant();
+                    if (!(v.isEmpty() && (v = l.getDisplayScript()).isEmpty())) {
+                        return String.format("%s (%s)", d, v);
+                    }
+                    return d;
+                }
+            }
+            return "";
         }, locale);
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                .and(language.isNotEmpty()));
-        name.set(dao.getName());
+                        .and(language.isNotEmpty()));
         locale.set(dao.getLocale());
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
     }
 
     @Override
@@ -67,23 +66,9 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return name.get();
     }
 
-    public void setName(String value) {
-        name.set(value);
-    }
-
     @Override
-    public StringProperty nameProperty() {
+    public ReadOnlyStringProperty nameProperty() {
         return name;
-    }
-
-    @Override
-    public String getLanguage() {
-        return language.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty languageProperty() {
-        return language;
     }
 
     @Override
@@ -100,6 +85,26 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         return locale;
     }
 
+    @Override
+    public String getLanguage() {
+        return language.get();
+    }
+
+    @Override
+    public ReadOnlyStringProperty languageProperty() {
+        return language;
+    }
+
+    @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid;
+    }
+
     public final static class Factory extends FxRecordModel.ModelFactory<CountryDAO, CountryModel> {
 
         // Singleton
@@ -111,7 +116,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
         @Override
         public DaoFactory<CountryDAO> getDaoFactory() {
-            return CountryDAO.getFactory();
+            return CountryDAO.FACTORY;
         }
 
         @Override
@@ -122,14 +127,12 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         @Override
         public CountryDAO updateDAO(CountryModel item) {
             CountryDAO dataObject = item.dataObject();
-            dataObject.setName(item.getName());
             dataObject.setLocale(item.getLocale());
             return dataObject;
         }
 
         @Override
         protected void updateItemProperties(CountryModel item, CountryDAO dao) {
-            item.name.set(dao.getName());
             item.locale.set(dao.getLocale());
         }
 

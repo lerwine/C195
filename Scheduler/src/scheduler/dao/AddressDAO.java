@@ -26,8 +26,8 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.model.CustomerAddress;
-import scheduler.model.CustomerCity;
+import scheduler.model.Address;
+import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -42,7 +42,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 @DatabaseTable(DbTable.ADDRESS)
 public final class AddressDAO extends DataAccessObject implements AddressDbRecord {
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static final int MAX_LENGTH_ADDRESS1 = 50;
 
@@ -76,10 +76,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * The name of the 'phone' property.
      */
     public static final String PROP_PHONE = "phone";
-
-    public static FactoryImpl getFactory() {
-        return FACTORY;
-    }
 
     private String address1;
     private String address2;
@@ -199,7 +195,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     @Override
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof CustomerAddress && ModelHelper.areSameRecord(this, (CustomerAddress) obj);
+        return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
     }
 
     @Override
@@ -283,7 +279,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         public void save(AddressDAO dao, Connection connection, boolean force) throws SQLException {
             ICityDAO city = IAddressDAO.assertValidAddress(dao).city;
             if (city instanceof CityDAO) {
-                CityDAO.getFactory().save(((CityDAO) city), connection);
+                CityDAO.FACTORY.save(((CityDAO) city), connection);
             }
             super.save(dao, connection, force);
         }
@@ -292,7 +288,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         protected void onCloneProperties(AddressDAO fromDAO, AddressDAO toDAO) {
             String oldAddress1 = toDAO.address1;
             String oldAddress2 = toDAO.address2;
-            CustomerCity oldCity = toDAO.city;
+            City oldCity = toDAO.city;
             String oldPostalCode = toDAO.postalCode;
             String oldPhone = toDAO.phone;
             toDAO.address1 = fromDAO.address1;
@@ -312,7 +308,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldAddress1 = dao.address1;
                 private final String oldAddress2 = dao.address2;
-                private final CustomerCity oldCity = dao.city;
+                private final City oldCity = dao.city;
                 private final String oldPostalCode = dao.postalCode;
                 private final String oldPhone = dao.phone;
 
@@ -328,7 +324,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
             dao.address1 = asNonNullAndWsNormalized(rs.getString(DbColumn.ADDRESS1.toString()));
             dao.address2 = asNonNullAndWsNormalized(rs.getString(DbColumn.ADDRESS2.toString()));
-            dao.city = CityDAO.getFactory().fromJoinedResultSet(rs);
+            dao.city = CityDAO.FACTORY.fromJoinedResultSet(rs);
             dao.postalCode = asNonNullAndWsNormalized(rs.getString(DbColumn.POSTAL_CODE.toString()));
             dao.phone = asNonNullAndWsNormalized(rs.getString(DbColumn.PHONE.toString()));
             return propertyChanges;
@@ -338,7 +334,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return new Related(resultSet.getInt(DbColumn.CUSTOMER_ADDRESS.toString()),
                     asNonNullAndWsNormalized(resultSet.getString(DbColumn.ADDRESS1.toString())),
                     asNonNullAndWsNormalized(resultSet.getString(DbColumn.ADDRESS2.toString())),
-                    CityDAO.getFactory().fromJoinedResultSet(resultSet),
+                    CityDAO.FACTORY.fromJoinedResultSet(resultSet),
                     asNonNullAndWsNormalized(resultSet.getString(DbColumn.POSTAL_CODE.toString())),
                     asNonNullAndWsNormalized(resultSet.getString(DbColumn.PHONE.toString())));
         }
@@ -354,7 +350,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 return "";
             }
 
-            int count = CustomerDAO.getFactory().countByAddress(connection, dao.getPrimaryKey());
+            int count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
             // PENDING: Internationalize these
             switch (count) {
                 case 0:
@@ -510,7 +506,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public boolean equals(Object obj) {
-            return null != obj && obj instanceof CustomerAddress && ModelHelper.areSameRecord(this, (CustomerAddress) obj);
+            return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
         }
 
     }

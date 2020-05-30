@@ -1,12 +1,8 @@
 package scheduler.model;
 
-import com.sun.javafx.binding.ExpressionHelper;
 import java.util.Objects;
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import scheduler.dao.DataRowState;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.DataRowState;
 import scheduler.model.ui.FxRecordModel;
 
 /**
@@ -15,46 +11,6 @@ import scheduler.model.ui.FxRecordModel;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class ModelHelper {
-
-    final static ReadOnlyBooleanProperty VALIDPROPERTY = new ReadOnlyBooleanProperty() {
-        private ExpressionHelper<Boolean> helper = null;
-
-        @Override
-        public boolean get() {
-            return true;
-        }
-
-        @Override
-        public void addListener(ChangeListener<? super Boolean> listener) {
-            helper = ExpressionHelper.addListener(helper, this, listener);
-        }
-
-        @Override
-        public void removeListener(ChangeListener<? super Boolean> listener) {
-            helper = ExpressionHelper.removeListener(helper, listener);
-        }
-
-        @Override
-        public void addListener(InvalidationListener listener) {
-            helper = ExpressionHelper.addListener(helper, this, listener);
-        }
-
-        @Override
-        public void removeListener(InvalidationListener listener) {
-            helper = ExpressionHelper.removeListener(helper, listener);
-        }
-
-        @Override
-        public Object getBean() {
-            return null;
-        }
-
-        @Override
-        public String getName() {
-            return "valid";
-        }
-
-    };
 
     /**
      * Tests whether two {@link DataObject} objects represent the same database entity.
@@ -80,23 +36,23 @@ public class ModelHelper {
             }
         } else if (!existsInDatabase(b)) {
             if (a instanceof Appointment) {
-                return b instanceof Appointment && Appointment.arePropertiesEqual((Appointment) a, (Appointment) b);
+                return b instanceof Appointment && Appointment.arePropertiesEqual((Appointment<?>) a, (Appointment<?>) b);
             }
 
             if (a instanceof Customer) {
                 return b instanceof Customer && Customer.arePropertiesEqual((Customer) a, (Customer) b);
             }
 
-            if (a instanceof CustomerAddress) {
-                return b instanceof CustomerAddress && CustomerAddress.arePropertiesEqual((CustomerAddress) a, (CustomerAddress) b);
+            if (a instanceof AddressProperties) {
+                return b instanceof AddressProperties && AddressProperties.arePropertiesEqual((AddressProperties) a, (AddressProperties) b);
             }
 
-            if (a instanceof CustomerCity) {
-                return b instanceof CustomerCity && CustomerCity.arePropertiesEqual((CustomerCity) a, (CustomerCity) b);
+            if (a instanceof CityProperties) {
+                return b instanceof CityProperties && CityProperties.arePropertiesEqual((CityProperties) a, (CityProperties) b);
             }
 
-            if (a instanceof CustomerCountry) {
-                return b instanceof CustomerCountry && CustomerCountry.arePropertiesEqual((CustomerCountry) a, (CustomerCountry) b);
+            if (a instanceof CountryProperties) {
+                return b instanceof CountryProperties && CountryProperties.arePropertiesEqual((CountryProperties) a, (CountryProperties) b);
             }
 
             if (a instanceof User) {
@@ -107,12 +63,11 @@ public class ModelHelper {
     }
 
     /**
-     * Gets the primary key value for a {@link DataObject} object. If the target object has never been saved to the database or if it has been deleted,
-     * then this will return {@link Integer#MIN_VALUE}.
+     * Gets the primary key value for a {@link DataObject} object. If the target object has never been saved to the database or if it has been
+     * deleted, then this will return {@link Integer#MIN_VALUE}.
      *
      * @param obj The target {@link DataObject} object.
-     * @return The value from {@link DataObject#getPrimaryKey()} or {@link Integer#MIN_VALUE} if the object does not have a valid primary key
-     * value.
+     * @return The value from {@link DataObject#getPrimaryKey()} or {@link Integer#MIN_VALUE} if the object does not have a valid primary key value.
      */
     public static int getPrimaryKey(DataObject obj) {
         if (existsInDatabase(obj)) {
@@ -124,7 +79,7 @@ public class ModelHelper {
     public static boolean existsInDatabase(DataObject obj) {
         if (null != obj) {
             if (obj instanceof DataRecord) {
-                switch (((DataRecord) obj).getRowState()) {
+                switch (((DataRecord<?>) obj).getRowState()) {
                     case MODIFIED:
                     case UNMODIFIED:
                         return true;
@@ -147,7 +102,7 @@ public class ModelHelper {
      * @return The target {@link FxRecordModel}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>> U requiredAssignable(T source, U targetFxModel) {
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>> U requiresAssignable(T source, U targetFxModel) {
         Objects.requireNonNull(source);
         if (null != targetFxModel && targetFxModel.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
                 || targetFxModel.getPrimaryKey() != source.getPrimaryKey())) {
@@ -166,7 +121,7 @@ public class ModelHelper {
      * @return The target {@link DataAccessObject}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends FxRecordModel<U>, U extends DataAccessObject> U requiredAssignable(T source, U targetDataAccessObject) {
+    public static <T extends FxRecordModel<U>, U extends DataAccessObject> U requiresAssignable(T source, U targetDataAccessObject) {
         Objects.requireNonNull(source);
         if (null != targetDataAccessObject && targetDataAccessObject.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
                 || targetDataAccessObject.getPrimaryKey() != source.getPrimaryKey())) {

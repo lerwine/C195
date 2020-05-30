@@ -1,7 +1,6 @@
 package scheduler.observables;
 
 import java.util.Objects;
-import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 import scheduler.util.Tuple;
 

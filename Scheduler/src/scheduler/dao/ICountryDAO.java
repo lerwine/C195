@@ -1,16 +1,13 @@
 package scheduler.dao;
 
 import java.util.Locale;
-import java.util.Map;
-import javafx.collections.ObservableMap;
-import scheduler.model.CustomerCountry;
-import scheduler.model.PredefinedData;
+import scheduler.model.Country;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ICountryDAO extends DbObject, CustomerCountry {
+public interface ICountryDAO extends DbObject, Country {
 
     public static <T extends ICountryDAO> T assertValidCountry(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
@@ -29,12 +26,11 @@ public interface ICountryDAO extends DbObject, CustomerCountry {
             throw new IllegalStateException("Locale not defined");
         }
 
-        String lt = locale.toLanguageTag();
-        if ((name.length() + lt.length() + 1) > CountryDAO.MAX_LENGTH_NAME) {
-            Map<String, String> localeDisplayMap = PredefinedData.getLocaleDisplayMap();
-            if (!localeDisplayMap.containsKey(lt) || !name.equals(localeDisplayMap.get(lt))) {
-                throw new IllegalStateException("Name too long");
-            }
+        if (locale.getDisplayCountry().isEmpty()) {
+            throw new IllegalStateException("Locale does not specify a country");
+        }
+        if (locale.getDisplayLanguage().isEmpty()) {
+            throw new IllegalStateException("Locale does not specify a language");
         }
 
         return target;

@@ -21,6 +21,7 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.MainListingControl;
+import scheduler.model.CountryProperties;
 import scheduler.model.ui.CountryModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -31,7 +32,6 @@ import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.country.ManageCountriesResourceKeys.*;
-import scheduler.model.CustomerCountry;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
@@ -79,7 +79,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected Comparator<? super CountryDAO> getComparator() {
-        return CustomerCountry::compare;
+        return CountryProperties::compare;
     }
 
     @Override
@@ -166,12 +166,12 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = CountryDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
+                String message = CountryDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                CountryDAO.getFactory().delete(dao, connector.getConnection());
+                CountryDAO.FACTORY.delete(dao, connector.getConnection());
                 if (dao.getRowState() == DataRowState.DELETED) {
                     CountryModel.getFactory().updateItem(model, dao);
                 }

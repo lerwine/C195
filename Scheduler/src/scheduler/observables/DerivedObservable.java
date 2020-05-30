@@ -1,7 +1,6 @@
 package scheduler.observables;
 
 import com.sun.javafx.binding.ExpressionHelper;
-import java.util.function.Function;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

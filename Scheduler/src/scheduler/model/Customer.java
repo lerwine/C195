@@ -53,9 +53,9 @@ public interface Customer extends DataObject {
     boolean isActive();
 
     /**
-     * Gets the {@link CustomerAddress} for the current customer. This corresponds to the "address" data row referenced by the "addressId" database column.
+     * Gets the {@link Address} for the current customer. This corresponds to the "address" data row referenced by the "addressId" database column.
      *
-     * @return The {@link CustomerAddress} for the current customer.
+     * @return The {@link Address} for the current customer.
      */
-    CustomerAddress getAddress();
+    Address getAddress();
 }

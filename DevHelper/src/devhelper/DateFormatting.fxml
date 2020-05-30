@@ -15,8 +15,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
-
-<GridPane stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.DateFormattingController">
+<fx:root stylesheets="@defaultStyles.css" type="GridPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <columnConstraints>
       <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
       <ColumnConstraints hgrow="SOMETIMES" />
@@ -97,4 +96,4 @@
       <TextArea fx:id="formatStringTextArea" styleClass="collapsed" GridPane.columnIndex="1" GridPane.columnSpan="7" GridPane.rowIndex="6" />
       <Label fx:id="formatStringLabel" styleClass="collapsed" text="Format String:" GridPane.rowIndex="6" />
    </children>
-</GridPane>
+</fx:root>

@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -231,7 +229,7 @@ public final class Scheduler extends Application {
             try (DbConnector dbConnector = new DbConnector()) {
                 LOG.fine(() -> String.format("Looking up %s", userName));
                 Platform.runLater(() -> updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB)));
-                result = UserDAO.getFactory().findByUserName(dbConnector.getConnection(), userName);
+                result = UserDAO.FACTORY.findByUserName(dbConnector.getConnection(), userName);
                 if (result.isPresent()) {
                     // The password string stored in the database is a base-64 string that contains a cryptographic hash of the password
                     // along with the cryptographic seed. A hash will be created from password argument using the same cryptographic seed

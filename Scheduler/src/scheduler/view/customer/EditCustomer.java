@@ -87,6 +87,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
 
     private final ObservableList<String> unavailableNames;
@@ -192,8 +193,9 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private AddressPicker addressPicker;
 
     public EditCustomer() {
-        windowTitle = new ReadOnlyStringWrapper();
-        valid = new ReadOnlyBooleanWrapper();
+        windowTitle = new ReadOnlyStringWrapper("");
+        valid = new ReadOnlyBooleanWrapper(false);
+        modified = new ReadOnlyBooleanWrapper(false);
         unavailableNames = FXCollections.observableArrayList();
         customerAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
@@ -330,6 +332,16 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @Override
+    public boolean isModified() {
+        return modified.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty modifiedProperty() {
+        return modified.getReadOnlyProperty();
+    }
+
+    @Override
     public String getWindowTitle() {
         return windowTitle.get();
     }
@@ -345,13 +357,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @Override
-    public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditNew
-    }
-
-    @Override
-    public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onEditExisting
+    public void onNewModelSaved() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#applyEditMode
     }
 
     @Override
@@ -449,17 +456,17 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CustomerDAO.FactoryImpl uf = CustomerDAO.getFactory();
+                CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
                 customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
-                CityDAO.FactoryImpl tf = CityDAO.getFactory();
+                CityDAO.FactoryImpl tf = CityDAO.FACTORY;
                 cities = MapHelper.toMap(tf.load(dbConnector.getConnection(), tf.getAllItemsFilter()), CityDAO::getName);
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
-                CountryDAO.FactoryImpl nf = CountryDAO.getFactory();
+                CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
                 countries = MapHelper.toMap(nf.load(dbConnector.getConnection(), nf.getAllItemsFilter()), CountryDAO::getName);
                 if (null != filter) {
                     updateMessage(resources.getString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-                    AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                    AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                     return af.load(dbConnector.getConnection(), filter);
                 }
             }
@@ -494,7 +501,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 return af.load(dbConnector.getConnection(), filter);
             }
         }
@@ -527,12 +534,12 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
+                String message = AppointmentDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                AppointmentDAO.getFactory().delete(dao, connector.getConnection());
+                AppointmentDAO.FACTORY.delete(dao, connector.getConnection());
                 if (dao.getRowState() == DataRowState.DELETED) {
                     AppointmentModel.getFactory().updateItem(model, dao);
                 }

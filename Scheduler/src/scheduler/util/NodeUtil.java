@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -54,8 +52,6 @@ import scheduler.view.SymbolText;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class NodeUtil {
-
-    private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
 
     private static void addCssClass(ObservableList<String> styleClass, String name) {
         if (!styleClass.contains(name)) {

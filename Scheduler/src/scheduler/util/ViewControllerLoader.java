@@ -22,7 +22,7 @@ public class ViewControllerLoader {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINER);
 
-    private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
+    // private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
 
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
             ResourceBundle resourceBundle) throws IOException {

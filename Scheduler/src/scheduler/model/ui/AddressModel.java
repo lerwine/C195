@@ -17,8 +17,8 @@ import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.CustomerCity;
-import scheduler.model.CustomerCountry;
+import scheduler.model.City;
+import scheduler.model.Country;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -80,11 +80,11 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 : String.format("%s %s, %s", city, postalCode, country);
     }
 
-    public static String calculateCityZipCountry(CustomerCity city, String postalCode) {
+    public static String calculateCityZipCountry(City city, String postalCode) {
         if (null == city) {
             return calculateCityZipCountry("", "", postalCode);
         }
-        CustomerCountry country = city.getCountry();
+        Country country = city.getCountry();
         return calculateCityZipCountry(city.getName(), (null == country) ? "" : country.getName(), postalCode);
     }
 
@@ -366,7 +366,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         @Override
         public DaoFactory<AddressDAO> getDaoFactory() {
-            return AddressDAO.getFactory();
+            return AddressDAO.FACTORY;
         }
 
         @Override

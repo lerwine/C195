@@ -38,6 +38,7 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.dao.IUserDAO;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
@@ -356,7 +357,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                                 }
                                 return "";
                             case APPOINTMENT_USER:
-                                UserItem user = item.getUser();
+                                UserItem<? extends IUserDAO> user = item.getUser();
                                 return (null == user) ? "" : numberFormat.format(user.getPrimaryKey());
                             case USER_NAME:
                                 return item.getUserName();
@@ -544,12 +545,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = AppointmentDAO.getFactory().getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
+                String message = AppointmentDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                AppointmentDAO.getFactory().delete(dao, connector.getConnection());
+                AppointmentDAO.FACTORY.delete(dao, connector.getConnection());
                 if (dao.getRowState() == DataRowState.DELETED) {
                     AppointmentModel.getFactory().updateItem(model, dao);
                 }

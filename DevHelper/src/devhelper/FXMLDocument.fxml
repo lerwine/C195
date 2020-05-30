@@ -2,7 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
@@ -11,6 +10,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
@@ -18,89 +18,13 @@
 
 <TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" stylesheets="@defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="devhelper.FXMLDocumentController">
     <tabs>
+      <Tab fx:id="resourceBundlesTab" text="Resource Bundles">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+        </content>
+      </Tab>
       <Tab fx:id="dateFormattingTab" text="Date Formatting" />
-        <Tab text="Language Tag">
-         <content>
-            <VBox prefHeight="200.0" prefWidth="100.0">
-               <children>
-                  <Label text="Language Tag" />
-                  <TextField fx:id="languageTagInputTextBox" />
-                  <ButtonBar prefHeight="40.0" prefWidth="200.0">
-                    <buttons>
-                      <Button mnemonicParsing="false" onAction="#forLanguageTagButtonClick" text="Parse" />
-                    </buttons>
-                  </ButtonBar>
-                  <GridPane>
-                    <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints minHeight="17.0" vgrow="SOMETIMES" />
-                      <RowConstraints minHeight="25.0" vgrow="SOMETIMES" />
-                      <RowConstraints minHeight="17.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="25.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="17.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="25.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="17.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="25.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="17.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="25.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="17.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="25.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="17.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="25.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                     <children>
-                        <Label text="Country" />
-                        <TextField fx:id="countryTextBox" editable="false" GridPane.rowIndex="1" />
-                        <Label text="Language" GridPane.columnIndex="1" />
-                        <TextField fx:id="languageTextBox" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label text="Variant" GridPane.columnIndex="2" />
-                        <TextField fx:id="variantTextBox" editable="false" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <Label text="Script" GridPane.columnIndex="3" />
-                        <TextField fx:id="scriptTextBox" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                        <Label text="ISO3Country" GridPane.rowIndex="2" />
-                        <TextField fx:id="iso3CountryTextBox" editable="false" GridPane.rowIndex="3" />
-                        <Label text="ISO3Language" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <TextField fx:id="iso3LanguageTextBox" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Label text="LanguageTag" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                        <TextField fx:id="languageTagTextBox" editable="false" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                        <Label text="String" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                        <TextField fx:id="stringTextBox" GridPane.columnIndex="3" GridPane.rowIndex="3" />
-                        
-                        <Label text="DisplayCountry" GridPane.rowIndex="4" />
-                        <TextField fx:id="displayCountryTextBox" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="5" />
-                        <Label text="(in locale)" GridPane.columnIndex="2" GridPane.rowIndex="4" />
-                        <TextField fx:id="displayCountryInLocaleTextBox" editable="false" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="5" />
-                        
-                        <Label text="DisplayLanguage" GridPane.rowIndex="6" />
-                        <TextField fx:id="displayLanguageTextBox" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="7" />
-                        <Label text="(in locale)" GridPane.columnIndex="2" GridPane.rowIndex="6" />
-                        <TextField fx:id="displayLanguageInLocaleTextBox" editable="false" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="7" />
-                        
-                        <Label text="DisplayName" GridPane.rowIndex="8" />
-                        <TextField fx:id="displayNameTextBox" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-                        <Label text="(in locale)" GridPane.columnIndex="2" GridPane.rowIndex="8" />
-                        <TextField fx:id="displayNameInLocaleTextBox" editable="false" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-                        
-                        <Label text="DisplayScript" GridPane.rowIndex="10" />
-                        <TextField fx:id="displayScriptTextBox" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="11" />
-                        <Label text="(in locale)" GridPane.columnIndex="2" GridPane.rowIndex="10" />
-                        <TextField fx:id="displayScriptInLocaleTextBox" editable="false" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="11" />
-                        
-                        <Label text="DisplayVariant" GridPane.rowIndex="12" />
-                        <TextField fx:id="displayVariantTextBox" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="13" />
-                        <Label text="(in locale)" GridPane.columnIndex="2" GridPane.rowIndex="12" />
-                        <TextField fx:id="displayVariantInLocaleTextBox" editable="false" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="13" />
-                        
-                     </children>
-                  </GridPane>
-               </children>
-            </VBox>
-         </content></Tab>
+        <Tab fx:id="languageTagTab" text="Language Tag" />
         <Tab text="Password">
          <content>
             <VBox prefHeight="200.0" prefWidth="100.0">
@@ -120,100 +44,7 @@
                </padding>
             </VBox>
          </content></Tab>
-        <Tab text="Locales">
-            <content>
-                <VBox>
-                    <children>
-                        <GridPane>
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                            </columnConstraints>
-                            <rowConstraints>
-                                <RowConstraints minHeight="17.0" prefHeight="17.0" />
-                                <RowConstraints minHeight="25.0" prefHeight="25.0" valignment="TOP" vgrow="ALWAYS" />
-                            </rowConstraints>
-                            <children>
-                                <Label text="2-Letter Codes" />
-                                <ComboBox fx:id="twoLetterCountryCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                                <Label text="3-Letter Codes" GridPane.columnIndex="1" />
-                                <ComboBox fx:id="threeLetterCountryCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                                <Label text="ISO 3 Codes" GridPane.columnIndex="2" />
-                                <ComboBox fx:id="iso3CountryCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                                <Label text="Script Codes" GridPane.columnIndex="3" />
-                                <ComboBox fx:id="scriptCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-                            </children>
-                        </GridPane>
-                        <TableView fx:id="availableLocalesTableView" editable="false" maxHeight="1.7976931348623157E308" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn editable="false" prefWidth="60.0" text="displayName">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="displayName" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" prefWidth="60.0" text="displayCountry">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="displayCountry" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" text="displayLanguage">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="displayLanguage" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" prefWidth="60.0" text="displayScript" visible="false">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="displayScript" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" prefWidth="60.0" text="displayVariant">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="displayVariant" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" prefWidth="100.0" text="country">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="country" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" prefWidth="100.0" text="iSO3Country" visible="false">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="iSO3Country" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn fx:id="languageTagTableColumn" editable="false" prefWidth="100.0" text="languageTag" />
-                                <TableColumn editable="false" prefWidth="100.0" text="language">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="language" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" prefWidth="100.0" text="iSO3Language">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="iSO3Language" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" text="script" visible="false">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="script" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn editable="false" text="variant">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="variant" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn fx:id="localeToStringTableColumn" editable="false" text="String" />
-                            </columns>
-                        </TableView>
-                    </children>
-               <padding>
-                  <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-               </padding>
-                </VBox>
-            </content>
-        </Tab>
+        <Tab fx:id="localesTab" text="Locales" />
         <Tab text="Time Zones">
             <content>
                 <VBox>
@@ -231,11 +62,11 @@
                             </rowConstraints>
                             <children>
                                 <Label text="2-Letter Codes" />
-                                <ComboBox fx:id="twoLetterLanguageCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                <ComboBox fx:id="twoLetterLanguageCodesComboBox" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
                                 <Label text="3-Letter Codes" GridPane.columnIndex="1" />
-                                <ComboBox fx:id="threeLetterLanguageCodesComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                <ComboBox fx:id="threeLetterLanguageCodesComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
                                 <Label text="Language Tags" GridPane.columnIndex="2" />
-                                <ComboBox fx:id="languageTagsComboBox" maxWidth="1.7976931348623157E308" onAction="#localeComboBoxChanged" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                <ComboBox fx:id="languageTagsComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
                             </children>
                         </GridPane>
                         <TableView fx:id="timeZonesTableView" editable="false" maxHeight="1.7976931348623157E308" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">

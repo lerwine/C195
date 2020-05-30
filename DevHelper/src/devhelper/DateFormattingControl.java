@@ -1,20 +1,21 @@
 package devhelper;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import javafx.collections.FXCollections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -26,16 +27,14 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
-public class DateFormattingController {
+public class DateFormattingControl extends GridPane {
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
-    @FXML // URL location of the FXML file that was given to the FXMLLoader
-    private URL location;
 
     @FXML // fx:id="dateTimeRadioButton"
     private RadioButton dateTimeRadioButton; // Value injected by FXMLLoader
@@ -103,15 +102,29 @@ public class DateFormattingController {
     @FXML // fx:id="formatStringLabel"
     private Label formatStringLabel; // Value injected by FXMLLoader
 
+    @SuppressWarnings("LeakingThisInConstructor")
+    public DateFormattingControl() {
+        FXMLLoader loader = new FXMLLoader(LanguageTagParseControl.class.getResource("/devhelper/DateFormatting.fxml"), null);
+        loader.setController(this);
+        loader.setRoot(this);
+        try {
+            loader.load();
+        } catch (IOException ex) {
+            Logger.getLogger(DateFormattingControl.class.getName()).log(Level.SEVERE, "Error loading devhelper/DateFormatting.fxml", ex);
+        }
+    }
+
     @FXML
     void onFormatterComboBoxAction(ActionEvent event) {
         ObservableList<String> styleClass = formatterComboBox.getStyleClass();
         if (formatterComboBox.getValue().isFormatTextAreaDisabled()) {
-            if (!styleClass.contains("collapse"))
+            if (!styleClass.contains("collapse")) {
                 styleClass.add("collapse");
+            }
             styleClass = formatStringLabel.getStyleClass();
-            if (!styleClass.contains("collapse"))
+            if (!styleClass.contains("collapse")) {
                 styleClass.add("collapse");
+            }
         } else {
             styleClass.remove("collapse");
             formatStringLabel.getStyleClass().remove("collapse");
@@ -130,17 +143,17 @@ public class DateFormattingController {
         LocalTime localTime;
         try {
             if (dateOnlyRadioButton.isSelected()) {
-                LocalDate localDate = (LocalDate)formatter.parse(temporarStringTextArea.getText());
+                LocalDate localDate = (LocalDate) formatter.parse(temporarStringTextArea.getText());
                 yearSpinner.getValueFactory().setValue(localDate.getYear());
                 monthSpinner.getValueFactory().setValue(localDate.getMonthValue());
                 daySpinner.getValueFactory().setValue(localDate.getDayOfMonth());
                 return;
             }
-            
+
             if (timeOnlyRadioButton.isSelected()) {
-                localTime = (LocalTime)formatter.parse(temporarStringTextArea.getText());
+                localTime = (LocalTime) formatter.parse(temporarStringTextArea.getText());
             } else {
-                LocalDateTime localDateTime = (LocalDateTime)formatter.parse(temporarStringTextArea.getText());
+                LocalDateTime localDateTime = (LocalDateTime) formatter.parse(temporarStringTextArea.getText());
                 yearSpinner.getValueFactory().setValue(localDateTime.getYear());
                 monthSpinner.getValueFactory().setValue(localDateTime.getMonthValue());
                 daySpinner.getValueFactory().setValue(localDateTime.getDayOfMonth());
@@ -159,7 +172,7 @@ public class DateFormattingController {
             alert.setTitle("Parse error");
             alert.initModality(Modality.APPLICATION_MODAL);
             alert.initStyle(StageStyle.UTILITY);
-            alert.initOwner(((Button)event.getSource()).getScene().getWindow());
+            alert.initOwner(((Button) event.getSource()).getScene().getWindow());
             alert.showAndWait();
         }
     }
@@ -173,18 +186,20 @@ public class DateFormattingController {
             temporal = LocalDate.of(yearSpinner.getValue(), monthSpinner.getValue(), daySpinner.getValue());
         } else {
             LocalTime localTime;
-            if (milllisecondsRadioButton.isSelected())
+            if (milllisecondsRadioButton.isSelected()) {
                 localTime = LocalTime.of(hourSpinner.getValue(), minuteSpinner.getValue(), secondSpinner.getValue(), millisecondSpinner.getValue());
-            else if (secondsRadioButton.isSelected())
+            } else if (secondsRadioButton.isSelected()) {
                 localTime = LocalTime.of(hourSpinner.getValue(), minuteSpinner.getValue(), secondSpinner.getValue());
-            else
+            } else {
                 localTime = LocalTime.of(hourSpinner.getValue(), minuteSpinner.getValue());
-            if (timeOnlyRadioButton.isSelected())
+            }
+            if (timeOnlyRadioButton.isSelected()) {
                 temporal = localTime;
-            else
+            } else {
                 temporal = LocalDateTime.of(LocalDate.of(yearSpinner.getValue(), monthSpinner.getValue(), daySpinner.getValue()), localTime);
+            }
         }
-        
+
         temporarStringTextArea.setText(formatter.format(temporal));
     }
 
@@ -233,15 +248,16 @@ public class DateFormattingController {
         daySpinner.setValueFactory(daySpinnerValueFactory);
         monthSpinnerValueFactory.valueProperty().addListener((observable, oldValue, newValue) -> {
             int max = LocalDate.of(yearSpinner.getValue(), monthSpinner.getValue(), 1).plusMonths(1).minusDays(1).getDayOfMonth();
-            if (daySpinner.getValue() > max)
+            if (daySpinner.getValue() > max) {
                 daySpinnerValueFactory.setValue(max);
+            }
             daySpinnerValueFactory.setMax(max);
         });
         hourSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, now.getHour()));
         minuteSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, now.getMinute()));
         secondSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, now.getSecond()));
         millisecondSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 999, now.getNano()));
-        
+
         dateTimeBuildToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == dateOnlyRadioButton) {
                 hourSpinner.setDisable(true);
@@ -274,7 +290,7 @@ public class DateFormattingController {
             monthSpinner.setDisable(false);
             daySpinner.setDisable(false);
         });
-        
+
         timeBuildToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (dateOnlyRadioButton.isSelected()) {
                 return;
@@ -291,5 +307,5 @@ public class DateFormattingController {
             secondSpinner.setDisable(false);
         });
     }
-    
+
 }

@@ -7,14 +7,14 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CityDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.model.CustomerCity;
+import scheduler.model.City;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface CityItem<T extends ICityDAO> extends CustomerCity, FxDbModel<T> {
+public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
     public static CityItem<? extends ICityDAO> createModel(ICityDAO t) {
         if (null == t) {

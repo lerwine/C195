@@ -13,17 +13,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import scheduler.util.Tuple;
 import scheduler.util.Values;
 
 /**
  * Parsed contents of the zone1970.tab file which maps ISO 3166 2-character country codes to time zones included within that country.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class RegionTable extends AbstractSet<RegionTable.Row> {
@@ -33,8 +34,8 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
 
     public static RegionTable INSTANCE = new RegionTable();
 
-    public static Set<ZoneId> getZonesForCountry(String countryId) {
-        Map<String, Set<ZoneId>> map = INSTANCE.countryZoneIdsMap;
+    public static Set<TimeZone> getZonesForCountry(String countryId) {
+        Map<String, Set<TimeZone>> map = INSTANCE.countryZoneIdsMap;
         return (map.containsKey(countryId)) ? map.get(countryId) : Collections.emptySet();
     }
 
@@ -43,7 +44,7 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
         return (map.containsKey(zoneId)) ? map.get(zoneId) : Collections.emptySet();
     }
 
-    public static Map<String, Set<ZoneId>> getCountryZoneIdMap() {
+    public static Map<String, Set<TimeZone>> getCountryZoneIdMap() {
         return INSTANCE.countryZoneIdsMap;
     }
 
@@ -69,7 +70,7 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
                 try (InputStreamReader isr = new InputStreamReader(stream)) {
                     try (BufferedReader reader = new BufferedReader(isr)) {
                         String line;
-                        HashMap<String, ZoneId> zMap = new HashMap<>();
+                        HashMap<String, Tuple<HashSet<String>, ZoneId>> zMap = new HashMap<>();
                         while (null != (line = reader.readLine())) {
                             if (line.isEmpty() || line.charAt(0) != '#') {
                                 continue;
@@ -80,10 +81,9 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
                             }
                             String id = cols.get(2);
                             ZoneId zoneId;
-                            ZoneIdEntry zoneIdEntry;
+                            Tuple<HashSet<String>, ZoneId> tzs;
                             if (zMap.containsKey(id)) {
-                                zoneId = zMap.get(id);
-                                zoneIdEntry = (ZoneIdEntry) zoneIdCountriesMap.get(id);
+                                tzs = zMap.get(id);
                             } else {
                                 try {
                                     zoneId = ZoneId.of(id);
@@ -91,28 +91,29 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
                                     LOG.log(Level.WARNING, ex, () -> String.format("Zone id %s not found", id));
                                     zoneId = null;
                                 }
-                                zMap.put(id, zoneId);
-                                zoneIdEntry = new ZoneIdEntry(id);
-                                zoneIdCountriesMap.backingSet.add(zoneIdEntry);
+                                TimeZoneEntry timeZoneEntry = new TimeZoneEntry(id);
+                                tzs = Tuple.of(timeZoneEntry.backingSet, zoneId);
+                                zMap.put(id, tzs);
+                                zoneIdCountriesMap.backingSet.add(timeZoneEntry);
                             }
-                            if (null != zoneId) {
+                            if (null != tzs.getValue2()) {
                                 Iterator<String> iterator = Values.splitByChar(cols.get(0), ',').iterator();
                                 while (iterator.hasNext()) {
                                     String cc = iterator.next();
                                     current.countryCode = cc;
-                                    zoneIdEntry.backingSet.add(cc);
-                                    current.zoneId = zoneId;
-                                    Iterator<Map.Entry<String, Set<ZoneId>>> it2 = countryZoneIdsMap.backingSet.iterator();
+                                    tzs.getValue1().add(cc);
+                                    current.timeZone = TimeZone.getTimeZone(tzs.getValue2());
+                                    Iterator<Map.Entry<String, Set<TimeZone>>> it2 = countryZoneIdsMap.backingSet.iterator();
                                     while (it2.hasNext()) {
                                         CountryEntry ce = (CountryEntry) it2.next();
                                         if (ce.key.equals(cc)) {
-                                            ce.backingSet.add(zoneId);
+                                            ce.backingSet.add(current.timeZone);
                                             it2 = null;
                                             break;
                                         }
                                     }
                                     if (null != it2) {
-                                        countryZoneIdsMap.backingSet.add(new CountryEntry(cc, zoneId));
+                                        countryZoneIdsMap.backingSet.add(new CountryEntry(cc, current.timeZone));
                                     }
                                     current = current.next = new Row(current);
                                     nextIndex++;
@@ -170,7 +171,7 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
         private final Row previous;
         private Row next;
         private String countryCode;
-        private ZoneId zoneId;
+        private TimeZone timeZone;
 
         private Row(Row previous) {
             this.previous = previous;
@@ -188,22 +189,22 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
             return previous;
         }
 
-        public ZoneId getZoneId() {
-            return zoneId;
+        public TimeZone getTimeZone() {
+            return timeZone;
         }
 
     }
 
-    private class CountryEntry implements Map.Entry<String, Set<ZoneId>> {
+    private class CountryEntry implements Map.Entry<String, Set<TimeZone>> {
 
-        private final HashSet<ZoneId> backingSet;
-        private final Set<ZoneId> value;
+        private final HashSet<TimeZone> backingSet;
+        private final Set<TimeZone> value;
         private final String key;
 
-        private CountryEntry(String countryCode, ZoneId zoneId) {
+        private CountryEntry(String countryCode, TimeZone tz) {
             key = countryCode;
             backingSet = new HashSet<>();
-            backingSet.add(zoneId);
+            backingSet.add(tz);
             value = Collections.unmodifiableSet(backingSet);
         }
 
@@ -213,24 +214,24 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
         }
 
         @Override
-        public Set<ZoneId> getValue() {
+        public Set<TimeZone> getValue() {
             return value;
         }
 
         @Override
-        public Set<ZoneId> setValue(Set<ZoneId> value) {
+        public Set<TimeZone> setValue(Set<TimeZone> value) {
             throw new UnsupportedOperationException();
         }
 
     }
 
-    private class ZoneIdEntry implements Map.Entry<String, Set<String>> {
+    private class TimeZoneEntry implements Map.Entry<String, Set<String>> {
 
         private final HashSet<String> backingSet;
         private final Set<String> value;
         private final String key;
 
-        private ZoneIdEntry(String zoneId) {
+        private TimeZoneEntry(String zoneId) {
             key = zoneId;
             backingSet = new HashSet<>();
             value = Collections.unmodifiableSet(backingSet);
@@ -253,10 +254,10 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
 
     }
 
-    private class CountryMap extends AbstractMap<String, Set<ZoneId>> {
+    private class CountryMap extends AbstractMap<String, Set<TimeZone>> {
 
-        private final HashSet<Map.Entry<String, Set<ZoneId>>> backingSet;
-        private final Set<Map.Entry<String, Set<ZoneId>>> entrySet;
+        private final HashSet<Map.Entry<String, Set<TimeZone>>> backingSet;
+        private final Set<Map.Entry<String, Set<TimeZone>>> entrySet;
 
         private CountryMap() {
             backingSet = new HashSet<>();
@@ -264,7 +265,7 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
         }
 
         @Override
-        public Set<Map.Entry<String, Set<ZoneId>>> entrySet() {
+        public Set<Map.Entry<String, Set<TimeZone>>> entrySet() {
             return entrySet;
         }
 

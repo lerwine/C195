@@ -3,7 +3,6 @@ package scheduler.view.address;
 import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -47,8 +46,6 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
 public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel> {
 
-    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
-
     public static AddressModel editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {
         AddressModel.Factory factory = AddressModel.getFactory();
         EditAddress control = new EditAddress();
@@ -61,8 +58,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CustomerModel> itemList;
+    // TODO: Replace this with property on control
     private CityModel initialCity;
 
     @ModelEditor
@@ -99,8 +98,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private Label cityError;
 
     public EditAddress() {
-        windowTitle = new ReadOnlyStringWrapper();
-        valid = new ReadOnlyBooleanWrapper();
+        windowTitle = new ReadOnlyStringWrapper("");
+        valid = new ReadOnlyBooleanWrapper(false);
+        modified = new ReadOnlyBooleanWrapper(false);
         itemList = FXCollections.observableArrayList();
     }
 
@@ -129,6 +129,16 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
+    public boolean isModified() {
+        return modified.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty modifiedProperty() {
+        return modified.getReadOnlyProperty();
+    }
+
+    @Override
     public String getWindowTitle() {
         return windowTitle.get();
     }
@@ -139,13 +149,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onEditNew
-    }
-
-    @Override
-    public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onEditExisting
+    public void onNewModelSaved() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#applyEditMode
     }
 
     @Override
@@ -189,7 +194,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
                 return cf.load(dbConnector.getConnection(), cf.getByAddressFilter(dao));
             }
         }

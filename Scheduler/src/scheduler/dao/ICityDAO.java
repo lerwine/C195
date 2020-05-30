@@ -2,13 +2,13 @@ package scheduler.dao;
 
 import java.time.ZoneId;
 import java.util.regex.Pattern;
-import scheduler.model.CustomerCity;
+import scheduler.model.City;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ICityDAO extends DbObject, CustomerCity {
+public interface ICityDAO extends DbObject, City {
 
     public static Pattern REGION_ID_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9~/._+-]+$", Pattern.CASE_INSENSITIVE);
     

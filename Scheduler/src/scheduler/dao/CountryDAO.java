@@ -8,12 +8,10 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableMap;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.event.CountryDaoEvent;
@@ -25,7 +23,7 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
-import scheduler.model.CustomerCountry;
+import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.PredefinedData;
 import scheduler.util.DB;
@@ -51,17 +49,13 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
      * The name of the 'name' property.
      */
     public static final String PROP_NAME = "name";
-    
+
     /**
      * The name of the 'locale' property.
      */
     public static final String PROP_LOCALE = "locale";
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
-
-    public static FactoryImpl getFactory() {
-        return FACTORY;
-    }
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     private String name;
     private Locale locale;
@@ -79,7 +73,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         return name;
     }
 
-    public void setName(String value) {
+    private void setName(String value) {
         String oldValue = name;
         name = Values.asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_NAME, oldValue, name);
@@ -91,9 +85,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     }
 
     public void setLocale(Locale locale) {
-        Locale oldValue = this.locale;
+        Locale oldLocale = this.locale;
+        String oldName = name;
         this.locale = locale;
-        firePropertyChange(PROP_LOCALE, oldValue, this.locale);
+        name = PredefinedData.getLocaleCountryDisplayName(this.locale, AppResources.getCurrentLocale().getLocale());
+        firePropertyChange(PROP_LOCALE, oldLocale, this.locale);
+        firePropertyChange(PROP_NAME, oldName, name);
     }
 
     @Override
@@ -106,7 +103,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     @Override
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof CustomerCountry && ModelHelper.areSameRecord(this, (CustomerCountry) obj);
+        return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
     }
 
     @Override
@@ -144,13 +141,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         protected void applyColumnValue(CountryDAO dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException {
             switch (dbColumn) {
                 case COUNTRY_NAME:
-                    String lt = dao.locale.toLanguageTag();
-                    Map<String, String> localeDisplayMap = PredefinedData.getLocaleDisplayMap();
-                    if (localeDisplayMap.containsKey(lt) && dao.name.equals(localeDisplayMap.get(lt))) {
-                        ps.setString(index, lt);
-                    } else {
-                        ps.setString(index, String.format("%s;%s", dao.name, lt));
-                    }
+                    ps.setString(index, dao.locale.toLanguageTag());
                     break;
                 default:
                     throw new InternalException(String.format("Unexpected %s column name %s", dbColumn.getTable().getDbName(), dbColumn.getDbName()));
@@ -160,6 +151,13 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         @Override
         public CountryDAO createNew() {
             return new CountryDAO();
+        }
+
+        public CountryDAO fromLocale(Locale locale) {
+            CountryDAO result = new CountryDAO();
+            result.setLocale(locale);
+            result.setName(locale.getDisplayCountry());
+            return result;
         }
 
         @Override
@@ -175,15 +173,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         ICountryDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             String n = rs.getString(DbColumn.COUNTRY_NAME.toString());
-            int i = n.lastIndexOf(";");
-            if (i < 0) {
-                Map<String, String> localeDisplayMap = PredefinedData.getLocaleDisplayMap();
-                if (localeDisplayMap.containsKey(n)) {
-                    return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), localeDisplayMap.get(n), Locale.forLanguageTag(n));
-                }
-                return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), n, null);
-            }
-            return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), n.substring(0, i), Locale.forLanguageTag(n.substring(i + 1)));
+            return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), Locale.forLanguageTag(n));
         }
 
         @Override
@@ -196,7 +186,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
-            int count = CityDAO.getFactory().countByCountry(dao.getPrimaryKey(), connection);
+            int count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
             switch (count) {
                 case 0:
                     return "";
@@ -237,21 +227,8 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             };
 
             String s = rs.getString(DbColumn.COUNTRY_NAME.toString());
-
-            int i = s.lastIndexOf(";");
-            if (i < 0) {
-                Map<String, String> localeDisplayMap = PredefinedData.getLocaleDisplayMap();
-                if (localeDisplayMap.containsKey(s)) {
-                    dao.name = localeDisplayMap.get(s);
-                    dao.locale = Locale.forLanguageTag(s);
-                } else {
-                    dao.name = s;
-                    dao.locale = null;
-                }
-            } else {
-                dao.name = s.substring(0, i).trim();
-                dao.locale = Locale.forLanguageTag(s.substring(i + 1).trim());
-            }
+            dao.locale = Locale.forLanguageTag(s);
+            dao.name = PredefinedData.getLocaleCountryDisplayName(dao.locale, AppResources.getCurrentLocale().getLocale());
 
             return propertyChanges;
         }
@@ -376,9 +353,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         private final String name;
         private final Locale locale;
 
-        Related(int primaryKey, String name, Locale locale) {
+        Related(int primaryKey, Locale locale) {
             this.primaryKey = primaryKey;
-            this.name = name;
+            this.name = PredefinedData.getLocaleCountryDisplayName(locale, AppResources.getCurrentLocale().getLocale());
             this.locale = locale;
         }
 
@@ -399,7 +376,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         public boolean equals(Object obj) {
-            return null != obj && obj instanceof CustomerCountry && ModelHelper.areSameRecord(this, (CustomerCountry) obj);
+            return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
         }
 
         @Override

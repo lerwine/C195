@@ -4,7 +4,6 @@ import java.util.function.Function;
 import javafx.beans.Observable;
 import javafx.beans.value.ObservableStringValue;
 import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WritableStringValue;
 
 /**
  *

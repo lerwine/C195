@@ -1,7 +1,6 @@
 package scheduler.util;
 
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -20,7 +19,6 @@ import scheduler.AppResources;
 public class AlertHelper {
 
     public static final String CSS_CLASS_FORMCONTROLLABEL = "formControlLabel";
-    private static final Logger LOG = Logger.getLogger(AlertHelper.class.getName());
 
     public static Optional<ButtonType> showErrorAlert(Window parent, String title, Node content, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

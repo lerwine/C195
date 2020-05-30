@@ -2,9 +2,11 @@ package scheduler.fx;
 
 import javafx.scene.control.ListCell;
 import scheduler.dao.IAddressDAO;
+import scheduler.model.City;
+import scheduler.model.CityProperties;
 import scheduler.model.ui.AddressItem;
-import scheduler.model.CustomerCity;
-import scheduler.model.CustomerCountry;
+import scheduler.model.Country;
+import scheduler.model.CountryProperties;
 
 /**
  *
@@ -20,21 +22,21 @@ public class AddressListCell<T extends AddressItem<? extends IAddressDAO>> exten
             setText("");
         } else {
             String cityZipCountry = item.getPostalCode();
-            CustomerCity city;
+            City city;
             if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
                 if (null == (city = item.getCity())) {
                     cityZipCountry = "";
-                } else if ((cityZipCountry = CustomerCity.toString(city).trim()).isEmpty()) {
-                    cityZipCountry = CustomerCountry.toString(city.getCountry()).trim();
+                } else if ((cityZipCountry = CityProperties.toString(city).trim()).isEmpty()) {
+                    cityZipCountry = CountryProperties.toString(city.getCountry()).trim();
                 } else {
-                    String country = CustomerCountry.toString(city.getCountry()).trim();
+                    String country = CountryProperties.toString(city.getCountry()).trim();
                     if (!country.isEmpty()) {
                         cityZipCountry = String.format("%s, %s", cityZipCountry, country);
                     }
                 }
             } else if (null != (city = item.getCity())) {
                 String cityName = city.getName();
-                String country = CustomerCountry.toString(city.getCountry()).trim();
+                String country = CountryProperties.toString(city.getCountry()).trim();
                 if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
                     if (!country.isEmpty()) {
                         cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);

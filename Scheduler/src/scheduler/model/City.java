@@ -1,32 +1,13 @@
 package scheduler.model;
 
-import java.time.ZoneId;
-
 /**
+ * Interface for objects that contain either partial or complete information from the {@code city} database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface City {
+public interface City extends CityProperties, DataObject {
 
-    /**
-     * Gets the name of the current city. This corresponds to the first part of the text in the "city" database column.
-     *
-     * @return The name of the current city.
-     */
-    String getName();
-
-    /**
-     * Gets the {@link ZoneId} for the current city. This is parsed from the end of the text in the "city" database column.
-     *
-     * @return The {@link Country} for the current city.
-     */
-    ZoneId getZoneId();
-    
-    /**
-     * Gets the {@link Country} for the current city. This corresponds to the "country" data row referenced by the "countryId" database column.
-     *
-     * @return The {@link Country} for the current city.
-     */
-    Country getCountry();
+    @Override
+    public Country getCountry();
 
 }

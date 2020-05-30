@@ -1,24 +1,16 @@
 package devhelper;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.TextStyle;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Locale;
 import java.util.Locale.Category;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyFloatProperty;
@@ -27,26 +19,16 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.Spinner;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -61,71 +43,37 @@ import scheduler.util.PwHash;
  */
 public class FXMLDocumentController {
 
+    public static final String ALL_ITEM = " (all) ";
+    public static final String EMPTY_ITEM = " (empty) ";
+
+    public static <T> Predicate<T> createFilter(Predicate<T> newFilter, Predicate<T> currentFilter) {
+        if (newFilter == null) {
+            return currentFilter;
+        }
+        if (currentFilter == null) {
+            return newFilter;
+        }
+        return (T t) -> newFilter.test(t) && currentFilter.test(t);
+    }
+
+    private static boolean isNullOrEmpty(String s) {
+        return s == null || s.isEmpty();
+    }
+
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
     @FXML // URL location of the FXML file that was given to the FXMLLoader
     private URL location;
 
+    @FXML // fx:id="resourceBundlesTab"
+    private Tab resourceBundlesTab; // Value injected by FXMLLoader
+
     @FXML // fx:id="dateFormattingTab"
     private Tab dateFormattingTab; // Value injected by FXMLLoader
 
-    @FXML // fx:id="languageTagInputTextBox"
-    private TextField languageTagInputTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="countryTextBox"
-    private TextField countryTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="languageTextBox"
-    private TextField languageTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="variantTextBox"
-    private TextField variantTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="scriptTextBox"
-    private TextField scriptTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="iso3CountryTextBox"
-    private TextField iso3CountryTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="iso3LanguageTextBox"
-    private TextField iso3LanguageTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="languageTagTextBox"
-    private TextField languageTagTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="stringTextBox"
-    private TextField stringTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayCountryTextBox"
-    private TextField displayCountryTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayCountryInLocaleTextBox"
-    private TextField displayCountryInLocaleTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayLanguageTextBox"
-    private TextField displayLanguageTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayLanguageInLocaleTextBox"
-    private TextField displayLanguageInLocaleTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayNameTextBox"
-    private TextField displayNameTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayNameInLocaleTextBox"
-    private TextField displayNameInLocaleTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayScriptTextBox"
-    private TextField displayScriptTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayScriptInLocaleTextBox"
-    private TextField displayScriptInLocaleTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayVariantTextBox"
-    private TextField displayVariantTextBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="displayVariantInLocaleTextBox"
-    private TextField displayVariantInLocaleTextBox; // Value injected by FXMLLoader
+    @FXML // fx:id="languageTagTab"
+    private Tab languageTagTab; // Value injected by FXMLLoader
 
     @FXML // fx:id="inputTextBox"
     private TextField inputTextBox; // Value injected by FXMLLoader
@@ -133,60 +81,33 @@ public class FXMLDocumentController {
     @FXML // fx:id="hashTextBox"
     private TextField hashTextBox; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> twoLetterCountryCodesComboBox;
+    @FXML // fx:id="localesTab"
+    private Tab localesTab; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> threeLetterCountryCodesComboBox;
+    @FXML // fx:id="twoLetterLanguageCodesComboBox"
+    private ComboBox<?> twoLetterLanguageCodesComboBox; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> iso3CountryCodesComboBox;
+    @FXML // fx:id="threeLetterLanguageCodesComboBox"
+    private ComboBox<?> threeLetterLanguageCodesComboBox; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> scriptCodesComboBox;
+    @FXML // fx:id="languageTagsComboBox"
+    private ComboBox<?> languageTagsComboBox; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> twoLetterLanguageCodesComboBox;
+    @FXML // fx:id="timeZonesTableView"
+    private TableView<TimeZoneInfo> timeZonesTableView; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> threeLetterLanguageCodesComboBox;
+    @FXML // fx:id="timeZoneIDsComboBox"
+    private ComboBox<String> timeZoneIDsComboBox; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> languageTagsComboBox;
+    @FXML // fx:id="zoneIDsComboBox"
+    private ComboBox<String> zoneIDsComboBox; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> timeZoneIDsComboBox;
+    @FXML // fx:id="zoneOffsetIDsComboBox"
+    private ComboBox<String> zoneOffsetIDsComboBox; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> zoneIDsComboBox;
+    @FXML // fx:id="zoneIdsTableView"
+    private TableView<ZoneIdInfo> zoneIdsTableView; // Value injected by FXMLLoader
 
-    @FXML
-    private ComboBox<String> zoneOffsetIDsComboBox;
-
-    @FXML
-    private TableView<Locale> availableLocalesTableView;
-
-    @FXML
-    private TableColumn<Locale, String> languageTagTableColumn;
-
-    @FXML
-    private TableColumn<Locale, String> localeToStringTableColumn;
-
-    @FXML
-    private TableView<TimeZoneInfo> timeZonesTableView;
-
-    @FXML
-    private TableView<ZoneIdInfo> zoneIdsTableView;
-
-    private ObservableList<Locale> availableLocales;
-    private ObservableList<Locale> filteredLocales;
-    private ObservableList<String> twoLetterCountryCodes;
-    private ObservableList<String> threeLetterCountryCodes;
-    private ObservableList<String> iso3CountryCodes;
-    private ObservableList<String> scriptCodes;
-    private ObservableList<String> twoLetterLanguageCodes;
-    private ObservableList<String> threeLetterLanguageCodes;
-    private ObservableList<String> languageTags;
     private ObservableList<TimeZoneInfo> availableTimeZones;
     private ObservableList<TimeZoneInfo> filteredTimeZones;
     private ObservableList<ZoneIdInfo> availableZoneIds;
@@ -196,108 +117,8 @@ public class FXMLDocumentController {
     private ObservableList<String> zoneOffsetIDs;
 
     @FXML
-    void forLanguageTagButtonClick(ActionEvent event) {
-        BiConsumer<TextField, String> setText = (t, u) -> {
-            if (null == u) {
-                t.setText("(null)");
-                t.setStyle("color:red");
-            } else {
-                t.setText(u);
-                t.setStyle("");
-            }
-        };
-        Locale locale = Locale.forLanguageTag(languageTagInputTextBox.getText());
-        setText.accept(countryTextBox, locale.getCountry());
-        setText.accept(iso3CountryTextBox, locale.getISO3Country());
-        setText.accept(languageTextBox, locale.getLanguage());
-        setText.accept(iso3LanguageTextBox, locale.getISO3Language());
-        setText.accept(variantTextBox, locale.getVariant());
-        setText.accept(scriptTextBox, locale.getScript());
-        setText.accept(languageTagTextBox, locale.toLanguageTag());
-        setText.accept(stringTextBox, locale.toString());
-        setText.accept(displayCountryTextBox, locale.getDisplayCountry());
-        setText.accept(displayCountryInLocaleTextBox, locale.getDisplayCountry(locale));
-        setText.accept(displayLanguageTextBox, locale.getDisplayLanguage());
-        setText.accept(displayLanguageInLocaleTextBox, locale.getDisplayLanguage(locale));
-        setText.accept(displayNameTextBox, locale.getDisplayName());
-        setText.accept(displayNameInLocaleTextBox, locale.getDisplayName(locale));
-        setText.accept(displayScriptTextBox, locale.getDisplayScript());
-        setText.accept(displayScriptInLocaleTextBox, locale.getDisplayScript(locale));
-        setText.accept(displayVariantTextBox, locale.getDisplayVariant());
-        setText.accept(displayVariantInLocaleTextBox, locale.getDisplayVariant(locale));
-    }
-
-    @FXML
     void getHashButtonClick(ActionEvent event) {
         hashTextBox.setText((new PwHash(inputTextBox.getText(), true)).getEncodedHash());
-    }
-
-    @FXML
-    void localeComboBoxChanged(ActionEvent event) {
-        Predicate<Locale> filter;
-        final String code2c = twoLetterCountryCodesComboBox.getValue();
-        if (code2c == null || code2c.isEmpty() || code2c.equals(ALL_ITEM)) {
-            filter = null;
-        } else if (code2c.equals(EMPTY_ITEM)) {
-            filter = (Locale l) -> isNullOrEmpty(l.getCountry());
-        } else {
-            filter = (Locale l) -> code2c.equals(l.getCountry());
-        }
-
-        final String code3c = threeLetterCountryCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(code3c)) {
-            filter = createFilter((Locale l) -> isNullOrEmpty(l.getCountry()), filter);
-        } else if (code3c != null && !code3c.equals(ALL_ITEM)) {
-            filter = createFilter((Locale l) -> code3c.equals(l.getCountry()), filter);
-        }
-
-        final String iso3c = iso3CountryCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(iso3c)) {
-            filter = createFilter((Locale l) -> isNullOrEmpty(l.getISO3Country()), filter);
-        } else if (iso3c != null && !iso3c.equals(ALL_ITEM)) {
-            filter = createFilter((Locale l) -> iso3c.equals(l.getISO3Country()), filter);
-        }
-
-        final String sc = scriptCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(sc)) {
-            filter = createFilter((Locale l) -> isNullOrEmpty(l.getScript()), filter);
-        } else if (sc != null && !sc.equals(ALL_ITEM)) {
-            filter = createFilter((Locale l) -> sc.equals(l.getScript()), filter);
-        }
-
-        final String code2l = twoLetterLanguageCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(code2l)) {
-            filter = createFilter((Locale l) -> isNullOrEmpty(l.getLanguage()), filter);
-        } else if (code2l != null && !code2l.equals(ALL_ITEM)) {
-            filter = createFilter((Locale l) -> code2l.equals(l.getLanguage()), filter);
-        }
-
-        final String code3l = threeLetterLanguageCodesComboBox.getValue();
-        if (EMPTY_ITEM.equals(code3l)) {
-            filter = createFilter((Locale l) -> isNullOrEmpty(l.getISO3Language()), filter);
-        } else if (code3l != null && !code3l.equals(ALL_ITEM)) {
-            filter = createFilter((Locale l) -> code3l.equals(l.getISO3Language()), filter);
-        }
-
-        final String lt = languageTagsComboBox.getValue();
-        if (EMPTY_ITEM.equals(lt)) {
-            filter = createFilter((Locale l) -> isNullOrEmpty(l.toLanguageTag()), filter);
-        } else if (lt != null && !lt.equals(ALL_ITEM)) {
-            filter = createFilter((Locale l) -> lt.equals(l.toLanguageTag()), filter);
-        }
-
-        filteredLocales.clear();
-        if (filter == null) {
-            for (Locale l : availableLocales) {
-                filteredLocales.add(l);
-            }
-        } else {
-            for (Locale l : availableLocales) {
-                if (filter.test(l)) {
-                    filteredLocales.add(l);
-                }
-            }
-        }
     }
 
     @FXML
@@ -358,22 +179,74 @@ public class FXMLDocumentController {
             }
         }
     }
-    
-    public static <T> Predicate<T> createFilter(Predicate<T> newFilter, Predicate<T> currentFilter) {
-        if (newFilter == null) {
-            return currentFilter;
-        }
-        if (currentFilter == null) {
-            return newFilter;
-        }
-        return (T t) -> newFilter.test(t) && currentFilter.test(t);
-    }
 
-    private final String ALL_ITEM = " (all) ";
-    private final String EMPTY_ITEM = " (empty) ";
+    @FXML
+    void initialize() {
+        assert resourceBundlesTab != null : "fx:id=\"resourceBundlesTab\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert dateFormattingTab != null : "fx:id=\"dateFormattingTab\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert languageTagTab != null : "fx:id=\"languageTagTab\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert inputTextBox != null : "fx:id=\"inputTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert hashTextBox != null : "fx:id=\"hashTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert localesTab != null : "fx:id=\"localesTab\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert twoLetterLanguageCodesComboBox != null : "fx:id=\"twoLetterLanguageCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert threeLetterLanguageCodesComboBox != null : "fx:id=\"threeLetterLanguageCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert languageTagsComboBox != null : "fx:id=\"languageTagsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert timeZonesTableView != null : "fx:id=\"timeZonesTableView\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert timeZoneIDsComboBox != null : "fx:id=\"timeZoneIDsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert zoneIDsComboBox != null : "fx:id=\"zoneIDsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert zoneOffsetIDsComboBox != null : "fx:id=\"zoneOffsetIDsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
+        assert zoneIdsTableView != null : "fx:id=\"zoneIdsTableView\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
 
-    private static boolean isNullOrEmpty(String s) {
-        return s == null || s.isEmpty();
+        dateFormattingTab.setContent(new DateFormattingControl());
+        languageTagTab.setContent(new LanguageTagParseControl());
+        localesTab.setContent(new LocaleListingControl());
+
+        availableTimeZones = FXCollections.observableArrayList();
+        filteredTimeZones = FXCollections.observableArrayList();
+        availableZoneIds = FXCollections.observableArrayList();
+        filteredZoneIds = FXCollections.observableArrayList();
+        timeZoneIDs = FXCollections.observableArrayList();
+        zoneIDs = FXCollections.observableArrayList();
+        zoneOffsetIDs = FXCollections.observableArrayList();
+        timeZoneIDs.add(ALL_ITEM);
+        zoneIDs.add(ALL_ITEM);
+        zoneOffsetIDs.add(ALL_ITEM);
+        Arrays.stream(TimeZone.getAvailableIDs()).map(new Function<String, TimeZoneInfo>() {
+            private int index = -1;
+
+            @Override
+            public TimeZoneInfo apply(String id) {
+                return new TimeZoneInfo(id, ++index);
+            }
+        }).forEach((TimeZoneInfo item) -> {
+            availableTimeZones.add(item);
+            filteredTimeZones.add(item);
+            timeZoneIDs.add(item.getId());
+        });
+        ZoneId.getAvailableZoneIds().stream().map(new Function<String, ZoneIdInfo>() {
+            private int index = -1;
+
+            @Override
+            public ZoneIdInfo apply(String id) {
+                return new ZoneIdInfo(id, ++index);
+            }
+
+        }).forEach((ZoneIdInfo item) -> {
+            availableZoneIds.add(item);
+            filteredZoneIds.add(item);
+            zoneIDs.add(item.getAvailableZoneId());
+            String s = item.getNormalizedId();
+            if (s != null && !s.isEmpty() && !zoneOffsetIDs.contains(s)) {
+                zoneOffsetIDs.add(s);
+            }
+        });
+        timeZonesTableView.setItems(filteredTimeZones);
+        timeZonesTableView.setOnKeyPressed(new TableCopyEventHandler());
+        timeZoneIDsComboBox.setItems(timeZoneIDs);
+        zoneOffsetIDsComboBox.setItems(zoneOffsetIDs);
+        zoneIDsComboBox.setItems(zoneIDs);
+        zoneIdsTableView.setItems(filteredZoneIds);
+        zoneIdsTableView.setOnKeyPressed(new TableCopyEventHandler());
     }
 
     public static class TimeZoneInfo implements Comparable<TimeZoneInfo> {
@@ -388,7 +261,7 @@ public class FXMLDocumentController {
         public ReadOnlyStringProperty availableIDProperty() {
             return availableID.getReadOnlyProperty();
         }
-        
+
         private final ReadOnlyStringWrapper displayName;
 
         public String getDisplayName() {
@@ -437,7 +310,7 @@ public class FXMLDocumentController {
         public ReadOnlyBooleanProperty observesDaylightTimeProperty() {
             return observesDaylightTime.getReadOnlyProperty();
         }
-        
+
         private final ReadOnlyBooleanWrapper useDaylightTime;
 
         public boolean isUseDaylightTime() {
@@ -447,7 +320,7 @@ public class FXMLDocumentController {
         public ReadOnlyBooleanProperty useDaylightTimeProperty() {
             return useDaylightTime.getReadOnlyProperty();
         }
-        
+
         private final ReadOnlyStringWrapper zoneId;
 
         public String getZoneId() {
@@ -514,7 +387,7 @@ public class FXMLDocumentController {
             this.id = new ReadOnlyStringWrapper(tz.getID());
             observesDaylightTime = new ReadOnlyBooleanWrapper(tz.observesDaylightTime());
             useDaylightTime = new ReadOnlyBooleanWrapper(tz.useDaylightTime());
-           
+
             ZoneId z;
             try {
                 z = tz.toZoneId();
@@ -525,7 +398,7 @@ public class FXMLDocumentController {
                 zoneId = new ReadOnlyStringWrapper(z.getId());
                 zoneName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, Locale.getDefault(Category.DISPLAY)));
                 if (z instanceof ZoneOffset) {
-                    ZoneOffset zo = (ZoneOffset)z;
+                    ZoneOffset zo = (ZoneOffset) z;
                     normalizedId = new ReadOnlyStringWrapper(zo.getId());
                     normalizedName = new ReadOnlyStringWrapper(zo.getDisplayName(TextStyle.FULL, Locale.getDefault(Category.DISPLAY)));
                     totalSeconds = new ReadOnlyIntegerWrapper(((ZoneOffset) z).getTotalSeconds());
@@ -730,7 +603,7 @@ public class FXMLDocumentController {
             availableZoneId = new ReadOnlyStringWrapper(id);
             ZoneId z = ZoneId.of(id);
             Locale l = Locale.getDefault(Category.DISPLAY);
-            
+
             this.id = new ReadOnlyStringWrapper(z.getId());
             fullName = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL, l));
             standaloneFull = new ReadOnlyStringWrapper(z.getDisplayName(TextStyle.FULL_STANDALONE, l));
@@ -798,283 +671,39 @@ public class FXMLDocumentController {
         }
     }
 
-    @FXML
-    void initialize() {
-        assert dateFormattingTab != null : "fx:id=\"dateFormattingTab\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert languageTagInputTextBox != null : "fx:id=\"languageTagInputTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert countryTextBox != null : "fx:id=\"countryTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert languageTextBox != null : "fx:id=\"languageTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert variantTextBox != null : "fx:id=\"variantTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert scriptTextBox != null : "fx:id=\"scriptTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert iso3CountryTextBox != null : "fx:id=\"iso3CountryTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert iso3LanguageTextBox != null : "fx:id=\"iso3LanguageTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert languageTagTextBox != null : "fx:id=\"languageTagTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert stringTextBox != null : "fx:id=\"stringTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayCountryTextBox != null : "fx:id=\"displayCountryTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayCountryInLocaleTextBox != null : "fx:id=\"displayCountryInLocaleTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayLanguageTextBox != null : "fx:id=\"displayLanguageTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayLanguageInLocaleTextBox != null : "fx:id=\"displayLanguageInLocaleTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayNameTextBox != null : "fx:id=\"displayNameTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayNameInLocaleTextBox != null : "fx:id=\"displayNameInLocaleTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayScriptTextBox != null : "fx:id=\"displayScriptTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayScriptInLocaleTextBox != null : "fx:id=\"displayScriptInLocaleTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayVariantTextBox != null : "fx:id=\"displayVariantTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert displayVariantInLocaleTextBox != null : "fx:id=\"displayVariantInLocaleTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert inputTextBox != null : "fx:id=\"inputTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert hashTextBox != null : "fx:id=\"hashTextBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert twoLetterCountryCodesComboBox != null : "fx:id=\"twoLetterCountryCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert threeLetterCountryCodesComboBox != null : "fx:id=\"threeLetterCountryCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert iso3CountryCodesComboBox != null : "fx:id=\"iso3CountryCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert scriptCodesComboBox != null : "fx:id=\"scriptCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert availableLocalesTableView != null : "fx:id=\"availableLocalesTableView\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert languageTagTableColumn != null : "fx:id=\"languageTagTableColumn\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert localeToStringTableColumn != null : "fx:id=\"localeToStringTableColumn\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert twoLetterLanguageCodesComboBox != null : "fx:id=\"twoLetterLanguageCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert threeLetterLanguageCodesComboBox != null : "fx:id=\"threeLetterLanguageCodesComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert languageTagsComboBox != null : "fx:id=\"languageTagsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert timeZonesTableView != null : "fx:id=\"timeZonesTableView\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert timeZoneIDsComboBox != null : "fx:id=\"timeZoneIDsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert zoneIDsComboBox != null : "fx:id=\"zoneIDsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert zoneOffsetIDsComboBox != null : "fx:id=\"zoneOffsetIDsComboBox\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-        assert zoneIdsTableView != null : "fx:id=\"zoneIdsTableView\" was not injected: check your FXML file 'FXMLDocument.fxml'.";
-
-        try {
-            dateFormattingTab.setContent(FXMLLoader.load(new URL("devHelper/DateFormatting.fxml")));
-        } catch (IOException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        availableLocales = FXCollections.observableArrayList();
-        filteredLocales = FXCollections.observableArrayList();
-        twoLetterCountryCodes = FXCollections.observableArrayList();
-        threeLetterCountryCodes = FXCollections.observableArrayList();
-        iso3CountryCodes = FXCollections.observableArrayList();
-        scriptCodes = FXCollections.observableArrayList();
-        twoLetterLanguageCodes = FXCollections.observableArrayList();
-        threeLetterLanguageCodes = FXCollections.observableArrayList();
-        languageTags = FXCollections.observableArrayList();
-        availableTimeZones = FXCollections.observableArrayList();
-        filteredTimeZones = FXCollections.observableArrayList();
-        availableZoneIds = FXCollections.observableArrayList();
-        filteredZoneIds = FXCollections.observableArrayList();
-        timeZoneIDs = FXCollections.observableArrayList();
-        zoneIDs = FXCollections.observableArrayList();
-        zoneOffsetIDs = FXCollections.observableArrayList();
-        twoLetterCountryCodes.add(ALL_ITEM);
-        threeLetterCountryCodes.add(ALL_ITEM);
-        iso3CountryCodes.add(ALL_ITEM);
-        scriptCodes.add(ALL_ITEM);
-        twoLetterLanguageCodes.add(ALL_ITEM);
-        threeLetterLanguageCodes.add(ALL_ITEM);
-        languageTags.add(ALL_ITEM);
-        timeZoneIDs.add(ALL_ITEM);
-        zoneIDs.add(ALL_ITEM);
-        zoneOffsetIDs.add(ALL_ITEM);
-        Arrays.stream(Locale.getAvailableLocales()).sorted(new Comparator<Locale>() {
-            @Override
-            public int compare(Locale o1, Locale o2) {
-                String c1 = o1.getCountry();
-                String c2 = o2.getCountry();
-                int r;
-                if (c1 == null || c1.isEmpty()) {
-                    if (c2 != null && !c2.isEmpty()) {
-                        return -1;
-                    }
-                } else {
-                    if (c2 == null || c2.isEmpty()) {
-                        return 1;
-                    }
-                    if (c1 == c2) {
-                        return 0;
-                    }
-                    r = c1.compareToIgnoreCase(c2);
-                    if (r != 0) {
-                        return r;
-                    }
-                    r = c1.compareTo(c2);
-                    if (r != 0) {
-                        return r;
-                    }
-                }
-                try {
-                    c1 = o1.getISO3Language();
-                } catch (Throwable ex) {
-                    c1 = null;
-                }
-                if (c1 == null || c1.isEmpty()) {
-                    c1 = o1.getLanguage();
-                }
-                try {
-                    c2 = o2.getISO3Language();
-                } catch (Throwable ex) {
-                    c2 = null;
-                }
-                if (c2 == null || c2.isEmpty()) {
-                    c2 = o2.getLanguage();
-                }
-                if (c1 == null || c1.isEmpty()) {
-                    if (c2 != null && !c2.isEmpty()) {
-                        return -1;
-                    }
-                } else {
-                    if (c2 == null || c2.isEmpty()) {
-                        return 1;
-                    }
-                    r = c1.compareToIgnoreCase(c2);
-                    if (r != 0) {
-                        return r;
-                    }
-                    r = c1.compareTo(c2);
-                    if (r != 0) {
-                        return r;
-                    }
-                }
-                c1 = o1.getDisplayName();
-                c2 = o2.getDisplayName();
-                if (c1 == null || c1.isEmpty()) {
-                    return (c2 == null || c2.isEmpty()) ? 0 : -1;
-                }
-
-                if (c2 == null || c2.isEmpty()) {
-                    return 1;
-                }
-                r = c1.compareToIgnoreCase(c2);
-                return (r == 0) ? c1.compareTo(c2) : r;
-            }
-        }).forEach((Locale l) -> {
-            availableLocales.add(l);
-            filteredLocales.add(l);
-            String s = l.toLanguageTag();
-            if (s == null || s.isEmpty()) {
-                s = EMPTY_ITEM;
-            }
-            if (!languageTags.contains(s)) {
-                languageTags.add(s);
-            }
-            s = l.getCountry();
-            if (s == null || s.isEmpty()) {
-                s = EMPTY_ITEM;
-            }
-            if (s.length() == 3) {
-                if (!threeLetterCountryCodes.contains(s)) {
-                    threeLetterCountryCodes.add(s);
-                }
-            } else if (!twoLetterCountryCodes.contains(s)) {
-                twoLetterCountryCodes.add(s);
-            }
-            try {
-                s = l.getISO3Country();
-            } catch (Throwable ex) {
-                s = null;
-            }
-            if (s == null || s.isEmpty()) {
-                s = EMPTY_ITEM;
-            }
-            if (!iso3CountryCodes.contains(s)) {
-                iso3CountryCodes.add(s);
-            }
-            s = l.getLanguage();
-            if (s == null || s.isEmpty()) {
-                s = EMPTY_ITEM;
-            }
-            if (!twoLetterLanguageCodes.contains(s)) {
-                twoLetterLanguageCodes.add(s);
-            }
-            s = l.getISO3Language();
-            if (s == null || s.isEmpty()) {
-                s = EMPTY_ITEM;
-            }
-            if (!threeLetterLanguageCodes.contains(s)) {
-                threeLetterLanguageCodes.add(s);
-            }
-            s = l.getScript();
-            if (s == null || s.isEmpty()) {
-                s = EMPTY_ITEM;
-            }
-            if (!scriptCodes.contains(s)) {
-                scriptCodes.add(s);
-            }
-        });
-        Arrays.stream(TimeZone.getAvailableIDs()).map(new Function<String, TimeZoneInfo>() {
-            private int index = -1;
-            @Override
-            public TimeZoneInfo apply(String id) {
-                return new TimeZoneInfo(id, ++index);
-            }
-        }).forEach((TimeZoneInfo item) -> {
-            availableTimeZones.add(item);
-            filteredTimeZones.add(item);
-            timeZoneIDs.add(item.getId());
-        });
-        ZoneId.getAvailableZoneIds().stream().map(new Function<String, ZoneIdInfo>() {
-            private int index = -1;
-            @Override
-            public ZoneIdInfo apply(String id) {
-                return new ZoneIdInfo(id, ++index);
-            }
-            
-        }).forEach((ZoneIdInfo item) -> {
-            availableZoneIds.add(item);
-            filteredZoneIds.add(item);
-            zoneIDs.add(item.getAvailableZoneId());
-            String s = item.getNormalizedId();
-            if (s != null && !s.isEmpty() && !zoneOffsetIDs.contains(s)) {
-                zoneOffsetIDs.add(s);
-            }
-        });
-        languageTagTableColumn.setCellValueFactory((TableColumn.CellDataFeatures<Locale, String> param) -> {
-            Locale locale = param.getValue();
-            return new SimpleObjectProperty<>((locale == null) ? null : locale.toLanguageTag());
-        });
-        localeToStringTableColumn.setCellValueFactory((TableColumn.CellDataFeatures<Locale, String> param) -> {
-            Locale locale = param.getValue();
-            return new SimpleObjectProperty<>((locale == null) ? null : locale.toString());
-        });
-        twoLetterCountryCodesComboBox.setItems(twoLetterCountryCodes);
-        threeLetterCountryCodesComboBox.setItems(threeLetterCountryCodes);
-        iso3CountryCodesComboBox.setItems(iso3CountryCodes);
-        scriptCodesComboBox.setItems(scriptCodes);
-        twoLetterLanguageCodesComboBox.setItems(twoLetterLanguageCodes);
-        threeLetterLanguageCodesComboBox.setItems(threeLetterLanguageCodes);
-        languageTagsComboBox.setItems(languageTags);
-        availableLocalesTableView.setItems(filteredLocales);
-        availableLocalesTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        availableLocalesTableView.setOnKeyPressed(new TableCopyEventHandler());
-        timeZonesTableView.setItems(filteredTimeZones);
-        timeZonesTableView.setOnKeyPressed(new TableCopyEventHandler());
-        timeZoneIDsComboBox.setItems(timeZoneIDs);
-        zoneOffsetIDsComboBox.setItems(zoneOffsetIDs);
-        zoneIDsComboBox.setItems(zoneIDs);
-        zoneIdsTableView.setItems(filteredZoneIds);
-        zoneIdsTableView.setOnKeyPressed(new TableCopyEventHandler());
-    }
-
     public static class TableCopyEventHandler implements EventHandler<KeyEvent> {
+
         KeyCodeCombination copyKeyCodeCompination = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
 
         private String asString(Object obj) {
-            if (null == obj)
+            if (null == obj) {
                 return "";
+            }
             String s;
-            if (obj instanceof String)
-                s = (String)obj;
-            else
+            if (obj instanceof String) {
+                s = (String) obj;
+            } else {
                 s = obj.toString();
+            }
             return s.replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n");
         }
+
         @Override
         public void handle(final KeyEvent event) {
             if (copyKeyCodeCompination.match(event)) {
-                final TableView<?> tableView = (TableView<?>)event.getSource();
+                final TableView<?> tableView = (TableView<?>) event.getSource();
                 final ObservableList<?> items = tableView.getItems();
                 final TableView.TableViewSelectionModel<?> selectionModel = tableView.getSelectionModel();
                 final StringBuilder content = new StringBuilder();
                 final TableColumn<?, ?>[] columns = tableView.getColumns().stream().filter(new Predicate<TableColumn<?, ?>>() {
                     private int colIndex = -1;
+
                     @Override
                     public boolean test(TableColumn<?, ?> t) {
                         if (t.isVisible()) {
-                            if (++colIndex > 0)
+                            if (++colIndex > 0) {
                                 content.append("\t");
+                            }
                             content.append(t.getText());
                             return true;
                         }
@@ -1093,9 +722,9 @@ public class FXMLDocumentController {
                 event.consume();
             }
         }
-        
+
     }
-    
+
 //    public static class TableKeyEventHandler<T> implements EventHandler<KeyEvent> {
 //
 //        KeyCodeCombination copyKeyCodeCompination = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
@@ -1143,5 +772,4 @@ public class FXMLDocumentController {
 //        }
 //
 //    }
-
 }

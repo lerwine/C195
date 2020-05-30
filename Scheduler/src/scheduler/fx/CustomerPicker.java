@@ -418,7 +418,7 @@ public class CustomerPicker extends BorderPane {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return CityDAO.getFactory().getByCountry(dbConnector.getConnection(), country.getPrimaryKey());
+                return CityDAO.FACTORY.getByCountry(dbConnector.getConnection(), country.getPrimaryKey());
             }
         }
 
@@ -445,7 +445,7 @@ public class CustomerPicker extends BorderPane {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return CountryDAO.getFactory().getAllCountries(dbConnector.getConnection());
+                return CountryDAO.FACTORY.getAllCountries(dbConnector.getConnection());
             }
         }
 
@@ -515,7 +515,7 @@ public class CustomerPicker extends BorderPane {
 //                    return CustomerFilter.byCity(city, false).get(connection);
 //            }
 //            if (null == country) {
-//                return CustomerDAO.getFactory().getAll(connection);
+//                return CustomerDAO.FACTORY.getAll(connection);
 //            }
 //            if (null == city) {
 //                return CustomerFilter.byCountry(country).get(connection);

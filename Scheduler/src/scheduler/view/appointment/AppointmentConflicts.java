@@ -5,7 +5,6 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -44,8 +43,6 @@ import scheduler.view.task.WaitBorderPane;
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/fx/AppointmentConflicts.fxml")
 public class AppointmentConflicts {
-
-    private static final Logger LOG = Logger.getLogger(AppointmentConflicts.class.getName());
 
     private WaitBorderPane waitBorderPane;
     private EditAppointment parentController;
@@ -312,7 +309,7 @@ public class AppointmentConflicts {
         protected List<AppointmentDAO> call() throws Exception {
             try (DbConnector db = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 if (null != customer && customer.isExisting()) {
                     if (null != user && user.isExisting()) {
                         return af.load(db.getConnection(), AppointmentFilter.of(customer, user, null, null));

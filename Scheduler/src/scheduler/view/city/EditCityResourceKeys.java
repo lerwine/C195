@@ -13,6 +13,11 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_ADD = "add";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Add New City"}.
+     */
+    public static final String RESOURCEKEY_ADDNEWCITY = "addNewCity";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Address"}.
      */
     public static final String RESOURCEKEY_ADDRESS = "address";
@@ -111,6 +116,11 @@ public interface EditCityResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
      */
     public static final String RESOURCEKEY_REQUIRED = "required";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Show all"}.
+     */
+    public static final String RESOURCEKEY_SHOWALL = "showAll";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Street Address"}.

@@ -25,8 +25,4 @@ public class CorporateCountry extends PredefinedData.PredefinedCountry {
 
     }
 
-    public CorporateCountry(Locale locale) {
-
-    }
-
 }

@@ -26,8 +26,8 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.model.CustomerCity;
-import scheduler.model.CustomerCountry;
+import scheduler.model.City;
+import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
@@ -65,7 +65,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
      */
     public static final String PROP_ZONEID = "zoneId";
 
-    private static final FactoryImpl FACTORY = new FactoryImpl();
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -130,7 +130,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     @Override
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof CustomerCity && ModelHelper.areSameRecord(this, (CustomerCity) obj);
+        return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
     }
 
     @Override
@@ -158,7 +158,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         protected void applyColumnValue(CityDAO dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException {
             switch (dbColumn) {
                 case CITY_NAME:
-                    String id = dao.zoneId.getId();
                     ps.setString(index, String.format("%s;%s", dao.name, dao.zoneId.getId()));
                     break;
                 case CITY_COUNTRY:
@@ -198,9 +197,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             String s = rs.getString(DbColumn.CITY_NAME.toString());
             int i = s.lastIndexOf(";");
             if (i < 0) {
-                return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s, CountryDAO.getFactory().fromJoinedResultSet(rs), null);
+                return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s, CountryDAO.FACTORY.fromJoinedResultSet(rs), null);
             }
-            return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s.substring(0, i).trim(), CountryDAO.getFactory().fromJoinedResultSet(rs),
+            return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s.substring(0, i).trim(), CountryDAO.FACTORY.fromJoinedResultSet(rs),
                     ZoneId.of(s.substring(i + 1).trim()));
         }
 
@@ -214,7 +213,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
-            int count = AddressDAO.getFactory().countByCity(dao.getPrimaryKey(), connection);
+            int count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
             switch (count) {
                 case 0:
                     return "";
@@ -229,7 +228,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         public void save(CityDAO dao, Connection connection, boolean force) throws SQLException {
             ICountryDAO country = ICityDAO.assertValidCity(dao).country;
             if (country instanceof CountryDAO) {
-                CountryDAO.getFactory().save((CountryDAO) country, connection, force);
+                CountryDAO.FACTORY.save((CountryDAO) country, connection, force);
             }
             super.save(dao, connection, force);
         }
@@ -252,7 +251,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
                 ZoneId oldZoneId = dao.zoneId;
-                private final CustomerCountry oldCountry = dao.country;
+                private final Country oldCountry = dao.country;
 
                 @Override
                 public void accept(PropertyChangeSupport t) {
@@ -271,7 +270,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 dao.name = s.substring(0, i).trim();
                 dao.zoneId = ZoneId.of(s.substring(i + 1).trim());
             }
-            dao.country = CountryDAO.getFactory().fromJoinedResultSet(rs);
+            dao.country = CountryDAO.FACTORY.fromJoinedResultSet(rs);
             return propertyChanges;
         }
 
@@ -284,7 +283,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             ICountryDAO country = dao.getCountry();
 
             if (country instanceof CountryDAO && country.getRowState() != DataRowState.UNMODIFIED) {
-                String msg = CountryDAO.getFactory().getSaveDbConflictMessage((CountryDAO) country, connection);
+                String msg = CountryDAO.FACTORY.getSaveDbConflictMessage((CountryDAO) country, connection);
                 if (!msg.isEmpty()) {
                     return msg;
                 }
@@ -452,7 +451,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         public boolean equals(Object obj) {
-            return null != obj && obj instanceof CustomerCity && ModelHelper.areSameRecord(this, (CustomerCity) obj);
+            return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
         }
 
         @Override

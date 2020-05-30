@@ -106,6 +106,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
 
     @ModelEditor
@@ -216,8 +217,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private HashSet<String> invalidControlIds;
 
     public EditAppointment() {
-        windowTitle = new ReadOnlyStringWrapper();
-        valid = new ReadOnlyBooleanWrapper();
+        windowTitle = new ReadOnlyStringWrapper("");
+        valid = new ReadOnlyBooleanWrapper(false);
+        modified = new ReadOnlyBooleanWrapper(false);
     }
 
     @FXML
@@ -556,6 +558,16 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
+    public boolean isModified() {
+        return modified.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty modifiedProperty() {
+        return modified.getReadOnlyProperty();
+    }
+
+    @Override
     public String getWindowTitle() {
         return windowTitle.get();
     }
@@ -583,13 +595,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
-    public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditNew
-    }
-
-    @Override
-    public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#onEditExisting
+    public void onNewModelSaved() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#applyEditMode
     }
 
     @Override
@@ -635,7 +642,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
                 if (loadOption.isPresent()) {
                     return cf.load(dbConnector.getConnection(), cf.getActiveStatusFilter(loadOption.get()));
                 }
@@ -683,7 +690,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 if (loadOption.isPresent()) {
                     if (loadOption.get()) {
                         return uf.load(dbConnector.getConnection(), uf.getActiveUsersFilter());
@@ -750,9 +757,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         protected List<AppointmentDAO> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
-                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
-                UserDAO.FactoryImpl uf = UserDAO.getFactory();
-                AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
+                UserDAO.FactoryImpl uf = UserDAO.FACTORY;
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
                 if (customerLoadOption.isPresent()) {
                     customerDaoList = cf.load(dbConnector.getConnection(), cf.getActiveStatusFilter(customerLoadOption.get()));

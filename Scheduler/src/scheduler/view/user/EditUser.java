@@ -75,6 +75,7 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     }
 
     private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
 
     @ModelEditor
@@ -131,8 +132,9 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     private ObservableList<AppointmentFilterItem> filterOptions;
 
     public EditUser() {
-        windowTitle = new ReadOnlyStringWrapper();
-        valid = new ReadOnlyBooleanWrapper();
+        windowTitle = new ReadOnlyStringWrapper("");
+        valid = new ReadOnlyBooleanWrapper(false);
+        modified = new ReadOnlyBooleanWrapper(false);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -268,6 +270,16 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     }
 
     @Override
+    public boolean isModified() {
+        return modified.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty modifiedProperty() {
+        return modified.getReadOnlyProperty();
+    }
+
+    @Override
     public String getWindowTitle() {
         return windowTitle.get();
     }
@@ -283,13 +295,8 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     }
 
     @Override
-    public void onEditNew() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onEditNew
-    }
-
-    @Override
-    public void onEditExisting(boolean isInitialize) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onEditExisting
+    public void onNewModelSaved() {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#applyEditMode
     }
 
     @Override
@@ -381,11 +388,11 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 users = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 if (!filterOptions.isEmpty()) {
                     updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-                    AppointmentDAO.FactoryImpl af = AppointmentDAO.getFactory();
+                    AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                     return af.load(dbConnector.getConnection(), filterOptions.get(0).getModelFilter().getDaoFilter());
                 }
             }

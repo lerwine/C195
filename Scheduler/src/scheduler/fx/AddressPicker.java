@@ -197,7 +197,7 @@ public class AddressPicker extends BorderPane {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                AddressDAO.FactoryImpl factory = AddressDAO.getFactory();
+                AddressDAO.FactoryImpl factory = AddressDAO.FACTORY;
                 return factory.load(dbConnector.getConnection(), factory.getAllItemsFilter());
             }
         }

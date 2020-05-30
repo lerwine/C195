@@ -167,9 +167,9 @@ public class ConsultantSchedule extends VBox {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                appointments = AppointmentDAO.getFactory().load(dbConnector.getConnection(), AppointmentFilter.of(null, user,
+                appointments = AppointmentDAO.FACTORY.load(dbConnector.getConnection(), AppointmentFilter.of(null, user,
                         DB.toUtcTimestamp(start.atStartOfDay()), DB.toUtcTimestamp(start.plusDays(1L).atStartOfDay())));
-                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 return uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
             }
         }
@@ -200,7 +200,7 @@ public class ConsultantSchedule extends VBox {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                return AppointmentDAO.getFactory().load(dbConnector.getConnection(), AppointmentFilter.of(null, user,
+                return AppointmentDAO.FACTORY.load(dbConnector.getConnection(), AppointmentFilter.of(null, user,
                         DB.toUtcTimestamp(start.atStartOfDay()), DB.toUtcTimestamp(end.plusDays(1L).atStartOfDay())));
             }
         }

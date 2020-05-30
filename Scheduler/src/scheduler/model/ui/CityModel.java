@@ -57,7 +57,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         language = new ReadOnlyStringBindingProperty(this, "language", Bindings.selectString(country, "language"));
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, "valid")));
+                        .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, "valid")));
         name.set(dao.getName());
         zoneId.set(dao.getZoneId());
         country.set(CountryItem.createModel(dao.getCountry()));
@@ -156,7 +156,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         @Override
         public DaoFactory<CityDAO> getDaoFactory() {
-            return CityDAO.getFactory();
+            return CityDAO.FACTORY;
         }
 
         @Override

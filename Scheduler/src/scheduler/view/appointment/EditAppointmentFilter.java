@@ -54,6 +54,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.DateFilterType;
 import scheduler.dao.filter.TextFilterType;
+import scheduler.model.Address;
 import scheduler.observables.StringBindingProperty;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.clearAndSelect;
@@ -64,7 +65,6 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.model.CustomerAddress;
 
 /**
  * FXML Controller class for editing the appointment listing filter.
@@ -842,7 +842,7 @@ public final class EditAppointmentFilter extends BorderPane {
         protected List<CustomerDAO> call() throws Exception {
             try (DbConnector db = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
+                CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
                 return cf.load(db.getConnection(), (this.includeInactiveCustomers) ? cf.getActiveStatusFilter(true) : cf.getAllItemsFilter());
             }
         }
@@ -868,7 +868,7 @@ public final class EditAppointmentFilter extends BorderPane {
         protected List<UserDAO> call() throws Exception {
             try (DbConnector db = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 return uf.load(db.getConnection(), (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getActiveUsersFilter());
             }
         }
@@ -898,8 +898,8 @@ public final class EditAppointmentFilter extends BorderPane {
         protected Pair<List<CustomerDAO>, List<UserDAO>> call() throws Exception {
             try (DbConnector db = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
-                CustomerDAO.FactoryImpl cf = CustomerDAO.getFactory();
-                UserDAO.FactoryImpl uf = UserDAO.getFactory();
+                CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
+                UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 return new Pair<>(
                         cf.load(db.getConnection(), (this.includeInactiveCustomers) ? cf.getActiveStatusFilter(true) : cf.getAllItemsFilter()),
                         uf.load(db.getConnection(), (this.includeInactiveUsers) ? uf.getAllItemsFilter() : uf.getActiveUsersFilter())
@@ -1009,13 +1009,13 @@ public final class EditAppointmentFilter extends BorderPane {
             OptionItems result = new OptionItems();
             try (DbConnector db = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
-                result.customers = CustomerDAO.getFactory().load(db.getConnection(), CustomerDAO.getFactory().getActiveStatusFilter(true));
+                result.customers = CustomerDAO.FACTORY.load(db.getConnection(), CustomerDAO.FACTORY.getActiveStatusFilter(true));
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
-                result.users = UserDAO.getFactory().load(db.getConnection(), UserDAO.getFactory().getActiveUsersFilter());
+                result.users = UserDAO.FACTORY.load(db.getConnection(), UserDAO.FACTORY.getActiveUsersFilter());
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCITIES));
-                result.cities = CityDAO.getFactory().load(db.getConnection(), CityDAO.getFactory().getAllItemsFilter());
+                result.cities = CityDAO.FACTORY.load(db.getConnection(), CityDAO.FACTORY.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCOUNTRIES));
-                result.countries = CountryDAO.getFactory().load(db.getConnection(), CountryDAO.getFactory().getAllItemsFilter());
+                result.countries = CountryDAO.FACTORY.load(db.getConnection(), CountryDAO.FACTORY.getAllItemsFilter());
             }
             return result;
         }
@@ -1343,7 +1343,7 @@ public final class EditAppointmentFilter extends BorderPane {
                 countryId = new ReadOnlyIntegerWrapper(-1);
             } else {
                 text = new ReadOnlyStringWrapper(customer.getName());
-                CustomerAddress addr = customer.getAddress();
+                Address addr = customer.getAddress();
                 cityId = new ReadOnlyIntegerWrapper(addr.getCity().getPrimaryKey());
                 countryId = new ReadOnlyIntegerWrapper(addr.getCity().getCountry().getPrimaryKey());
             }
