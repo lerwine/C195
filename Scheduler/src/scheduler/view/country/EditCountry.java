@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -116,10 +117,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(false);
+        modified = new ReadOnlyBooleanWrapper(true);
         itemList = FXCollections.observableArrayList();
         localeList = FXCollections.observableArrayList();
-        Arrays.stream(Locale.getAvailableLocales()).filter((t) -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage())).forEach((t) -> localeList.add(t));
+        Arrays.stream(Locale.getAvailableLocales()).filter((t)
+                -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
+                .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -164,6 +167,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @FXML
+    void onLocaleComboBoxAction(ActionEvent event) {
+        valid.set(null != selectedLocale.get());
+        modified.set(!Objects.equals(selectedLocale.get(), model.getLocale()));
+    }
+
+    @FXML
     void onNewButtonAction(ActionEvent event) {
         try {
             EditCity.editNew(model, getScene().getWindow(), true);
@@ -203,13 +212,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         localeComboBox.setItems(localeList);
         selectedLocale = Bindings.select(localeComboBox.selectionModelProperty(), "selectedItem");
         languageValidationLabel.visibleProperty().bind(selectedLocale.isNull());
-        BooleanBinding validationBinding = selectedLocale.isNotNull();
-        validationBinding.addListener((observable, oldValue, newValue) -> {
-            valid.set(newValue);
-        });
-        valid.set(validationBinding.get());
+
         BooleanBinding modificationBinding = selectedLocale.isNotEqualTo(model.localeProperty());
         modificationBinding.addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> String.format("modificationBinding changed from %s to %s ", oldValue, newValue));
             modified.set(newValue);
         });
         modified.set(modificationBinding.get());

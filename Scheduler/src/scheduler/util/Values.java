@@ -1,7 +1,11 @@
 package scheduler.util;
 
+import java.time.ZoneId;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,9 +15,56 @@ import java.util.regex.Pattern;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class Values {
+public final class Values {
 
     public static final Pattern REGEX_NON_NORMAL_WHITESPACES = Pattern.compile(" \\s+|(?! )\\s+");
+
+    public static int compareTimeZones(TimeZone o1, TimeZone o2) {
+        if (null == o1) {
+            return (null == o2) ? 0 : 1;
+        }
+        if (null == o2) {
+            return -1;
+        }
+        if (o1 == o2) {
+            return 0;
+        }
+        int result = o1.getRawOffset() - o2.getRawOffset();
+        if (result == 0 && (result = o1.getDisplayName().compareTo(o2.getDisplayName())) == 0) {
+            ZoneId z1 = o1.toZoneId();
+            ZoneId z2 = o2.toZoneId();
+            if (null == z1) {
+                return (null == z2) ? 0 : -1;
+            }
+            if (null == z2) {
+                return 1;
+            }
+            Locale d = Locale.getDefault(Locale.Category.DISPLAY);
+            if ((result = z1.getDisplayName(TextStyle.FULL, d).compareTo(z2.getDisplayName(TextStyle.FULL, d))) == 0
+                    && (result = z1.getId().compareTo(z2.getId())) == 0) {
+                return o1.getID().compareTo(o2.getID());
+            }
+        }
+        return result;
+    }
+
+    public static int compareLocaleCountryFirst(Locale o1, Locale o2) {
+        if (null == o1) {
+            return (null == o2) ? 0 : 1;
+        }
+        if (null == o2) {
+            return -1;
+        }
+        if (o1 == o2) {
+            return 0;
+        }
+        int result = o1.getDisplayCountry().compareTo(o2.getDisplayCountry());
+        if (result == 0 && (result = o1.getDisplayLanguage().compareTo(o2.getDisplayLanguage())) == 0
+                && (result = o1.getDisplayVariant().compareTo(o2.getDisplayVariant())) == 0) {
+            return o1.getDisplayScript().compareTo(o2.getDisplayScript());
+        }
+        return result;
+    }
 
     public static ArrayList<String> splitByChar(String source, char delimiter) {
         ArrayList<String> result = new ArrayList<>();
@@ -25,26 +76,29 @@ public class Values {
         if (b < 0) {
             result.add(source);
         } else {
-            if (b == 0)
+            if (b == 0) {
                 result.add("");
-            else
+            } else {
                 result.add(source.substring(0, b));
+            }
             int e;
             while ((e = source.indexOf(delimiter, b + 1)) > 0) {
-                if (e == b)
+                if (e == b) {
                     result.add("");
-                else
+                } else {
                     result.add(source.substring(b, e));
+                }
                 b = e + 1;
             }
-            if (b < source.length())
+            if (b < source.length()) {
                 result.add(source.substring(b + 1));
-            else
+            } else {
                 result.add("");
+            }
         }
         return result;
     }
-    
+
     /**
      * Ensures a {@link String} value is not null.
      *
@@ -150,7 +204,7 @@ public class Values {
      * or contains only white space characters.
      */
     public static boolean isNotNullWhiteSpaceOrEmpty(String value) {
-        return (value == null || value.isEmpty() || value.codePoints().allMatch((c) -> Character.isWhitespace(c)));
+        return !(value == null || value.isEmpty() || value.codePoints().allMatch((c) -> Character.isWhitespace(c)));
     }
 
     /**
@@ -259,6 +313,9 @@ public class Values {
             throw new IllegalArgumentException(messageSupplier.get());
         }
         return value;
+    }
+
+    private Values() {
     }
 
     private static class NonNullStringSupplier implements Supplier<String> {

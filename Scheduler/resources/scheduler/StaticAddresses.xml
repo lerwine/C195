@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<a:definitions xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:a='urn:Erwine.Leonard.T:C195:StaticAddresses.xsd'
-               xsi:schemaLocation='urn:Erwine.Leonard.T:C195:StaticAddresses.xsd StaticAddresses.xsd'>
+<a:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:a="urn:Erwine.Leonard.T:C195:StaticAddresses.xsd"
+               xsi:schemaLocation="urn:Erwine.Leonard.T:C195:StaticAddresses.xsd StaticAddresses.xsd">
     <a:country languageTag="en-US">
         <a:city name="Phoenix" zoneId="US/Mountain">
             <a:address name="Phoenix Main Office" address1="127 N 2nd St" address2="" postalCode="85004" phone="(602) 440-1132" mainOffice="true" />

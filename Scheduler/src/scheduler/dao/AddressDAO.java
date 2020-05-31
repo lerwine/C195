@@ -430,7 +430,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         int countByCity(int primaryKey, Connection connection) throws SQLException {
-            String sql = "SELECT COUNT(" + DbColumn.ADDRESS_ID.getDbName() + ") FROM " + DbTable.CITY.getDbName()
+            String sql = "SELECT COUNT(" + DbColumn.ADDRESS_ID.getDbName() + ") FROM " + DbTable.ADDRESS.getDbName()
                     + " WHERE " + DbColumn.ADDRESS_CITY.getDbName() + "=?";
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, primaryKey);
@@ -460,7 +460,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private final String postalCode;
         private final String phone;
 
-        Related(int primaryKey, String address1, String address2, ICityDAO city, String postalCode, String phone) {
+        private Related(int primaryKey, String address1, String address2, ICityDAO city, String postalCode, String phone) {
             this.primaryKey = primaryKey;
             this.address1 = asNonNullAndWsNormalized(address1);
             this.address2 = asNonNullAndWsNormalized(address2);

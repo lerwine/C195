@@ -2,6 +2,7 @@ package scheduler.fx;
 
 import javafx.scene.control.ListCell;
 import scheduler.dao.ICountryDAO;
+import scheduler.model.CountryProperties;
 import scheduler.model.ui.CountryItem;
 
 /**
@@ -17,7 +18,7 @@ public class CountryListCell<T extends CountryItem<? extends ICountryDAO>> exten
         if (null == item) {
             setText("");
         } else {
-            setText(item.getName());
+            setText(CountryProperties.getCountryAndLanguageDisplayText(item.getLocale()));
         }
     }
 

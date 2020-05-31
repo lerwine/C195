@@ -9,6 +9,46 @@ import java.util.Objects;
  */
 public interface CountryProperties {
 
+    public static String getCountryDisplayText(Locale locale) {
+        if (null != locale) {
+            return locale.getDisplayCountry();
+        }
+        return "";
+    }
+
+    public static String getCountryAndLanguageDisplayText(Locale locale) {
+        if (null != locale) {
+            String c = locale.getDisplayCountry();
+            if (!c.isEmpty()) {
+                String d = locale.getDisplayLanguage();
+                if (d.isEmpty()) {
+                    return c;
+                }
+                String v = locale.getDisplayVariant();
+                if (!(v.isEmpty() && (v = locale.getDisplayScript()).isEmpty())) {
+                    return String.format("%s (%s, %s)", c, d, v);
+                }
+                return String.format("%s (%s)", c, d);
+            }
+        }
+        return "";
+    }
+
+    public static String getLanguageDisplayText(Locale locale) {
+        if (null != locale) {
+            String d = locale.getDisplayLanguage();
+            if (!d.isEmpty()) {
+                String v = locale.getDisplayVariant();
+                String s = locale.getDisplayScript();
+                if (v.isEmpty()) {
+                    return (s.isEmpty()) ? d : String.format("%s (%s)", d, s);
+                }
+                return (s.isEmpty()) ? String.format("%s (%s)", d, v) : String.format("%s (%s, %s)", d, v, s);
+            }
+        }
+        return "";
+    }
+
     public static String toString(CountryProperties country) {
         if (null != country) {
             String n = country.getName();
@@ -22,7 +62,7 @@ public interface CountryProperties {
             return null == b;
         }
 
-        return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName()) && Objects.equals(a.getLocale(), b.getLocale())));
+        return null != b && (a == b || Objects.equals(a.getLocale(), b.getLocale()));
     }
 
     public static int compare(CountryProperties a, CountryProperties b) {

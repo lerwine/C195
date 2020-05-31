@@ -420,18 +420,18 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             LocalDateTime start = model.getStart();
             LocalDateTime end = model.getEnd();
             CustomerItem<? extends ICustomerDAO> c = model.getCustomer();
-            ZoneId z = null;
+            TimeZone z = null;
             if (null != c) {
                 AddressItem<? extends IAddressDAO> a = c.getAddress();
                 if (null != a) {
                     CityItem<? extends ICityDAO> t = a.getCity();
                     if (null != t) {
-                        z = t.getZoneId();
+                        z = t.getTimeZone();
                     }
                 }
             }
             if (null == z) {
-                z = ZoneId.systemDefault();
+                z = TimeZone.getTimeZone(ZoneId.systemDefault());
             }
             Duration duration;
             if (null != start && null != end) {
@@ -439,7 +439,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             } else {
                 duration = null;
             }
-            dateRangeController.setDateRange(start, duration, TimeZone.getTimeZone(z));
+            dateRangeController.setDateRange(start, duration, z);
             WaitTitledPane pane = new WaitTitledPane();
             pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                     .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());

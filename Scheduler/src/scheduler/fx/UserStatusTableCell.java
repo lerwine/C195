@@ -20,6 +20,7 @@ public class UserStatusTableCell extends TableCell<String, UserStatus> {
     @Override
     protected void updateItem(UserStatus item, boolean empty) {
         super.updateItem(item, empty);
+        setWrapText(true);
         setText((item == null) ? "" : UserStatus.toDisplayValue(item));
     }
 }

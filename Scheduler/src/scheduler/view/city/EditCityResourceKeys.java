@@ -88,6 +88,11 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_NAMECANNOTBEEMPTY = "nameCannotBeEmpty";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Name too long."}.
+     */
+    public static final String RESOURCEKEY_NAMETOOLONG = "nameTooLong";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "No addresses to show."}.
      */
     public static final String RESOURCEKEY_NOADDRESSESTOSHOW = "noAddressesToShow";

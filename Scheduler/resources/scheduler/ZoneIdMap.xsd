@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<xs:schema version="1.0" targetNamespace="urn:Erwine.Leonard.T:C195:ZoneIdMap.xsd" xmlns:m="urn:Erwine.Leonard.T:C195:ZoneIdMap.xsd"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+    <xs:simpleType name="ZoneId">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[^/\s]+(/[^/\s]+){0,2}" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Key">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Za-z]{2}" />
+            <xs:minLength value="2" />
+            <xs:maxLength value="2" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="keyValuePair">
+        <xs:attribute name="key" type="m:Key" use="required" />
+        <xs:attribute name="value" type="m:ZoneId" use="required" />
+    </xs:complexType>
+    <xs:element name="mappings">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="entry" type="m:keyValuePair" minOccurs="1" maxOccurs="unbounded" />
+            </xs:sequence>
+        </xs:complexType>
+        <xs:key name="entryKey">
+            <xs:selector xpath="./m:entry" />
+            <xs:field xpath="@key" />
+        </xs:key>
+        <xs:unique name="zoneIdValue">
+            <xs:selector xpath="./m:entry" />
+            <xs:field xpath="@value" />
+        </xs:unique>
+    </xs:element>
+</xs:schema>

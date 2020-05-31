@@ -29,6 +29,7 @@ public class DateTimeTableCell<S, T extends TemporalAccessor> extends TableCell<
     @Override
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
+        setWrapText(true);
         setText((item == null) ? "" : formatter.format(item));
     }
 }

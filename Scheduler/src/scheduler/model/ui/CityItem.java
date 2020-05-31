@@ -1,6 +1,7 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
+import java.util.TimeZone;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -38,7 +39,7 @@ public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
     ReadOnlyStringProperty countryNameProperty();
 
-    ReadOnlyObjectProperty<ZoneId> zoneIdProperty();
+    ReadOnlyObjectProperty<TimeZone> timeZoneProperty();
 
     String getTimeZoneDisplay();
 

@@ -367,13 +367,13 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     }
 
-    private static final class Related extends PropertyBindable implements IUserDAO {
+    public static final class Related extends PropertyBindable implements IUserDAO {
 
         private final int primaryKey;
         private final String userName;
         private final UserStatus status;
 
-        Related(int primaryKey, String userName, UserStatus status) {
+        private Related(int primaryKey, String userName, UserStatus status) {
             this.primaryKey = primaryKey;
             this.userName = userName;
             this.status = status;

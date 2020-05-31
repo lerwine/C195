@@ -160,7 +160,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                 ((Stage) oldValue).titleProperty().unbind();
             }
             if (null != newValue && newValue instanceof Stage) {
-                ((Stage) oldValue).titleProperty().bind(editorRegion.windowTitleProperty());
+                ((Stage) newValue).titleProperty().bind(editorRegion.windowTitleProperty());
             }
         });
     }

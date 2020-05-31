@@ -8,11 +8,14 @@ import java.sql.SQLException;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import static scheduler.ZoneIdMappings.fromZoneId;
+import static scheduler.ZoneIdMappings.toZoneId;
 import scheduler.dao.event.CityDaoEvent;
 import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.event.DbChangeType;
@@ -61,9 +64,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     public static final String PROP_COUNTRY = "country";
 
     /**
-     * The name of the 'zoneId' property.
+     * The name of the 'timeZone' property.
      */
-    public static final String PROP_ZONEID = "zoneId";
+    public static final String PROP_TIMEZONE = "timeZone";
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -73,7 +76,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     private String name;
     private ICountryDAO country;
-    private ZoneId zoneId;
+    private TimeZone timeZone;
 
     /**
      * Initializes a {@link DataRowState#NEW} city object.
@@ -107,14 +110,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     }
 
     @Override
-    public ZoneId getZoneId() {
-        return zoneId;
+    public TimeZone getTimeZone() {
+        return timeZone;
     }
 
-    public void setZoneId(ZoneId zoneId) {
-        ZoneId oldValue = this.zoneId;
-        this.zoneId = zoneId;
-        firePropertyChange(PROP_ZONEID, oldValue, this.zoneId);
+    public void setTimeZone(TimeZone zoneId) {
+        TimeZone oldValue = this.timeZone;
+        this.timeZone = zoneId;
+        firePropertyChange(PROP_TIMEZONE, oldValue, this.timeZone);
     }
 
     @Override
@@ -158,7 +161,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         protected void applyColumnValue(CityDAO dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException {
             switch (dbColumn) {
                 case CITY_NAME:
-                    ps.setString(index, String.format("%s;%s", dao.name, dao.zoneId.getId()));
+                    ps.setString(index, String.format("%s;%s", dao.name, fromZoneId(dao.timeZone.toZoneId().getId())));
                     break;
                 case CITY_COUNTRY:
                     ps.setInt(index, dao.country.getPrimaryKey());
@@ -200,7 +203,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s, CountryDAO.FACTORY.fromJoinedResultSet(rs), null);
             }
             return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s.substring(0, i).trim(), CountryDAO.FACTORY.fromJoinedResultSet(rs),
-                    ZoneId.of(s.substring(i + 1).trim()));
+                    TimeZone.getTimeZone(ZoneId.of(toZoneId(s.substring(i + 1).trim()))));
         }
 
         @Override
@@ -237,12 +240,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         protected void onCloneProperties(CityDAO fromDAO, CityDAO toDAO) {
             String oldName = toDAO.name;
             ICountryDAO oldCountry = toDAO.country;
-            ZoneId oldZoneId = toDAO.zoneId;
+            TimeZone oldZoneId = toDAO.timeZone;
             toDAO.name = fromDAO.name;
             toDAO.country = fromDAO.country;
-            toDAO.zoneId = fromDAO.zoneId;
+            toDAO.timeZone = fromDAO.timeZone;
             toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
-            toDAO.firePropertyChange(PROP_ZONEID, oldZoneId, toDAO.zoneId);
+            toDAO.firePropertyChange(PROP_TIMEZONE, oldZoneId, toDAO.timeZone);
             toDAO.firePropertyChange(PROP_COUNTRY, oldCountry, toDAO.country);
         }
 
@@ -250,13 +253,13 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CityDAO dao, ResultSet rs) throws SQLException {
             Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
                 private final String oldName = dao.name;
-                ZoneId oldZoneId = dao.zoneId;
+                TimeZone oldZoneId = dao.timeZone;
                 private final Country oldCountry = dao.country;
 
                 @Override
                 public void accept(PropertyChangeSupport t) {
                     t.firePropertyChange(PROP_NAME, oldName, dao.name);
-                    t.firePropertyChange(PROP_ZONEID, oldZoneId, dao.zoneId);
+                    t.firePropertyChange(PROP_TIMEZONE, oldZoneId, dao.timeZone);
                     t.firePropertyChange(PROP_COUNTRY, oldCountry, dao.country);
                 }
             };
@@ -265,10 +268,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             int i = s.lastIndexOf(";");
             if (i < 0) {
                 dao.name = s;
-                dao.zoneId = null;
+                dao.timeZone = null;
             } else {
                 dao.name = s.substring(0, i).trim();
-                dao.zoneId = ZoneId.of(s.substring(i + 1).trim());
+                dao.timeZone = TimeZone.getTimeZone(ZoneId.of(toZoneId(s.substring(i + 1).trim())));
             }
             dao.country = CountryDAO.FACTORY.fromJoinedResultSet(rs);
             return propertyChanges;
@@ -415,18 +418,18 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     }
 
-    private static final class Related extends PropertyBindable implements ICityDAO {
+    public static final class Related extends PropertyBindable implements ICityDAO {
 
         private final int primaryKey;
         private final String name;
         private final ICountryDAO country;
-        private final ZoneId zoneId;
+        private final TimeZone timeZone;
 
-        Related(int primaryKey, String name, ICountryDAO country, ZoneId zoneId) {
+        private Related(int primaryKey, String name, ICountryDAO country, TimeZone zoneId) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.country = country;
-            this.zoneId = zoneId;
+            this.timeZone = zoneId;
         }
 
         @Override
@@ -445,8 +448,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        public ZoneId getZoneId() {
-            return zoneId;
+        public TimeZone getTimeZone() {
+            return timeZone;
         }
 
         @Override

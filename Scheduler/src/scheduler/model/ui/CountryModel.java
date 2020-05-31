@@ -13,7 +13,7 @@ import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.PredefinedData;
+import scheduler.model.CountryProperties;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
@@ -39,22 +39,8 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     public CountryModel(CountryDAO dao) {
         super(dao);
         locale = new SimpleObjectProperty<>(this, "locale");
-        name = new ReadOnlyStringBindingProperty(this, "name", () -> PredefinedData.getLocaleCountryDisplayName(locale.get(),
-                AppResources.getCurrentLocale().getLocale()));
-        language = new ReadOnlyStringBindingProperty(this, "language", () -> {
-            Locale l = locale.get();
-            if (null != l) {
-                String d = l.getDisplayLanguage();
-                if (!d.isEmpty()) {
-                    String v = l.getDisplayVariant();
-                    if (!(v.isEmpty() && (v = l.getDisplayScript()).isEmpty())) {
-                        return String.format("%s (%s)", d, v);
-                    }
-                    return d;
-                }
-            }
-            return "";
-        }, locale);
+        name = new ReadOnlyStringBindingProperty(this, "name", () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
+        language = new ReadOnlyStringBindingProperty(this, "language", () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
                         .and(language.isNotEmpty()));

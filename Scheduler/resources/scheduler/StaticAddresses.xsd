@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <xs:schema version="1.0" targetNamespace="urn:Erwine.Leonard.T:C195:StaticAddresses.xsd" xmlns:a="urn:Erwine.Leonard.T:C195:StaticAddresses.xsd"
-           xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" >
-    <xs:simpleType name="ZoneId">
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+    <xs:simpleType name="zoneId">
         <xs:restriction base="xs:string">
             <xs:pattern value="[^/\s]+(/[^/\s]+)?" />
         </xs:restriction>
@@ -59,11 +59,16 @@
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="zoneId" type="a:ZoneId" use="required" />
+        <xs:attribute name="zoneId" type="a:zoneId" use="required" />
     </xs:complexType>
     <xs:complexType name="countryType">
         <xs:sequence>
-            <xs:element name="city" type="a:cityType" minOccurs="1" maxOccurs="unbounded" />
+            <xs:element name="city" type="a:cityType" minOccurs="1" maxOccurs="unbounded">
+                <xs:key name="addressKey">
+                    <xs:selector xpath="./a:address" />
+                    <xs:field xpath="@name" />
+                </xs:key>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="languageTag" use="required">
             <xs:simpleType>
@@ -76,8 +81,17 @@
     <xs:element name="definitions">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="country" type="a:countryType" minOccurs="1" maxOccurs="unbounded" />
+                <xs:element name="country" type="a:countryType" minOccurs="1" maxOccurs="unbounded">
+                    <xs:key name="cityKey">
+                        <xs:selector xpath="./a:city" />
+                        <xs:field xpath="@name" />
+                    </xs:key>
+                </xs:element>
             </xs:sequence>
         </xs:complexType>
+        <xs:key name="countryKey">
+            <xs:selector xpath="./a:country" />
+            <xs:field xpath="@languageTag" />
+        </xs:key>
     </xs:element>
 </xs:schema>

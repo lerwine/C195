@@ -24,9 +24,8 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.Country;
+import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.PredefinedData;
-import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -88,7 +87,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         Locale oldLocale = this.locale;
         String oldName = name;
         this.locale = locale;
-        name = PredefinedData.getLocaleCountryDisplayName(this.locale, AppResources.getCurrentLocale().getLocale());
+        name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);
         firePropertyChange(PROP_LOCALE, oldLocale, this.locale);
         firePropertyChange(PROP_NAME, oldName, name);
     }
@@ -228,7 +227,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
             String s = rs.getString(DbColumn.COUNTRY_NAME.toString());
             dao.locale = Locale.forLanguageTag(s);
-            dao.name = PredefinedData.getLocaleCountryDisplayName(dao.locale, AppResources.getCurrentLocale().getLocale());
+            dao.name = CountryProperties.getCountryAndLanguageDisplayText(dao.locale);
 
             return propertyChanges;
         }
@@ -241,8 +240,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())
                     .append(") FROM ").append(DbTable.COUNTRY.getDbName())
-                    .append(" WHERE (").append(DbColumn.COUNTRY_NAME.getDbName()).append(" LIKE ? OR ")
-                    .append(DbColumn.COUNTRY_NAME.getDbName()).append("=?)");
+                    .append(" WHERE ").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
 
             if (dao.getRowState() != DataRowState.NEW) {
                 sb.append(" AND ").append(DbColumn.COUNTRY_ID.getDbName()).append("<>?");
@@ -251,10 +249,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             String lt = dao.locale.toLanguageTag();
             int count;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, String.format("%s;*", DB.escapeWC(dao.name)));
-                ps.setString(2, lt);
+                ps.setString(1, lt);
                 if (dao.getRowState() != DataRowState.NEW) {
-                    ps.setInt(3, dao.getPrimaryKey());
+                    ps.setInt(2, dao.getPrimaryKey());
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
@@ -267,36 +264,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             }
 
             if (count > 0) {
-                sb = new StringBuffer("SELECT ").append(DbColumn.COUNTRY_NAME.getDbName())
-                        .append(") FROM ").append(DbTable.COUNTRY.getDbName())
-                        .append(" WHERE (").append(DbColumn.COUNTRY_NAME.getDbName()).append(" LIKE ? OR ")
-                        .append(DbColumn.COUNTRY_NAME.getDbName()).append("=?)");
-
-                if (dao.getRowState() != DataRowState.NEW) {
-                    sb.append(" AND ").append(DbColumn.COUNTRY_ID.getDbName()).append("<>?");
-                }
-                String sql2 = sb.toString();
-                count = 0;
-                try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                    ps.setString(1, String.format("%s;*", DB.escapeWC(dao.name)));
-                    ps.setString(2, lt);
-                    if (dao.getRowState() != DataRowState.NEW) {
-                        ps.setInt(3, dao.getPrimaryKey());
-                    }
-                    LOG.fine(() -> String.format("Executing DML statement: %s", sql2));
-                    try (ResultSet rs = ps.executeQuery()) {
-                        while (rs.next()) {
-                            String n = rs.getString(1);
-                            int i = n.lastIndexOf(";");
-                            if ((i < 0) ? (n.equals(lt) || n.equalsIgnoreCase(dao.name)) : n.substring(0, i).equalsIgnoreCase(dao.name)) {
-                                count++;
-                            }
-                        }
-                    }
-                }
-                if (count > 0) {
-                    return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE);
-                }
+                return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE);
             }
 
             return "";
@@ -347,16 +315,16 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     }
 
-    private final static class Related extends PropertyBindable implements ICountryDAO {
+    public final static class Related extends PropertyBindable implements ICountryDAO {
 
         private final int primaryKey;
         private final String name;
         private final Locale locale;
 
-        Related(int primaryKey, Locale locale) {
+        private Related(int primaryKey, Locale locale) {
             this.primaryKey = primaryKey;
-            this.name = PredefinedData.getLocaleCountryDisplayName(locale, AppResources.getCurrentLocale().getLocale());
             this.locale = locale;
+            this.name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);
         }
 
         @Override

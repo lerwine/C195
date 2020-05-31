@@ -12,6 +12,7 @@ public class AppointmentTypeTableCell extends TableCell<String, AppointmentType>
     @Override
     protected void updateItem(AppointmentType item, boolean empty) {
         super.updateItem(item, empty);
+        setWrapText(true);
         setText(AppointmentType.toDisplayText(item));
     }
 }

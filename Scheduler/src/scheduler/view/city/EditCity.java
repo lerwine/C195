@@ -1,8 +1,7 @@
 package scheduler.view.city;
 
 import java.io.IOException;
-import java.time.ZoneId;
-import java.time.format.TextStyle;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -12,7 +11,6 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -37,12 +35,14 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.ZoneIdMappings;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.CountryProperties;
+import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
@@ -51,9 +51,11 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.Tuple;
+import scheduler.util.Values;
 import scheduler.view.EditItem;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -76,7 +78,7 @@ import scheduler.view.task.WaitTitledPane;
 public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel> {
 
     private static final Object TARGET_COUNTRY_KEY = new Object();
-    private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
 
     public static CityModel edit(CityModel model, Window parentWindow) throws IOException {
         return EditItem.showAndWait(parentWindow, EditCity.class, model, false);
@@ -92,35 +94,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return EditItem.showAndWait(parentWindow, control, model, keepOpen);
     }
 
-    private static int timeZoneCompare(TimeZone o1, TimeZone o2) {
-        if (null == o1) {
-            return (null == o2) ? 0 : 1;
-        }
-        if (null == o2) {
-            return -1;
-        }
-        if (o1 == o2) {
-            return 0;
-        }
-        int result = o1.getRawOffset() - o2.getRawOffset();
-        if (result == 0 && (result = o1.getDisplayName().compareTo(o2.getDisplayName())) == 0) {
-            ZoneId z1 = o1.toZoneId();
-            ZoneId z2 = o2.toZoneId();
-            if (null == z1) {
-                return (null == z2) ? 0 : -1;
-            }
-            if (null == z2) {
-                return 1;
-            }
-            Locale d = Locale.getDefault(Locale.Category.DISPLAY);
-            if ((result = z1.getDisplayName(TextStyle.FULL, d).compareTo(z2.getDisplayName(TextStyle.FULL, d))) == 0
-                    && (result = z1.getId().compareTo(z2.getId())) == 0) {
-                return o1.getID().compareTo(o2.getID());
-            }
-        }
-        return result;
-    }
-
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -128,7 +101,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private final ObservableList<TimeZone> timeZoneOptionList;
     private final ObservableList<AddressModel> addressItemList;
     private ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry;
-    private ObjectBinding<ZoneId> selectedZoneId;
+    private ObjectBinding<TimeZone> selectedTimeZone;
     private StringBinding normalizedName;
 
     @ModelEditor
@@ -152,13 +125,10 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="languageLabel"
-    private Label languageLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="zoneIdComboBox"
+    @FXML // fx:id="timeZoneComboBox"
     private ComboBox<TimeZone> timeZoneComboBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="zoneIdValidationLabel"
+    @FXML // fx:id="timeZoneValidationLabel"
     private Label timeZoneValidationLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressesLabel"
@@ -169,14 +139,15 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML // fx:id="addCityButtonBar"
     private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
+    private StringBinding nameValidationMessage;
 
     public EditCity() {
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(false);
+        modified = new ReadOnlyBooleanWrapper(true);
         countryOptionList = FXCollections.observableArrayList();
         timeZoneOptionList = FXCollections.observableArrayList();
-        ZoneId.getAvailableZoneIds().stream().map((t) -> TimeZone.getTimeZone(t)).sorted(EditCity::timeZoneCompare)
+        Arrays.stream(TimeZone.getAvailableIDs()).map((t) -> TimeZone.getTimeZone(t)).sorted(Values::compareTimeZones)
                 .forEach((t) -> timeZoneOptionList.add(t));
         addressItemList = FXCollections.observableArrayList();
     }
@@ -223,6 +194,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
+    void onComboBoxAction(ActionEvent event) {
+        onChange(nameTextField.getText());
+    }
+
+    @FXML
     private void onItemActionRequest(ItemActionRequestEvent<AddressModel> event) {
         if (event.isDelete()) {
             deleteAddress(event.getItem());
@@ -231,13 +207,26 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
+    private void onChange(String cityName) {
+        valid.set(Values.isNotNullWhiteSpaceOrEmpty(cityName) && null != selectedCountry.get() && null != selectedTimeZone.get());
+        if (normalizedName.get().equals(Values.asNonNullAndWsNormalized(model.getName()))
+                && ModelHelper.areSameRecord(selectedCountry.get(), model.getCountry())) {
+            TimeZone z1 = selectedTimeZone.get();
+            TimeZone z2 = model.getTimeZone();
+            if ((null == z1) ? null == z2 : null != z2 && z1.getID().equals(z2.getID())) {
+                modified.set(false);
+                return;
+            }
+        }
+        modified.set(true);
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert countryValidationLabel != null : "fx:id=\"countryValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
-        assert languageLabel != null : "fx:id=\"languageLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert timeZoneComboBox != null : "fx:id=\"timeZoneComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert timeZoneValidationLabel != null : "fx:id=\"timeZoneValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert addressesLabel != null : "fx:id=\"addressesLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
@@ -248,60 +237,40 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         timeZoneComboBox.setItems(timeZoneOptionList);
         addressesTableView.setItems(addressItemList);
         selectedCountry = Bindings.select(countryComboBox.selectionModelProperty(), "selectedItem");
-        ObjectBinding<TimeZone> selectedTimeZone = Bindings.select(timeZoneComboBox.selectionModelProperty(), "selectedItem");
-        selectedZoneId = Bindings.createObjectBinding(() -> {
-            TimeZone z = selectedTimeZone.get();
-            return (null == z) ? null : z.toZoneId();
+        selectedTimeZone = Bindings.select(timeZoneComboBox.selectionModelProperty(), "selectedItem");
+        StringBinding selectedTzCode = Bindings.createStringBinding(() -> {
+            TimeZone tz = selectedTimeZone.get();
+            if (null == tz)
+                return "";
+            return ZoneIdMappings.fromZoneId(tz.toZoneId().getId());
         }, selectedTimeZone);
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
-        BooleanBinding nameValid = normalizedName.isNotEmpty();
-        nameValidationLabel.visibleProperty().bind(nameValid.not());
+        nameValidationMessage = Bindings.createStringBinding(() -> {
+            String c = selectedTzCode.get();
+            String nn = normalizedName.get();
+            if (nn.isEmpty()) {
+                return resources.getString(RESOURCEKEY_REQUIRED);
+            }
+            int maxLen = CityDAO.MAX_LENGTH_NAME - c.length() - 1;
+            LOG.fine(() -> String.format("Testing max lengh of %d", maxLen));
+            if (nn.length() > maxLen) {
+                return resources.getString(RESOURCEKEY_NAMETOOLONG);
+            }
+            return "";
+        }, normalizedName, selectedTzCode);
+        nameValidationLabel.textProperty().bind(nameValidationMessage);
+        nameValidationLabel.visibleProperty().bind(nameValidationMessage.isNotEmpty());
         countryValidationLabel.visibleProperty().bind(selectedCountry.isNull());
         timeZoneValidationLabel.visibleProperty().bind(selectedTimeZone.isNull());
-        
-        BooleanBinding validationBinding = nameValid
-                .and(selectedCountry.isNotNull())
-                .and(selectedTimeZone.isNotNull());
-        
-        validationBinding.addListener((observable, oldValue, newValue) -> {
-            valid.set(newValue);
-        });
-        valid.set(validationBinding.get());
-        
-        // Create binding that indicates when control values are different than the model values.
-        BooleanBinding modificationBinding = Bindings.notEqual( // Name has changed
-                normalizedName,
-                BindingHelper.asNonNullAndWsNormalized(model.nameProperty())
-        )
-                .or(Bindings.notEqual( // Country has changed
-                        selectedCountry,
-                        model.countryProperty()
-                ))
-                .or(Bindings.notEqual( // Time zone has changed
-                        Bindings.createStringBinding(() -> {
-                            ZoneId z = selectedZoneId.get();
-                            return (null == z) ? "" : z.getId();
-                        }, selectedZoneId),
-                        Bindings.createStringBinding(() -> {
-                            ZoneId z = model.getZoneId();
-                            return (null == z) ? "" : z.getId();
-                        }, model.zoneIdProperty())
-                ));
-        
-        modificationBinding.addListener((observable, oldValue, newValue) -> {
-            modified.set(newValue);
-        });
-        modified.set(modificationBinding.get());
-        
+        nameTextField.textProperty().addListener((observable, oldValue, newValue) -> onChange(newValue));
         nameTextField.setText(model.getName());
-        languageLabel.textProperty().bind(Bindings.selectString(selectedCountry, "language"));
-        ZoneId zoneId = model.getZoneId();
+        TimeZone zoneId = model.getTimeZone();
         if (null != zoneId) {
-            String id = zoneId.getId();
+            String id = zoneId.toZoneId().getId();
             timeZoneOptionList.stream().filter((t) -> t.toZoneId().getId().equals(id)).findFirst()
                     .ifPresent((t) -> timeZoneComboBox.getSelectionModel().select(t));
         }
-        
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -385,7 +354,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     public void updateModel() {
         model.setName(normalizedName.get());
         model.setCountry(selectedCountry.get());
-        model.setZoneId(selectedZoneId.get());
+        model.setTimeZone(selectedTimeZone.get());
     }
 
     private void loadCountries(List<CountryDAO> result, CountryItem<? extends ICountryDAO> country) {

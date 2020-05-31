@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
@@ -46,24 +47,6 @@ public class PredefinedData {
     private static Map<String, CorporateCountry> COUNTRY_MAP;
     private static Map<String, CorporateAddress> ADDRESS_MAP;
 
-    public static String getLocaleCountryDisplayName(Locale locale, Locale displayLocale) {
-        if (null != locale) {
-            String c = locale.getDisplayCountry(displayLocale);
-            if (!c.isEmpty()) {
-                String d = locale.getDisplayLanguage(displayLocale);
-                if (d.isEmpty()) {
-                    return c;
-                }
-                String v = locale.getDisplayVariant(displayLocale);
-                if (!(v.isEmpty() && (v = locale.getDisplayScript(displayLocale)).isEmpty())) {
-                    return String.format("%s (%s, %s)", c, d, v);
-                }
-                return String.format("%s (%s)", c, d);
-            }
-        }
-        return "";
-    }
-
     private static void CheckLoadAddresses() {
         if (null != COUNTRY_MAP) {
             return;
@@ -80,12 +63,11 @@ public class PredefinedData {
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
                 PredefinedData result = (PredefinedData) unmarshaller.unmarshal(stream);
                 SupportedLocale sl = AppResources.getCurrentLocale();
-                Locale displayLocale = sl.getLocale();
                 result.countries.forEach((t) -> {
                     PredefinedCountry predefinedCountry = (PredefinedCountry) t;
                     predefinedCountry.locale = Locale.forLanguageTag(predefinedCountry.languageTag);
                     predefinedCountry.displayLocale = sl;
-                    predefinedCountry.name = getLocaleCountryDisplayName(predefinedCountry.locale, displayLocale);
+                    predefinedCountry.name = CountryProperties.getCountryAndLanguageDisplayText(predefinedCountry.locale);
                     String countryMapKey = predefinedCountry.locale.getCountry();
                     countryMap.put(countryMapKey, t);
                     List<CorporateCity> cities = t.getCities();
@@ -95,7 +77,7 @@ public class PredefinedData {
                         cities.forEach((u) -> {
                             PredefinedCity predefinedCity = (PredefinedCity) u;
                             predefinedCity.country = t;
-                            predefinedCity.zoneId = ZoneId.of(predefinedCity.zoneIdText);
+                            predefinedCity.timeZone = TimeZone.getTimeZone(ZoneId.of(predefinedCity.zoneIdText));
                             List<CorporateAddress> addresses = u.getAddresses();
                             if (null == addresses) {
                                 predefinedCity.addresses = Collections.emptyList();
@@ -202,7 +184,7 @@ public class PredefinedData {
         public String getName() {
             if (!AppResources.getCurrentLocale().equals(displayLocale)) {
                 String oldName = name;
-                name = getLocaleCountryDisplayName(locale, (displayLocale = AppResources.getCurrentLocale()).getLocale());
+                name = CountryProperties.getCountryAndLanguageDisplayText(locale);
                 firePropertyChange(CountryDAO.PROP_NAME, oldName, name);
             }
             return name;
@@ -225,7 +207,7 @@ public class PredefinedData {
         private String zoneIdText;
 
         @XmlTransient
-        private ZoneId zoneId;
+        private TimeZone timeZone;
 
         @XmlElement(name = CorporateAddress.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
         private List<CorporateAddress> addresses;
@@ -238,8 +220,8 @@ public class PredefinedData {
         }
 
         @Override
-        public ZoneId getZoneId() {
-            return zoneId;
+        public TimeZone getTimeZone() {
+            return timeZone;
         }
 
         @Override

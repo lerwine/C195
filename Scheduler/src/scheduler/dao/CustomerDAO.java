@@ -371,14 +371,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     }
 
-    private static class Related extends PropertyBindable implements ICustomerDAO {
+    public static class Related extends PropertyBindable implements ICustomerDAO {
 
         private final String name;
         private final IAddressDAO address;
         private final boolean active;
         private final int primaryKey;
 
-        Related(int primaryKey, String name, IAddressDAO address, boolean active) {
+        private Related(int primaryKey, String name, IAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.address = address;

@@ -1,8 +1,6 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
-import java.time.format.TextStyle;
-import java.util.Locale;
+import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -19,6 +17,7 @@ import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.model.CityProperties;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
@@ -37,7 +36,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     }
 
     private final StringProperty name;
-    private final ObjectProperty<ZoneId> zoneId;
+    private final ObjectProperty<TimeZone> timeZone;
     private final ObjectProperty<CountryItem<? extends ICountryDAO>> country;
     private final ReadOnlyStringBindingProperty timeZoneDisplay;
     private final ReadOnlyStringBindingProperty countryName;
@@ -47,20 +46,19 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     public CityModel(CityDAO dao) {
         super(dao);
         name = new SimpleStringProperty(this, "name");
-        zoneId = new SimpleObjectProperty<>();
+        timeZone = new SimpleObjectProperty<>();
         country = new SimpleObjectProperty<>();
         timeZoneDisplay = new ReadOnlyStringBindingProperty(this, "timeZoneDisplay", () -> {
-            ZoneId z = zoneId.get();
-            return (null == z) ? "" : z.getDisplayName(TextStyle.FULL, Locale.getDefault(Locale.Category.DISPLAY));
-        }, zoneId);
+            return CityProperties.getTimeZoneDisplayText(timeZone.get());
+        }, timeZone);
         countryName = new ReadOnlyStringBindingProperty(this, "countryName", Bindings.selectString(country, "name"));
         language = new ReadOnlyStringBindingProperty(this, "language", Bindings.selectString(country, "language"));
+        name.set(dao.getName());
+        timeZone.set(dao.getTimeZone());
+        country.set(CountryItem.createModel(dao.getCountry()));
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
                         .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, "valid")));
-        name.set(dao.getName());
-        zoneId.set(dao.getZoneId());
-        country.set(CountryItem.createModel(dao.getCountry()));
     }
 
     @Override
@@ -102,17 +100,17 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     }
 
     @Override
-    public ZoneId getZoneId() {
-        return zoneId.get();
+    public TimeZone getTimeZone() {
+        return timeZone.get();
     }
 
-    public void setZoneId(ZoneId value) {
-        zoneId.set(value);
+    public void setTimeZone(TimeZone value) {
+        timeZone.set(value);
     }
 
     @Override
-    public ObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId;
+    public ObjectProperty<TimeZone> timeZoneProperty() {
+        return timeZone;
     }
 
     @Override
@@ -170,12 +168,18 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("City has been deleted");
             }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+            dao.setName(item.getName());
+            CountryItem<? extends ICountryDAO> c = item.getCountry();
+            dao.setCountry((null == c) ? null : c.dataObject());
+            dao.setTimeZone(item.getTimeZone());
+            return dao;
         }
 
         @Override
         protected void updateItemProperties(CityModel item, CityDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+            item.setName(dao.getName());
+            item.setCountry(CountryItem.createModel(dao.getCountry()));
+            item.setTimeZone(dao.getTimeZone());
         }
 
         @Override

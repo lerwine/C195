@@ -15,13 +15,16 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.fx.CountryListCell?>
-<?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
 <?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.LocaleCountryAndLanguageListCell?>
+<?import scheduler.fx.LocaleCountryAndLanguageListCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
+<?import scheduler.fx.TimeZoneTableCellFactory?>
+<?import scheduler.fx.WrappingTextTableCellFactory?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass"
+         stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <GridPane>
             <columnConstraints>
@@ -34,12 +37,13 @@
             </rowConstraints>
             <children>
                 <Label styleClass="leftControlLabel" text="%regionLanguage" />
-                  <ComboBox fx:id="localeComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" GridPane.columnIndex="1">
+                  <ComboBox fx:id="localeComboBox" maxWidth="1.7976931348623157E308" onAction="#onLocaleComboBoxAction"
+                            styleClass="leftLabeledControl" GridPane.columnIndex="1">
                       <cellFactory>
-                          <CountryListCellFactory />
+                          <LocaleCountryAndLanguageListCellFactory />
                       </cellFactory>
                       <buttonCell>
-                          <CountryListCell wrapText="true" />
+                          <LocaleCountryAndLanguageListCell wrapText="true" />
                       </buttonCell>
                   </ComboBox>
                 <Label fx:id="languageValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
@@ -51,17 +55,24 @@
             </children>
         </GridPane>
         <Label fx:id="citiesLabel" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%cities" />
-        <TableView fx:id="citiesTableView" maxHeight="1.7976931348623157E308" onKeyReleased="#onCitiesTableViewKeyReleased" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+        <TableView fx:id="citiesTableView" maxHeight="1.7976931348623157E308" onKeyReleased="#onCitiesTableViewKeyReleased"
+                   prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="%nameColumnHeading">
                     <cellValueFactory>
                         <PropertyValueFactory property="name" />
                     </cellValueFactory>
+                    <cellFactory>
+                        <WrappingTextTableCellFactory />
+                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="%timeZone">
                     <cellValueFactory>
                         <PropertyValueFactory property="timeZone" />
                     </cellValueFactory>
+                    <cellFactory>
+                        <TimeZoneTableCellFactory />
+                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%createdOn">
                     <cellValueFactory>
@@ -75,6 +86,9 @@
                     <cellValueFactory>
                         <PropertyValueFactory property="createdBy" />
                     </cellValueFactory>
+                    <cellFactory>
+                        <WrappingTextTableCellFactory />
+                    </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%updatedOn">
                     <cellValueFactory>
@@ -88,8 +102,11 @@
                     <cellValueFactory>
                         <PropertyValueFactory property="lastModifiedBy" />
                     </cellValueFactory>
+                    <cellFactory>
+                        <WrappingTextTableCellFactory />
+                    </cellFactory>
                 </TableColumn>
-                <TableColumn editable="false" maxWidth="71.0" minWidth="22.0" prefWidth="43.0" sortable="false">
+                <TableColumn editable="false" maxWidth="64.0" minWidth="64.0" prefWidth="64.0" sortable="false">
                     <cellValueFactory>
                         <RelayCellValueFactory />
                     </cellValueFactory>

@@ -9,10 +9,9 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.model.CountryProperties;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
@@ -25,26 +24,27 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
 
     private static final Logger LOG = Logger.getLogger(RelatedCountry.class.getName());
 
-    private final ReadOnlyJavaBeanStringProperty name;
-    private final ReadOnlyStringProperty language;
     private final ReadOnlyJavaBeanObjectProperty<Locale> locale;
+    private final ReadOnlyStringBindingProperty name;
+    private final ReadOnlyStringBindingProperty language;
     private final ReadOnlyBooleanProperty valid;
 
     public RelatedCountry(ICountryDAO rowData) {
         super(rowData);
         try {
-            name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(CountryDAO.PROP_NAME).build();
             locale = ReadOnlyJavaBeanObjectPropertyBuilder.<Locale>create().bean(rowData).name(CountryDAO.PROP_LOCALE).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        language = new ReadOnlyStringBindingProperty(this, "language", () -> {
-            Locale l = locale.get();
-            return (null == l) ? "" : l.getDisplayLanguage();
+        name = new ReadOnlyStringBindingProperty(this, "name", () -> {
+            return CountryProperties.getCountryDisplayText(locale.get());
         }, locale);
+        language = new ReadOnlyStringBindingProperty(this, "language", () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
+                Bindings.createBooleanBinding(() -> {
+            return Values.isNotNullWhiteSpaceOrEmpty(name.get());
+        }, name)
                         .and(language.isNotEmpty()));
     }
 
