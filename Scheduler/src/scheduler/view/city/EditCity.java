@@ -240,8 +240,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         selectedTimeZone = Bindings.select(timeZoneComboBox.selectionModelProperty(), "selectedItem");
         StringBinding selectedTzCode = Bindings.createStringBinding(() -> {
             TimeZone tz = selectedTimeZone.get();
-            if (null == tz)
+            if (null == tz) {
                 return "";
+            }
             return ZoneIdMappings.fromZoneId(tz.toZoneId().getId());
         }, selectedTimeZone);
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
@@ -426,11 +427,13 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         protected void succeeded() {
             super.succeeded();
             List<CountryDAO> result = getValue();
-            ObservableMap<Object, Object> properties = getProperties();
             CountryItem<? extends ICountryDAO> targetCountry = model.getCountry();
-            if (null == targetCountry && properties.containsKey(TARGET_COUNTRY_KEY)) {
-                targetCountry = (CountryModel) properties.get(TARGET_COUNTRY_KEY);
-                properties.remove(TARGET_COUNTRY_KEY);
+            if (null == targetCountry) {
+                ObservableMap<Object, Object> properties = getProperties();
+                if (properties.containsKey(TARGET_COUNTRY_KEY)) {
+                    targetCountry = (CountryModel) properties.get(TARGET_COUNTRY_KEY);
+                    properties.remove(TARGET_COUNTRY_KEY);
+                }
             }
             loadCountries(result, targetCountry);
         }

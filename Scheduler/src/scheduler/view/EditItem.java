@@ -203,6 +203,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         restoreNode(lastUpdateLabel);
         restoreLabeled(lastUpdateValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
                 dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
+        editorRegion.onNewModelSaved();
     }
 
     @FXML
