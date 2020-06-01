@@ -11,6 +11,8 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -33,14 +35,18 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.DbConnector;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.view.EditItem;
@@ -81,6 +87,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CountryItem<? extends ICountryDAO>> countryOptions;
+    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
     private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
     private final ObservableList<CustomerModel> itemList;
 
@@ -136,22 +143,27 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private TableView<CustomerModel> customersTableView; // Value injected by FXMLLoader
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
-    private ObjectBinding<Object> selectedCity;
+    private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
+    private final SimpleBooleanProperty editingCity;
+    private BooleanBinding changedBinding;
+    private BooleanBinding validityBinding;
 
     public EditAddress() {
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);
         modified = new ReadOnlyBooleanWrapper(false);
+        editingCity = new SimpleBooleanProperty(false);
         countryOptions = FXCollections.observableArrayList();
+        allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
     }
 
     @FXML
     void onEditCityButtonAction(ActionEvent event) {
-        // FIXME: Implement scheduler.view.address.EditAddress#ActionEvent
+        editingCity.set(true);
     }
 
     @FXML
@@ -176,26 +188,80 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         assert customersHeadingLabel != null : "fx:id=\"customersHeadingLabel\" was not injected: check your FXML file 'EditAddress.fxml'.";
         assert customersTableView != null : "fx:id=\"customersTableView\" was not injected: check your FXML file 'EditAddress.fxml'.";
 
+        countryListView.setItems(countryOptions);
+        cityListView.setItems(cityOptions);
+        customersTableView.setItems(itemList);
+        
         normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
+        address1TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+        
         normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());
-        ObjectBinding<Object> selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
-        selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
-        normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
-        normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
+        address2TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         BooleanBinding addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
         addressValidationLabel.visibleProperty().bind(addressValid.not());
+        
+        ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
+        selectedCountry.addListener(this::onSelectedCountryChanged);
+        selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
+        selectedCity.addListener(this::onSelectedCityChanged);
+        StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
+            CityItem<? extends ICityDAO> c = selectedCity.get();
+            CountryItem<? extends ICountryDAO> n = selectedCountry.get();
+            if (null == n)
+                return "Country must be selected, first";
+            return (null == c) ? "* Required" : "";
+        }, selectedCity, selectedCountry);
+        BooleanBinding cityInvalid = cityValidationMessage.isNotEmpty();
+        cityValidationLabel.textProperty().bind(cityValidationMessage);
+        cityValidationLabel.visibleProperty().bind(cityInvalid);
+        BooleanBinding showEditCityControls = cityInvalid.or(editingCity);
+        showEditCityControls.addListener(this::onShowEditCityControlsChanged);
+        
+        normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
+        postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
+        normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
+        phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
+        
+        changedBinding = normalizedAddress1.isNotEqualTo(model.address1Property())
+                .or(normalizedAddress2.isNotEqualTo(model.address2Property()))
+                .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), model.getCity()), selectedCity, model.cityProperty()))
+                .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))
+                .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
+        validityBinding = addressValid.and(cityInvalid.not());
+        
+        onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
+        onSelectedCityChanged(selectedCity, null, selectedCity.get());
+        onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
         
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         if (model.isNewRow()) {
+            editingCity.set(true);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new ItemsLoadTask());
         } else {
             windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
             waitBorderPane.startNow(pane, new CustomersLoadTask());
+            collapseNode(customersHeadingLabel);
+            collapseNode(customersTableView);
         }
-        // FIXME: Create individual validators
+    }
+    
+    private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+        if (newValue) {
+            collapseNode(countryCityValueLabel);
+            collapseNode(editCityButton);
+            restoreNode(countryListView);
+            restoreNode(cityListView);
+            restoreNode(newCityButton);
+        } else {
+            collapseNode(countryListView);
+            collapseNode(cityListView);
+            collapseNode(newCityButton);
+            restoreNode(countryCityValueLabel);
+            restoreNode(editCityButton);
+        }
     }
 
     @Override
@@ -235,18 +301,77 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @Override
     public void onNewModelSaved() {
-        throw new UnsupportedOperationException("Not supported yet.");
-        // FIXME: Implement scheduler.view.address.EditAddress#applyEditMode
+        editingCity.set(false);
+        restoreNode(customersHeadingLabel);
+        restoreNode(customersTableView);
     }
 
     @Override
     public void updateModel() {
-        throw new UnsupportedOperationException("Not supported yet.");
-        // FIXME: Implement scheduler.view.address.EditAddress#updateModel
+        model.setAddress1(normalizedAddress1.get());
+        model.setAddress2(normalizedAddress2.get());
+        model.setCity(selectedCity.get());
+        model.setPostalCode(normalizedPostalCode.get());
+        model.setPhone(normalizedPhone.get());
+    }
+
+    private void updateValidation() {
+        modified.set(changedBinding.get());
+        valid.set(validityBinding.get());
+    }
+    
+    private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable, CountryItem<? extends ICountryDAO> oldValue,
+            CountryItem<? extends ICountryDAO> newValue) {
+        cityListView.getSelectionModel().clearSelection();
+        cityOptions.clear();
+        if (null != newValue) {
+            int pk = newValue.getPrimaryKey();
+            allCities.filtered((t) -> t.getCountry().getPrimaryKey() == pk).forEach((t) -> cityOptions.add(t));
+        }
+        updateValidation();
+    }
+
+    private void onSelectedCityChanged(ObservableValue<? extends CityItem<? extends ICityDAO>> observable, CityItem<? extends ICityDAO> oldValue,
+            CityItem<? extends ICityDAO> newValue) {
+        updateValidation();
     }
 
     private void initializeCountriesAndCities(List<CountryDAO> countryDaoList, List<CityDAO> cityDaoList, CityItem<? extends ICityDAO> targetCity) {
-        // FIXME: Implement scheduler.view.address.EditAddress#initializeCountriesAndCities
+        CountryModel.Factory nf = CountryModel.getFactory();
+        CountryItem<? extends ICountryDAO> countryItem = (null == targetCity) ? null : targetCity.getCountry();
+        if (null != countryDaoList && !countryDaoList.isEmpty()) {
+            if (null != countryItem) {
+                int pk = countryItem.getPrimaryKey();
+                countryDaoList.forEach((t) -> {
+                    if (t.getPrimaryKey() == pk)
+                        countryOptions.add(countryItem);
+                    else
+                        countryOptions.add(nf.createNew(t));
+                });
+            } else {
+                countryDaoList.forEach((t) -> countryOptions.add(nf.createNew(t)));
+            }
+        }
+        CityModel.Factory cf = CityModel.getFactory();
+        if (null != cityDaoList && !cityDaoList.isEmpty()) {
+            if (null != targetCity) {
+                int pk = targetCity.getPrimaryKey();
+                cityDaoList.forEach((t) -> {
+                    if (t.getPrimaryKey() == pk) {
+                        allCities.add(targetCity);
+                    } else {
+                        allCities.add(cf.createNew(t));
+                    }
+                });
+            } else {
+                cityDaoList.forEach((t) -> allCities.add(cf.createNew(t)));
+            }
+        }
+        if (null != countryItem && countryOptions.contains(countryItem)) {
+            countryListView.getSelectionModel().select(countryItem);
+            if (null != targetCity && cityOptions.contains(targetCity))
+                cityListView.getSelectionModel().select(targetCity);
+        }
     }
 
     private class CustomersLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {
