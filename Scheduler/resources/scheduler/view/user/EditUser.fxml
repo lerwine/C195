@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -16,9 +15,12 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
+<?import scheduler.fx.UserStatusListCell?>
+<?import scheduler.fx.UserStatusListCellFactory?>
 
-<fx:root dividerPositions="0.36" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="SplitPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-    <items>
+
+  <fx:root styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+      <children>
         <GridPane hgap="4.0" vgap="2.0">
             <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" />
@@ -76,88 +78,90 @@
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
+                    <cellFactory>
+                        <UserStatusListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <UserStatusListCell />
+                    </buttonCell>
                 </ComboBox>
             </children>
             <padding>
-                <Insets right="8.0" />
+                <Insets bottom="8.0" right="8.0" />
             </padding>
         </GridPane>
-        <VBox fx:id="appointmentListingVBox">
-            <children>
-                <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" />
-                <TableView fx:id="appointmentsTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="title" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="start" />
-                            </cellValueFactory>
-                            <cellFactory>
-                                <DateTimeTableCellFactory />
-                            </cellFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="end" />
-                            </cellValueFactory>
-                            <cellFactory>
-                                <DateTimeTableCellFactory />
-                            </cellFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="type" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customer">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="customerName" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="effectiveLocation" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="createDate" />
-                            </cellValueFactory>
-                            <cellFactory>
-                                <DateTimeTableCellFactory />
-                            </cellFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="createdBy" />
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="lastUpdate" />
-                            </cellValueFactory>
-                            <cellFactory>
-                                <DateTimeTableCellFactory />
-                            </cellFactory>
-                        </TableColumn>
-                        <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="lastUpdateBy" />
-                            </cellValueFactory>
-                        </TableColumn>
-                    </columns>
-                    <VBox.margin>
-                        <Insets bottom="8.0" top="8.0" />
-                    </VBox.margin>
-                </TableView>
-            </children>
-            <padding>
-                <Insets left="8.0" />
-            </padding>
-        </VBox>
-    </items>
-</fx:root>
+          <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" />
+          <TableView fx:id="appointmentsTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+              <columns>
+                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="title" />
+                      </cellValueFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="start" />
+                      </cellValueFactory>
+                      <cellFactory>
+                          <DateTimeTableCellFactory />
+                      </cellFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="end" />
+                      </cellValueFactory>
+                      <cellFactory>
+                          <DateTimeTableCellFactory />
+                      </cellFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="type" />
+                      </cellValueFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customer">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="customerName" />
+                      </cellValueFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="effectiveLocation" />
+                      </cellValueFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="createDate" />
+                      </cellValueFactory>
+                      <cellFactory>
+                          <DateTimeTableCellFactory />
+                      </cellFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="createdBy" />
+                      </cellValueFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="lastUpdate" />
+                      </cellValueFactory>
+                      <cellFactory>
+                          <DateTimeTableCellFactory />
+                      </cellFactory>
+                  </TableColumn>
+                  <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
+                      <cellValueFactory>
+                          <PropertyValueFactory property="lastUpdateBy" />
+                      </cellValueFactory>
+                  </TableColumn>
+              </columns>
+              <VBox.margin>
+                  <Insets bottom="8.0" top="8.0" />
+              </VBox.margin>
+          </TableView>
+      </children>
+      <padding>
+          <Insets left="8.0" />
+      </padding>
+  </fx:root>

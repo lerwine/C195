@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -13,6 +15,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -20,16 +23,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
-import static scheduler.AppResourceKeys.RESOURCEKEY_INACTIVE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
@@ -38,9 +38,10 @@ import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
+import scheduler.observables.BindingHelper;
 import scheduler.util.DbConnector;
-import static scheduler.util.NodeUtil.bindCssCollapse;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.PwHash;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -77,6 +78,12 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
+    private final ObservableList<String> unavailableUserNames;
+    private final ObservableList<UserStatus> userActiveStateOptions;
+    private final ObservableList<AppointmentModel> userAppointments;
+    private final ObservableList<AppointmentFilterItem> filterOptions;
+    
+    private StringBinding normalizedUserName;
 
     @ModelEditor
     private UserModel model;
@@ -86,9 +93,6 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
-    @FXML // fx:id="userEditSplitPane"
-    private SplitPane userEditSplitPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="userNameTextField"
     private TextField userNameTextField; // Value injected by FXMLLoader
@@ -114,32 +118,28 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     @FXML // fx:id="activeComboBox"
     private ComboBox<UserStatus> activeComboBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="appointmentListingVBox"
-    private VBox appointmentListingVBox; // Value injected by FXMLLoader
-
     @FXML // fx:id="appointmentsFilterComboBox"
     private ComboBox<String> appointmentsFilterComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
-
-    private ObservableList<String> unavailableUserNames;
-
-    private ObservableList<UserStatus> userActiveStateOptions;
-
-    private ObservableList<AppointmentModel> userAppointments;
-
-    private ObservableList<AppointmentFilterItem> filterOptions;
+    private BooleanBinding validationBinding;
+    private ObjectBinding<UserStatus> selectedStatus;
+    private StringBinding passwordHash;
+    private BooleanBinding modificationBinding;
 
     public EditUser() {
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);
         modified = new ReadOnlyBooleanWrapper(false);
+        userActiveStateOptions = FXCollections.observableArrayList(UserStatus.values());
+        unavailableUserNames = FXCollections.observableArrayList();
+        userAppointments = FXCollections.observableArrayList();
+        filterOptions = FXCollections.observableArrayList();
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        assert userEditSplitPane != null : "fx:id=\"userEditSplitPane\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameErrorMessageLabel != null : "fx:id=\"userNameErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert changePasswordCheckBox != null : "fx:id=\"changePasswordCheckBox\" was not injected: check your FXML file 'EditUser.fxml'.";
@@ -148,76 +148,109 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         assert confirmLabel != null : "fx:id=\"confirmLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert confirmPasswordField != null : "fx:id=\"confirmPasswordField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert activeComboBox != null : "fx:id=\"activeComboBox\" was not injected: check your FXML file 'EditUser.fxml'.";
-        assert appointmentListingVBox != null : "fx:id=\"appointmentListingVBox\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert appointmentsFilterComboBox != null : "fx:id=\"appointmentsFilterComboBox\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditUser.fxml'.";
 
-        userActiveStateOptions = FXCollections.observableArrayList(UserStatus.values());
-        unavailableUserNames = FXCollections.observableArrayList();
-        userAppointments = FXCollections.observableArrayList();
-        filterOptions = FXCollections.observableArrayList();
-        activeComboBox.setCellFactory((p) -> new ListCell<UserStatus>() {
-            @Override
-            protected void updateItem(UserStatus a, boolean bln) {
-                super.updateItem(a, bln);
-
-                switch (a) {
-                    case NORMAL:
-                        setText(resources.getString(RESOURCEKEY_NORMALUSER));
-                        break;
-                    case ADMIN:
-                        setText(resources.getString(RESOURCEKEY_ADMINISTRATIVEUSER));
-                        break;
-                    default:
-                        setText(resources.getString(RESOURCEKEY_INACTIVE));
-                        break;
-                }
-            }
-        });
-
         activeComboBox.setItems(userActiveStateOptions);
-        if (model.isNewRow()) {
-            changePasswordCheckBox.setSelected(true);
-            changePasswordCheckBox.setDisable(true);
-            appointmentListingVBox.setVisible(false);
-            collapseNode(appointmentListingVBox);
-            userEditSplitPane.setDividerPosition(0, 1.0);
-        } else {
-            appointmentsTableView.setItems(userAppointments);
-        }
+        appointmentsTableView.setItems(userAppointments);
+        
+        normalizedUserName = BindingHelper.asNonNullAndWsNormalized(userNameTextField.textProperty());
+        StringBinding userNameErrorMessage = Bindings.createStringBinding(() -> {
+            String n = normalizedUserName.get();
+            if (n.isEmpty()) {
+                return resources.getString(RESOURCEKEY_USERNAMECANNOTBEEMPTY);
+            }
+            if (unavailableUserNames.contains(n.toLowerCase())) {
+                return resources.getString(RESOURCEKEY_USERNAMEINUSE);
+            }
+            return "";
+        }, normalizedUserName, unavailableUserNames);
+        BooleanBinding userNameInvalid = userNameErrorMessage.isNotEmpty();
+        userNameErrorMessageLabel.visibleProperty().bind(userNameInvalid);
+        
+        StringBinding passwordErrorMessage = Bindings.when(changePasswordCheckBox.selectedProperty())
+                .then(Bindings.createStringBinding(() -> {
+                    String p = passwordField.getText();
+                    String c = confirmPasswordField.getText();
+                    if (changePasswordCheckBox.isSelected()) {
+                        if (p.trim().isEmpty()) {
+                            return resources.getString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
+                        }
+                        if (!p.equals(c)) {
+                            return resources.getString(RESOURCEKEY_PASSWORDMISMATCH);
+                        }
+                    }
+                    return "";
+                }, passwordField.textProperty(), confirmPasswordField.textProperty()))
+                .otherwise("");
 
-        userNameErrorMessageLabel.visibleProperty().bind(getUserNameValidationMessage().isNotEmpty());
-        bindCssCollapse(userNameErrorMessageLabel, getUserNameValidationMessage().isEmpty());
-
-        passwordField.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
-        bindCssCollapse(passwordField, changePasswordCheckBox.selectedProperty().not());
-
-        confirmLabel.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
-        bindCssCollapse(confirmLabel, changePasswordCheckBox.selectedProperty().not());
-
-        confirmPasswordField.visibleProperty().bind(changePasswordCheckBox.selectedProperty());
-        bindCssCollapse(confirmPasswordField, changePasswordCheckBox.selectedProperty().not());
-
-        passwordErrorMessageLabel.textProperty().bind(getPasswordValidationMessage());
-        passwordErrorMessageLabel.visibleProperty().bind(getPasswordValidationMessage().isNotEmpty());
-        bindCssCollapse(passwordErrorMessageLabel, getPasswordValidationMessage().isEmpty());
-
-        LocalDate today = LocalDate.now();
-        UserDAO dao = model.dataObject();
-        if (dao.isExisting()) {
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
-                    AppointmentModelFilter.of(today, null, dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
-                    AppointmentModelFilter.of(today, today.plusDays(1), dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
-                    AppointmentModelFilter.of(null, today, dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-        }
+        BooleanBinding passwordInvalid = passwordErrorMessage.isNotEmpty();
+        passwordErrorMessageLabel.visibleProperty().bind(passwordInvalid);
+        passwordErrorMessageLabel.textProperty().bind(passwordErrorMessage);
+        changePasswordCheckBox.selectedProperty().addListener(this::changePasswordCheckBoxChanged);
+        passwordHash = Bindings.createStringBinding(() -> {
+            String p = passwordField.getText();
+            if (passwordInvalid.get() || p.isEmpty())
+                return "";
+            return "";
+        }, passwordInvalid, passwordField.textProperty());
+        
+        userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+        passwordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+        confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+        selectedStatus = Bindings.select(activeComboBox.selectionModelProperty(), "selectedItem");
+        validationBinding = userNameInvalid.or(passwordInvalid).not();
+        modificationBinding = changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus()))
+                .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
+        
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
-        waitBorderPane.startNow(pane, new InitialLoadTask());
-        windowTitle.set(resources.getString((model.isNewRow()) ? RESOURCEKEY_ADDNEWUSER : RESOURCEKEY_EDITUSER));
+        if (model.isNewRow()) {
+            waitBorderPane.startNow(pane, new LoadExistingUsersTask());
+            changePasswordCheckBox.setSelected(true);
+            changePasswordCheckBox.setDisable(true);
+            collapseNode(appointmentsFilterComboBox);
+            collapseNode(appointmentsTableView);
+            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
+        } else {
+            waitBorderPane.startNow(pane, new InitialLoadTask());
+            initEditMode();
+        }
+        changePasswordCheckBoxChanged(changePasswordCheckBox.selectedProperty(), false, changePasswordCheckBox.isSelected());
+    }
+    
+    private void updateValidation() {
+        valid.set(validationBinding.get());
+        modified.set(modificationBinding.get());
+    }
+    
+    private void changePasswordCheckBoxChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+        if (newValue) {
+            restoreNode(passwordField);
+            restoreNode(confirmLabel);
+            restoreNode(confirmPasswordField);
+            restoreNode(passwordErrorMessageLabel);
+        } else {
+            collapseNode(passwordField);
+            collapseNode(confirmLabel);
+            collapseNode(confirmPasswordField);
+            collapseNode(passwordErrorMessageLabel);
+        }
+        updateValidation();
+    }
+
+    private void initEditMode() {
+        windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITUSER), normalizedUserName));
+        LocalDate today = LocalDate.now();
+        UserDAO dao = model.dataObject();
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
+                AppointmentModelFilter.of(today, null, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
+                AppointmentModelFilter.of(today, today.plusDays(1), dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
+                AppointmentModelFilter.of(null, today, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
     }
 
     public boolean applyChangesToModel() {
@@ -228,35 +261,6 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
             model.setPassword(pw.getEncodedHash());
         }
         return true;
-    }
-
-    private StringBinding getUserNameValidationMessage() {
-        return Bindings.createStringBinding(() -> {
-            String n = userNameTextField.getText().trim().toLowerCase();
-            if (n.isEmpty()) {
-                return resources.getString(RESOURCEKEY_USERNAMECANNOTBEEMPTY);
-            }
-            if (unavailableUserNames.contains(n)) {
-                return resources.getString(RESOURCEKEY_USERNAMEINUSE);
-            }
-            return "";
-        }, userNameTextField.textProperty(), unavailableUserNames);
-    }
-
-    private StringBinding getPasswordValidationMessage() {
-        return Bindings.createStringBinding(() -> {
-            String p = passwordField.getText();
-            String c = confirmPasswordField.getText();
-            if (changePasswordCheckBox.isSelected()) {
-                if (p.trim().isEmpty()) {
-                    return resources.getString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
-                }
-                if (!p.equals(c)) {
-                    return resources.getString(RESOURCEKEY_PASSWORDMISMATCH);
-                }
-            }
-            return "";
-        }, passwordField.textProperty(), confirmPasswordField.textProperty(), changePasswordCheckBox.selectedProperty());
     }
 
     @Override
@@ -296,7 +300,11 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
 
     @Override
     public void onNewModelSaved() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#applyEditMode
+        changePasswordCheckBox.setDisable(false);
+        changePasswordCheckBox.setSelected(false);
+        restoreNode(appointmentsFilterComboBox);
+        restoreNode(appointmentsTableView);
+        initEditMode();
     }
 
     @Override
@@ -306,6 +314,20 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
     }
 
+    private void loadUsers(List<UserDAO> users) {
+        if (null != users && !users.isEmpty()) {
+            if (model.isNewRow()) {
+                users.forEach((t) -> unavailableUserNames.add(t.getUserName().toLowerCase()));
+            } else {
+                int pk = model.getPrimaryKey();
+                users.forEach((t) -> {
+                    if (t.getPrimaryKey() != pk) {
+                        unavailableUserNames.add(t.getUserName().toLowerCase());
+                    }
+                });
+            }
+        }
+    }
     private class AppointmentFilterItem {
 
         private final ReadOnlyStringWrapper text;
@@ -364,23 +386,12 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         protected void succeeded() {
             super.succeeded();
             List<AppointmentDAO> result = getValue();
-            if (null != users && !users.isEmpty()) {
-                if (model.isNewRow()) {
-                    users.forEach((t) -> unavailableUserNames.add(t.getUserName().toLowerCase()));
-                } else {
-                    int pk = model.getPrimaryKey();
-                    users.forEach((t) -> {
-                        if (t.getPrimaryKey() != pk) {
-                            unavailableUserNames.add(t.getUserName().toLowerCase());
-                        }
-                    });
-                }
-            }
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
                     userAppointments.add(new AppointmentModel(t));
                 });
             }
+            loadUsers(users);
         }
 
         @Override
@@ -397,6 +408,30 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
                 }
             }
             return null;
+        }
+
+    }
+
+    private class LoadExistingUsersTask extends Task<List<UserDAO>> {
+
+        private LoadExistingUsersTask() {
+            updateTitle(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            loadUsers(getValue());
+        }
+
+        @Override
+        protected List<UserDAO> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
+                UserDAO.FactoryImpl uf = UserDAO.FACTORY;
+                return uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
+            }
         }
 
     }
