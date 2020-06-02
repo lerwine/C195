@@ -2,7 +2,6 @@ package scheduler.fx;
 
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.text.Text;
 import javafx.util.Callback;
 
 /**
@@ -15,7 +14,7 @@ public class WrappingTextTableCellFactory<T> implements Callback<TableColumn<T, 
     @Override
     public TableCell<T, String> call(TableColumn<T, String> param) {
         return new TableCell<T, String>() {
-            private Text text;
+//            private Text text;
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);

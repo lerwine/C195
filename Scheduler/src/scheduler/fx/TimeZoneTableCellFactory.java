@@ -14,7 +14,7 @@ public class TimeZoneTableCellFactory<T> implements Callback<TableColumn<T, Time
 
     @Override
     public TableCell<T, TimeZone> call(TableColumn<T, TimeZone> param) {
-        return new TimeZoneTableCell();
+        return new TimeZoneTableCell<>();
     }
 
 }

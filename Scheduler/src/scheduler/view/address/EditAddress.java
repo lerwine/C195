@@ -3,6 +3,8 @@ package scheduler.view.address;
 import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -20,11 +22,13 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
@@ -35,6 +39,8 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.model.CityProperties;
+import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
@@ -54,6 +60,8 @@ import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
+import scheduler.view.city.EditCity;
+import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -67,6 +75,8 @@ import scheduler.view.task.WaitTitledPane;
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
 public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel> {
+
+    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
 
     private static final Object TARGET_CITY_KEY = new Object();
 
@@ -141,6 +151,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML // fx:id="customersTableView"
     private TableView<CustomerModel> customersTableView; // Value injected by FXMLLoader
+
+    @FXML // fx:id="newCustomerButtonBar"
+    private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
+
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
     private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
@@ -162,17 +176,82 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @FXML
-    void onEditCityButtonAction(ActionEvent event) {
+    private void onCustomerDeleteMenuItemAction(ActionEvent event) {
+        deleteCustomer(customersTableView.getSelectionModel().getSelectedItem());
+    }
+
+    @FXML
+    private void onCustomerEditMenuItemAction(ActionEvent event) {
+        editCustomer(customersTableView.getSelectionModel().getSelectedItem());
+    }
+
+    @FXML
+    private void onCustomersTableViewKeyReleased(KeyEvent event) {
+        if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
+            CustomerModel item;
+            switch (event.getCode()) {
+                case DELETE:
+                    item = customersTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        deleteCustomer(item);
+                    }
+                    break;
+                case ENTER:
+                    item = customersTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        editCustomer(item);
+                    }
+                    break;
+            }
+        }
+    }
+
+    @FXML
+    private void onEditCityButtonAction(ActionEvent event) {
         editingCity.set(true);
     }
 
     @FXML
-    void onNewCityButtonAction(ActionEvent event) {
-        // FIXME: Implement scheduler.view.address.EditAddress#onNewCityButtonAction
+    private void onItemActionRequest(ItemActionRequestEvent<CustomerModel> event) {
+        if (event.isDelete()) {
+            deleteCustomer(event.getItem());
+        } else {
+            editCustomer(event.getItem());
+        }
+    }
+
+    @FXML
+    private void onNewCityButtonAction(ActionEvent event) {
+        CityModel c;
+        try {
+            c = EditCity.editNew(countryListView.getSelectionModel().getSelectedItem(), getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading city edit window", ex);
+            c = null;
+        }
+        if (null != c) {
+            allCities.add(c);
+            CountryItem<? extends ICountryDAO> n = c.getCountry();
+            int pk = n.getPrimaryKey();
+            CountryItem<? extends ICountryDAO> sn = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElseGet(() -> {
+                countryOptions.add(n);
+                countryOptions.sort(CountryProperties::compare);
+                return n;
+            });
+            countryListView.getSelectionModel().select(sn);
+            cityOptions.add(c);
+            cityOptions.sort(CityProperties::compare);
+            cityListView.getSelectionModel().select(c);
+        }
+    }
+
+    @FXML
+    private void onNewCustomerButtonAction(ActionEvent event) {
+        // FIXME: Implement scheduler.view.address.EditAddress#onNewCustomerButtonAction
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert address1TextField != null : "fx:id=\"address1TextField\" was not injected: check your FXML file 'EditAddress.fxml'.";
         assert addressValidationLabel != null : "fx:id=\"addressValidationLabel\" was not injected: check your FXML file 'EditAddress.fxml'.";
         assert address2TextField != null : "fx:id=\"address2TextField\" was not injected: check your FXML file 'EditAddress.fxml'.";
@@ -187,19 +266,20 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         assert phoneTextField != null : "fx:id=\"phoneTextField\" was not injected: check your FXML file 'EditAddress.fxml'.";
         assert customersHeadingLabel != null : "fx:id=\"customersHeadingLabel\" was not injected: check your FXML file 'EditAddress.fxml'.";
         assert customersTableView != null : "fx:id=\"customersTableView\" was not injected: check your FXML file 'EditAddress.fxml'.";
+        assert newCustomerButtonBar != null : "fx:id=\"newCustomerButtonBar\" was not injected: check your FXML file 'EditAddress.fxml'.";
 
         countryListView.setItems(countryOptions);
         cityListView.setItems(cityOptions);
         customersTableView.setItems(itemList);
-        
+
         normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
         address1TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
-        
+
         normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());
         address2TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         BooleanBinding addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
         addressValidationLabel.visibleProperty().bind(addressValid.not());
-        
+
         ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
         selectedCountry.addListener(this::onSelectedCountryChanged);
         selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
@@ -207,8 +287,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
             CityItem<? extends ICityDAO> c = selectedCity.get();
             CountryItem<? extends ICountryDAO> n = selectedCountry.get();
-            if (null == n)
+            if (null == n) {
                 return "Country must be selected, first";
+            }
             return (null == c) ? "* Required" : "";
         }, selectedCity, selectedCountry);
         BooleanBinding cityInvalid = cityValidationMessage.isNotEmpty();
@@ -216,38 +297,39 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         cityValidationLabel.visibleProperty().bind(cityInvalid);
         BooleanBinding showEditCityControls = cityInvalid.or(editingCity);
         showEditCityControls.addListener(this::onShowEditCityControlsChanged);
-        
+
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
         postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
         phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
-        
+
         changedBinding = normalizedAddress1.isNotEqualTo(model.address1Property())
                 .or(normalizedAddress2.isNotEqualTo(model.address2Property()))
                 .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), model.getCity()), selectedCity, model.cityProperty()))
                 .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))
                 .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
         validityBinding = addressValid.and(cityInvalid.not());
-        
+
         onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
         onSelectedCityChanged(selectedCity, null, selectedCity.get());
         onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
-        
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         if (model.isNewRow()) {
+            collapseNode(customersHeadingLabel);
+            collapseNode(customersTableView);
+            collapseNode(newCustomerButtonBar);
             editingCity.set(true);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new ItemsLoadTask());
         } else {
             windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
             waitBorderPane.startNow(pane, new CustomersLoadTask());
-            collapseNode(customersHeadingLabel);
-            collapseNode(customersTableView);
         }
     }
-    
+
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
         if (newValue) {
             collapseNode(countryCityValueLabel);
@@ -260,6 +342,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             collapseNode(cityListView);
             collapseNode(newCityButton);
             restoreNode(countryCityValueLabel);
+            restoreNode(editCityButton);
             restoreNode(editCityButton);
         }
     }
@@ -304,6 +387,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         editingCity.set(false);
         restoreNode(customersHeadingLabel);
         restoreNode(customersTableView);
+        restoreNode(newCustomerButtonBar);
     }
 
     @Override
@@ -319,7 +403,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         modified.set(changedBinding.get());
         valid.set(validityBinding.get());
     }
-    
+
     private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable, CountryItem<? extends ICountryDAO> oldValue,
             CountryItem<? extends ICountryDAO> newValue) {
         cityListView.getSelectionModel().clearSelection();
@@ -343,10 +427,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             if (null != countryItem) {
                 int pk = countryItem.getPrimaryKey();
                 countryDaoList.forEach((t) -> {
-                    if (t.getPrimaryKey() == pk)
+                    if (t.getPrimaryKey() == pk) {
                         countryOptions.add(countryItem);
-                    else
+                    } else {
                         countryOptions.add(nf.createNew(t));
+                    }
                 });
             } else {
                 countryDaoList.forEach((t) -> countryOptions.add(nf.createNew(t)));
@@ -369,9 +454,18 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
         if (null != countryItem && countryOptions.contains(countryItem)) {
             countryListView.getSelectionModel().select(countryItem);
-            if (null != targetCity && cityOptions.contains(targetCity))
+            if (null != targetCity && cityOptions.contains(targetCity)) {
                 cityListView.getSelectionModel().select(targetCity);
+            }
         }
+    }
+
+    private void editCustomer(CustomerModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#editCustomer
+    }
+
+    private void deleteCustomer(CustomerModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#deleteCustomer
     }
 
     private class CustomersLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {

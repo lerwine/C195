@@ -1,6 +1,5 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
 import java.util.TimeZone;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;

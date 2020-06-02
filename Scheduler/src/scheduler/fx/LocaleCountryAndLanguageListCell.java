@@ -1,11 +1,9 @@
 package scheduler.fx;
 
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javafx.scene.control.ListCell;
 import scheduler.model.CountryProperties;
-import scheduler.util.LogHelper;
 
 /**
  *

@@ -32,6 +32,7 @@
             <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
                 <ColumnConstraints hgrow="ALWAYS" />
+            <ColumnConstraints hgrow="NEVER" />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints vgrow="SOMETIMES" />
@@ -43,15 +44,15 @@
             </rowConstraints>
             <children>
                 <Label styleClass="leftControlLabel" text="%name" />
-                <TextField fx:id="nameTextField" GridPane.columnIndex="1" />
-                <Label fx:id="nameValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <TextField fx:id="nameTextField" GridPane.columnIndex="1" GridPane.columnSpan="2" />
+                <Label fx:id="nameValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1">
                     <styleClass>
                         <String fx:value="validationMessage" />
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
                 <Label styleClass="leftControlLabel" text="%country" GridPane.rowIndex="2" />
-                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2">
                     <cellFactory>
                         <CountryListCellFactory />
                     </cellFactory>
@@ -66,7 +67,7 @@
                     </styleClass>
                 </Label>
                 <Label styleClass="leftControlLabel" text="%timeZone" GridPane.rowIndex="4" />
-                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" onAction="#onComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" onAction="#onComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4">
                     <cellFactory>
                         <TimeZoneListCellFactory />
                     </cellFactory>
@@ -74,12 +75,13 @@
                         <TimeZoneListCell />
                     </buttonCell>
                 </ComboBox>
-                <Label fx:id="timeZoneValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                <Label fx:id="timeZoneValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="5">
                     <styleClass>
                         <String fx:value="validationMessage" />
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
+            <Button mnemonicParsing="false" onAction="#onNewCountryButtonAction" styleClass="small-button" text="%newCountry" GridPane.columnIndex="2" GridPane.rowIndex="3" />
             </children>
             <VBox.margin>
                 <Insets bottom="8.0" />

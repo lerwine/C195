@@ -1,6 +1,7 @@
 package scheduler.model.ui;
 
 import java.time.ZoneId;
+import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -333,9 +334,10 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 79 * hash + addressLines.get().hashCode();
-        hash = 79 * hash + phone.get().hashCode();
-        hash = 79 * hash + cityZipCountry.hashCode();
+        hash = 23 * hash + Objects.hashCode(this.address1);
+        hash = 23 * hash + Objects.hashCode(this.city);
+        hash = 23 * hash + Objects.hashCode(this.postalCode);
+        hash = 23 * hash + Objects.hashCode(this.phone);
         return hash;
     }
 

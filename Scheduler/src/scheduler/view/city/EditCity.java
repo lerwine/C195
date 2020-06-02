@@ -62,6 +62,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
+import scheduler.view.country.EditCountry;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -84,7 +85,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return EditItem.showAndWait(parentWindow, EditCity.class, model, false);
     }
 
-    public static CityModel editNew(CountryModel country, Window parentWindow, boolean keepOpen) throws IOException {
+    public static CityModel editNew(CountryItem<? extends ICountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
         CityModel.Factory factory = CityModel.getFactory();
         CityModel model = factory.createNew(factory.getDaoFactory().createNew());
         EditCity control = new EditCity();
@@ -194,7 +195,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
-    void onComboBoxAction(ActionEvent event) {
+    private void onComboBoxAction(ActionEvent event) {
         onChange(nameTextField.getText());
     }
 
@@ -204,6 +205,22 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             deleteAddress(event.getItem());
         } else {
             editAddress(event.getItem());
+        }
+    }
+
+    @FXML
+    void onNewCountryButtonAction(ActionEvent event) {
+        CountryModel c;
+        try {
+            c = EditCountry.editNew(getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading country edit window", ex);
+            c = null;
+        }
+        if (null != c) {
+            countryOptionList.add(c);
+            countryOptionList.sort(CountryProperties::compare);
+            countryComboBox.getSelectionModel().select(c);
         }
     }
 

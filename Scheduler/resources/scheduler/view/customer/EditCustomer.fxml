@@ -22,14 +22,13 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.AddressPicker?>
-<?import scheduler.fx.CityListCellFactory?>
 <?import scheduler.fx.CityListCell?>
-<?import scheduler.fx.CountryListCellFactory?>
+<?import scheduler.fx.CityListCellFactory?>
 <?import scheduler.fx.CountryListCell?>
+<?import scheduler.fx.CountryListCellFactory?>
+<?import scheduler.fx.DateTimeTableCellFactory?>
 
-<fx:root minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <SplitPane fx:id="editSplitPane" dividerPositions="0.36" styleClass="content">
             <items>
@@ -69,12 +68,12 @@
                         </Label>
                         <HBox spacing="16.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                             <children>
-                                <RadioButton fx:id="activeTrueRadioButton" mnemonicParsing="false" selected="true" text="%yes">
+                                <RadioButton fx:id="activeTrueRadioButton" minWidth="-Infinity" mnemonicParsing="false" selected="true" text="%yes">
                                     <toggleGroup>
                                         <ToggleGroup fx:id="activeToggleGroup" />
                                     </toggleGroup>
                                 </RadioButton>
-                                <RadioButton fx:id="activeFalseRadioButton" mnemonicParsing="false" text="%no" toggleGroup="$activeToggleGroup" />
+                                <RadioButton fx:id="activeFalseRadioButton" minWidth="-Infinity" mnemonicParsing="false" text="%no" toggleGroup="$activeToggleGroup" />
                             </children>
                             <GridPane.margin>
                                 <Insets top="16.0" />
@@ -148,7 +147,7 @@
                                 <Insets top="16.0" />
                             </GridPane.margin>
                         </TextField>
-                        <Label styleClass="leftControlLabel" text="%phoneNumber" GridPane.rowIndex="9">
+                        <Label minWidth="-Infinity" styleClass="leftControlLabel" text="%phoneNumber" GridPane.rowIndex="9">
                             <GridPane.margin>
                                 <Insets top="16.0" />
                             </GridPane.margin>
@@ -300,6 +299,5 @@
                 </VBox>
             </items>
         </SplitPane>
-        <AddressPicker fx:id="addressPicker" />
     </children>
 </fx:root>

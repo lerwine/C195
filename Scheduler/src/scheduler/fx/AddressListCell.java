@@ -5,7 +5,6 @@ import scheduler.dao.IAddressDAO;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.ui.AddressItem;
-import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 
 /**

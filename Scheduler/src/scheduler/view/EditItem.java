@@ -28,6 +28,7 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
@@ -203,7 +204,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         restoreNode(lastUpdateLabel);
         restoreLabeled(lastUpdateValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
                 dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
-        editorRegion.onNewModelSaved();
     }
 
     @FXML
@@ -289,11 +289,12 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         private final T dataAccessobject;
         private final DaoFactory<T> daoFactory;
         private final boolean closeOnSuccess;
+        private final boolean isNew;
 
         SaveTask(T dataAccessobject) {
             closeOnSuccess = dataAccessobject.isExisting() || !keepOpen;
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
-            this.dataAccessobject = dataAccessobject;
+            isNew = (this.dataAccessobject = dataAccessobject).getRowState() == DataRowState.NEW;
             daoFactory = editorRegion.modelFactory().getDaoFactory();
         }
 
@@ -306,6 +307,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                     getScene().getWindow().hide();
                 } else {
                     onEditMode();
+                    if (isNew) {
+                        editorRegion.onNewModelSaved();
+                    }
                 }
             } else {
                 AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
