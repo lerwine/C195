@@ -19,14 +19,15 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
@@ -49,6 +50,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
+import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
@@ -62,7 +64,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends SplitPane implements EditItem.ModelEditor<UserDAO, UserModel> {
+public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel> {
 
     private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
@@ -82,8 +84,11 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
     private final ObservableList<UserStatus> userActiveStateOptions;
     private final ObservableList<AppointmentModel> userAppointments;
     private final ObservableList<AppointmentFilterItem> filterOptions;
-    
     private StringBinding normalizedUserName;
+    private BooleanBinding validationBinding;
+    private ObjectBinding<UserStatus> selectedStatus;
+    private StringBinding passwordHash;
+    private BooleanBinding modificationBinding;
 
     @ModelEditor
     private UserModel model;
@@ -123,10 +128,6 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
-    private BooleanBinding validationBinding;
-    private ObjectBinding<UserStatus> selectedStatus;
-    private StringBinding passwordHash;
-    private BooleanBinding modificationBinding;
 
     public EditUser() {
         windowTitle = new ReadOnlyStringWrapper("");
@@ -138,8 +139,23 @@ public final class EditUser extends SplitPane implements EditItem.ModelEditor<Us
         filterOptions = FXCollections.observableArrayList();
     }
 
+    @FXML
+    void onCustomerDeleteMenuItemAction(ActionEvent event) {
+
+    }
+
+    @FXML
+    void onCustomerEditMenuItemAction(ActionEvent event) {
+
+    }
+
+    @FXML
+    void onItemActionRequest(ItemActionRequestEvent<UserModel> event) {
+
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    private void initialize() {
+    void initialize() {
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameErrorMessageLabel != null : "fx:id=\"userNameErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert changePasswordCheckBox != null : "fx:id=\"changePasswordCheckBox\" was not injected: check your FXML file 'EditUser.fxml'.";

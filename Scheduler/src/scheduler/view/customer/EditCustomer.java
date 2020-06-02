@@ -24,12 +24,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
@@ -57,6 +55,7 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
+import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -89,18 +88,13 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
-
     private final ObservableList<String> unavailableNames;
-
     private final ObservableList<AppointmentModel> customerAppointments;
-
     private final ObservableList<CityDAO> allCities;
-
     private final ObservableList<CityDAO> cityOptions;
-
     private final ObservableList<CountryDAO> allCountries;
-
     private final ObservableList<AppointmentFilterItem> filterOptions;
+    private AddressPicker addressPicker;
 
     @ModelEditor
     private CustomerModel model;
@@ -110,9 +104,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
-    @FXML // fx:id="editSplitPane"
-    private SplitPane editSplitPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
@@ -180,17 +171,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @FXML // fx:id="newAddressButton"
     private Button newAddressButton; // Value injected by FXMLLoader
 
-    @FXML // fx:id="appointmentsVBox"
-    private VBox appointmentsVBox; // Value injected by FXMLLoader
-
     @FXML // fx:id="appointmentFilterComboBox"
     private ComboBox<AppointmentFilterItem> appointmentFilterComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
-
-    @FXML // ResourceBundle that was given to the FXMLLoader
-    private AddressPicker addressPicker;
 
     public EditCustomer() {
         windowTitle = new ReadOnlyStringWrapper("");
@@ -202,6 +187,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
+        addressPicker = new AddressPicker();
+        getChildren().add(addressPicker);
     }
 
     @FXML
@@ -211,11 +198,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
-    }
-
-    @FXML
-    void onAppointmentFilterComboBoxAction(ActionEvent event) {
-        waitBorderPane.startNow(new AppointmentReloadTask());
     }
 
     @FXML
@@ -254,13 +236,21 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @FXML
+    void onItemActionRequest(ItemActionRequestEvent<CustomerModel> event) {
+
+    }
+
+    @FXML
     void onNewAddressButtonAction(ActionEvent event) {
 //        selectedAddress.set(null);
     }
 
+    void onAppointmentFilterComboBoxAction(ActionEvent event) {
+        waitBorderPane.startNow(new AppointmentReloadTask());
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    private void initialize() {
-        assert editSplitPane != null : "fx:id=\"editSplitPane\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+    void initialize() {
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert activeTrueRadioButton != null : "fx:id=\"activeTrueRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
@@ -283,10 +273,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         assert countryValidationLabel != null : "fx:id=\"countryValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert existingAddressButton != null : "fx:id=\"existingAddressButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert newAddressButton != null : "fx:id=\"newAddressButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert appointmentsVBox != null : "fx:id=\"appointmentsVBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentFilterComboBox != null : "fx:id=\"appointmentFilterComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert addressPicker != null : "fx:id=\"addressPicker\" was not injected: check your FXML file 'EditCustomer.fxml'.";
 
         countryComboBox.setItems(allCountries);
         cityComboBox.setItems(cityOptions);
@@ -295,8 +283,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         LocalDate today = LocalDate.now();
         CustomerDAO dao = model.dataObject();
         if (model.isNewRow()) {
-            collapseNode(appointmentsVBox);
-            editSplitPane.setDividerPosition(0, 1.0);
+            collapseNode(appointmentFilterComboBox);
+            collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
         } else {
             appointmentsTableView.setItems(customerAppointments);

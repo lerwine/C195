@@ -7,9 +7,12 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
@@ -17,10 +20,13 @@
 <?import scheduler.fx.DateTimeTableCellFactory?>
 <?import scheduler.fx.UserStatusListCell?>
 <?import scheduler.fx.UserStatusListCellFactory?>
+<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.RelayCellValueFactory?>
+<?import scheduler.fx.WrappingTextTableCellFactory?>
 
 
-  <fx:root styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-      <children>
+<fx:root styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
         <GridPane hgap="4.0" vgap="2.0">
             <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" />
@@ -90,78 +96,114 @@
                 <Insets bottom="8.0" right="8.0" />
             </padding>
         </GridPane>
-          <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" />
-          <TableView fx:id="appointmentsTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-              <columns>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="title" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%start">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="start" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="end" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%type">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="type" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customer">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="customerName" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%location">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="effectiveLocation" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="createDate" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="createdBy" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="lastUpdate" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="lastUpdateBy" />
-                      </cellValueFactory>
-                  </TableColumn>
-              </columns>
-              <VBox.margin>
-                  <Insets bottom="8.0" top="8.0" />
-              </VBox.margin>
-          </TableView>
-      </children>
-      <padding>
-          <Insets left="8.0" />
-      </padding>
-  </fx:root>
+        <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" />
+        <TableView fx:id="appointmentsTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="title" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <WrappingTextTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%start">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="start" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <DateTimeTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%end">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="end" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <DateTimeTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%type">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="type" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%customer">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="customerName" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%location">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="effectiveLocation" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <WrappingTextTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%createdOn" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="createDate" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <DateTimeTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%createdBy" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="createdBy" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%updatedOn" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="lastUpdate" />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <DateTimeTableCellFactory />
+                    </cellFactory>
+                </TableColumn>
+                <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%updatedBy" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="lastUpdateBy" />
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn editable="false" maxWidth="64.0" minWidth="64.0" prefWidth="64.0" sortable="false">
+                    <cellValueFactory>
+                        <RelayCellValueFactory />
+                    </cellValueFactory>
+                    <cellFactory>
+                        <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                    </cellFactory>
+                </TableColumn>
+            </columns>
+            <contextMenu>
+                <ContextMenu>
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#onCustomerEditMenuItemAction" text="%edit">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator>
+                        </MenuItem>
+                        <MenuItem mnemonicParsing="false" onAction="#onCustomerDeleteMenuItemAction" text="%delete">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator>
+                        </MenuItem>
+                    </items>
+                </ContextMenu>
+            </contextMenu>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+            <placeholder>
+                <Label text="%noAppointmentsToShow" />
+            </placeholder>
+            <VBox.margin>
+                <Insets bottom="8.0" top="8.0" />
+            </VBox.margin>
+        </TableView>
+    </children>
+    <padding>
+        <Insets left="8.0" />
+    </padding>
+</fx:root>
