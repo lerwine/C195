@@ -119,7 +119,7 @@ public final class PwHash {
         return false;
     }
 
-    public void setFromRawPassword(String password) {
+    public void setFromRawPassword(String password, boolean useSameSalt) {
         if (password.isEmpty()) {
             salt.set(null);
             hash.set(null);
@@ -128,11 +128,17 @@ public final class PwHash {
         }
         try {
             SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            // Create new random salt sequence.
-            SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-            byte[] sb = new byte[SALT_LENGTH];
-            random.nextBytes(sb);
-            salt.set(new ObservableByteArrayList(sb));
+            ObservableByteArrayList existingSalt = salt.get();
+            byte[] sb;
+            if (useSameSalt && null != existingSalt) {
+                sb = existingSalt.bytes;
+            } else {
+                // Create new random salt sequence.
+                SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+                sb = new byte[SALT_LENGTH];
+                random.nextBytes(sb);
+                salt.set(new ObservableByteArrayList(sb));
+            }
             // Generate new hash of the raw password.
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), sb, CIPHER_ITERATION_COUNT, HASH_LENGTH * 8);
             byte[] hb = skf.generateSecret(spec).getEncoded();
@@ -198,7 +204,7 @@ public final class PwHash {
             valid.set(false);
         });
         if (isRawPassword) {
-            setFromRawPassword(password);
+            setFromRawPassword(password, false);
         } else {
             encodedHash.set(password);
         }
