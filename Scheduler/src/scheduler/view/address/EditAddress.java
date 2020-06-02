@@ -100,7 +100,15 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private final ObservableList<CityItem<? extends ICityDAO>> allCities;
     private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
     private final ObservableList<CustomerModel> itemList;
-
+    private final SimpleBooleanProperty editingCity;
+    private StringBinding normalizedAddress1;
+    private StringBinding normalizedAddress2;
+    private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
+    private StringBinding normalizedPostalCode;
+    private StringBinding normalizedPhone;
+    private BooleanBinding changedBinding;
+    private BooleanBinding validityBinding;
+    
     @ModelEditor
     private AddressModel model;
 
@@ -154,15 +162,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
-
-    private StringBinding normalizedAddress1;
-    private StringBinding normalizedAddress2;
-    private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
-    private StringBinding normalizedPostalCode;
-    private StringBinding normalizedPhone;
-    private final SimpleBooleanProperty editingCity;
-    private BooleanBinding changedBinding;
-    private BooleanBinding validityBinding;
 
     public EditAddress() {
         windowTitle = new ReadOnlyStringWrapper("");
