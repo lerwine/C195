@@ -48,6 +48,8 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.MapHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import scheduler.util.Quadruplet;
+import scheduler.util.Triplet;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -306,7 +308,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
-        waitBorderPane.startNow(pane, new InitialLoadTask());
+        waitBorderPane.startNow(pane, new EditDataLoadTask());
     }
 
     @Override
@@ -357,6 +359,10 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         //model.setAddress( );
     }
 
+    private void loadData(List<CityDAO> cities, List<CountryDAO> countries) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer.NewDataLoadTask#loadData
+    }
+
     private class AppointmentFilterItem {
 
         private final ReadOnlyStringWrapper text;
@@ -400,14 +406,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     }
 
-    private class InitialLoadTask extends Task<List<AppointmentDAO>> {
+    private class EditDataLoadTask extends Task<Quadruplet<List<AppointmentDAO>, List<CustomerDAO>, List<CityDAO>, List<CountryDAO>>> {
 
-        private List<CustomerDAO> customers;
-        private HashMap<String, CityDAO> cities;
-        private HashMap<String, CountryDAO> countries;
         private final AppointmentFilter filter;
 
-        private InitialLoadTask() {
+        private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             AppointmentFilterItem filterItem = (filterOptions.isEmpty()) ? null : appointmentFilterComboBox.getValue();
             filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
@@ -415,50 +418,69 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         @Override
         protected void succeeded() {
-            List<AppointmentDAO> result = getValue();
-            if (null != customers && !customers.isEmpty()) {
-                if (model.isNewRow()) {
-                    customers.stream().map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
-                } else {
-                    int pk = model.getPrimaryKey();
-                    customers.stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
-                }
+            Quadruplet<List<AppointmentDAO>, List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> result = getValue();
+            if (null != result.getValue2() && !result.getValue2().isEmpty()) {
+                int pk = model.getPrimaryKey();
+                result.getValue2().stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
             }
-            if (null != result && !result.isEmpty()) {
-                result.stream().map((t) -> new AppointmentModel(t)).forEach(customerAppointments::add);
+            if (null != result.getValue1() && !result.getValue1().isEmpty()) {
+                result.getValue1().stream().map((t) -> new AppointmentModel(t)).forEach(customerAppointments::add);
             }
-//            if (null != cities && !cities.isEmpty()) {
-//                PredefinedData.getCityOptions(cities.values()).sorted(CustomerCity::compare).forEach(allCities::add);
-//            } else {
-//                PredefinedData.getCityOptions(null).sorted(CustomerCity::compare).forEach(allCities::add);
-//            }
-//            if (null != countries && !countries.isEmpty()) {
-//                PredefinedData.getCountryOptions(countries.values()).sorted(CustomerCountry::compare).forEach(allCountries::add);
-//            } else {
-//                PredefinedData.getCountryOptions(null).sorted(CustomerCountry::compare).forEach(allCountries::add);
-//            }
+            loadData(result.getValue3(), result.getValue4());
         }
 
         @Override
-        protected List<AppointmentDAO> call() throws Exception {
+        protected Quadruplet<List<AppointmentDAO>, List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
-                customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
+                List<CustomerDAO> customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
                 CityDAO.FactoryImpl tf = CityDAO.FACTORY;
-                cities = MapHelper.toMap(tf.load(dbConnector.getConnection(), tf.getAllItemsFilter()), CityDAO::getName);
+                List<CityDAO> cities = tf.load(dbConnector.getConnection(), tf.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
-                countries = MapHelper.toMap(nf.load(dbConnector.getConnection(), nf.getAllItemsFilter()), CountryDAO::getName);
-                if (null != filter) {
-                    updateMessage(resources.getString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-                    AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
-                    return af.load(dbConnector.getConnection(), filter);
-                }
+                List<CountryDAO> countries = nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
+                        updateMessage(resources.getString(RESOURCEKEY_LOADINGAPPOINTMENTS));
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
+                return Quadruplet.of(af.load(dbConnector.getConnection(), (null != filter) ? filter : af.getAllItemsFilter()),
+                        customers, cities, countries);
             }
-            return null;
+        }
+
+    }
+
+    private class NewDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CityDAO>, List<CountryDAO>>> {
+
+        private NewDataLoadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
+        }
+
+        @Override
+        protected void succeeded() {
+            Triplet<List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> result = getValue();
+            if (null != result.getValue1() && !result.getValue1().isEmpty()) {
+                result.getValue1().stream().map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
+            }
+            loadData(result.getValue2(), result.getValue3());
+        }
+
+        @Override
+        protected Triplet<List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
+                List<CustomerDAO> customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
+                CityDAO.FactoryImpl tf = CityDAO.FACTORY;
+                List<CityDAO> cities = tf.load(dbConnector.getConnection(), tf.getAllItemsFilter());
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
+                CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
+                List<CountryDAO> countries = nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
+                return Triplet.of(customers, cities, countries);
+            }
         }
 
     }

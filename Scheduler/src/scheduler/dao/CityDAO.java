@@ -382,7 +382,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         public CityDAO getByResourceKey(Connection connection, String rk) throws SQLException {
-            String sql = new StringBuffer(createDmlSelectQueryBuilder().toString()).append(" WHERE ")
+            String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
                     .append(DbColumn.CITY_NAME.getDbName()).append("=?").toString();
             LOG.fine(() -> String.format("getByResourceKey", "Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {

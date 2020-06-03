@@ -299,7 +299,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             collapseNode(addCityButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCITY));
         } else {
-            waitBorderPane.startNow(pane, new ItemsLoadTask());
+            waitBorderPane.startNow(pane, new EditDataLoadTask());
             windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
         }
     }
@@ -398,11 +398,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
-    private class ItemsLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {
+    private class EditDataLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {
 
         private final int pk;
 
-        private ItemsLoadTask() {
+        private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES));
             pk = model.getPrimaryKey();
         }

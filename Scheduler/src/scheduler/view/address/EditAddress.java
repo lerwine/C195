@@ -61,6 +61,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
+import scheduler.view.customer.EditCustomer;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -246,7 +247,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onNewCustomerButtonAction(ActionEvent event) {
-        // FIXME: Implement scheduler.view.address.EditAddress#onNewCustomerButtonAction
+        try {
+            EditCustomer.editNew(model, getScene().getWindow(), true);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading customer edit window", ex);
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -322,10 +327,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             collapseNode(newCustomerButtonBar);
             editingCity.set(true);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
-            waitBorderPane.startNow(pane, new ItemsLoadTask());
+            waitBorderPane.startNow(pane, new NewDataLoadTask());
         } else {
             windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
-            waitBorderPane.startNow(pane, new CustomersLoadTask());
+            waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
     }
 
@@ -467,11 +472,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#deleteCustomer
     }
 
-    private class CustomersLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {
+    private class EditDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {
 
         private final AddressDAO dao;
 
-        private CustomersLoadTask() {
+        private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             dao = model.dataObject();
         }
@@ -506,11 +511,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     }
 
-    private class ItemsLoadTask extends Task<Tuple<List<CountryDAO>, List<CityDAO>>> {
+    private class NewDataLoadTask extends Task<Tuple<List<CountryDAO>, List<CityDAO>>> {
 
         private final AddressDAO dao;
 
-        private ItemsLoadTask() {
+        private NewDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             dao = model.dataObject();
         }

@@ -271,7 +271,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         public ArrayList<CountryDAO> getAllCountries(Connection connection) throws SQLException {
-            String sql = createDmlSelectQueryBuilder().toString();
+            String sql = createDmlSelectQueryBuilder().build().toString();
             LOG.fine(() -> String.format("Executing query \"%s\"", sql));
             ArrayList<CountryDAO> result = new ArrayList<>();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -294,7 +294,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         public CountryDAO getByRegionCode(Connection connection, String rc) throws SQLException {
-            String sql = new StringBuffer(createDmlSelectQueryBuilder().toString()).append(" WHERE ")
+            String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
                     .append(DbColumn.COUNTRY_NAME).append("=?").toString();
             LOG.fine(() -> String.format("getByRegionCode", "Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
