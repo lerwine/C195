@@ -87,7 +87,7 @@
                     </styleClass>
                 </Label>
                 <Label styleClass="leftControlLabel" text="%city" GridPane.rowIndex="6" />
-                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" onAction="#onCityComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="6">
                     <cellFactory>
                         <CityListCellFactory />
                     </cellFactory>
@@ -118,7 +118,7 @@
                         <Insets top="16.0" />
                     </GridPane.margin>
                 </Label>
-                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onCountryComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="10">
+                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="10">
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
@@ -135,15 +135,11 @@
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <Button mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-button" text="New City" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
+                <Button fx:id="newCityButton" mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-button" text="New City" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
                 <Button mnemonicParsing="false" onAction="#onNewCountryButtonAction" styleClass="small-button" text="New Country" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="11" />
             </children>
         </GridPane>
-        <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" onAction="#onAppointmentFilterComboBoxAction">
-            <VBox.margin>
-                <Insets top="16.0" />
-            </VBox.margin>
-        </ComboBox>
+        <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" />
         <TableView fx:id="appointmentsTableView" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
