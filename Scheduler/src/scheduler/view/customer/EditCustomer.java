@@ -2,24 +2,28 @@ package scheduler.view.customer;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -38,16 +42,21 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
+import scheduler.dao.ICityDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.fx.AddressPicker;
+import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
-import scheduler.util.MapHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.Quadruplet;
 import scheduler.util.Triplet;
 import scheduler.view.EditItem;
@@ -92,11 +101,19 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<String> unavailableNames;
     private final ObservableList<AppointmentModel> customerAppointments;
-    private final ObservableList<CityDAO> allCities;
-    private final ObservableList<CityDAO> cityOptions;
-    private final ObservableList<CountryDAO> allCountries;
+    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
+    private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
+    private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
-    private AddressPicker addressPicker;
+    private StringBinding normalizedName;
+    private StringBinding normalizedAddress1;
+    private StringBinding normalizedAddress2;
+    private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
+    private StringBinding normalizedPostalCode;
+    private StringBinding normalizedPhone;
+    private ObjectBinding<CityItem<? extends ICityDAO>> modelCity;
+    private BooleanBinding changedBinding;
+    private BooleanBinding validityBinding;
 
     @ModelEditor
     private CustomerModel model;
@@ -122,9 +139,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @FXML // fx:id="activeFalseRadioButton"
     private RadioButton activeFalseRadioButton; // Value injected by FXMLLoader
 
-    @FXML // fx:id="addressValueLabel"
-    private Label addressValueLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="address1TextField"
     private TextField address1TextField; // Value injected by FXMLLoader
 
@@ -134,50 +148,32 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @FXML // fx:id="addressValidationLabel"
     private Label addressValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="cityLabel"
-    private Label cityLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="cityZipCountryLabel"
-    private Label cityZipCountryLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="cityComboBox"
-    private ComboBox<CityDAO> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityItem<? extends ICityDAO>> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityValidationLabel"
     private Label cityValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="postalCodeLabel"
-    private Label postalCodeLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="postalCodeTextField"
     private TextField postalCodeTextField; // Value injected by FXMLLoader
-
-    @FXML // fx:id="phoneNumberValueLabel"
-    private Label phoneNumberValueLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="phoneNumberTextField"
     private TextField phoneNumberTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="countryLabel"
-    private Label countryLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CountryDAO> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryItem<? extends ICountryDAO>> countryComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="existingAddressButton"
-    private Button existingAddressButton; // Value injected by FXMLLoader
-
-    @FXML // fx:id="newAddressButton"
-    private Button newAddressButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentFilterComboBox"
     private ComboBox<AppointmentFilterItem> appointmentFilterComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
+
+    @FXML // fx:id="addAppointmentButtonBar"
+    private ButtonBar addAppointmentButtonBar; // Value injected by FXMLLoader
 
     public EditCustomer() {
         windowTitle = new ReadOnlyStringWrapper("");
@@ -189,17 +185,30 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-        addressPicker = new AddressPicker();
-        getChildren().add(addressPicker);
     }
 
     @FXML
-    void onAddButtonAction(ActionEvent event) {
+    void onAddAppointmentButtonAction(ActionEvent event) {
         try {
             EditAppointment.editNew(model, null, getScene().getWindow(), false);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+    }
+
+    @FXML
+    void onAppointmentFilterComboBoxAction(ActionEvent event) {
+        waitBorderPane.startNow(new AppointmentReloadTask());
+    }
+
+    @FXML
+    void onCityComboBoxAction(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onCityComboBoxAction
+    }
+
+    @FXML
+    void onCountryComboBoxAction(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onCountryComboBoxAction
     }
 
     @FXML
@@ -228,27 +237,18 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @FXML
-    void onExistingAddressButtonAction(ActionEvent event) {
-        // FIXME: Implement picker result
-        addressPicker.PickAddress(waitBorderPane, (t) -> {
-//            if (null != t) {
-//                selectedAddress.set(t);
-//            }
-        });
+    void onItemActionRequest(ItemActionRequestEvent<AppointmentModel> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onItemActionRequest
     }
 
     @FXML
-    void onItemActionRequest(ItemActionRequestEvent<CustomerModel> event) {
-
+    void onNewCityButtonAction(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onNewCityButtonAction
     }
 
     @FXML
-    void onNewAddressButtonAction(ActionEvent event) {
-//        selectedAddress.set(null);
-    }
-
-    void onAppointmentFilterComboBoxAction(ActionEvent event) {
-        waitBorderPane.startNow(new AppointmentReloadTask());
+    void onNewCountryButtonAction(ActionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onNewCountryButtonAction
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -258,57 +258,106 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         assert activeTrueRadioButton != null : "fx:id=\"activeTrueRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert activeToggleGroup != null : "fx:id=\"activeToggleGroup\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert activeFalseRadioButton != null : "fx:id=\"activeFalseRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert addressValueLabel != null : "fx:id=\"addressValueLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert address1TextField != null : "fx:id=\"address1TextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert address2TextField != null : "fx:id=\"address2TextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert addressValidationLabel != null : "fx:id=\"addressValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert cityLabel != null : "fx:id=\"cityLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert cityZipCountryLabel != null : "fx:id=\"cityZipCountryLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert cityComboBox != null : "fx:id=\"cityComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert cityValidationLabel != null : "fx:id=\"cityValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert postalCodeLabel != null : "fx:id=\"postalCodeLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert postalCodeTextField != null : "fx:id=\"postalCodeTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert phoneNumberValueLabel != null : "fx:id=\"phoneNumberValueLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert phoneNumberTextField != null : "fx:id=\"phoneNumberTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert countryLabel != null : "fx:id=\"countryLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert countryValidationLabel != null : "fx:id=\"countryValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert existingAddressButton != null : "fx:id=\"existingAddressButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-        assert newAddressButton != null : "fx:id=\"newAddressButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentFilterComboBox != null : "fx:id=\"appointmentFilterComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditCustomer.fxml'.";
+        assert addAppointmentButtonBar != null : "fx:id=\"addAppointmentButtonBar\" was not injected: check your FXML file 'EditCustomer.fxml'.";
 
-        countryComboBox.setItems(allCountries);
         cityComboBox.setItems(cityOptions);
+        countryComboBox.setItems(allCountries);
         appointmentFilterComboBox.setItems(filterOptions);
+        appointmentsTableView.setItems(customerAppointments);
 
-        LocalDate today = LocalDate.now();
-        CustomerDAO dao = model.dataObject();
-        if (model.isNewRow()) {
-            collapseNode(appointmentFilterComboBox);
-            collapseNode(appointmentsTableView);
-            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
-        } else {
-            appointmentsTableView.setItems(customerAppointments);
-            appointmentFilterComboBox.setItems(filterOptions);
-            countryComboBox.setItems(allCountries);
-            windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
-                    AppointmentModelFilter.of(today, null, dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
-                    AppointmentModelFilter.of(today, today.plusDays(1), dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
-                    AppointmentModelFilter.of(null, today, dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-            appointmentFilterComboBox.getSelectionModel().selectFirst();
-            appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
-        }
+        normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
+        nameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+        BooleanBinding nameValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
+        nameValidationLabel.visibleProperty().bind(nameValid.not());
+
+        normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
+        address1TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+
+        normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());
+        address2TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+        BooleanBinding addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
+        addressValidationLabel.visibleProperty().bind(addressValid.not());
+
+        ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry = Bindings.select(countryComboBox.selectionModelProperty(), "selectedItem");
+        selectedCountry.addListener(this::onSelectedCountryChanged);
+        selectedCity = Bindings.select(cityComboBox.selectionModelProperty(), "selectedItem");
+        selectedCity.addListener(this::onSelectedCityChanged);
+        StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
+            CityItem<? extends ICityDAO> c = selectedCity.get();
+            CountryItem<? extends ICountryDAO> n = selectedCountry.get();
+            if (null == n) {
+                return "Country must be selected, first";
+            }
+            return (null == c) ? "* Required" : "";
+        }, selectedCity, selectedCountry);
+        BooleanBinding cityInvalid = cityValidationMessage.isNotEmpty();
+        cityValidationLabel.textProperty().bind(cityValidationMessage);
+        cityValidationLabel.visibleProperty().bind(cityInvalid);
+
+        normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
+        postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
+        normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneNumberTextField.textProperty());
+        phoneNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
+
+        modelCity = Bindings.select(model.addressProperty(), "city");
+        changedBinding = normalizedName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.nameProperty()))
+                .or(normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property())))
+                .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address2Property())))
+                .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), modelCity.get()), selectedCity, modelCity))
+                .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))
+                .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
+        validityBinding = nameValid.and(addressValid).and(cityInvalid.not());
+
         nameTextField.setText(model.getName());
         activeToggleGroup.selectToggle((model.isActive()) ? activeTrueRadioButton : activeFalseRadioButton);
+        onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
+        onSelectedCityChanged(selectedCity, null, selectedCity.get());
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
-        waitBorderPane.startNow(pane, new EditDataLoadTask());
+        if (model.isNewRow()) {
+            collapseNode(appointmentFilterComboBox);
+            collapseNode(appointmentsTableView);
+            collapseNode(addAppointmentButtonBar);
+            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
+            waitBorderPane.startNow(pane, new NewDataLoadTask());
+        } else {
+            windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+            waitBorderPane.startNow(pane, new EditDataLoadTask());
+        }
+    }
+
+    private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable, CountryItem<? extends ICountryDAO> oldValue,
+            CountryItem<? extends ICountryDAO> newValue) {
+        cityComboBox.getSelectionModel().clearSelection();
+        cityOptions.clear();
+        if (null != newValue) {
+            int pk = newValue.getPrimaryKey();
+            allCities.filtered((t) -> t.getCountry().getPrimaryKey() == pk).forEach((t) -> cityOptions.add(t));
+        }
+        updateValidation();
+    }
+
+    private void onSelectedCityChanged(ObservableValue<? extends CityItem<? extends ICityDAO>> observable, CityItem<? extends ICityDAO> oldValue,
+            CityItem<? extends ICityDAO> newValue) {
+        updateValidation();
+    }
+
+    private void updateValidation() {
+        modified.set(changedBinding.get());
+        valid.set(validityBinding.get());
     }
 
     @Override
@@ -348,7 +397,20 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @Override
     public void onNewModelSaved() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#applyEditMode
+        restoreNode(appointmentFilterComboBox);
+        restoreNode(appointmentsTableView);
+        restoreNode(addAppointmentButtonBar);
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+        LocalDate today = LocalDate.now();
+        CustomerDAO dao = model.dataObject();
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
+                AppointmentModelFilter.of(today, null, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
+                AppointmentModelFilter.of(today, today.plusDays(1), dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
+                AppointmentModelFilter.of(null, today, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+        appointmentFilterComboBox.getSelectionModel().selectFirst();
     }
 
     @Override
@@ -360,7 +422,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     private void loadData(List<CityDAO> cities, List<CountryDAO> countries) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer.NewDataLoadTask#loadData
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer.NewDataLoadTask#loadData
     }
 
     private class AppointmentFilterItem {
@@ -426,6 +488,16 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
                 result.getValue1().stream().map((t) -> new AppointmentModel(t)).forEach(customerAppointments::add);
             }
+            LocalDate today = LocalDate.now();
+            CustomerDAO dao = model.dataObject();
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
+                    AppointmentModelFilter.of(today, null, dao)));
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
+                    AppointmentModelFilter.of(today, today.plusDays(1), dao)));
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
+                    AppointmentModelFilter.of(null, today, dao)));
+            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+            appointmentFilterComboBox.getSelectionModel().selectFirst();
             loadData(result.getValue3(), result.getValue4());
         }
 
@@ -442,7 +514,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
                 List<CountryDAO> countries = nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
-                        updateMessage(resources.getString(RESOURCEKEY_LOADINGAPPOINTMENTS));
+                updateMessage(resources.getString(RESOURCEKEY_LOADINGAPPOINTMENTS));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 return Quadruplet.of(af.load(dbConnector.getConnection(), (null != filter) ? filter : af.getAllItemsFilter()),
                         customers, cities, countries);

@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 /**
- * Resource bundle keys for {@code resources/scheduler/view/address/AddressPicker}.
+ * Defines resource bundle keys for the {@code scheduler/fx/AddressPicker} resource bundle.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -23,7 +23,7 @@ public interface AddressPickerResourceKeys {
     public static final String RESOURCEKEY_CITY = "city";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "City not selected."}.
      */
     public static final String RESOURCEKEY_CITYNOTSELECTED = "cityNotSelected";
 
@@ -33,7 +33,7 @@ public interface AddressPickerResourceKeys {
     public static final String RESOURCEKEY_COUNTRY = "country";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country not selected."}.
      */
     public static final String RESOURCEKEY_COUNTRYNOTSELECTED = "countryNotSelected";
 
@@ -48,6 +48,11 @@ public interface AddressPickerResourceKeys {
     public static final String RESOURCEKEY_CREATEDON = "createdOn";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "No addresses to show."}.
+     */
+    public static final String RESOURCEKEY_NOADDRESSESTOSHOW = "noAddressesToShow";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone Number"}.
      */
     public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
@@ -58,17 +63,17 @@ public interface AddressPickerResourceKeys {
     public static final String RESOURCEKEY_POSTALCODE = "postalCode";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Select"}.
      */
     public static final String RESOURCEKEY_SELECT = "select";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Select Address"}.
      */
     public static final String RESOURCEKEY_SELECTADDRESS = "selectAddress";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code ""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Street"}.
      */
     public static final String RESOURCEKEY_STREET = "street";
 
@@ -81,4 +86,5 @@ public interface AddressPickerResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Updated On"}.
      */
     public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
+
 }

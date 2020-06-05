@@ -48,6 +48,11 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTS = "appointments";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Cancel"}.
+     */
+    public static final String RESOURCEKEY_CANCEL = "cancel";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Change"}.
      */
     public static final String RESOURCEKEY_CHANGE = "change";
@@ -78,7 +83,8 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_COUNTRYMUSTBESELECTED = "countryMustBeSelected";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country must be selected, first."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Country must be selected, first."}.
      */
     public static final String RESOURCEKEY_COUNTRYNOTSELECTED = "countryNotSelected";
 
@@ -108,7 +114,8 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_CURRENTAPPOINTMENTS = "currentAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That customer is referenced in one or more appointments and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "That customer is referenced in one or more appointments and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_CUSTOMERHASAPPOINTMENTS = "customerHasAppointments";
 
@@ -133,12 +140,14 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_END = "end";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading appointments.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customers.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading customers.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
 
@@ -183,6 +192,11 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_NO = "no";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "No addresses to show."}.
+     */
+    public static final String RESOURCEKEY_NOADDRESSESTOSHOW = "noAddressesToShow";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Past"}.
      */
     public static final String RESOURCEKEY_PAST = "past";
@@ -198,14 +212,34 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone Number"}.
+     */
+    public static final String RESOURCEKEY_PHONENUMBERCOLHEADING = "phoneNumberColHeading";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Postal Code:"}.
      */
     public static final String RESOURCEKEY_POSTALCODE = "postalCode";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Postal Code"}.
+     */
+    public static final String RESOURCEKEY_POSTALCODECOLHEADING = "postalCodeColHeading";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "* Required"}.
      */
     public static final String RESOURCEKEY_REQUIRED = "required";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Select"}.
+     */
+    public static final String RESOURCEKEY_SELECT = "select";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Select Address"}.
+     */
+    public static final String RESOURCEKEY_SELECTADDRESS = "selectAddress";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Select Existing"}.
@@ -216,6 +250,11 @@ public interface EditCustomerResourceKeys {
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Start"}.
      */
     public static final String RESOURCEKEY_START = "start";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Street"}.
+     */
+    public static final String RESOURCEKEY_STREET = "street";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Title"}.

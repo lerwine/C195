@@ -19,7 +19,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.fx.CityListCell?>
 <?import scheduler.fx.CityListCellFactory?>
@@ -38,18 +37,17 @@
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints valignment="CENTER" />
+                <RowConstraints minHeight="16.0" valignment="TOP" />
                 <RowConstraints valignment="CENTER" />
                 <RowConstraints valignment="CENTER" />
                 <RowConstraints valignment="CENTER" />
+                <RowConstraints minHeight="16.0" valignment="TOP" />
+                <RowConstraints valignment="CENTER" />
+                <RowConstraints minHeight="16.0" valignment="TOP" />
                 <RowConstraints valignment="CENTER" />
                 <RowConstraints valignment="CENTER" />
                 <RowConstraints valignment="CENTER" />
-                <RowConstraints valignment="CENTER" />
-                <RowConstraints valignment="CENTER" />
-                <RowConstraints valignment="CENTER" />
-                <RowConstraints valignment="CENTER" />
-                <RowConstraints valignment="CENTER" />
-                <RowConstraints valignment="TOP" vgrow="ALWAYS" />
+                <RowConstraints minHeight="16.0" valignment="TOP" />
             </rowConstraints>
             <children>
                 <Label styleClass="leftControlLabel" text="%name" />
@@ -60,11 +58,7 @@
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <Label styleClass="leftControlLabel" text="%active" GridPane.rowIndex="2">
-                    <GridPane.margin>
-                        <Insets top="16.0" />
-                    </GridPane.margin>
-                </Label>
+                <Label styleClass="leftControlLabel" text="%active" GridPane.rowIndex="2" />
                 <HBox spacing="16.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                     <children>
                         <RadioButton fx:id="activeTrueRadioButton" minWidth="-Infinity" mnemonicParsing="false" selected="true" text="%yes">
@@ -74,29 +68,17 @@
                         </RadioButton>
                         <RadioButton fx:id="activeFalseRadioButton" minWidth="-Infinity" mnemonicParsing="false" text="%no" toggleGroup="$activeToggleGroup" />
                     </children>
-                    <GridPane.margin>
-                        <Insets top="16.0" />
-                    </GridPane.margin>
                 </HBox>
                 <Label styleClass="leftControlLabel" text="%address" GridPane.rowIndex="3">
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
                 </Label>
-                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP">
-                    <children>
-                        <Label fx:id="addressValueLabel" wrapText="true">
-                            <styleClass>
-                                <String fx:value="leftLabeledControl" />
-                                <String fx:value="collapsed" />
-                            </styleClass>
-                        </Label>
-                        <TextField fx:id="address1TextField" styleClass="leftLabeledControl" />
-                    </children>
+                <TextField fx:id="address1TextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="3">
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
-                </StackPane>
+                </TextField>
                 <TextField fx:id="address2TextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                 <Label fx:id="addressValidationLabel" text="%addressCannotBeEmpty" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="5">
                     <styleClass>
@@ -104,73 +86,39 @@
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <Label fx:id="cityLabel" styleClass="leftControlLabel" text="%city" GridPane.rowIndex="6">
-                    <GridPane.margin>
-                        <Insets top="16.0" />
-                    </GridPane.margin>
-                </Label>
-                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP">
-                    <children>
-                        <Label fx:id="cityZipCountryLabel" wrapText="true">
-                            <styleClass>
-                                <String fx:value="leftLabeledControl" />
-                                <String fx:value="collapsed" />
-                            </styleClass>
-                        </Label>
-                        <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl">
-                            <cellFactory>
-                                <CityListCellFactory />
-                            </cellFactory>
-                            <buttonCell>
-                                <CityListCell />
-                            </buttonCell>
-                        </ComboBox>
-                    </children>
-                    <GridPane.margin>
-                        <Insets top="16.0" />
-                    </GridPane.margin>
-                </StackPane>
+                <Label styleClass="leftControlLabel" text="%city" GridPane.rowIndex="6" />
+                <ComboBox fx:id="cityComboBox" maxWidth="1.7976931348623157E308" onAction="#onCityComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                    <cellFactory>
+                        <CityListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <CityListCell />
+                    </buttonCell>
+                </ComboBox>
                 <Label fx:id="cityValidationLabel" text="%countryNotSelected" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="7">
                     <styleClass>
                         <String fx:value="validationMessage" />
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <Label fx:id="postalCodeLabel" styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="8">
-                    <GridPane.margin>
-                        <Insets top="16.0" />
-                    </GridPane.margin>
-                </Label>
-                <TextField fx:id="postalCodeTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="8">
-                    <GridPane.margin>
-                        <Insets top="16.0" />
-                    </GridPane.margin>
-                </TextField>
+                <Label styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="8" />
+                <TextField fx:id="postalCodeTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="8" />
                 <Label minWidth="-Infinity" styleClass="leftControlLabel" text="%phoneNumber" GridPane.rowIndex="9">
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
                 </Label>
-                <StackPane alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.valignment="TOP">
-                    <children>
-                        <Label fx:id="phoneNumberValueLabel" wrapText="true">
-                            <styleClass>
-                                <String fx:value="leftLabeledControl" />
-                                <String fx:value="collapsed" />
-                            </styleClass>
-                        </Label>
-                        <TextField fx:id="phoneNumberTextField" styleClass="leftLabeledControl" />
-                    </children>
+                <TextField fx:id="phoneNumberTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="9">
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
-                </StackPane>
-                <Label fx:id="countryLabel" styleClass="leftControlLabel" text="%country" GridPane.rowIndex="10">
+                </TextField>
+                <Label styleClass="leftControlLabel" text="%country" GridPane.rowIndex="10">
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
                 </Label>
-                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="10">
+                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onCountryComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="10">
                     <GridPane.margin>
                         <Insets top="16.0" />
                     </GridPane.margin>
@@ -187,24 +135,15 @@
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <ButtonBar maxHeight="-Infinity" GridPane.columnSpan="2" GridPane.rowIndex="12" GridPane.valignment="TOP">
-                    <buttons>
-                        <Button fx:id="existingAddressButton" mnemonicParsing="false" onAction="#onExistingAddressButtonAction" text="%existingAddress" />
-                        <Button fx:id="newAddressButton" disable="true" mnemonicParsing="false" onAction="#onNewAddressButtonAction" text="%newAddress" />
-                    </buttons>
-                    <GridPane.margin>
-                        <Insets top="16.0" />
-                    </GridPane.margin>
-                </ButtonBar>
+                <Button mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-button" text="New City" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
+                <Button mnemonicParsing="false" onAction="#onNewCountryButtonAction" styleClass="small-button" text="New Country" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="11" />
             </children>
-            <padding>
-                <Insets right="8.0" />
-            </padding>
         </GridPane>
-        <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308">
-         <VBox.margin>
-            <Insets top="16.0" />
-         </VBox.margin></ComboBox>
+        <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" onAction="#onAppointmentFilterComboBoxAction">
+            <VBox.margin>
+                <Insets top="16.0" />
+            </VBox.margin>
+        </ComboBox>
         <TableView fx:id="appointmentsTableView" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
@@ -301,9 +240,9 @@
                 <Label text="%noAppointmentsToShow" />
             </placeholder>
         </TableView>
-        <ButtonBar>
+        <ButtonBar fx:id="addAppointmentButtonBar">
             <buttons>
-                <Button mnemonicParsing="false" onAction="#onAddButtonAction" text="%add" />
+                <Button mnemonicParsing="false" onAction="#onAddAppointmentButtonAction" text="%add" />
             </buttons>
         </ButtonBar>
     </children>
