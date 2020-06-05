@@ -10,7 +10,6 @@ import javafx.event.EventType;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-// TODO: Replace with individual typed events
 public class ObjectActionRequestEvent extends Event {
 
     private static final long serialVersionUID = -203758390149542530L;
