@@ -307,8 +307,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
         phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
 
-        changedBinding = normalizedAddress1.isNotEqualTo(model.address1Property())
-                .or(normalizedAddress2.isNotEqualTo(model.address2Property()))
+        changedBinding = normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property()))
+                .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address2Property())))
                 .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), model.getCity()), selectedCity, model.cityProperty()))
                 .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))
                 .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
@@ -465,11 +465,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void editCustomer(CustomerModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#editCustomer
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#editCustomer
     }
 
     private void deleteCustomer(CustomerModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.address.EditAddress#deleteCustomer
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#deleteCustomer
     }
 
     private class EditDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {

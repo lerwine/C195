@@ -81,9 +81,10 @@
                 </Label>
                 <Button fx:id="newCityButton" mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-button" text="%newCity" GridPane.columnIndex="2" GridPane.rowIndex="4" />
                 <Label styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="5">
-               <GridPane.margin>
-                  <Insets bottom="16.0" />
-               </GridPane.margin></Label>
+                    <GridPane.margin>
+                        <Insets bottom="16.0" />
+                    </GridPane.margin>
+                </Label>
                 <TextField fx:id="postalCodeTextField" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="5">
                     <GridPane.margin>
                         <Insets bottom="16.0" />
@@ -184,10 +185,10 @@
                 <Label text="%noCustomersToShow" />
             </placeholder>
         </TableView>
-      <ButtonBar fx:id="newCustomerButtonBar">
-        <buttons>
-          <Button mnemonicParsing="false" onAction="#onNewCustomerButtonAction" text="%newCustomer" />
-        </buttons>
-      </ButtonBar>
+        <ButtonBar fx:id="newCustomerButtonBar">
+            <buttons>
+                <Button mnemonicParsing="false" onAction="#onNewCustomerButtonAction" text="%newCustomer" />
+            </buttons>
+        </ButtonBar>
     </children>
 </fx:root>
