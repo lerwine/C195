@@ -329,8 +329,16 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public String getSaveDbConflictMessage(CustomerDAO dao, Connection connection) throws SQLException {
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Data access object already deleted");
+            IAddressDAO address;
+            switch (dao.getRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Data access object already deleted");
+                case UNMODIFIED:
+                    address = dao.getAddress();
+                    if (address instanceof AddressDAO) {
+                        return AddressDAO.FACTORY.getSaveDbConflictMessage((AddressDAO) address, connection);
+                    }
+                    return "";
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
@@ -359,7 +367,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             if (count > 0) {
                 return "Another customer has the same name";
             }
-            // CURRENT: Get address conflict message if it is has been modified
+            address = dao.getAddress();
+            if (address instanceof AddressDAO) {
+                return AddressDAO.FACTORY.getSaveDbConflictMessage((AddressDAO) address, connection);
+            }
             return "";
         }
 

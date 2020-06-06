@@ -304,8 +304,11 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         public String getSaveDbConflictMessage(UserDAO dao, Connection connection) throws SQLException {
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Data access object already deleted");
+            switch (dao.getRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Data access object already deleted");
+                case UNMODIFIED:
+                    return "";
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())

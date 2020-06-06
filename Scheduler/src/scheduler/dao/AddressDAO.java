@@ -354,7 +354,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             // PENDING: Internationalize these
             switch (count) {
                 case 0:
-                    // CURRENT: Get city conflict message if it is has been modified.
                     return "";
                 case 1:
                     return "Address is referenced by one customer.";
@@ -365,7 +364,17 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public String getSaveDbConflictMessage(AddressDAO dao, Connection connection) throws SQLException {
-            assert dao.getRowState() != DataRowState.DELETED : "Data access object already deleted";
+            ICityDAO city;
+            switch (dao.getRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Data access object already deleted");
+                case UNMODIFIED:
+                    city = dao.getCity();
+                    if (city instanceof CityDAO) {
+                        return CityDAO.FACTORY.getSaveDbConflictMessage((CityDAO) city, connection);
+                    }
+                    return "";
+            }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
                     .append(") FROM ").append(DbTable.ADDRESS.getDbName())
@@ -425,6 +434,10 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             // PENDING: Internationalize this
             if (count > 0) {
                 return "Another matching address exists";
+            }
+            city = dao.getCity();
+            if (city instanceof CityDAO) {
+                return CityDAO.FACTORY.getSaveDbConflictMessage((CityDAO) city, connection);
             }
             return "";
         }
