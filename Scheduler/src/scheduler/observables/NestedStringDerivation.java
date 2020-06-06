@@ -12,7 +12,9 @@ import javafx.beans.value.ObservableValue;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
+ * @deprecated
  */
+@Deprecated
 public class NestedStringDerivation<T> extends DerivedObservable<String> implements ObservableStringDerivitive {
 
     private final Function<T, ObservableValue<String>> selector;

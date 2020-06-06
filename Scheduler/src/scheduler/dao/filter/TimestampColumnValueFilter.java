@@ -56,10 +56,10 @@ public interface TimestampColumnValueFilter<T extends DataAccessObject, U extend
                 return hashcode;
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof TimestampColumnValueFilter) {
+                    @SuppressWarnings("unchecked")
                     TimestampColumnValueFilter<T, U> other = (TimestampColumnValueFilter<T, U>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }

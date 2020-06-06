@@ -34,7 +34,7 @@ public class ReadonlyActiveStateProperty extends ReadOnlyObjectWrapper<UserStatu
     public void setValue(UserStatus v) {
         if (v != null) {
             if (v instanceof UserStatus) {
-                super.set((UserStatus) v);
+                super.set(v);
                 return;
             }
         }

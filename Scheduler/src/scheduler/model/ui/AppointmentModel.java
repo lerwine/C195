@@ -360,7 +360,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public UserStatus getUserStatus() {
-        return (UserStatus) userStatus.get();
+        return userStatus.get();
     }
 
     @Override

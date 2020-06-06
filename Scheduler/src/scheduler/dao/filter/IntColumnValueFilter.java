@@ -54,10 +54,10 @@ public interface IntColumnValueFilter<T extends DataAccessObject> extends Column
                 return hashcode;
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof IntColumnValueFilter) {
+                    @SuppressWarnings("unchecked")
                     IntColumnValueFilter<T> other = (IntColumnValueFilter<T>)obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }

@@ -56,10 +56,10 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
                 return hashcode;
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof StringColumnValueFilter) {
+                    @SuppressWarnings("unchecked")
                     StringColumnValueFilter<T> other = (StringColumnValueFilter<T>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }
@@ -125,10 +125,10 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
                 return valueFilter.hashCode();
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof StringColumnValueFilter) {
+                    @SuppressWarnings("unchecked")
                     StringColumnValueFilter<T> other = (StringColumnValueFilter<T>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }
@@ -189,10 +189,10 @@ public interface StringColumnValueFilter<T extends DataAccessObject> extends Col
                 return valueFilter.hashCode();
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof StringColumnValueFilter) {
+                    @SuppressWarnings("unchecked")
                     StringColumnValueFilter<T> other = (StringColumnValueFilter<T>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }

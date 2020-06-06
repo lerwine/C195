@@ -144,6 +144,7 @@ public class PredefinedData {
         return ADDRESS_MAP;
     }
 
+    @SuppressWarnings("unused")
     private static PredefinedData createInstanceJAXB() {
         return new PredefinedData();
     }

@@ -112,7 +112,7 @@ public class AppointmentTypesByMonth extends VBox {
             typeToTextMap.put(t, s);
         });
         reportCategoryAxis.setCategories(categories);
-        dataSeries = new XYChart.Series();
+        dataSeries = new XYChart.Series<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM");
         ObservableList<String> monthNames = FXCollections.observableArrayList();
         int y = LocalDate.now().getYear();

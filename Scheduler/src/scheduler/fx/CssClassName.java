@@ -110,7 +110,9 @@ public enum CssClassName {
         }
     }
 
-    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, BiPredicate<U, CssClassName> predicate, BiConsumer<U, String> consumer, CssClassName... classNames) {
+    @SuppressWarnings("overloads")
+    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, BiPredicate<U, CssClassName> predicate,
+            BiConsumer<U, String> consumer, CssClassName... classNames) {
         if (null != classNames && classNames.length > 0) {
             U target = targetSupplier.apply(source);
             for (CssClassName e : classNames) {
@@ -122,7 +124,9 @@ public enum CssClassName {
         return source;
     }
 
-    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, BiPredicate<U, CssClassName> predicate, BiConsumer<U, String> consumer, Collection<CssClassName> classNames) {
+    @SuppressWarnings("overloads")
+    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, BiPredicate<U, CssClassName> predicate,
+            BiConsumer<U, String> consumer, Collection<CssClassName> classNames) {
         if (null != classNames && !classNames.isEmpty()) {
             U target = targetSupplier.apply(source);
             classNames.stream().filter((e) -> (predicate.test(target, e))).forEachOrdered((e) -> {
@@ -132,7 +136,8 @@ public enum CssClassName {
         return source;
     }
 
-    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, Predicate<CssClassName> predicate, BiConsumer<U, String> consumer, CssClassName... classNames) {
+    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, Predicate<CssClassName> predicate,
+            BiConsumer<U, String> consumer, CssClassName... classNames) {
         int z;
         if (null != classNames && (z = classNames.length) > 0) {
             for (int i = 0; i < z; i++) {
@@ -153,7 +158,8 @@ public enum CssClassName {
         return source;
     }
 
-    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, Predicate<CssClassName> predicate, BiConsumer<U, String> consumer, Collection<CssClassName> classNames) {
+    public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, Predicate<CssClassName> predicate,
+            BiConsumer<U, String> consumer, Collection<CssClassName> classNames) {
         if (null != classNames && !classNames.isEmpty()) {
             Iterator<CssClassName> iterator = classNames.iterator();
             do {
@@ -174,6 +180,7 @@ public enum CssClassName {
         return source;
     }
 
+    @SuppressWarnings("overloads")
     public static <T, U> T applyEachStringValue(T source, Function<T, U> targetSupplier, BiConsumer<U, String> consumer, CssClassName... classNames) {
         if (null != classNames && classNames.length > 0) {
             U target = targetSupplier.apply(source);
@@ -192,7 +199,9 @@ public enum CssClassName {
         return source;
     }
 
-    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, BiPredicate<T, CssClassName> predicate, BiFunction<T, String, U> func, CssClassName... classNames) {
+    @SuppressWarnings("overloads")
+    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, BiPredicate<T, CssClassName> predicate, BiFunction<T, String, U> func,
+            CssClassName... classNames) {
         int z;
         if (null != classNames && (z = classNames.length) > 0) {
             T target = targetSupplier.get();
@@ -214,7 +223,9 @@ public enum CssClassName {
         return Stream.empty();
     }
 
-    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, BiPredicate<T, CssClassName> predicate, BiFunction<T, String, U> func, Collection<CssClassName> classNames) {
+    @SuppressWarnings("overloads")
+    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, BiPredicate<T, CssClassName> predicate, BiFunction<T, String, U> func,
+            Collection<CssClassName> classNames) {
         if (null != classNames && !classNames.isEmpty()) {
             T target = targetSupplier.get();
             return classNames.stream().filter((t) -> predicate.test(target, t)).map((t) -> func.apply(target, t.value));
@@ -222,7 +233,8 @@ public enum CssClassName {
         return Stream.empty();
     }
 
-    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, Predicate<CssClassName> predicate, BiFunction<T, String, U> func, CssClassName... classNames) {
+    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, Predicate<CssClassName> predicate, BiFunction<T, String, U> func,
+            CssClassName... classNames) {
         int z;
         if (null != classNames && (z = classNames.length) > 0) {
             for (int i = 0; i < z; i++) {
@@ -244,7 +256,8 @@ public enum CssClassName {
         return Stream.empty();
     }
 
-    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, Predicate<CssClassName> predicate, BiFunction<T, String, U> func, Collection<CssClassName> classNames) {
+    public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, Predicate<CssClassName> predicate, BiFunction<T, String, U> func,
+            Collection<CssClassName> classNames) {
         if (null != classNames && !classNames.isEmpty()) {
             Iterator<CssClassName> iterator = classNames.iterator();
             do {
@@ -266,6 +279,7 @@ public enum CssClassName {
         return Stream.empty();
     }
 
+    @SuppressWarnings("overloads")
     public static <T, U> Stream<U> mapStringValues(Supplier<T> targetSupplier, BiFunction<T, String, U> func, CssClassName... classNames) {
         if (null != classNames && classNames.length > 0) {
             T target = targetSupplier.get();

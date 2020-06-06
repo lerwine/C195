@@ -640,6 +640,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param force A {@code true} value will save changes to the database, even if {@link #rowState} is {@link DataRowState#UNMODIFIED}.
          * @throws SQLException If unable to perform the database operation.
          */
+        @SuppressWarnings("fallthrough")
         public void save(T dao, Connection connection, boolean force) throws SQLException {
             DataAccessObject dataObj = (DataAccessObject) dao;
             dao.beginChange();

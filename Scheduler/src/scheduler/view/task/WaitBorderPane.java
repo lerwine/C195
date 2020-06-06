@@ -71,7 +71,7 @@ public final class WaitBorderPane extends BorderPane {
             return;
         }
 
-        if (!panes.stream().anyMatch((t) -> ((TitledPane) t).isExpanded())) {
+        if (!panes.stream().anyMatch((t) -> (t).isExpanded())) {
             panes.stream().filter((t) -> (t instanceof ErrorDetailTitledPane)).findFirst().orElseGet(() -> panes.get(panes.size() - 1)).setExpanded(true);
         }
     }

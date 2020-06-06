@@ -1,10 +1,12 @@
 package scheduler.util;
 
-import java.util.ArrayList;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static javafx.scene.layout.Region.USE_PREF_SIZE;
+
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
-import javafx.beans.binding.Bindings;
+
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -36,14 +38,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ValidationStatus;
-import scheduler.observables.MutationBindableObservableList;
 import scheduler.view.SymbolText;
 
 /**
@@ -412,7 +411,8 @@ public class NodeUtil {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <S> TableView<S> createTableView(ObservableList<S> items, String placeHolderText, TableColumn<S, ?>... column) {
         TableView<S> result = (null == items) ? new TableView<>() : new TableView<>(items);
         result.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -426,12 +426,14 @@ public class NodeUtil {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <S> TableView<S> createTableView(String placeHolderText, TableColumn<S, ?>... column) {
         return createTableView(null, placeHolderText, column);
     }
 
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <S> TableView<S> createTableView(TableColumn<S, ?>... column) {
         return createTableView(null, null, column);
     }

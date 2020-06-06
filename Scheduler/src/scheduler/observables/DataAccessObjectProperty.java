@@ -11,6 +11,7 @@ import scheduler.dao.DbRecord;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
+@Deprecated
 public class DataAccessObjectProperty<T extends DbRecord> extends DataObjectProperty<T> {
 
     private final ReadOnlyObjectProperty<LocalDateTime> createDate;

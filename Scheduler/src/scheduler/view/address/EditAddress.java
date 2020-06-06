@@ -193,6 +193,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     private void onCustomersTableViewKeyReleased(KeyEvent event) {
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             CustomerModel item;

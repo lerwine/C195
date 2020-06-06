@@ -160,6 +160,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
+    @SuppressWarnings("unused-parameter")
     private void onAddAddressButtonAction(ActionEvent event) {
         try {
             EditAddress.editNew(model, getScene().getWindow(), true);

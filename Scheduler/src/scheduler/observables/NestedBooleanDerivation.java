@@ -15,6 +15,7 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
+@Deprecated
 public class NestedBooleanDerivation<T> extends DerivedObservable<Boolean> implements ObservableBooleanDerivitive {
 
     private final Function<T, ObservableBooleanValue> selector;

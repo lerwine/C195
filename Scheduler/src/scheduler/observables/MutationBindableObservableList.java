@@ -90,7 +90,8 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         };
     }
 
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <E> MutationOperation<E> createAddOperation(E... value) {
         return createAddOperation(Arrays.asList(Objects.requireNonNull(value)));
     }
@@ -100,7 +101,8 @@ public class MutationBindableObservableList<E> extends ObservableListWrapper<E> 
         return Bindings.createObjectBinding(() -> operation);
     }
 
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> ObjectBinding<MutationOperation<T>> createAddOperationBinding(T... value) {
         MutationOperation<T> operation = createAddOperation(Objects.requireNonNull(value));
         return Bindings.createObjectBinding(() -> operation);

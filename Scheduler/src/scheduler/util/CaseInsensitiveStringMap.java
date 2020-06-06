@@ -254,7 +254,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
             V oldValue = null;
             String oldKey = "";
             synchronized (backingList) {
-                String k = (String) key;
+                String k = key;
                 for (Entry e : backingList) {
                     if (e.key.equalsIgnoreCase(k)) {
                         oldKey = e.key;

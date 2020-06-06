@@ -307,7 +307,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
     }
 
-    @SuppressWarnings({"incomplete-switch"})
+    //@SuppressWarnings({"incomplete-switch"})
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";

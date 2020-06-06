@@ -14,7 +14,9 @@ import scheduler.util.TriFunction;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @deprecated
  */
+@Deprecated
 public interface ObservableStringDerivitive extends ObservableDerivitive<String>, ObservableStringValue {
 
     public static <T, U, S, V> ObservableStringDerivitive of(ObservableValue<T> s1, ObservableValue<U> s2, ObservableValue<S> s3, ObservableValue<V> s4, QuadFunction<T, U, S, V, String> calculate) {

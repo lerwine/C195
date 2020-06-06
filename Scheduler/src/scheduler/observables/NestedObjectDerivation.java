@@ -13,7 +13,9 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  * @param <U>
+ * @deprecated
  */
+@Deprecated
 public class NestedObjectDerivation<T, U> extends DerivedObservable<U> implements ObservableObjectDerivitive<U> {
 
     private final Function<T, ObservableValue<U>> selector;

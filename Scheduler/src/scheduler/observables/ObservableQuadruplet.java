@@ -13,7 +13,9 @@ import scheduler.util.Quadruplet;
  * @param <U>
  * @param <S>
  * @param <V>
+ * @deprecated
  */
+@Deprecated
 public class ObservableQuadruplet<T, U, S, V> extends DerivedObservable<Quadruplet<T, U, S, V>>
         implements ObservableObjectDerivitive<Quadruplet<T, U, S, V>> {
 

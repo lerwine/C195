@@ -10,7 +10,9 @@ import javafx.beans.value.ObservableBooleanValue;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @deprecated
  */
+@Deprecated
 public class WrappedBooleanObservableProperty extends DerivedObservable<Boolean> implements ObservableBooleanDerivitive, ReadOnlyProperty<Boolean> {
 
     private final ObservableBooleanValue source;

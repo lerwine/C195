@@ -16,7 +16,9 @@ import scheduler.util.TriPredicate;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @deprecated
  */
+@Deprecated
 public interface ObservableBooleanDerivitive extends ObservableDerivitive<Boolean>, ObservableBooleanValue {
 
     public static <T, U, S, V> ObservableBooleanDerivitive of(ObservableValue<T> s1, ObservableValue<U> s2, ObservableValue<S> s3, ObservableValue<V> s4, QuadPredicate<T, U, S, V> calculate) {

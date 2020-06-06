@@ -16,6 +16,7 @@ public class CorporateCountry extends PredefinedData.PredefinedCountry {
 
     public static final String ELEMENT_NAME = "country";
 
+    @SuppressWarnings("unused")
     private static CorporateCountry createInstanceJAXB() {
         return new CorporateCountry();
     }

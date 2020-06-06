@@ -13,7 +13,9 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  * @param <U>
+ * @deprecated
  */
+@Deprecated
 public class DerivedObjectProperty<T, U> extends DerivedObservableObject<T, U> implements ReadOnlyProperty<U> {
 
     private final Object bean;

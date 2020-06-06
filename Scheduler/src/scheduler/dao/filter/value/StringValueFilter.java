@@ -240,9 +240,11 @@ public interface StringValueFilter extends ValueFilter<String>, Predicate<String
             case CONTAINS:
                 sb = new StringBuffer();
                 sb.append("%");
+                break;
             case ENDS_WITH:
                 sb = new StringBuffer();
                 sb.append("%");
+                break;
             default:
                 sb = new StringBuffer();
                 break;

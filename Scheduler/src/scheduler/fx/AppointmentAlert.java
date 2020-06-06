@@ -233,11 +233,11 @@ public class AppointmentAlert extends BorderPane {
         sceneProperty().addListener(this::onSceneChanged);
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized void onSceneChanged(Observable observable) {
         if (null != currentWindowProperty) {
             currentWindowProperty.removeListener(this::onWindowChanged);
         }
+        @SuppressWarnings("unchecked")
         Scene scene = ((ReadOnlyObjectProperty<Scene>) observable).get();
         if (null == scene) {
             currentWindowProperty = null;

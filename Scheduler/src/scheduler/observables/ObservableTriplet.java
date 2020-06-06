@@ -10,7 +10,9 @@ import scheduler.util.Triplet;
  * @param <T>
  * @param <U>
  * @param <S>
+ * @deprecated
  */
+@Deprecated
 public class ObservableTriplet<T, U, S> extends DerivedObservable<Triplet<T, U, S>> implements ObservableObjectDerivitive<Triplet<T, U, S>> {
 
     private Triplet<T, U, S> value;

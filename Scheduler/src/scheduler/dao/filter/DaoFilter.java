@@ -89,18 +89,20 @@ public interface DaoFilter<T extends DataAccessObject> extends DaoFilterExpressi
                 return expression.isEmpty();
             }
 
-            @SuppressWarnings({"unchecked", "raw"})
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof DaoFilter) {
+                    @SuppressWarnings("unchecked")
                     DaoFilter<T> other = (DaoFilter<T>) obj;
                     if (other.getLoadingMessage().equals(getLoadingMessage()) && other.getLoadingTitle().equals(getLoadingTitle())) {
+                        @SuppressWarnings("rawtypes")
                         Class<DaoFilterExpression> c = DaoFilterExpression.class;
                         Optional<Field> field = Arrays.stream(other.getClass().getDeclaredFields()).filter((Field t) -> {
                             return t.getName().equals("expression") && t.getType().equals(c);
                         }).findFirst();
                         if (field.isPresent()) {
                             try {
+                                @SuppressWarnings("unchecked")
                                 DaoFilterExpression<T> e = (DaoFilterExpression<T>) field.get().get(obj);
                                 return expression.equals(e);
                             } catch (IllegalArgumentException | IllegalAccessException ex) {

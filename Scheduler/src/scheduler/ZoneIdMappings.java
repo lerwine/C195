@@ -133,6 +133,7 @@ public class ZoneIdMappings {
         }
     }
 
+    @SuppressWarnings("unused")
     private static ZoneIdMappings createInstanceJAXB() {
         return new ZoneIdMappings();
     }
@@ -168,6 +169,7 @@ public class ZoneIdMappings {
         private Entry() {
         }
 
+        @SuppressWarnings("unused")
         private static Entry createInstanceJAXB() {
             return new Entry();
         }

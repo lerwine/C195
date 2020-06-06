@@ -17,6 +17,7 @@ public class CorporateCity extends PredefinedData.PredefinedCity {
 
     public static final String ELEMENT_NAME = "city";
 
+    @SuppressWarnings("unused")
     private static CorporateCity createInstanceJAXB() {
         return new CorporateCity();
     }

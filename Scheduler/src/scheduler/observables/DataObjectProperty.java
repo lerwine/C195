@@ -30,7 +30,9 @@ import scheduler.util.DB;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
+ * @deprecated
  */
+@Deprecated
 public class DataObjectProperty<T extends DbObject> extends ReadOnlyObjectWrapper<T> implements ObservableDerivitive<T> {
 
     private static final Logger LOG = Logger.getLogger(DataObjectProperty.class.getName());

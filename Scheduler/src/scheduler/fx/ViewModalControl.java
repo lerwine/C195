@@ -382,8 +382,8 @@ public class ViewModalControl extends Control {
         if (null != newValue)
             addEventHandler(ViewModalEvent.VIEW_MODAL, newValue);
     }
-    @SuppressWarnings("unchecked")
     private synchronized void onListChanged(Observable observable) {
+        @SuppressWarnings("unchecked")
         ObservableList<ButtonType> items = ((ListProperty<ButtonType>) observable).get();
         HashSet<ButtonType> types = new HashSet<>();
         if (null != items && !items.isEmpty()) {

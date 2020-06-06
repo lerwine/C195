@@ -13,7 +13,9 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The parent object type.
  * @param <U> The nested binding type.
+ * @deprecated
  */
+@Deprecated
 public class NestedObjectProperty<T, U> extends NestedObjectDerivation<T, U> implements ReadOnlyProperty<U> {
 
     private final Object bean;

@@ -56,12 +56,12 @@ public class HelpContent extends BorderPane {
         parentProperty().addListener(this::parentChanged);
     }
 
-    @SuppressWarnings("unchecked")
     private void parentChanged(Observable observable) {
         prefWidthProperty().unbind();
         minWidthProperty().unbind();
         prefHeightProperty().unbind();
         minHeightProperty().unbind();
+        @SuppressWarnings("unchecked")
         Parent parent = ((ObservableValue<Parent>) observable).getValue();
 
         if (null != parent) {

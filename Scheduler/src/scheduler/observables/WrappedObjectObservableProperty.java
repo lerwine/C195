@@ -10,7 +10,9 @@ import javafx.beans.value.ObservableValue;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @deprecated
  */
+@Deprecated
 public class WrappedObjectObservableProperty<T> extends DerivedObservable<T> implements ObservableObjectDerivitive<T>, ReadOnlyProperty<T> {
 
     private final ObservableValue<T> source;

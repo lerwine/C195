@@ -11,7 +11,9 @@ import scheduler.util.Values;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <R> The result (derived) value type.
+ * @deprecated
  */
+@Deprecated
 public interface ObservableDerivitive<R> extends ObservableValue<R> {
 
     public static <T> ObservableBooleanDerivitive areEqual(ObservableValue<T> a, ObservableValue<T> b) {

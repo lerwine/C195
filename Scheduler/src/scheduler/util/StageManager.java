@@ -5,11 +5,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
+
 import javafx.collections.ObservableListBase;
 import javafx.collections.ObservableMap;
-import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
-import javafx.event.EventTarget;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

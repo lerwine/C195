@@ -17,6 +17,7 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
 
     public static final String ELEMENT_NAME = "address";
 
+    @SuppressWarnings("unused")
     private static CorporateAddress createInstanceJAXB() {
         return new CorporateAddress();
     }

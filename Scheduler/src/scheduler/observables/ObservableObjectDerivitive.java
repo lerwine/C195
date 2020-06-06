@@ -18,7 +18,9 @@ import scheduler.util.TriFunction;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <R> The result (derived) value type.
+ * @deprecated
  */
+@Deprecated
 public interface ObservableObjectDerivitive<R> extends ObservableDerivitive<R>, ObservableObjectValue<R> {
 
     public static <T, U, S, V, R> ObservableObjectDerivitive<R> of(ObservableValue<T> s1, ObservableValue<U> s2, ObservableValue<S> s3, ObservableValue<V> s4, QuadFunction<T, U, S, V, R> calculate) {

@@ -12,7 +12,9 @@ import javafx.beans.value.ObservableValue;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The parent object type.
+ * @deprecated
  */
+@Deprecated
 public class NestedStringProperty<T> extends NestedStringDerivation<T> implements ReadOnlyProperty<String> {
 
     private final Object bean;

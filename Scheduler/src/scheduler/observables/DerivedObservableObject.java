@@ -10,7 +10,9 @@ import javafx.beans.value.ObservableValue;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of source value for the calculation.
  * @param <U> The type of calculated value.
+ * @deprecated
  */
+@Deprecated
 public class DerivedObservableObject<T, U> extends DerivedObservable<U> implements ObservableObjectDerivitive<U> {
 
     private U value;

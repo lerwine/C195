@@ -321,6 +321,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public boolean equals(Object obj) {
         return null != obj && obj instanceof Appointment && ModelHelper.areSameRecord(this, (Appointment) obj);
     }

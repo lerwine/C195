@@ -9,7 +9,9 @@ import scheduler.util.Tuple;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  * @param <U>
+ * @deprecated
  */
+@Deprecated
 public class ObservableTuple<T, U> extends DerivedObservable<Tuple<T, U>> implements ObservableObjectDerivitive<Tuple<T, U>> {
 
     private Tuple<T, U> value;
