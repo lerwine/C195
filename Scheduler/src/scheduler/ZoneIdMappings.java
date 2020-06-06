@@ -23,9 +23,9 @@ import scheduler.util.LogHelper;
 import scheduler.util.Values;
 
 /**
- *
+ * Utility class to map Zone IDs to country/region codes.
+ * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.ZoneIdMappings}
  */
 @XmlRootElement(name = ZoneIdMappings.ELEMENT_NAME, namespace = ZoneIdMappings.NAMESPACE_URI)
 @XmlType(name = ZoneIdMappings.ELEMENT_NAME, namespace = ZoneIdMappings.NAMESPACE_URI, factoryMethod = "createInstanceJAXB")

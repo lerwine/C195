@@ -8,8 +8,7 @@ import javafx.event.EventType;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
  */
-// TODO: Replace with individual typed events
-public class ItemActionRequestEvent<T> extends ObjectActionRequestEvent {
+public final class ItemActionRequestEvent<T> extends ObjectActionRequestEvent {
 
     private static final long serialVersionUID = -680774297349983367L;
 
