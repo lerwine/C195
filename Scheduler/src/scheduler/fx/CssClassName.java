@@ -72,16 +72,6 @@ public enum CssClassName {
      */
     H1("h1"),
     /**
-     * The {@code "wait-titled-pane"} CSS class.
-     * @deprecated 
-     */
-    WAIT_TITLED_PANE("wait-titled-pane"),
-    /**
-     * The {@code "error-titled-pane"} CSS class.
-     * @deprecated 
-     */
-    ERROR_TITLED_PANE("error-titled-pane"),
-    /**
      * The {@code "boldText"} CSS class for bold text.
      */
     BOLD_TEXT("boldText"),

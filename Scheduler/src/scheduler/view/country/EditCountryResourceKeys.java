@@ -23,11 +23,6 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_CITIES = "cities";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That country has already been deleted."}.
-     */
-    public static final String RESOURCEKEY_COUNTRYALREADYDELETED = "countryAlreadyDeleted";
-
-    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That country is referenced by one or more cities and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";

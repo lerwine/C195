@@ -611,60 +611,6 @@ public class NodeUtil {
         return addCssClass(node, CssClassName.COLLAPSED);
     }
 
-    /**
-     * @deprecated Doesn't work
-     */
-    public static void bindCssClassSwitch(Node node, BooleanBinding observable, Collection<CssClassName> ifTrue, Collection<CssClassName> ifFalse) {
-        ArrayList<String> addIfTrue = new ArrayList<>();
-        ArrayList<String> removeIfTrue = new ArrayList<>();
-        ArrayList<String> addIfFalse = new ArrayList<>();
-        ArrayList<String> removeIfFalse = new ArrayList<>();
-        if (ifFalse.isEmpty()) {
-            ifTrue.stream().forEach((t) -> {
-                String n = t.toString();
-                if (!addIfTrue.contains(n)) {
-                    removeIfFalse.add(n);
-                    addIfTrue.add(n);
-                }
-            });
-        } else if (ifTrue.isEmpty()) {
-            ifFalse.stream().forEach((t) -> {
-                String n = t.toString();
-                if (!addIfFalse.contains(n)) {
-                    removeIfTrue.add(n);
-                    addIfFalse.add(n);
-                }
-            });
-        } else {
-            ifTrue.stream().forEach((t) -> {
-                String n = t.toString();
-                if (!addIfTrue.contains(n)) {
-                    if (!ifFalse.contains(t)) {
-                        removeIfFalse.add(n);
-                    }
-                    addIfTrue.add(n);
-                }
-            });
-            ifFalse.stream().forEach((t) -> {
-                String n = t.toString();
-                if (!addIfFalse.contains(n)) {
-                    if (!ifTrue.contains(t)) {
-                        removeIfTrue.add(n);
-                    }
-                    addIfFalse.add(n);
-                }
-            });
-        }
-        MutationBindableObservableList<String> boundClassNames = new MutationBindableObservableList<>();
-        boundClassNames.addAll(node.getStyleClass());
-        Bindings.bindContentBidirectional(boundClassNames, node.getStyleClass());
-        boundClassNames.mutationProperty().bind(
-                Bindings.when(observable)
-                        .then(MutationBindableObservableList.createRemoveAddOperation(removeIfTrue, addIfTrue))
-                        .otherwise(MutationBindableObservableList.createRemoveAddOperation(removeIfFalse, addIfFalse))
-        );
-    }
-
     public static void bindCssCollapse(Styleable target, BooleanBinding predicate) {
         final ObservableList<String> css = target.getStyleClass();
         final ObservableList<String> whenFalse = FXCollections.observableArrayList(css);
