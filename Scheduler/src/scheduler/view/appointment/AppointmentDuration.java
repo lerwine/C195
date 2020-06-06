@@ -97,9 +97,8 @@ public class AppointmentDuration extends HourAndMinute implements Comparable<App
     }
 
     @Override
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object obj) {
-        return this == obj || (super.equals(obj) && ((AppointmentDuration)obj).days == days);
+        return null != obj && obj instanceof AppointmentDuration && (this == obj || (super.equals(obj) && ((AppointmentDuration)obj).days == days));
     }
 
     public Duration toDuration() {
