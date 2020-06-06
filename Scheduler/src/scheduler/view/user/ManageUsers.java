@@ -72,27 +72,27 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
     @FXML
-    void filterButtonClick(ActionEvent event) {
+    private void filterButtonClick(ActionEvent event) {
         restoreNode(userFilterBorderPane);
     }
 
     @FXML
-    void onHelpButtonAction(ActionEvent event) {
+    private void onHelpButtonAction(ActionEvent event) {
         restoreNode(helpBorderPane);
     }
 
     @FXML
-    void onHelpOKButtonAction(ActionEvent event) {
+    private void onHelpOKButtonAction(ActionEvent event) {
         collapseNode(helpBorderPane);
     }
 
     @FXML
-    void onUserFilterCancelButtonAction(ActionEvent event) {
+    private void onUserFilterCancelButtonAction(ActionEvent event) {
         userFilterBorderPane.setVisible(false);
     }
 
     @FXML
-    void onUserFilterOKButtonAction(ActionEvent event) {
+    private void onUserFilterOKButtonAction(ActionEvent event) {
         if (inactiveUsersRadioButton.isSelected()) {
             setFilter(UserModelFilter.inactive());
         } else if (allUsersRadioButton.isSelected()) {

@@ -58,12 +58,12 @@ public class AppointmentsByRegion extends VBox {
     ObservableList<PieChart.Data> pieChartData;
 
     @FXML
-    void onMonthComboBoxAction(ActionEvent event) {
+    private void onMonthComboBoxAction(ActionEvent event) {
         onDateChanged(yearSpinner.getValue());
     }
 
     @FXML
-    void onRunButtonAction(ActionEvent event) {
+    private void onRunButtonAction(ActionEvent event) {
         MainController.startBusyTaskNow(new CountLoadTask(date, monthComboBox.getValue()));
     }
 
@@ -80,7 +80,7 @@ public class AppointmentsByRegion extends VBox {
 
     @SuppressWarnings("unchecked")
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'AppointmentsByRegion.fxml'.";
         assert monthComboBox != null : "fx:id=\"monthComboBox\" was not injected: check your FXML file 'AppointmentsByRegion.fxml'.";
         assert yearValidationLabel != null : "fx:id=\"yearValidationLabel\" was not injected: check your FXML file 'AppointmentsByRegion.fxml'.";

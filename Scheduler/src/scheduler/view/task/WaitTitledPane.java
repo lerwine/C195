@@ -82,7 +82,7 @@ public final class WaitTitledPane extends TitledPane {
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert messageLabel != null : "fx:id=\"messageLabel\" was not injected: check your FXML file 'WaitTitledPane.fxml'.";
         assert progressIndicator != null : "fx:id=\"progressIndicator\" was not injected: check your FXML file 'WaitTitledPane.fxml'.";
         assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'WaitTitledPane.fxml'.";

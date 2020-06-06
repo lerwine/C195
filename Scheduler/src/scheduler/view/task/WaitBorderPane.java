@@ -44,7 +44,7 @@ public final class WaitBorderPane extends BorderPane {
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert waitAccordion != null : "fx:id=\"waitAccordion\" was not injected: check your FXML file 'WaitMessage.fxml'.";
         collapseNode(this);
     }

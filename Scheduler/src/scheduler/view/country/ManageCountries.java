@@ -61,12 +61,12 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
     @FXML
-    void onHelpButtonAction(ActionEvent event) {
+    private void onHelpButtonAction(ActionEvent event) {
         restoreNode(helpBorderPane);
     }
 
     @FXML
-    void onHelpOKButtonAction(ActionEvent event) {
+    private void onHelpOKButtonAction(ActionEvent event) {
         collapseNode(helpBorderPane);
     }
 

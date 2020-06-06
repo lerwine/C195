@@ -215,7 +215,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
-    void onNewCountryButtonAction(ActionEvent event) {
+    private void onNewCountryButtonAction(ActionEvent event) {
         CountryModel c;
         try {
             c = EditCountry.editNew(getScene().getWindow(), false);

@@ -72,13 +72,13 @@ public class ByMonth extends StackPane {
     private Object SpinnerValueFactory;
 
     @FXML
-    void onRunButtonAction(ActionEvent event) {
+    private void onRunButtonAction(ActionEvent event) {
         monthNameLabel.setText(monthComboBox.getValue());
         loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'ByMonth.fxml'.";
         assert monthComboBox != null : "fx:id=\"monthComboBox\" was not injected: check your FXML file 'ByMonth.fxml'.";
         assert runButton != null : "fx:id=\"runButton\" was not injected: check your FXML file 'ByMonth.fxml'.";

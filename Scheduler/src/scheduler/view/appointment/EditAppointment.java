@@ -292,7 +292,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    void onIncludeRemoteCheckBoxAction(ActionEvent event) {
+    private void onIncludeRemoteCheckBoxAction(ActionEvent event) {
         if (includeRemoteCheckBox.isSelected()) {
             remoteLocationList.forEach((t) -> {
                 if (!corporateLocationList.contains(t)) {

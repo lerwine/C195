@@ -79,26 +79,26 @@ public class Overview extends VBox {
         }
     }
 
-    void onByMonthHyperlinkAction(ActionEvent event) {
+    private void onByMonthHyperlinkAction(ActionEvent event) {
         ByMonth.loadIntoMainContent(LocalDate.now());
     }
 
-    void onByWeekHyperlinkAction(ActionEvent event) {
+    private void onByWeekHyperlinkAction(ActionEvent event) {
         ByWeek.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML
-    void onCountryListingHyperlinkAction(ActionEvent event) {
+    private void onCountryListingHyperlinkAction(ActionEvent event) {
         ManageCountries.loadIntoMainContent();
     }
 
     @FXML
-    void onCustomerListingHyperlinkAction(ActionEvent event) {
+    private void onCustomerListingHyperlinkAction(ActionEvent event) {
         ManageCustomers.loadIntoMainContent(CustomerModel.getFactory().getDefaultFilter());
     }
 
     @FXML
-    void onNewAppointmentHyperlinkAction(ActionEvent event) {
+    private void onNewAppointmentHyperlinkAction(ActionEvent event) {
         try {
             EditAppointment.editNew(null, null, getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -107,17 +107,17 @@ public class Overview extends VBox {
     }
 
     @FXML
-    void onAppointmentListHyperlinkAction(ActionEvent event) {
+    private void onAppointmentListHyperlinkAction(ActionEvent event) {
         ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
     }
 
     @FXML
-    void onUserListingHyperlinkAction(ActionEvent event) {
+    private void onUserListingHyperlinkAction(ActionEvent event) {
         ManageUsers.loadIntoMainContent(UserModel.getFactory().getDefaultFilter());
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert appointmentsTodayLabel != null : "fx:id=\"appointmentsTodayLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsTomorrowLabel != null : "fx:id=\"appointmentsTomorrowLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsThisWeekLabel != null : "fx:id=\"appointmentsThisWeekLabel\" was not injected: check your FXML file 'Overview.fxml'.";

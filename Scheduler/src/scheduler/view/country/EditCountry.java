@@ -130,7 +130,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @SuppressWarnings("incomplete-switch")
     @FXML
-    void onCitiesTableViewKeyReleased(KeyEvent event) {
+    private void onCitiesTableViewKeyReleased(KeyEvent event) {
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             CityModel item;
             switch (event.getCode()) {
@@ -151,17 +151,17 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @FXML
-    void onCityDeleteMenuItemAction(ActionEvent event) {
+    private void onCityDeleteMenuItemAction(ActionEvent event) {
         deleteCity(citiesTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    void onCityEditMenuItemAction(ActionEvent event) {
+    private void onCityEditMenuItemAction(ActionEvent event) {
         openCity(citiesTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    void onItemActionRequest(ItemActionRequestEvent<CityModel> event) {
+    private void onItemActionRequest(ItemActionRequestEvent<CityModel> event) {
         if (event.isDelete()) {
             deleteCity(event.getItem());
         } else {
@@ -170,13 +170,13 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @FXML
-    void onLocaleComboBoxAction(ActionEvent event) {
+    private void onLocaleComboBoxAction(ActionEvent event) {
         valid.set(null != selectedLocale.get());
         modified.set(!Objects.equals(selectedLocale.get(), model.getLocale()));
     }
 
     @FXML
-    void onNewButtonAction(ActionEvent event) {
+    private void onNewButtonAction(ActionEvent event) {
         try {
             EditCity.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -243,7 +243,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
-    void initializeEditMode() {
+    private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
         ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {

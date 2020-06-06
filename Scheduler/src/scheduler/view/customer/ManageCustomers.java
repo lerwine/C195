@@ -73,7 +73,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
     @FXML
-    void filterButtonClick(ActionEvent event) {
+    private void filterButtonClick(ActionEvent event) {
         restoreNode(customerFilterBorderPane);
     }
 
@@ -83,17 +83,17 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     }
 
     @FXML
-    void onHelpOKButtonAction(ActionEvent event) {
+    private void onHelpOKButtonAction(ActionEvent event) {
         collapseNode(helpBorderPane);
     }
 
     @FXML
-    void onCustomerFilterCancelButtonAction(ActionEvent event) {
+    private void onCustomerFilterCancelButtonAction(ActionEvent event) {
         customerFilterBorderPane.setVisible(false);
     }
 
     @FXML
-    void onCustomerFilterOKButtonAction(ActionEvent event) {
+    private void onCustomerFilterOKButtonAction(ActionEvent event) {
         if (inactiveCustomersRadioButton.isSelected()) {
             setFilter(CustomerModelFilter.inactive());
         } else if (allCustomersRadioButton.isSelected()) {

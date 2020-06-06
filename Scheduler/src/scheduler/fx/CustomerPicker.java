@@ -136,7 +136,7 @@ public class CustomerPicker extends BorderPane {
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         countries = FXCollections.observableArrayList();
         cities = FXCollections.observableArrayList();
         allCustomers = FXCollections.observableArrayList();
@@ -205,13 +205,13 @@ public class CustomerPicker extends BorderPane {
     }
 
     @FXML
-    void cancelButtonClick(ActionEvent event) {
+    private void cancelButtonClick(ActionEvent event) {
         selectedCustomer = null;
         ((Node) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
-    void nameSearchTextFieldChange(ActionEvent event) {
+    private void nameSearchTextFieldChange(ActionEvent event) {
         filterCustomers();
     }
 
@@ -240,12 +240,12 @@ public class CustomerPicker extends BorderPane {
     }
 
     @FXML
-    void selectCustomerButtonClick(ActionEvent event) {
+    private void selectCustomerButtonClick(ActionEvent event) {
         ((Node) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
-    void countryFilterCheckBoxChange(ActionEvent event) {
+    private void countryFilterCheckBoxChange(ActionEvent event) {
         if (countryFilterCheckBox.isSelected()) {
             cityFilterCheckBox.setDisable(false);
             countryComboBox.setDisable(false);
@@ -268,7 +268,7 @@ public class CustomerPicker extends BorderPane {
     }
 
     @FXML
-    void countryComboBoxChange(ActionEvent event) {
+    private void countryComboBoxChange(ActionEvent event) {
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
@@ -279,7 +279,7 @@ public class CustomerPicker extends BorderPane {
     }
 
     @FXML
-    void cityFilterCheckBoxChange(ActionEvent event) {
+    private void cityFilterCheckBoxChange(ActionEvent event) {
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
@@ -301,7 +301,7 @@ public class CustomerPicker extends BorderPane {
     }
 
     @FXML
-    void cityComboBoxChange(ActionEvent event) {
+    private void cityComboBoxChange(ActionEvent event) {
         if (countryFilterCheckBox.isSelected() && cityFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
@@ -316,7 +316,7 @@ public class CustomerPicker extends BorderPane {
     }
 
     @FXML
-    void statusComboBoxChange(ActionEvent event) {
+    private void statusComboBoxChange(ActionEvent event) {
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {

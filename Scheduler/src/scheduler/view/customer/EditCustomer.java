@@ -199,7 +199,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @FXML
-    void onAddAppointmentButtonAction(ActionEvent event) {
+    private void onAddAppointmentButtonAction(ActionEvent event) {
         try {
             EditAppointment.editNew(model, null, getScene().getWindow(), false);
         } catch (IOException ex) {
@@ -208,17 +208,17 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @FXML
-    void onDeleteAppointmentMenuItemAction(ActionEvent event) {
+    private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         deleteAppointment(appointmentsTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    void onEditAppointmentMenuItemAction(ActionEvent event) {
+    private void onEditAppointmentMenuItemAction(ActionEvent event) {
         editAppointment(appointmentsTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    void onItemActionRequest(ItemActionRequestEvent<AppointmentModel> event) {
+    private void onItemActionRequest(ItemActionRequestEvent<AppointmentModel> event) {
         if (event.isDelete()) {
             deleteAppointment(event.getItem());
         } else {
@@ -227,29 +227,29 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @FXML
-    void onNewCityButtonAction(ActionEvent event) {
+    private void onNewCityButtonAction(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onNewCityButtonAction
     }
 
     @FXML
-    void onNewCountryButtonAction(ActionEvent event) {
+    private void onNewCountryButtonAction(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onNewCountryButtonAction
     }
 
-    void onAppointmentFilterComboBoxAction(ActionEvent event) {
+    private void onAppointmentFilterComboBoxAction(ActionEvent event) {
         waitBorderPane.startNow(new AppointmentReloadTask());
     }
 
-    void onCityComboBoxAction(ActionEvent event) {
+    private void onCityComboBoxAction(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onCityComboBoxAction
     }
 
-    void onCountryComboBoxAction(ActionEvent event) {
+    private void onCountryComboBoxAction(ActionEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onCountryComboBoxAction
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert activeTrueRadioButton != null : "fx:id=\"activeTrueRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";

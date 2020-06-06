@@ -149,22 +149,22 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @FXML
-    void onCustomerDeleteMenuItemAction(ActionEvent event) {
+    private void onCustomerDeleteMenuItemAction(ActionEvent event) {
 
     }
 
     @FXML
-    void onCustomerEditMenuItemAction(ActionEvent event) {
+    private void onCustomerEditMenuItemAction(ActionEvent event) {
 
     }
 
     @FXML
-    void onItemActionRequest(ItemActionRequestEvent<UserModel> event) {
+    private void onItemActionRequest(ItemActionRequestEvent<UserModel> event) {
 
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameErrorMessageLabel != null : "fx:id=\"userNameErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert changePasswordCheckBox != null : "fx:id=\"changePasswordCheckBox\" was not injected: check your FXML file 'EditUser.fxml'.";

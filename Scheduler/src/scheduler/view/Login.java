@@ -88,12 +88,12 @@ public final class Login extends Scheduler.LoginBorderPane {
     }
 
     @FXML
-    void onExitButtonAction(ActionEvent event) {
+    private void onExitButtonAction(ActionEvent event) {
         getScene().getWindow().hide();
     }
 
     @FXML
-    void onLoginButtonAction(ActionEvent event) {
+    private void onLoginButtonAction(ActionEvent event) {
         tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
     }
 
@@ -167,7 +167,7 @@ public final class Login extends Scheduler.LoginBorderPane {
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'Login.fxml'.";
         assert userNameLabel != null : "fx:id=\"userNameLabel\" was not injected: check your FXML file 'Login.fxml'.";
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'Login.fxml'.";

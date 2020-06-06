@@ -136,7 +136,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
     @FXML
-    void filterButtonClick(ActionEvent event) {
+    private void filterButtonClick(ActionEvent event) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "This method is not implemented");
         alert.initStyle(StageStyle.UTILITY);
         alert.initOwner((Stage) ((Button) event.getSource()).getScene().getWindow());
@@ -152,7 +152,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @FXML
-    void onExportButtonAction(ActionEvent event) {
+    private void onExportButtonAction(ActionEvent event) {
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fc = new FileChooser();
         ObservableList<FileChooser.ExtensionFilter> filterList = fc.getExtensionFilters();
@@ -425,12 +425,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @FXML
-    void onHelpButtonAction(ActionEvent event) {
+    private void onHelpButtonAction(ActionEvent event) {
         restoreNode(helpBorderPane);
     }
 
     @FXML
-    void onHelpOKButtonAction(ActionEvent event) {
+    private void onHelpOKButtonAction(ActionEvent event) {
         collapseNode(helpBorderPane);
     }
 

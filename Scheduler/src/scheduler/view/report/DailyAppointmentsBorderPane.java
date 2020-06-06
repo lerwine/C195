@@ -71,7 +71,7 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'DailyAppointments.fxml'.";
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'DailyAppointments.fxml'.";
         headingLabel.setText(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date.get()));

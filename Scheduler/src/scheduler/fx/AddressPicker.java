@@ -98,12 +98,12 @@ public class AddressPicker extends BorderPane {
     }
 
     @FXML
-    void onCancelButtonAction(ActionEvent event) {
+    private void onCancelButtonAction(ActionEvent event) {
         collapseNode(this);
     }
 
     @FXML
-    void onSelectButtonAction(ActionEvent event) {
+    private void onSelectButtonAction(ActionEvent event) {
         selectedAddress.set(candidateAddress.get());
         collapseNode(this);
 

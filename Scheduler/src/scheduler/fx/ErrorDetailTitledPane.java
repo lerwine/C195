@@ -131,42 +131,42 @@ public final class ErrorDetailTitledPane extends TitledPane {
     private Accordion detailAccordion; // Value injected by FXMLLoader
 
     @FXML
-    void onCopyErrorMessageAction(ActionEvent event) {
+    private void onCopyErrorMessageAction(ActionEvent event) {
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(errorMessageTextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
     }
 
     @FXML
-    void onCopyErrorTypeAction(ActionEvent event) {
+    private void onCopyErrorTypeAction(ActionEvent event) {
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(errorTypeLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
     }
 
     @FXML
-    void onCopyProperty1Action(ActionEvent event) {
+    private void onCopyProperty1Action(ActionEvent event) {
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(property1TextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
     }
 
     @FXML
-    void onCopyProperty2Action(ActionEvent event) {
+    private void onCopyProperty2Action(ActionEvent event) {
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(property2TextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
     }
 
     @FXML
-    void onCopyProperty3Action(ActionEvent event) {
+    private void onCopyProperty3Action(ActionEvent event) {
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(property3TextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert errorMessageHeadingLabel != null : "fx:id=\"errorMessageHeadingLabel\" was not injected: check your FXML file 'ErrorDetailTitledPane.fxml'.";
         assert errorMessageHBox != null : "fx:id=\"errorMessageHBox\" was not injected: check your FXML file 'ErrorDetailTitledPane.fxml'.";
         assert errorMessageTextLabel != null : "fx:id=\"errorMessageTextLabel\" was not injected: check your FXML file 'ErrorDetailTitledPane.fxml'.";

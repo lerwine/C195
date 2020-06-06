@@ -91,7 +91,7 @@ public class ByWeek extends StackPane {
     private Label customerLabel; // Value injected by FXMLLoader
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert sundayListView != null : "fx:id=\"sundayListView\" was not injected: check your FXML file 'ByWeek.fxml'.";
         assert mondayListView != null : "fx:id=\"mondayListView\" was not injected: check your FXML file 'ByWeek.fxml'.";
         assert tuesdayListView != null : "fx:id=\"tuesdayListView\" was not injected: check your FXML file 'ByWeek.fxml'.";
