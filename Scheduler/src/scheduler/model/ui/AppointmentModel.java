@@ -21,7 +21,6 @@ import scheduler.dao.IUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.AppointmentType;
 import scheduler.model.UserStatus;
-import scheduler.observables.AppointmentTypeProperty;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -113,7 +112,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final NonNullableStringProperty description;
     private final NonNullableStringProperty location;
     private final NonNullableStringProperty contact;
-    private final AppointmentTypeProperty type;
+    private final SimpleObjectProperty<AppointmentType> type;
     private final NonNullableStringProperty url;
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
@@ -142,7 +141,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         description = new NonNullableStringProperty(this, "description", dao.getDescription());
         location = new NonNullableStringProperty(this, "location", dao.getLocation());
         AppointmentType at = dao.getType();
-        type = new AppointmentTypeProperty(this, "type", (null == at) ? AppointmentType.OTHER : at);
+        type = new SimpleObjectProperty<>(this, "type", (null == at) ? AppointmentType.OTHER : at);
         contact = new NonNullableStringProperty(this, "contact");
         url = new NonNullableStringProperty(this, "url");
         start = new SimpleObjectProperty<>(this, "start");
@@ -460,12 +459,12 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public String getTypeDisplay() {
-        return type.getDisplayText();
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AppointmentModel#getTypeDisplay
     }
 
     @Override
     public ReadOnlyStringProperty typeDisplayProperty() {
-        return type.displayTextProperty();
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AppointmentModel#typeDisplayProperty
     }
 
     @Override

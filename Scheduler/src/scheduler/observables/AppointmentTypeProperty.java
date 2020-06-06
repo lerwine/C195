@@ -1,10 +1,7 @@
 package scheduler.observables;
 
-import java.util.Objects;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectPropertyBase;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import scheduler.model.AppointmentType;
 
@@ -15,8 +12,8 @@ import scheduler.model.AppointmentType;
 public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentType> {
 
     private final ReadOnlyPropertyImpl readOnlyProperty;
-    private final DerivedStringProperty<AppointmentType> displayText;
-    private final DerivedBooleanProperty<AppointmentType> valid;
+    private final StringBindingProperty displayText;
+    private final BooleanBindingProperty valid;
 
     /**
      *
@@ -27,8 +24,18 @@ public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentTyp
     public AppointmentTypeProperty(Object bean, String name, AppointmentType initialValue) {
         super(bean, name, initialValue);
         readOnlyProperty = new ReadOnlyPropertyImpl();
-        displayText = new DerivedStringProperty<>(this, "displayText", this, AppointmentType::toDisplayText);
-        valid = new DerivedBooleanProperty<>(this, "valid", this, Objects::nonNull);
+        displayText = new StringBindingProperty(this, "displayText", this) {
+            @Override
+            protected String computeValue() {
+                return AppointmentType.toDisplayText(AppointmentTypeProperty.this.get());
+            }
+        };
+        valid = new BooleanBindingProperty(this, "valid", this) {
+            @Override
+            protected boolean computeValue() {
+                return null != AppointmentTypeProperty.this.get();
+            }
+        };
     }
 
     public AppointmentType getSafe() {
@@ -44,16 +51,16 @@ public class AppointmentTypeProperty extends SimpleObjectProperty<AppointmentTyp
         return valid.get();
     }
 
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyBooleanProperty();
+    public BooleanBindingProperty validProperty() {
+        return valid;
     }
 
     public String getDisplayText() {
         return displayText.get();
     }
 
-    public ReadOnlyStringProperty displayTextProperty() {
-        return displayText.getReadOnlyStringProperty();
+    public StringBindingProperty displayTextProperty() {
+        return displayText;
     }
 
     private class ReadOnlyPropertyImpl extends ReadOnlyObjectPropertyBase<AppointmentType> {
