@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -278,6 +279,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
             ICountryDAO country;
             switch (dao.getRowState()) {
@@ -317,7 +319,19 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
                         throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -355,6 +369,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                                 count++;
                             }
                         }
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
                     }
                 }
                 if (count > 0) {
@@ -381,6 +401,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                     while (rs.next()) {
                         result.add(fromResultSet(rs));
                     }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
                 }
             }
             return result;
@@ -394,7 +420,20 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 ps.setString(1, rk);
                 try (ResultSet rs = ps.getResultSet()) {
                     if (rs.next()) {
-                        return fromResultSet(rs);
+                        CityDAO result = fromResultSet(rs);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -409,7 +448,20 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        int result = rs.getInt(1);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }

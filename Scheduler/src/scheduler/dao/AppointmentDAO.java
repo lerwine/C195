@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -503,7 +504,20 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        int result = rs.getInt(1);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -538,6 +552,12 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     ArrayList<AppointmentCountByType> result = new ArrayList<>();
                     while (rs.next()) {
                         result.add(new AppointmentCountByType(AppointmentType.of(rs.getString(DbColumn.TYPE.toString()), AppointmentType.OTHER), rs.getInt("c")));
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                     return result;
                 }
@@ -581,6 +601,12 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     while (rs.next()) {
                         result.add(new ItemCountResult<>(rs.getString(DbColumn.COUNTRY_NAME.toString()), rs.getInt("c")));
                     }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
                     return result;
                 }
             }
@@ -619,7 +645,20 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        int result = rs.getInt(1);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -659,7 +698,20 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        int result = rs.getInt(1);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -720,6 +772,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public String getSaveDbConflictMessage(AppointmentDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
                 throw new IllegalStateException("Data access object already deleted");

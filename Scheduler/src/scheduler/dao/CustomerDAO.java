@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
@@ -273,7 +274,20 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     LOG.fine(() -> String.format("findByName", "Executing DML query: %s", sql));
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
-                            return Optional.of(fromResultSet(rs));
+                            Optional<CustomerDAO> result = Optional.of(fromResultSet(rs));
+                            SQLWarning sqlWarning = connection.getWarnings();
+                            if (null != sqlWarning) {
+                                do {
+                                    LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                            }
+                            return result;
+                        }
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                         }
                     }
                 }
@@ -289,7 +303,20 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 LOG.fine(() -> String.format("countByAddress", "Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        int result = rs.getInt(1);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -328,6 +355,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public String getSaveDbConflictMessage(CustomerDAO dao, Connection connection) throws SQLException {
             IAddressDAO address;
             switch (dao.getRowState()) {
@@ -359,7 +387,19 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
                         throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }

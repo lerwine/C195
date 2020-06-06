@@ -279,13 +279,22 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 //ps.setShort(2, Values.USER_STATUS_INACTIVE);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (null != rs && rs.next()) {
-                        return Optional.of(fromResultSet(rs));
+                        Optional<UserDAO> result = Optional.of(fromResultSet(rs));
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
                     }
-                    SQLWarning w = connection.getWarnings();
-                    if (null == w) {
-                        LOG.log(Level.WARNING, "Null results, no warnings.");
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     } else {
-                        LOG.log(Level.WARNING, "Encountered warning", w);
+                        LOG.log(Level.WARNING, "No results, no warnings.");
                     }
                 }
             }
@@ -303,6 +312,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public String getSaveDbConflictMessage(UserDAO dao, Connection connection) throws SQLException {
             switch (dao.getRowState()) {
                 case DELETED:
@@ -331,7 +341,19 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
                         throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }

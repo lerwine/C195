@@ -233,6 +233,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
             switch (dao.getRowState()) {
                 case DELETED:
@@ -261,7 +262,19 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
                         throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -279,17 +292,25 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             ArrayList<CountryDAO> result = new ArrayList<>();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (null != rs) {
-                        while (rs.next()) {
+                    if (null != rs && rs.next()) {
+                        do {
                             result.add(fromResultSet(rs));
+                        } while (rs.next());
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                         }
+                        return result;
                     }
-                    // PENDING: Check for warnings on other queries.
-                    SQLWarning w = connection.getWarnings();
-                    if (null == w) {
-                        LOG.log(Level.WARNING, "Null results, no warnings.");
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null == sqlWarning) {
+                        LOG.log(Level.WARNING, "No results, no warnings.");
                     } else {
-                        LOG.log(Level.WARNING, "Encountered warning", w);
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -304,7 +325,20 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 ps.setString(1, rc);
                 try (ResultSet rs = ps.getResultSet()) {
                     if (rs.next()) {
-                        return fromResultSet(rs);
+                        CountryDAO result = fromResultSet(rs);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }

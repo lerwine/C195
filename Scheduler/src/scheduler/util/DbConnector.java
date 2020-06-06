@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -254,6 +255,12 @@ public final class DbConnector implements AutoCloseable {
                 LOG.fine(() -> String.format("Executing sql statement: %s", sql));
                 try (PreparedStatement ps = CONNECTION.prepareStatement(sql)) {
                     ps.execute();
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
                 }
             } finally {
                 if (CURRENT_STATE == STATE_CONNECTING) {

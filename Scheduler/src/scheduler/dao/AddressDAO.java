@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -363,6 +364,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public String getSaveDbConflictMessage(AddressDAO dao, Connection connection) throws SQLException {
             ICityDAO city;
             switch (dao.getRowState()) {
@@ -429,6 +431,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                     } else {
                         throw new SQLException("Unexpected lack of results from database query");
                     }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
                 }
             }
             // PENDING: Internationalize this
@@ -450,7 +458,20 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        int result = rs.getInt(1);
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }

@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -371,6 +373,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                             result.add(item);
                         }
                     }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
                 }
             }
             return result;
@@ -690,6 +698,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                                 ps.setString(index++, dataObj.lastModifiedBy);
                                                 break;
                                             default:
+                                                SQLWarning sqlWarning = connection.getWarnings();
+                                                if (null != sqlWarning) {
+                                                    do {
+                                                        LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                                    } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                                }
                                                 throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
                                         }
                                     } else {
@@ -698,14 +712,32 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                 } while (iterator.hasNext());
                                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                                 if (ps.executeUpdate() < 1) {
+                                    SQLWarning sqlWarning = connection.getWarnings();
+                                    if (null != sqlWarning) {
+                                        do {
+                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                    }
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
                                 try (ResultSet rs = ps.getGeneratedKeys()) {
                                     if (!rs.next()) {
+                                        SQLWarning sqlWarning = connection.getWarnings();
+                                        if (null != sqlWarning) {
+                                            do {
+                                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                        }
                                         throw new SQLException("No primary key returned");
                                     }
                                     dataObj.primaryKey = rs.getInt(1);
                                     changeType = DbChangeType.CREATED;
+                                    SQLWarning sqlWarning = connection.getWarnings();
+                                    if (null != sqlWarning) {
+                                        do {
+                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                    }
                                 }
                             }
                             break;
@@ -749,6 +781,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                                 ps.setString(index++, dataObj.lastModifiedBy);
                                                 break;
                                             default:
+                                                SQLWarning sqlWarning = connection.getWarnings();
+                                                if (null != sqlWarning) {
+                                                    do {
+                                                        LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                                    } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                                }
                                                 throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
                                         }
                                     } else {
@@ -759,9 +797,21 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                 ps.setInt(index, dataObj.primaryKey);
                                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                                 if (ps.executeUpdate() < 1) {
+                                    SQLWarning sqlWarning = connection.getWarnings();
+                                    if (null != sqlWarning) {
+                                        do {
+                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                    }
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
                                 changeType = DbChangeType.UPDATED;
+                                SQLWarning sqlWarning = connection.getWarnings();
+                                if (null != sqlWarning) {
+                                    do {
+                                        LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                    } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                }
                             }
                             break;
                         default:
@@ -828,7 +878,20 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return Optional.of(fromResultSet(rs));
+                        Optional<T> result = Optional.of(fromResultSet(rs));
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        return result;
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
             }
@@ -868,9 +931,21 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                         ps.setInt(1, dao.getPrimaryKey());
                         LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                         if (ps.executeUpdate() < 1) {
+                            SQLWarning sqlWarning = connection.getWarnings();
+                            if (null != sqlWarning) {
+                                do {
+                                    LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                            }
                             throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                         }
                         success = true;
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
                     }
                     dataObj.rowState = DataRowState.DELETED;
                 }
