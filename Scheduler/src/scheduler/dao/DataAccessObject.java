@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -201,9 +202,33 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
     }
 
+    private static final LinkedList<EventTarget> DATA_OBJECT_EVENT_TARGETS = new LinkedList<>();
+    
+    public static void addDataObjectEventTarget(EventTarget target) {
+        synchronized (DATA_OBJECT_EVENT_TARGETS) {
+            if (!DATA_OBJECT_EVENT_TARGETS.contains(target)) {
+                DATA_OBJECT_EVENT_TARGETS.add(target);
+            }
+        }
+    }
+    
+    public static void removeDataObjectEventTarget(EventTarget target) {
+        synchronized (DATA_OBJECT_EVENT_TARGETS) {
+            if (DATA_OBJECT_EVENT_TARGETS.contains(target)) {
+                DATA_OBJECT_EVENT_TARGETS.remove(target);
+            }
+        }
+    }
+    
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return Scheduler.buildDataObjectEventDispatchChain(tail.append(eventHandlerManager));
+        tail = Scheduler.buildDataObjectEventDispatchChain(tail.append(eventHandlerManager));
+        synchronized (DATA_OBJECT_EVENT_TARGETS) {
+            Iterator<EventTarget> iterator = DATA_OBJECT_EVENT_TARGETS.iterator();
+            while (iterator.hasNext())
+                tail = iterator.next().buildEventDispatchChain(tail);
+        }
+        return tail;
     }
 
     /**
