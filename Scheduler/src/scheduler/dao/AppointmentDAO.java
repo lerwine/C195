@@ -722,7 +722,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         public String getSaveDbConflictMessage(AppointmentDAO dao, Connection connection) throws SQLException {
             if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Data access object already deleted");
+                throw new IllegalStateException("Data access object already deleted");
             }
             // Nothing needs to be unique.
             return "";

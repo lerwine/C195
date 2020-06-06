@@ -4,15 +4,15 @@ import java.time.ZoneId;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.value.ObservableValue;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
+import scheduler.model.Address;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
-import scheduler.model.Address;
 
 /**
  *
@@ -32,10 +32,8 @@ public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T
         return new RelatedAddress(t);
     }
 
-    // TODO: Replace this with calculated expressions
-    @Deprecated
-    public static StringBinding createMultiLineAddressBinding(ReadOnlyProperty<String> address1, ReadOnlyProperty<String> address2,
-            ReadOnlyProperty<String> cityZipCountry, ReadOnlyProperty<String> phone) {
+    public static StringBinding createMultiLineAddressBinding(ObservableValue<String> address1, ObservableValue<String> address2,
+            ObservableValue<String> cityZipCountry, ObservableValue<String> phone) {
         return Bindings.createStringBinding(() -> {
             String a1 = address1.getValue().trim();
             String a2 = address2.getValue().trim();

@@ -34,14 +34,13 @@ import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
 
-// TODO: Move to /scheduler/fx
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
-@FXMLResource("/scheduler/fx/AppointmentConflicts.fxml")
+@FXMLResource("/scheduler/view/appointment/AppointmentConflicts.fxml")
 public class AppointmentConflicts {
 
     private WaitBorderPane waitBorderPane;
