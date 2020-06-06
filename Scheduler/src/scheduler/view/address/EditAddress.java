@@ -40,6 +40,7 @@ import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.event.CustomerDaoEvent;
@@ -384,20 +385,38 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void onCustomerAdded(CustomerDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        CustomerDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onCustomerAdded
+        if (model.getRowState() != DataRowState.NEW) {
+            CustomerDAO dao = event.getTarget();
+            if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(new CustomerModel(dao));
+            }
+        }
     }
 
     private void onCustomerUpdated(CustomerDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        CustomerDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onCustomerUpdated
+        if (model.getRowState() != DataRowState.NEW) {
+            CustomerDAO dao = event.getTarget();
+            int pk = dao.getPrimaryKey();
+            CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            if (null != m) {
+                CustomerModel.getFactory().updateItem(m, dao);
+                if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
+                    itemList.remove(m);
+                }
+            } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(new CustomerModel(dao));
+            }
+        }
     }
 
     private void onCustomerDeleted(CustomerDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        CustomerDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onCustomerDeleted
+        if (model.getRowState() != DataRowState.NEW) {
+            CustomerDAO dao = event.getTarget();
+            int pk = dao.getPrimaryKey();
+            itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> itemList.remove(t));
+        }
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {

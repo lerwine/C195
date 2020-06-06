@@ -40,7 +40,6 @@ import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -49,10 +48,7 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.dao.event.AddressDaoEvent;
 import scheduler.dao.event.AppointmentDaoEvent;
-import scheduler.dao.event.CityDaoEvent;
-import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressItem;
@@ -116,6 +112,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
     private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
+    private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedName;
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
@@ -277,6 +274,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         appointmentFilterComboBox.setItems(filterOptions);
         appointmentsTableView.setItems(customerAppointments);
 
+        selectedFilter = Bindings.select(appointmentFilterComboBox.selectionModelProperty(), "selectedItem");
+        
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         BooleanBinding nameValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
@@ -387,20 +386,40 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     private void onAppointmentAdded(AppointmentDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onAppointmentAdded
+        if (model.getRowState() != DataRowState.NEW) {
+            AppointmentDAO dao = event.getTarget();
+            AppointmentFilterItem filter = selectedFilter.get();
+            if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
+                customerAppointments.add(new AppointmentModel(dao));
+            }
+        }
     }
 
     private void onAppointmentUpdated(AppointmentDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onAppointmentUpdated
+        if (model.getRowState() != DataRowState.NEW) {
+            AppointmentDAO dao = event.getTarget();
+            AppointmentFilterItem filter = selectedFilter.get();
+            int pk = dao.getPrimaryKey();
+            AppointmentModel m = customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            if (null != m) {
+                AppointmentModel.getFactory().updateItem(m, dao);
+                if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
+                    customerAppointments.remove(m);
+                }
+            } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
+                customerAppointments.add(new AppointmentModel(dao));
+            }
+        }
     }
 
     private void onAppointmentDeleted(AppointmentDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onAppointmentDeleted
+        if (model.getRowState() != DataRowState.NEW) {
+            AppointmentDAO dao = event.getTarget();
+            int pk = dao.getPrimaryKey();
+            customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerAppointments.remove(t));
+        }
     }
 
     private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable, CountryItem<? extends ICountryDAO> oldValue,
@@ -596,7 +615,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
-            AppointmentFilterItem filterItem = (filterOptions.isEmpty()) ? null : appointmentFilterComboBox.getValue();
+            AppointmentFilterItem filterItem = selectedFilter.get();
             filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
         }
 
@@ -687,7 +706,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         private AppointmentReloadTask() {
             updateTitle(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
-            AppointmentFilterItem filterItem = (filterOptions.isEmpty()) ? null : appointmentFilterComboBox.getValue();
+            AppointmentFilterItem filterItem = selectedFilter.get();
             filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
         }
 

@@ -38,6 +38,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.model.UserStatus;
@@ -91,6 +92,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private final ObservableList<UserStatus> userActiveStateOptions;
     private final ObservableList<AppointmentModel> userAppointments;
     private final ObservableList<AppointmentFilterItem> filterOptions;
+    private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedUserName;
     private BooleanBinding validationBinding;
     private ObjectBinding<UserStatus> selectedStatus;
@@ -176,6 +178,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
         activeComboBox.setItems(userActiveStateOptions);
         appointmentsTableView.setItems(userAppointments);
+
+        selectedFilter = Bindings.select(appointmentsFilterComboBox.selectionModelProperty(), "selectedItem");
 
         normalizedUserName = BindingHelper.asNonNullAndWsNormalized(userNameTextField.textProperty());
         StringBinding userNameErrorMessage = Bindings.createStringBinding(() -> {
@@ -317,20 +321,40 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     private void onAppointmentAdded(AppointmentDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onAppointmentAdded
+        if (model.getRowState() != DataRowState.NEW) {
+            AppointmentDAO dao = event.getTarget();
+            AppointmentFilterItem filter = selectedFilter.get();
+            if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
+                userAppointments.add(new AppointmentModel(dao));
+            }
+        }
     }
 
     private void onAppointmentUpdated(AppointmentDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onAppointmentUpdated
+        if (model.getRowState() != DataRowState.NEW) {
+            AppointmentDAO dao = event.getTarget();
+            AppointmentFilterItem filter = selectedFilter.get();
+            int pk = dao.getPrimaryKey();
+            AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            if (null != m) {
+                AppointmentModel.getFactory().updateItem(m, dao);
+                if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
+                    userAppointments.remove(m);
+                }
+            } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
+                userAppointments.add(new AppointmentModel(dao));
+            }
+        }
     }
 
     private void onAppointmentDeleted(AppointmentDaoEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onAppointmentDeleted
+        if (model.getRowState() != DataRowState.NEW) {
+            AppointmentDAO dao = event.getTarget();
+            int pk = dao.getPrimaryKey();
+            userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> userAppointments.remove(t));
+        }
     }
 
     public boolean applyChangesToModel() {
