@@ -745,10 +745,12 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
             super();
         }
 
+        @SuppressWarnings("unused")
         ReadOnlyEntryIterator(int index) {
             super(index);
         }
 
+        @SuppressWarnings("unused")
         ReadOnlyEntryIterator(ListIterator<Entry> iterator) {
             super(iterator);
         }

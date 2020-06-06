@@ -521,6 +521,7 @@ public class NodeUtil {
         return addCssClass(node, CssClassName.LEFTLABELEDCONTROL);
     }
 
+    @SuppressWarnings("unused")
     private static <T extends Styleable> T setCollapsingValidationCss(T node, ValidationStatus status) {
         Optional<CssClassName> cssClass = status.getCssClass();
         if (cssClass.isPresent()) {
@@ -555,6 +556,7 @@ public class NodeUtil {
         return node;
     }
 
+    @SuppressWarnings("unused")
     private static <T extends Node> T setValidationCss(T node, ValidationStatus status, boolean hideIfOk) {
         Optional<CssClassName> cssClass = status.getCssClass();
         if (cssClass.isPresent()) {
@@ -581,6 +583,7 @@ public class NodeUtil {
         return node;
     }
 
+    @SuppressWarnings("unused")
     private static <T extends Styleable> T setValidationCss(T node, ValidationStatus status) {
         Optional<CssClassName> cssClass = status.getCssClass();
         if (cssClass.isPresent()) {

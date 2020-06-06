@@ -115,8 +115,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @FXML // fx:id="newButtonBar"
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
 
-    private Window currentWindow;
-
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);

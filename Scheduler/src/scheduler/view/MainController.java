@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -24,12 +23,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.stage.Window;
-import static scheduler.AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES;
-import static scheduler.AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DELETEFAILURE;
-import static scheduler.AppResourceKeys.RESOURCEKEY_DELETINGRECORD;
-import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
@@ -49,10 +42,7 @@ import scheduler.fx.AppointmentAlert;
 import scheduler.fx.HelpContent;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
-import scheduler.util.AlertHelper;
-import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.view.MainResourceKeys.*;
@@ -469,47 +459,6 @@ public final class MainController implements EventTarget {
      */
     public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
-    }
-
-    private class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>> extends Task<String> {
-
-        private final M model;
-        private final Window parentWindow;
-        private final Consumer<M> onDeleted;
-        private final DataAccessObject.DaoFactory<D> factory;
-
-        DeleteTask(M model, Window parentWindow, FxRecordModel.ModelFactory<D, M> factory, Consumer<M> onDeleted) {
-            updateTitle(AppResources.getResourceString(RESOURCEKEY_DELETINGRECORD));
-            this.model = model;
-            this.parentWindow = parentWindow;
-            this.onDeleted = onDeleted;
-            this.factory = factory.getDaoFactory();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            String message = getValue();
-            if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(RESOURCEKEY_DELETEFAILURE), message);
-            } else if (null != onDeleted) {
-                onDeleted.accept(model);
-            }
-        }
-
-        @Override
-        protected String call() throws Exception {
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = factory.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                updateMessage(AppResources.getResourceString(RESOURCEKEY_COMPLETINGOPERATION));
-                factory.delete(model.dataObject(), connector.getConnection());
-            }
-            return null;
-        }
     }
 
 }
