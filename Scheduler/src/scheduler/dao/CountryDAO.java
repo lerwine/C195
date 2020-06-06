@@ -234,8 +234,11 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         public String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
-            if (dao.getRowState() == DataRowState.DELETED) {
-                return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_COUNTRYALREADYDELETED);
+            switch (dao.getRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Data access object already deleted");
+                case UNMODIFIED:
+                    return "";
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())

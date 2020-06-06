@@ -279,17 +279,16 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
-            if (dao.getRowState() == DataRowState.DELETED) {
-                return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYALREADYDELETED);
-            }
-
-            ICountryDAO country = dao.getCountry();
-
-            if (country instanceof CountryDAO && country.getRowState() != DataRowState.UNMODIFIED) {
-                String msg = CountryDAO.FACTORY.getSaveDbConflictMessage((CountryDAO) country, connection);
-                if (!msg.isEmpty()) {
-                    return msg;
-                }
+            ICountryDAO country;
+            switch (dao.getRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Data access object already deleted");
+                case UNMODIFIED:
+                    country = dao.getCountry();
+                    if (country instanceof CountryDAO) {
+                        return CountryDAO.FACTORY.getSaveDbConflictMessage((CountryDAO) country, connection);
+                    }
+                    return "";
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
@@ -362,6 +361,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                     return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE);
                 }
             }
+
+            country = dao.getCountry();
+            if (country instanceof CountryDAO) {
+                return CountryDAO.FACTORY.getSaveDbConflictMessage((CountryDAO) country, connection);
+            }
+
             return "";
         }
 
