@@ -14,6 +14,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,14 +32,17 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -51,8 +55,10 @@ import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.view.EditItem;
@@ -77,7 +83,7 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
 public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel> {
 
-    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINER);
 
     private static final Object TARGET_CITY_KEY = new Object();
 
@@ -109,7 +115,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private StringBinding normalizedPhone;
     private BooleanBinding changedBinding;
     private BooleanBinding validityBinding;
-    
+
     @ModelEditor
     private AddressModel model;
 
@@ -318,6 +324,44 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         onSelectedCityChanged(selectedCity, null, selectedCity.get());
         onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
 
+        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
+            private boolean isListening = false;
+
+            @Override
+            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
+                if (null != oldValue) {
+                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                }
+                if (null != newValue) {
+                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    onChange(true);
+                } else {
+                    onChange(false);
+                }
+            }
+
+            private void onWindowHidden(WindowEvent event) {
+                onChange(false);
+            }
+
+            private void onChange(boolean hasParent) {
+                if (hasParent) {
+                    if (!isListening) {
+                        getMainController().addDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_INSERT, EditAddress.this::onCustomerAdded);
+                        getMainController().addDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_UPDATE, EditAddress.this::onCustomerUpdated);
+                        getMainController().addDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_DELETE, EditAddress.this::onCustomerDeleted);
+                        isListening = true;
+                    }
+                } else if (isListening) {
+                    getMainController().removeDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_INSERT, EditAddress.this::onCustomerAdded);
+                    getMainController().removeDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_UPDATE, EditAddress.this::onCustomerUpdated);
+                    getMainController().removeDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_DELETE, EditAddress.this::onCustomerDeleted);
+                    isListening = false;
+                }
+            }
+
+        });
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -329,9 +373,31 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
         } else {
-            windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
+            initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
+    }
+
+    private void initializeEditMode() {
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
+    }
+
+    private void onCustomerAdded(CustomerDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        CustomerDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onCustomerAdded
+    }
+
+    private void onCustomerUpdated(CustomerDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        CustomerDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onCustomerUpdated
+    }
+
+    private void onCustomerDeleted(CustomerDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        CustomerDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#onCustomerDeleted
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -392,6 +458,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         restoreNode(customersHeadingLabel);
         restoreNode(customersTableView);
         restoreNode(newCustomerButtonBar);
+        initializeEditMode();
     }
 
     @Override

@@ -17,6 +17,8 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -33,14 +35,18 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import static scheduler.Scheduler.getMainController;
 import scheduler.ZoneIdMappings;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
+import scheduler.dao.event.AddressDaoEvent;
+import scheduler.dao.event.CountryDaoEvent;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
@@ -54,6 +60,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
@@ -289,6 +296,44 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                     .ifPresent((t) -> timeZoneComboBox.getSelectionModel().select(t));
         }
 
+        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
+            private boolean isListening = false;
+
+            @Override
+            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
+                if (null != oldValue) {
+                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                }
+                if (null != newValue) {
+                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    onChange(true);
+                } else {
+                    onChange(false);
+                }
+            }
+
+            private void onWindowHidden(WindowEvent event) {
+                onChange(false);
+            }
+
+            private void onChange(boolean hasParent) {
+                if (hasParent) {
+                    if (!isListening) {
+                        getMainController().addDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_INSERT, EditCity.this::onAddressAdded);
+                        getMainController().addDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_UPDATE, EditCity.this::onAddressUpdated);
+                        getMainController().addDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_DELETE, EditCity.this::onAddressDeleted);
+                        isListening = true;
+                    }
+                } else if (isListening) {
+                    getMainController().removeDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_INSERT, EditCity.this::onAddressAdded);
+                    getMainController().removeDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_UPDATE, EditCity.this::onAddressUpdated);
+                    getMainController().removeDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_DELETE, EditCity.this::onAddressDeleted);
+                    isListening = false;
+                }
+            }
+
+        });
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -300,7 +345,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCITY));
         } else {
             waitBorderPane.startNow(pane, new EditDataLoadTask());
-            windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
+            initializeEditMode();
         }
     }
 
@@ -325,12 +370,33 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
+    private void initializeEditMode() {
+        windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
+    }
+
+    private void onAddressAdded(AddressDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AddressDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#onAddressAdded
+    }
+
+    private void onAddressUpdated(AddressDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AddressDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#onAddressUpdated
+    }
+
+    private void onAddressDeleted(AddressDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AddressDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.city.EditCity#onAddressDeleted
+    }
+
     @Override
     public void onNewModelSaved() {
         restoreNode(addressesLabel);
         restoreNode(addressesTableView);
         restoreNode(addCityButtonBar);
-        windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
     }
 
     @Override

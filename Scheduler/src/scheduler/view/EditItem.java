@@ -7,9 +7,9 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -36,6 +36,7 @@ import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.StageManager;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
@@ -90,6 +91,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             throw new IOException("Error injecting fields", ex);
         }
         ViewControllerLoader.initializeCustomControl(editorRegion);
+        ParentWindowChangeListener.setWindowChangeListener(result, result::onWindowChanged);
         StageManager.showAndWait(result, parentWindow);
         return (result.model.isNewRow()) ? null : result.model;
     }
@@ -156,14 +158,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         this.editorRegion = editorRegion;
         this.model = model;
         this.keepOpen = keepOpen;
-        Bindings.<Window>select(sceneProperty(), "window").addListener((observable, oldValue, newValue) -> {
-            if (null != oldValue && oldValue instanceof Stage) {
-                ((Stage) oldValue).titleProperty().unbind();
-            }
-            if (null != newValue && newValue instanceof Stage) {
-                ((Stage) newValue).titleProperty().bind(editorRegion.windowTitleProperty());
-            }
-        });
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -226,6 +220,15 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     private void onCancelButtonAction(ActionEvent event) {
         getScene().getWindow().hide();
+    }
+
+    private void onWindowChanged(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
+        if (null != oldValue && oldValue instanceof Stage) {
+            ((Stage) oldValue).titleProperty().unbind();
+        }
+        if (null != newValue && newValue instanceof Stage) {
+            ((Stage) newValue).titleProperty().bind(editorRegion.windowTitleProperty());
+        }
     }
 
     /**

@@ -17,6 +17,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,8 +36,11 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import static scheduler.Scheduler.getMainController;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -45,6 +49,10 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.dao.event.AddressDaoEvent;
+import scheduler.dao.event.AppointmentDaoEvent;
+import scheduler.dao.event.CityDaoEvent;
+import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressItem;
@@ -56,8 +64,10 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.Quadruplet;
 import scheduler.util.Triplet;
 import scheduler.view.EditItem;
@@ -82,7 +92,7 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
 public final class EditCustomer extends StackPane implements EditItem.ModelEditor<CustomerDAO, CustomerModel> {
 
-    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
 
     public static CustomerModel editNew(AddressItem<? extends IAddressDAO> address, Window parentWindow, boolean keepOpen) throws IOException {
         CustomerModel.Factory factory = CustomerModel.getFactory();
@@ -202,32 +212,21 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @FXML
     void onDeleteAppointmentMenuItemAction(ActionEvent event) {
-        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
-        if (null != item) {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
-            }
-        }
+        deleteAppointment(appointmentsTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
     void onEditAppointmentMenuItemAction(ActionEvent event) {
-        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
-        if (null != item) {
-            try {
-                EditAppointment.edit(item, getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
-            }
-        }
+        editAppointment(appointmentsTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
     void onItemActionRequest(ItemActionRequestEvent<AppointmentModel> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onItemActionRequest
+        if (event.isDelete()) {
+            deleteAppointment(event.getItem());
+        } else {
+            editAppointment(event.getItem());
+        }
     }
 
     @FXML
@@ -329,6 +328,44 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
         onSelectedCityChanged(selectedCity, null, selectedCity.get());
 
+        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
+            private boolean isListening = false;
+
+            @Override
+            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
+                if (null != oldValue) {
+                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                }
+                if (null != newValue) {
+                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    onChange(true);
+                } else {
+                    onChange(false);
+                }
+            }
+
+            private void onWindowHidden(WindowEvent event) {
+                onChange(false);
+            }
+
+            private void onChange(boolean hasParent) {
+                if (hasParent) {
+                    if (!isListening) {
+                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditCustomer.this::onAppointmentAdded);
+                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditCustomer.this::onAppointmentUpdated);
+                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditCustomer.this::onAppointmentDeleted);
+                        isListening = true;
+                    }
+                } else if (isListening) {
+                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditCustomer.this::onAppointmentAdded);
+                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditCustomer.this::onAppointmentUpdated);
+                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditCustomer.this::onAppointmentDeleted);
+                    isListening = false;
+                }
+            }
+
+        });
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -339,9 +376,31 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
         } else {
-            windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+            initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
+    }
+
+    private void initializeEditMode() {
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+    }
+
+    private void onAppointmentAdded(AppointmentDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AppointmentDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onAppointmentAdded
+    }
+
+    private void onAppointmentUpdated(AppointmentDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AppointmentDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onAppointmentUpdated
+    }
+
+    private void onAppointmentDeleted(AppointmentDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AppointmentDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onAppointmentDeleted
     }
 
     private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable, CountryItem<? extends ICountryDAO> oldValue,
@@ -417,6 +476,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
+        initializeEditMode();
     }
 
     @Override
@@ -446,7 +506,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             city = null;
             country = null;
         }
-        
+
         if (null != country && country.getRowState() != DataRowState.NEW) {
             int pk = country.getPrimaryKey();
             countries.forEach((t) -> allCountries.add((pk == t.getPrimaryKey()) ? country : CountryItem.createModel(t)));
@@ -454,7 +514,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         } else {
             countries.forEach((t) -> allCountries.add(CountryItem.createModel(t)));
         }
-        
+
         if (null != city && city.getRowState() != DataRowState.NEW) {
             int pk = city.getPrimaryKey();
             cities.forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? city : CityItem.createModel(t)));
@@ -464,6 +524,27 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
         cityComboBox.setOnAction(this::onCityComboBoxAction);
         countryComboBox.setOnAction(this::onCountryComboBoxAction);
+    }
+
+    private void deleteAppointment(AppointmentModel item) {
+        if (null != item) {
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
+            }
+        }
+    }
+
+    private void editAppointment(AppointmentModel item) {
+        if (null != item) {
+            try {
+                EditAppointment.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
+        }
     }
 
     private class AppointmentFilterItem {

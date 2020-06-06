@@ -9,8 +9,6 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -18,7 +16,8 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableObjectValue;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -33,6 +32,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
@@ -49,6 +49,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -113,6 +114,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML // fx:id="newButtonBar"
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
+
+    private Window currentWindow;
 
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper("");
@@ -243,37 +246,42 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
-        sceneProperty().addListener(new InvalidationListener() {
+        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
             private boolean isListening = false;
 
-            {
-                onChange(null != getScene());
+            @Override
+            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
+                if (null != oldValue) {
+                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                }
+                if (null != newValue) {
+                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    onChange(true);
+                } else {
+                    onChange(false);
+                }
+            }
+
+            private void onWindowHidden(WindowEvent event) {
+                onChange(false);
             }
 
             private void onChange(boolean hasParent) {
                 if (hasParent) {
-                    LOG.info("Scene is not null");
                     if (!isListening) {
                         getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
                         getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
                         getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
                         isListening = true;
                     }
-                } else {
-                    LOG.info("Scene is null");
-                    if (isListening) {
-                        getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
-                        getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
-                        getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
-                        isListening = false;
-                    }
+                } else if (isListening) {
+                    getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
+                    getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
+                    getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
+                    isListening = false;
                 }
             }
 
-            @Override
-            public void invalidated(Observable observable) {
-                onChange(null != ((ObservableObjectValue<?>) observable).get());
-            }
         });
     }
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -15,6 +16,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,20 +31,25 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
+import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
+import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.PwHash;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -66,7 +73,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
 public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel> {
 
-    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 
     public static UserModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
         UserModel.Factory factory = UserModel.getFactory();
@@ -169,7 +176,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
         activeComboBox.setItems(userActiveStateOptions);
         appointmentsTableView.setItems(userAppointments);
-        
+
         normalizedUserName = BindingHelper.asNonNullAndWsNormalized(userNameTextField.textProperty());
         StringBinding userNameErrorMessage = Bindings.createStringBinding(() -> {
             String n = normalizedUserName.get();
@@ -183,7 +190,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }, normalizedUserName, unavailableUserNames);
         BooleanBinding userNameInvalid = userNameErrorMessage.isNotEmpty();
         userNameErrorMessageLabel.visibleProperty().bind(userNameInvalid);
-        
+
         StringBinding passwordErrorMessage = Bindings.when(changePasswordCheckBox.selectedProperty())
                 .then(Bindings.createStringBinding(() -> {
                     String p = passwordField.getText();
@@ -206,11 +213,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         changePasswordCheckBox.selectedProperty().addListener(this::changePasswordCheckBoxChanged);
         passwordHash = Bindings.createStringBinding(() -> {
             String p = passwordField.getText();
-            if (passwordInvalid.get() || p.isEmpty())
+            if (passwordInvalid.get() || p.isEmpty()) {
                 return "";
+            }
             return "";
         }, passwordInvalid, passwordField.textProperty());
-        
+
         userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
@@ -218,7 +226,45 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         validationBinding = userNameInvalid.or(passwordInvalid).not();
         modificationBinding = changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus()))
                 .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
-        
+
+        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
+            private boolean isListening = false;
+
+            @Override
+            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
+                if (null != oldValue) {
+                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                }
+                if (null != newValue) {
+                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    onChange(true);
+                } else {
+                    onChange(false);
+                }
+            }
+
+            private void onWindowHidden(WindowEvent event) {
+                onChange(false);
+            }
+
+            private void onChange(boolean hasParent) {
+                if (hasParent) {
+                    if (!isListening) {
+                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditUser.this::onAppointmentAdded);
+                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditUser.this::onAppointmentUpdated);
+                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditUser.this::onAppointmentDeleted);
+                        isListening = true;
+                    }
+                } else if (isListening) {
+                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditUser.this::onAppointmentAdded);
+                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditUser.this::onAppointmentUpdated);
+                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditUser.this::onAppointmentDeleted);
+                    isListening = false;
+                }
+            }
+
+        });
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -235,12 +281,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
         changePasswordCheckBoxChanged(changePasswordCheckBox.selectedProperty(), false, changePasswordCheckBox.isSelected());
     }
-    
+
     private void updateValidation() {
         valid.set(validationBinding.get());
         modified.set(modificationBinding.get());
     }
-    
+
     private void changePasswordCheckBoxChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
         if (newValue) {
             restoreNode(passwordField);
@@ -267,6 +313,24 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                 AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+    }
+
+    private void onAppointmentAdded(AppointmentDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AppointmentDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onAppointmentAdded
+    }
+
+    private void onAppointmentUpdated(AppointmentDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AppointmentDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onAppointmentUpdated
+    }
+
+    private void onAppointmentDeleted(AppointmentDaoEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        AppointmentDAO dao = event.getTarget();
+        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.user.EditUser#onAppointmentDeleted
     }
 
     public boolean applyChangesToModel() {
@@ -344,6 +408,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             }
         }
     }
+
     private class AppointmentFilterItem {
 
         private final ReadOnlyStringWrapper text;
