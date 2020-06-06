@@ -51,7 +51,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 //                AddressDAO a = PredefinedData.lookupAddress(location);
 //                return AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(),
 //                                AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()), a.getPhone());
-                throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+                throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AppointmentModel#calculateEffectiveLocation
             case PHONE:
                 return (location.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
                         : String.format("tel: %s", location);
