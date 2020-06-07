@@ -6,8 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,6 +69,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         return FACTORY;
     }
 
+    private final OriginalValues originalValues;
     private String userName;
     // PENDING: Change to using something that can accept raw password and produce hash.
     private String password;
@@ -80,6 +83,20 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         userName = "";
         password = "";
         status = UserStatus.NORMAL;
+        originalValues = new OriginalValues();
+    }
+
+    private class OriginalValues {
+
+        private String userName;
+        private String password;
+        private UserStatus status;
+
+        private OriginalValues() {
+            this.userName = UserDAO.this.userName;
+            this.password = UserDAO.this.password;
+            this.status = UserDAO.this.status;
+        }
     }
 
     @Override
@@ -127,6 +144,26 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         UserStatus oldValue = this.status;
         this.status = (null == status) ? UserStatus.NORMAL : status;
         firePropertyChange(PROP_STATUS, oldValue, this.status);
+    }
+
+    @Override
+    protected void onAcceptChanges() {
+        originalValues.userName = userName;
+        originalValues.password = password;
+        originalValues.status = status;
+    }
+
+    @Override
+    protected void onRejectChanges() {
+        String oldUserName = userName;
+        String oldPassword = password;
+        UserStatus oldStatus = status;
+        userName = originalValues.userName;
+        password = originalValues.password;
+        status = originalValues.status;
+        firePropertyChange(PROP_USERNAME, oldUserName, userName);
+        firePropertyChange(PROP_PASSWORD, oldPassword, password);
+        firePropertyChange(PROP_STATUS, oldStatus, status);
     }
 
     @Override
@@ -225,6 +262,9 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             toDAO.userName = fromDAO.userName;
             toDAO.password = fromDAO.password;
             toDAO.status = fromDAO.status;
+            toDAO.originalValues.userName = fromDAO.originalValues.userName;
+            toDAO.originalValues.password = fromDAO.originalValues.password;
+            toDAO.originalValues.status = fromDAO.originalValues.status;
             toDAO.firePropertyChange(PROP_USERNAME, oldUserName, toDAO.userName);
             toDAO.firePropertyChange(PROP_PASSWORD, oldPassword, toDAO.password);
             toDAO.firePropertyChange(PROP_STATUS, oldStatus, toDAO.status);

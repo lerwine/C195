@@ -112,6 +112,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         return FACTORY;
     }
 
+    private final OriginalValues originalValues;
     private ICustomerDAO customer;
     private IUserDAO user;
     private String title;
@@ -139,6 +140,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         d = d.minusMinutes(d.getMinute()).minusSeconds(d.getSecond()).minusNanos(d.getNano());
         start = DB.toUtcTimestamp(d);
         end = DB.toUtcTimestamp(d.plusHours(1));
+        originalValues = new OriginalValues();
     }
 
     @Override
@@ -299,6 +301,54 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         Timestamp oldValue = this.end;
         this.end = Objects.requireNonNull(value);
         firePropertyChange(PROP_END, oldValue, this.end);
+    }
+
+    @Override
+    protected void onAcceptChanges() {
+        originalValues.customer = customer;
+        originalValues.user = user;
+        originalValues.title = title;
+        originalValues.description = description;
+        originalValues.location = location;
+        originalValues.contact = contact;
+        originalValues.type = type;
+        originalValues.url = url;
+        originalValues.start = start;
+        originalValues.end = end;
+    }
+
+    @Override
+    protected void onRejectChanges() {
+        ICustomerDAO oldCustomer = customer;
+        IUserDAO oldUser = user;
+        String oldTitle = title;
+        String oldDescription = description;
+        String oldLocation = location;
+        String oldContact = contact;
+        AppointmentType oldType = type;
+        String oldUrl = url;
+        Timestamp oldStart = start;
+        Timestamp oldEnd = end;
+        customer = originalValues.customer;
+        user = originalValues.user;
+        title = originalValues.title;
+        description = originalValues.description;
+        location = originalValues.location;
+        contact = originalValues.contact;
+        type = originalValues.type;
+        url = originalValues.url;
+        start = originalValues.start;
+        end = originalValues.end;
+        firePropertyChange(PROP_CUSTOMER, oldCustomer, customer);
+        firePropertyChange(PROP_USER, oldUser, user);
+        firePropertyChange(PROP_TITLE, oldTitle, title);
+        firePropertyChange(PROP_DESCRIPTION, oldDescription, description);
+        firePropertyChange(PROP_LOCATION, oldLocation, location);
+        firePropertyChange(PROP_CUSTOMER, oldContact, contact);
+        firePropertyChange(PROP_TYPE, oldType, type);
+        firePropertyChange(PROP_URL, oldUrl, url);
+        firePropertyChange(PROP_START, oldStart, start);
+        firePropertyChange(PROP_END, oldEnd, end);
     }
 
     @Override
@@ -760,6 +810,16 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             toDAO.type = fromDAO.type;
             toDAO.url = fromDAO.url;
             toDAO.user = fromDAO.user;
+            toDAO.originalValues.contact = fromDAO.originalValues.contact;
+            toDAO.originalValues.customer = fromDAO.originalValues.customer;
+            toDAO.originalValues.description = fromDAO.originalValues.description;
+            toDAO.originalValues.end = fromDAO.originalValues.end;
+            toDAO.originalValues.location = fromDAO.originalValues.location;
+            toDAO.originalValues.start = fromDAO.originalValues.start;
+            toDAO.originalValues.title = fromDAO.originalValues.title;
+            toDAO.originalValues.type = fromDAO.originalValues.type;
+            toDAO.originalValues.url = fromDAO.originalValues.url;
+            toDAO.originalValues.user = fromDAO.originalValues.user;
             toDAO.firePropertyChange(PROP_CUSTOMER, oldCustomer, toDAO.customer);
             toDAO.firePropertyChange(PROP_USER, oldUser, toDAO.user);
             toDAO.firePropertyChange(PROP_TITLE, oldTitle, toDAO.title);
@@ -787,6 +847,33 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             return new AppointmentDaoEvent(source, dataAccessObject, changeAction);
         }
 
+    }
+
+    private class OriginalValues {
+
+        private ICustomerDAO customer;
+        private IUserDAO user;
+        private String title;
+        private String description;
+        private String location;
+        private String contact;
+        private AppointmentType type;
+        private String url;
+        private Timestamp start;
+        private Timestamp end;
+
+        private OriginalValues() {
+            this.customer = AppointmentDAO.this.customer;
+            this.user = AppointmentDAO.this.user;
+            this.title = AppointmentDAO.this.title;
+            this.description = AppointmentDAO.this.description;
+            this.location = AppointmentDAO.this.location;
+            this.contact = AppointmentDAO.this.contact;
+            this.type = AppointmentDAO.this.type;
+            this.url = AppointmentDAO.this.url;
+            this.start = AppointmentDAO.this.start;
+            this.end = AppointmentDAO.this.end;
+        }
     }
 
 }

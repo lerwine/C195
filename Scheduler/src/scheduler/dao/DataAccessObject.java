@@ -86,6 +86,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     public static final String PROP_ROWSTATE = "rowState";
 
     private final EventHandlerManager eventHandlerManager;
+    private final OriginalValues originalValues;
     private int primaryKey;
     private Timestamp createDate;
     private String createdBy;
@@ -94,6 +95,55 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     private DataRowState rowState;
     private boolean changing = false;
 
+    private class OriginalValues {
+        private Timestamp createDate;
+        private String createdBy;
+        private Timestamp lastModifiedDate;
+        private String lastModifiedBy;
+        
+        private OriginalValues() {
+            this.createDate = DataAccessObject.this.createDate;
+            this.createdBy = DataAccessObject.this.createdBy;
+            this.lastModifiedDate = DataAccessObject.this.lastModifiedDate;
+            this.lastModifiedBy = DataAccessObject.this.lastModifiedBy;
+        }
+    }
+    protected abstract void onAcceptChanges();
+    private void acceptChanges() {
+        onAcceptChanges();
+        originalValues.createDate = createDate;
+        originalValues.createdBy = createdBy;
+        originalValues.lastModifiedDate = lastModifiedDate;
+        originalValues.lastModifiedBy = lastModifiedBy;
+    }
+    protected abstract void onRejectChanges();
+    public void rejectChanges() {
+        beginChange();
+        changing = true;
+        try {
+            Timestamp oldCreateDate = createDate;
+            String oldCreatedBy = createdBy;
+            Timestamp oldLastModifiedDate = lastModifiedDate;
+            String oldLastModifiedBy = lastModifiedBy;
+            DataRowState oldRowState = rowState;
+            onRejectChanges();
+            createDate = originalValues.createDate;
+            createdBy = originalValues.createdBy;
+            lastModifiedDate = originalValues.lastModifiedDate;
+            lastModifiedBy = originalValues.lastModifiedBy;
+            if (rowState == DataRowState.MODIFIED) {
+                rowState = DataRowState.UNMODIFIED;
+            }
+            firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
+            firePropertyChange(PROP_CREATEDBY, oldCreatedBy, createdBy);
+            firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, lastModifiedDate);
+            firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, lastModifiedBy);
+            firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
+        } finally {
+            endChange();
+            changing = false;
+        }
+    }
     /**
      * Initializes a {@link DataRowState#NEW} data access object.
      */
@@ -103,6 +153,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
         rowState = DataRowState.NEW;
+        originalValues = new OriginalValues();
     }
 
     @Override
@@ -449,6 +500,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 d2.lastModifiedDate = d1.lastModifiedDate;
                 d2.lastModifiedBy = d1.lastModifiedBy;
                 d2.primaryKey = d1.primaryKey;
+                d2.originalValues.createDate = d1.originalValues.createDate;
+                d2.originalValues.createdBy = d1.originalValues.createdBy;
+                d2.originalValues.lastModifiedDate = d1.originalValues.lastModifiedDate;
+                d2.originalValues.lastModifiedBy = d1.originalValues.lastModifiedBy;
+                d2.primaryKey = d1.primaryKey;
                 d2.rowState = d1.rowState;
                 onCloneProperties(fromDAO, toDAO);
                 d2.firePropertyChange(PROP_CREATEDATE, oldCreateDate, d2.createDate);
@@ -488,40 +544,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return item;
         }
 
-//        protected final void initializeFrom(T target, T other) {
-//            if (Objects.equals(target, other)) {
-//                return;
-//            }
-//            DataAccessObject obj = (DataAccessObject) target;
-//            boolean wasChanging = obj.changing;
-//            obj.changing = true;
-//            obj.beginChange();
-//            DataRowState oldRowState = obj.rowState;
-//            Timestamp oldCreateDate = obj.createDate;
-//            String oldCreatedBy = obj.createdBy;
-//            Timestamp oldModifiedDate = obj.lastModifiedDate;
-//            String oldModifiedBy = obj.lastModifiedBy;
-//            try {
-//                obj.primaryKey = other.getPrimaryKey();
-//                obj.createDate = other.getCreateDate();
-//                obj.createdBy = other.getCreatedBy();
-//                obj.lastModifiedDate = other.getLastModifiedDate();
-//                obj.lastModifiedBy = other.getLastModifiedBy();
-//                obj.rowState = other.getRowState();
-//                obj.firePropertyChange(PROP_PRIMARYKEY, oldCreateDate, obj.primaryKey);
-//                obj.firePropertyChange(PROP_CREATEDATE, oldCreateDate, obj.createDate);
-//                obj.firePropertyChange(PROP_CREATEDBY, oldCreatedBy, obj.createdBy);
-//                obj.firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, obj.lastModifiedDate);
-//                obj.firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedBy, obj.lastModifiedBy);
-//                onInitializingFrom(target, other);
-//            } finally {
-//                obj.endChange();
-//                obj.changing = wasChanging;
-//                obj.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
-//            }
-//        }
-//
-//        protected abstract void onInitializingFrom(T target, T other);
         /**
          * Creates a new {@link DataAccessObject} object.
          *
@@ -579,7 +601,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
             dao.beginChange();
             DataRowState oldRowState = obj.rowState;
-            ((DataAccessObject) dao).changing = true;
+            DataAccessObject dataAccessObject = (DataAccessObject)dao;
+            dataAccessObject.changing = true;
             try {
                 Consumer<PropertyChangeSupport> consumer;
                 synchronized (dao) {
@@ -594,9 +617,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 if (null != consumer) {
                     consumer.accept(obj.getPropertyChangeSupport());
                 }
+                dataAccessObject.acceptChanges();
             } finally {
                 dao.endChange();
-                ((DataAccessObject) dao).changing = false;
+                dataAccessObject.changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
             }
         }
@@ -818,6 +842,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                         default:
                             throw new IllegalStateException(String.format("%s item has already been deleted.", getDbTable()));
                     }
+                    dataObj.acceptChanges();
                     dataObj.rowState = DataRowState.UNMODIFIED;
                 }
             } finally {

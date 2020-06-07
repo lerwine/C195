@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -65,6 +66,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         return FACTORY;
     }
 
+    private final OriginalValues originalValues;
     private String name;
     private IAddressDAO address;
     private boolean active;
@@ -77,6 +79,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         name = "";
         address = null;
         active = true;
+        originalValues = new OriginalValues();
     }
 
     @Override
@@ -125,6 +128,26 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         boolean oldValue = this.active;
         this.active = active;
         firePropertyChange(PROP_ADDRESS, oldValue, this.active);
+    }
+
+    @Override
+    protected void onAcceptChanges() {
+        originalValues.name = name;
+        originalValues.address = address;
+        originalValues.active = active;
+    }
+
+    @Override
+    protected void onRejectChanges() {
+        String oldName = name;
+        IAddressDAO oldAddress = address;
+        boolean oldActive = active;
+        name = originalValues.name;
+        address = originalValues.address;
+        active = originalValues.active;
+        firePropertyChange(PROP_NAME, oldName, name);
+        firePropertyChange(PROP_ADDRESS, oldAddress, address);
+        firePropertyChange(PROP_ACTIVE, oldActive, active);
     }
 
     @Override
@@ -226,6 +249,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             toDAO.name = fromDAO.name;
             toDAO.address = fromDAO.address;
             toDAO.active = fromDAO.active;
+            toDAO.originalValues.name = fromDAO.originalValues.name;
+            toDAO.originalValues.address = fromDAO.originalValues.address;
+            toDAO.originalValues.active = fromDAO.originalValues.active;
             toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
             toDAO.firePropertyChange(PROP_ADDRESS, oldAddress, toDAO.address);
             toDAO.firePropertyChange(PROP_ACTIVE, oldActive, toDAO.active);
@@ -466,5 +492,18 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return null != obj && obj instanceof Customer && ModelHelper.areSameRecord(this, (Customer) obj);
         }
 
+    }
+
+    private class OriginalValues {
+
+        private String name;
+        private IAddressDAO address;
+        private boolean active;
+
+        private OriginalValues() {
+            this.name = CustomerDAO.this.name;
+            this.address = CustomerDAO.this.address;
+            this.active = CustomerDAO.this.active;
+        }
     }
 }

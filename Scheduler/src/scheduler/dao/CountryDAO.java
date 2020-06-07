@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -56,6 +57,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
 
+    private final OriginalValues originalValues;
     private String name;
     private Locale locale;
 
@@ -65,6 +67,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     public CountryDAO() {
         super();
         name = "";
+        originalValues = new OriginalValues();
     }
 
     @Override
@@ -90,6 +93,22 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);
         firePropertyChange(PROP_LOCALE, oldLocale, this.locale);
         firePropertyChange(PROP_NAME, oldName, name);
+    }
+
+    @Override
+    protected void onAcceptChanges() {
+        originalValues.name = name;
+        originalValues.locale = locale;
+    }
+
+    @Override
+    protected void onRejectChanges() {
+        String oldName = name;
+        Locale oldLocale = locale;
+        name = originalValues.name;
+        locale = originalValues.locale;
+        firePropertyChange(PROP_NAME, oldName, name);
+        firePropertyChange(PROP_LOCALE, oldLocale, locale);
     }
 
     @Override
@@ -208,6 +227,8 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             Locale oldLocale = toDAO.locale;
             toDAO.name = fromDAO.name;
             toDAO.locale = fromDAO.locale;
+            toDAO.originalValues.name = fromDAO.originalValues.name;
+            toDAO.originalValues.locale = fromDAO.originalValues.locale;
             toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
             toDAO.firePropertyChange(PROP_LOCALE, oldLocale, toDAO.locale);
         }
@@ -389,6 +410,17 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return primaryKey;
         }
 
+    }
+
+    private class OriginalValues {
+
+        private String name;
+        private Locale locale;
+
+        private OriginalValues() {
+            this.name = CountryDAO.this.name;
+            this.locale = CountryDAO.this.locale;
+        }
     }
 
 }

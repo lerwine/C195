@@ -75,6 +75,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         return FACTORY;
     }
 
+    private final OriginalValues originalValues;
     private String name;
     private ICountryDAO country;
     private TimeZone timeZone;
@@ -86,6 +87,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         super();
         name = "";
         country = null;
+        originalValues = new OriginalValues();
     }
 
     @Override
@@ -119,6 +121,26 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         TimeZone oldValue = this.timeZone;
         this.timeZone = zoneId;
         firePropertyChange(PROP_TIMEZONE, oldValue, this.timeZone);
+    }
+
+    @Override
+    protected void onAcceptChanges() {
+        originalValues.name = name;
+        originalValues.country = country;
+        originalValues.timeZone = timeZone;
+    }
+
+    @Override
+    protected void onRejectChanges() {
+        String oldName = name;
+        ICountryDAO oldCountry = country;
+        TimeZone oldTimeZone = timeZone;
+        name = originalValues.name;
+        country = originalValues.country;
+        timeZone = originalValues.timeZone;
+        firePropertyChange(PROP_NAME, oldName, name);
+        firePropertyChange(PROP_COUNTRY, oldCountry, country);
+        firePropertyChange(PROP_TIMEZONE, oldTimeZone, timeZone);
     }
 
     @Override
@@ -245,6 +267,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             toDAO.name = fromDAO.name;
             toDAO.country = fromDAO.country;
             toDAO.timeZone = fromDAO.timeZone;
+            toDAO.originalValues.name = fromDAO.originalValues.name;
+            toDAO.originalValues.country = fromDAO.originalValues.country;
+            toDAO.originalValues.timeZone = fromDAO.originalValues.timeZone;
             toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
             toDAO.firePropertyChange(PROP_TIMEZONE, oldZoneId, toDAO.timeZone);
             toDAO.firePropertyChange(PROP_COUNTRY, oldCountry, toDAO.country);
@@ -519,6 +544,19 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             return primaryKey;
         }
 
+    }
+
+    private class OriginalValues {
+
+        private String name;
+        private ICountryDAO country;
+        private TimeZone timeZone;
+
+        private OriginalValues() {
+            this.name = CityDAO.this.name;
+            this.country = CityDAO.this.country;
+            this.timeZone = CityDAO.this.timeZone;
+        }
     }
 
 }

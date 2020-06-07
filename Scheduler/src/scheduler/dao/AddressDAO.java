@@ -83,6 +83,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     private ICityDAO city;
     private String postalCode;
     private String phone;
+    private final OriginalPropertyValues originalValues;
 
     /**
      * Initializes a {@link DataRowState#NEW} address object.
@@ -93,6 +94,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         city = null;
         postalCode = "";
         phone = "";
+        originalValues = new OriginalPropertyValues();
     }
 
     @Override
@@ -178,6 +180,34 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         String oldValue = phone;
         phone = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_PHONE, oldValue, phone);
+    }
+
+    @Override
+    protected void onAcceptChanges() {
+        originalValues.address1 = address1;
+        originalValues.address2 = address2;
+        originalValues.city = city;
+        originalValues.postalCode = postalCode;
+        originalValues.phone = phone;
+    }
+
+    @Override
+    protected void onRejectChanges() {
+        String oldAddress1 = address1;
+        String oldAddress2 = address2;
+        ICityDAO oldCity = city;
+        String oldPostalCode = postalCode;
+        String oldPhone = phone;
+        address1 = originalValues.address1;
+        address2 = originalValues.address2;
+        city = originalValues.city;
+        postalCode = originalValues.postalCode;
+        phone = originalValues.phone;
+        firePropertyChange(PROP_ADDRESS1, oldAddress1, address1);
+        firePropertyChange(PROP_ADDRESS2, oldAddress2, address2);
+        firePropertyChange(PROP_CITY, oldCity, city);
+        firePropertyChange(PROP_POSTALCODE, oldPostalCode, postalCode);
+        firePropertyChange(PROP_PHONE, oldPhone, phone);
     }
 
     @Override
@@ -297,6 +327,11 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             toDAO.city = fromDAO.city;
             toDAO.postalCode = fromDAO.postalCode;
             toDAO.phone = fromDAO.phone;
+            toDAO.originalValues.address1 = fromDAO.originalValues.address1;
+            toDAO.originalValues.address2 = fromDAO.originalValues.address2;
+            toDAO.originalValues.city = fromDAO.originalValues.city;
+            toDAO.originalValues.postalCode = fromDAO.originalValues.postalCode;
+            toDAO.originalValues.phone = fromDAO.originalValues.phone;
             toDAO.firePropertyChange(PROP_ADDRESS1, oldAddress1, toDAO.address1);
             toDAO.firePropertyChange(PROP_ADDRESS2, oldAddress2, toDAO.address2);
             toDAO.firePropertyChange(PROP_CITY, oldCity, toDAO.city);
@@ -543,6 +578,23 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
         }
 
+    }
+
+    private class OriginalPropertyValues {
+
+        private String address1;
+        private String address2;
+        private ICityDAO city;
+        private String postalCode;
+        private String phone;
+
+        private OriginalPropertyValues() {
+            this.address1 = AddressDAO.this.address1;
+            this.address2 = AddressDAO.this.address2;
+            this.city = AddressDAO.this.city;
+            this.postalCode = AddressDAO.this.postalCode;
+            this.phone = AddressDAO.this.phone;
+        }
     }
 
 }
