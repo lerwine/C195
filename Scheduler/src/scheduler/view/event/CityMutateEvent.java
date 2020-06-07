@@ -1,6 +1,7 @@
 package scheduler.view.event;
 
 import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
 import scheduler.model.ui.CityModel;
@@ -30,13 +31,8 @@ public class CityMutateEvent extends ItemMutateEvent<CityModel> {
             CITY_MUTATE_EVENT,
             "CITY_DELETE_EVENT");
 
-    public CityMutateEvent(CityModel source, EventType<CityMutateEvent> type, Event fxEvent) {
-        super(source, type, fxEvent);
-    }
-
-    @Override
-    public CityDAO getTarget() {
-        return (CityDAO) super.getTarget();
+    public CityMutateEvent(CityModel source, EventTarget target, EventType<CityMutateEvent> type, Event fxEvent) {
+        super(source, target, type, fxEvent);
     }
 
 }

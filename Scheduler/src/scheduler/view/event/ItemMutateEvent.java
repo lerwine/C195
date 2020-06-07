@@ -2,6 +2,7 @@ package scheduler.view.event;
 
 import javafx.event.Event;
 import static javafx.event.Event.ANY;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
@@ -22,8 +23,8 @@ public class ItemMutateEvent<T extends FxRecordModel<? extends DataAccessObject>
     private final Event fxEvent;
     private boolean canceled;
 
-    protected ItemMutateEvent(T source, EventType<? extends ItemMutateEvent<? extends FxRecordModel<? extends DataAccessObject>>> type, Event fxEvent) {
-        super(source, source.dataObject(), type);
+    protected ItemMutateEvent(T source, EventTarget target, EventType<? extends ItemMutateEvent<? extends FxRecordModel<? extends DataAccessObject>>> type, Event fxEvent) {
+        super(source, target, type);
         this.fxEvent = fxEvent;
         canceled = false;
     }
@@ -44,12 +45,6 @@ public class ItemMutateEvent<T extends FxRecordModel<? extends DataAccessObject>
     @SuppressWarnings("unchecked")
     public T getSource() {
         return (T) super.getSource();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public DataAccessObject getTarget() {
-        return (DataAccessObject) super.getTarget();
     }
 
 }

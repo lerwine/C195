@@ -1,6 +1,7 @@
 package scheduler.view.event;
 
 import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.ui.AppointmentModel;
@@ -30,13 +31,8 @@ public class AppointmentMutateEvent extends ItemMutateEvent<AppointmentModel> {
             APPOINTMENT_MUTATE_EVENT,
             "APPOINTMENT_DELETE_EVENT");
 
-    public AppointmentMutateEvent(AppointmentModel source, EventType<AppointmentMutateEvent> type, Event fxEvent) {
-        super(source, type, fxEvent);
-    }
-
-    @Override
-    public AppointmentDAO getTarget() {
-        return (AppointmentDAO) super.getTarget();
+    public AppointmentMutateEvent(AppointmentModel source, EventTarget target, EventType<AppointmentMutateEvent> type, Event fxEvent) {
+        super(source, target, type, fxEvent);
     }
 
 }

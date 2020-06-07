@@ -1,6 +1,7 @@
 package scheduler.view.event;
 
 import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
 import scheduler.model.ui.CountryModel;
@@ -30,13 +31,8 @@ public class CountryMutateEvent extends ItemMutateEvent<CountryModel> {
             COUNTRY_MUTATE_EVENT,
             "COUNTRY_DELETE_EVENT");
 
-    public CountryMutateEvent(CountryModel source, EventType<CountryMutateEvent> type, Event fxEvent) {
-        super(source, type, fxEvent);
-    }
-
-    @Override
-    public CountryDAO getTarget() {
-        return (CountryDAO) super.getTarget();
+    public CountryMutateEvent(CountryModel source, EventTarget target, EventType<CountryMutateEvent> type, Event fxEvent) {
+        super(source, target, type, fxEvent);
     }
 
 }

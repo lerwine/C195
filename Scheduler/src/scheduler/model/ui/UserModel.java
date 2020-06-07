@@ -186,17 +186,17 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         @Override
         public ItemMutateEvent<UserModel> createInsertEvent(UserModel source, Event fxEvent) {
-            return new UserMutateEvent(source, UserMutateEvent.USER_INSERT_EVENT, fxEvent);
+            return new UserMutateEvent(source, source.dataObject(), UserMutateEvent.USER_INSERT_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<UserModel> createUpdateEvent(UserModel source, Event fxEvent) {
-            return new UserMutateEvent(source, UserMutateEvent.USER_UPDATE_EVENT, fxEvent);
+            return new UserMutateEvent(source, source.dataObject(), UserMutateEvent.USER_UPDATE_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<UserModel> createDeleteEvent(UserModel source, Event fxEvent) {
-            return new UserMutateEvent(source, UserMutateEvent.USER_DELETE_EVENT, fxEvent);
+            return new UserMutateEvent(source, source.dataObject(), UserMutateEvent.USER_DELETE_EVENT, fxEvent);
         }
 
     }

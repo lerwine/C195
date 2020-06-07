@@ -1,6 +1,7 @@
 package scheduler.view.event;
 
 import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
 import scheduler.model.ui.AddressModel;
@@ -30,13 +31,8 @@ public class AddressMutateEvent extends ItemMutateEvent<AddressModel> {
             ADDRESS_MUTATE_EVENT,
             "ADDRESS_DELETE_EVENT");
 
-    public AddressMutateEvent(AddressModel source, EventType<AddressMutateEvent> type, Event fxEvent) {
-        super(source, type, fxEvent);
-    }
-
-    @Override
-    public AddressDAO getTarget() {
-        return (AddressDAO) super.getTarget();
+    public AddressMutateEvent(AddressModel source, EventTarget target, EventType<AddressMutateEvent> type, Event fxEvent) {
+        super(source, target, type, fxEvent);
     }
 
 }

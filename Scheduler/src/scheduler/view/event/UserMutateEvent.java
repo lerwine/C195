@@ -1,6 +1,7 @@
 package scheduler.view.event;
 
 import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.UserDAO;
 import scheduler.model.ui.UserModel;
@@ -30,13 +31,8 @@ public class UserMutateEvent extends ItemMutateEvent<UserModel> {
             USER_MUTATE_EVENT,
             "USER_DELETE_EVENT");
 
-    public UserMutateEvent(UserModel source, EventType<UserMutateEvent> type, Event fxEvent) {
-        super(source, type, fxEvent);
-    }
-
-    @Override
-    public UserDAO getTarget() {
-        return (UserDAO) super.getTarget();
+    public UserMutateEvent(UserModel source, EventTarget target, EventType<UserMutateEvent> type, Event fxEvent) {
+        super(source, target, type, fxEvent);
     }
 
 }

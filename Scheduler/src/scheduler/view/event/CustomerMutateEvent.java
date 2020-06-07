@@ -1,6 +1,7 @@
 package scheduler.view.event;
 
 import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
 import scheduler.model.ui.CustomerModel;
@@ -25,13 +26,8 @@ public class CustomerMutateEvent extends ItemMutateEvent<CustomerModel> {
             CUSTOMER_MUTATE_EVENT,
             "CUSTOMER_DELETE_EVENT");
 
-    public CustomerMutateEvent(CustomerModel source, EventType<CustomerMutateEvent> type, Event fxEvent) {
-        super(source, type, fxEvent);
-    }
-
-    @Override
-    public CustomerDAO getTarget() {
-        return (CustomerDAO) super.getTarget();
+    public CustomerMutateEvent(CustomerModel source, EventTarget target, EventType<CustomerMutateEvent> type, Event fxEvent) {
+        super(source, target, type, fxEvent);
     }
 
 }

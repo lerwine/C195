@@ -442,17 +442,17 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         @Override
         public ItemMutateEvent<AddressModel> createInsertEvent(AddressModel source, Event fxEvent) {
-            return new AddressMutateEvent(source, AddressMutateEvent.ADDRESS_INSERT_EVENT, fxEvent);
+            return new AddressMutateEvent(source, source.dataObject(), AddressMutateEvent.ADDRESS_INSERT_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<AddressModel> createUpdateEvent(AddressModel source, Event fxEvent) {
-            return new AddressMutateEvent(source, AddressMutateEvent.ADDRESS_UPDATE_EVENT, fxEvent);
+            return new AddressMutateEvent(source, source.dataObject(), AddressMutateEvent.ADDRESS_UPDATE_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<AddressModel> createDeleteEvent(AddressModel source, Event fxEvent) {
-            return new AddressMutateEvent(source, AddressMutateEvent.ADDRESS_DELETE_EVENT, fxEvent);
+            return new AddressMutateEvent(source, source.dataObject(), AddressMutateEvent.ADDRESS_DELETE_EVENT, fxEvent);
         }
 
     }

@@ -627,17 +627,17 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
         @Override
         public ItemMutateEvent<AppointmentModel> createInsertEvent(AppointmentModel source, Event fxEvent) {
-            return new AppointmentMutateEvent(source, AppointmentMutateEvent.APPOINTMENT_INSERT_EVENT, fxEvent);
+            return new AppointmentMutateEvent(source, source.dataObject(), AppointmentMutateEvent.APPOINTMENT_INSERT_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<AppointmentModel> createUpdateEvent(AppointmentModel source, Event fxEvent) {
-            return new AppointmentMutateEvent(source, AppointmentMutateEvent.APPOINTMENT_UPDATE_EVENT, fxEvent);
+            return new AppointmentMutateEvent(source, source.dataObject(), AppointmentMutateEvent.APPOINTMENT_UPDATE_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<AppointmentModel> createDeleteEvent(AppointmentModel source, Event fxEvent) {
-            return new AppointmentMutateEvent(source, AppointmentMutateEvent.APPOINTMENT_DELETE_EVENT, fxEvent);
+            return new AppointmentMutateEvent(source, source.dataObject(), AppointmentMutateEvent.APPOINTMENT_DELETE_EVENT, fxEvent);
         }
 
     }

@@ -299,17 +299,17 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
         @Override
         public ItemMutateEvent<CustomerModel> createInsertEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerMutateEvent(source, CustomerMutateEvent.CUSTOMER_INSERT_EVENT, fxEvent);
+            return new CustomerMutateEvent(source, source.dataObject(), CustomerMutateEvent.CUSTOMER_INSERT_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<CustomerModel> createUpdateEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerMutateEvent(source, CustomerMutateEvent.CUSTOMER_UPDATE_EVENT, fxEvent);
+            return new CustomerMutateEvent(source, source.dataObject(), CustomerMutateEvent.CUSTOMER_UPDATE_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<CustomerModel> createDeleteEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerMutateEvent(source, CustomerMutateEvent.CUSTOMER_DELETE_EVENT, fxEvent);
+            return new CustomerMutateEvent(source, source.dataObject(), CustomerMutateEvent.CUSTOMER_DELETE_EVENT, fxEvent);
         }
 
     }

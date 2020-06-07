@@ -217,17 +217,17 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         @Override
         public ItemMutateEvent<CityModel> createInsertEvent(CityModel source, Event fxEvent) {
-            return new CityMutateEvent(source, CityMutateEvent.CITY_INSERT_EVENT, fxEvent);
+            return new CityMutateEvent(source, source.dataObject(), CityMutateEvent.CITY_INSERT_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<CityModel> createUpdateEvent(CityModel source, Event fxEvent) {
-            return new CityMutateEvent(source, CityMutateEvent.CITY_UPDATE_EVENT, fxEvent);
+            return new CityMutateEvent(source, source.dataObject(), CityMutateEvent.CITY_UPDATE_EVENT, fxEvent);
         }
 
         @Override
         public ItemMutateEvent<CityModel> createDeleteEvent(CityModel source, Event fxEvent) {
-            return new CityMutateEvent(source, CityMutateEvent.CITY_DELETE_EVENT, fxEvent);
+            return new CityMutateEvent(source, source.dataObject(), CityMutateEvent.CITY_DELETE_EVENT, fxEvent);
         }
 
     }
