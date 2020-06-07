@@ -360,7 +360,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 return "";
             }
             int count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
-            // PENDING: Internationalize these
             switch (count) {
                 case 0:
                     return "";
@@ -429,7 +428,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     }
                 }
             }
-            // PENDING: Internationalize this
             if (count > 0) {
                 return "Another customer has the same name";
             }

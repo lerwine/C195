@@ -397,7 +397,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                     }
                 }
             }
-            // PENDING: Internationalize this message
             if (count > 0) {
                 return "Another user has the same name";
             }
@@ -410,7 +409,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 return "";
             }
 
-            // PENDING: Internationalize messages
             if (dao.getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey()) {
                 return "Cannot delete the currently signed on user.";
             }

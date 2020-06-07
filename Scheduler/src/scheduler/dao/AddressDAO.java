@@ -387,7 +387,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             }
 
             int count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
-            // PENDING: Internationalize these
             switch (count) {
                 case 0:
                     return "";
@@ -474,7 +473,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                     }
                 }
             }
-            // PENDING: Internationalize this
             if (count > 0) {
                 return "Another matching address exists";
             }
