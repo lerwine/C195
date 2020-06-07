@@ -12,6 +12,8 @@ import static scheduler.view.event.ItemMutateEvent.ITEM_MUTATE_EVENT;
  */
 public class UserMutateEvent extends ItemMutateEvent<UserModel> {
 
+    private static final long serialVersionUID = -4702962471823130721L;
+
     public static final EventType<UserMutateEvent> USER_MUTATE_EVENT = new EventType<>(
             ITEM_MUTATE_EVENT,
             "USER_MUTATE_EVENT");

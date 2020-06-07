@@ -12,6 +12,8 @@ import static scheduler.view.event.ItemMutateEvent.ITEM_MUTATE_EVENT;
  */
 public class CountryMutateEvent extends ItemMutateEvent<CountryModel> {
 
+    private static final long serialVersionUID = 6220482582846221386L;
+
     public static final EventType<CountryMutateEvent> COUNTRY_MUTATE_EVENT = new EventType<>(
             ITEM_MUTATE_EVENT,
             "COUNTRY_MUTATE_EVENT");

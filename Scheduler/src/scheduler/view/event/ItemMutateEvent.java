@@ -13,6 +13,8 @@ import scheduler.model.ui.FxRecordModel;
  */
 public class ItemMutateEvent<T extends FxRecordModel<? extends DataAccessObject>> extends Event {
 
+    private static final long serialVersionUID = -3123630331690153612L;
+
     public static final EventType<ItemMutateEvent<? extends FxRecordModel<? extends DataAccessObject>>> ITEM_MUTATE_EVENT = new EventType<>(
             ANY,
             "ITEM_MUTATE_EVENT");
@@ -39,11 +41,13 @@ public class ItemMutateEvent<T extends FxRecordModel<? extends DataAccessObject>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T getSource() {
         return (T) super.getSource();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public DataAccessObject getTarget() {
         return (DataAccessObject) super.getTarget();
     }

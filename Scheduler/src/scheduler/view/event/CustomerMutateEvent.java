@@ -7,6 +7,8 @@ import scheduler.model.ui.CustomerModel;
 
 public class CustomerMutateEvent extends ItemMutateEvent<CustomerModel> {
 
+    private static final long serialVersionUID = 2391804793246253841L;
+
     public static final EventType<CustomerMutateEvent> CUSTOMER_MUTATE_EVENT = new EventType<>(
             ITEM_MUTATE_EVENT,
             "CUSTOMER_MUTATE_EVENT");
@@ -29,7 +31,7 @@ public class CustomerMutateEvent extends ItemMutateEvent<CustomerModel> {
 
     @Override
     public CustomerDAO getTarget() {
-        return (CustomerDAO)super.getTarget();
+        return (CustomerDAO) super.getTarget();
     }
 
 }

@@ -12,6 +12,8 @@ import static scheduler.view.event.ItemMutateEvent.ITEM_MUTATE_EVENT;
  */
 public class AddressMutateEvent extends ItemMutateEvent<AddressModel> {
 
+    private static final long serialVersionUID = 8261622802802373344L;
+
     public static final EventType<AddressMutateEvent> ADDRESS_MUTATE_EVENT = new EventType<>(
             ITEM_MUTATE_EVENT,
             "ADDRESS_MUTATE_EVENT");
@@ -34,7 +36,7 @@ public class AddressMutateEvent extends ItemMutateEvent<AddressModel> {
 
     @Override
     public AddressDAO getTarget() {
-        return (AddressDAO)super.getTarget();
+        return (AddressDAO) super.getTarget();
     }
 
 }
