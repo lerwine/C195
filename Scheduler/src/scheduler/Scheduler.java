@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -28,6 +26,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserDAO;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.unbindExtents;
 import scheduler.util.PwHash;
@@ -51,7 +50,8 @@ import scheduler.view.ViewAndController;
  */
 public final class Scheduler extends Application {
 
-    private static final Logger LOG = Logger.getLogger(Scheduler.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Scheduler.class.getName()), Level.FINER);
+    private static final String LOG_FILE_PATH = "log.txt";
     private static Scheduler currentApp = null;
     private static UserDAO currentUser = null;
 
@@ -130,17 +130,15 @@ public final class Scheduler extends Application {
     @Override
     public void stop() throws Exception {
         if (null != currentUser) {
-            HostServices services = getHostServices();
-            String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
-            LOG.fine(() -> String.format("Logging logout timestamp to %s", logUri));
-            try (FileWriter writer = new FileWriter(new File(new URL(logUri).toURI()), true)) {
+            File logFile = new File(LOG_FILE_PATH);
+            LOG.fine(() -> String.format("Logging logout timestamp to %s", logFile.getAbsolutePath()));
+            try (FileWriter writer = new FileWriter(logFile, true)) {
                 try (PrintWriter pw = new PrintWriter(writer)) {
-                    pw.printf("[%s]: %s logged out.", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), currentUser.getUserName());
-                    pw.println();
+                    pw.printf("[%s]: %s logged out.%n", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), currentUser.getUserName());
                     pw.flush();
                     writer.flush();
                 }
-            } catch (IOException | URISyntaxException ex) {
+            } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error writing to log", ex);
             }
         }
@@ -176,8 +174,6 @@ public final class Scheduler extends Application {
 
         /**
          * This gets called when a login has failed.
-         *
-         * @param message The reason for login failure.
          */
         protected abstract void onLoginFailure();
     }
@@ -203,17 +199,15 @@ public final class Scheduler extends Application {
             if (null == user) {
                 onNotSucceeded.run();
             } else {
-                HostServices services = currentApp.getHostServices();
-                String logUri = services.resolveURI(services.getCodeBase(), "log.txt");
-                LOG.fine(() -> String.format("Logging login timestamp to %s", logUri));
-                try (FileWriter writer = new FileWriter(new File(new URL(logUri).toURI()), true)) {
+                File logFile = new File(LOG_FILE_PATH);
+                LOG.fine(() -> String.format("Logging login timestamp to %s", logFile.getAbsolutePath()));
+                try (FileWriter writer = new FileWriter(logFile, true)) {
                     try (PrintWriter pw = new PrintWriter(writer)) {
-                        pw.printf("[%s]: %s logged in.", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), user.getUserName());
-                        pw.println();
+                        pw.printf("[%s]: %s logged in.%n", DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()), user.getUserName());
                         pw.flush();
                         writer.flush();
                     }
-                } catch (IOException | URISyntaxException ex) {
+                } catch (IOException ex) {
                     LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
                 unbindExtents(loginView);
