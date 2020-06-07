@@ -124,9 +124,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
     private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
-//    private ReadOnlyJavaBeanObjectProperty<IAddressDAO> originalAddress;
-//    private ObjectBinding<DataRowState> originalAddressRowState;
-//    private IntegerBinding originalAddressPrimaryKey;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedName;
     private StringBinding normalizedAddress1;
@@ -136,6 +133,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
     private ObjectBinding<CityItem<? extends ICityDAO>> modelCity;
+    private BooleanBinding addressChanged;
     private BooleanBinding changedBinding;
     private BooleanBinding validityBinding;
 
@@ -320,16 +318,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             selectedAddress.set(new AddressModel(new AddressDAO()));
         }
 
-//        try {
-//            originalAddress = ReadOnlyJavaBeanObjectPropertyBuilder.<IAddressDAO>create().bean(model.dataObject()).name(CustomerDAO.PROP_ADDRESS).build();
-//        } catch (NoSuchMethodException ex) {
-//            LOG.log(Level.SEVERE, "Error creating originalAdress property", ex);
-//            throw new RuntimeException(ex);
-//        }
-//        originalAddressRowState = Bindings.when(originalAddress.isNull())
-//                .then(DataRowState.NEW)
-//                .otherwise(Bindings.<DataRowState>select(originalAddress, DataAccessObject.PROP_ROWSTATE));
-//        originalAddressPrimaryKey = Bindings.selectInteger(originalAddress, DataAccessObject.PROP_PRIMARYKEY);
         selectedFilter = Bindings.<AppointmentFilterItem>select(appointmentFilterComboBox.selectionModelProperty(), "selectedItem");
         selectedCountry = Bindings.<CountryItem<? extends ICountryDAO>>select(countryComboBox.selectionModelProperty(), "selectedItem");
         selectedCity = Bindings.<CityItem<? extends ICityDAO>>select(cityComboBox.selectionModelProperty(), "selectedItem");
@@ -369,13 +357,19 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneNumberTextField.textProperty());
         phoneNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
 
+        addressChanged = normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
+                AddressModel.PROP_ADDRESS1)))
+                .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
+                        AddressModel.PROP_ADDRESS2))))
+                .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), modelCity.get()), selectedCity,
+                        Bindings.<CityItem<? extends ICityDAO>>select(selectedAddress, AddressModel.PROP_CITY)))
+                .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
+                        AddressModel.PROP_POSTALCODE))))
+                .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
+                        AddressModel.PROP_PHONE))));
         modelCity = Bindings.select(model.addressProperty(), "city");
         changedBinding = normalizedName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.nameProperty()))
-                .or(normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property())))
-                .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address2Property())))
-                .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), modelCity.get()), selectedCity, modelCity))
-                .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))
-                .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
+                .or(addressChanged).or(activeTrueRadioButton.selectedProperty().isNotEqualTo(model.activeProperty()));
         validityBinding = nameValid.and(addressValid).and(cityInvalid.not());
 
         nameTextField.setText(model.getName());
@@ -471,11 +465,12 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
         Stage stage = (Stage) getScene().getWindow();
         StringBuilder message = new StringBuilder();
-        if (existingCount == 1)
+        if (existingCount == 1) {
             message.append("is 1 other customer that shares");
-        else
+        } else {
             message.append("are ").append(existingCount).append(" other customers that share");
-        
+        }
+
         Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
                 "Multiple Customers Affected",
                 String.format("There %s the same address."
@@ -601,7 +596,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @Override
     public void updateModel() {
         model.setName(nameTextField.getText().trim());
-        AddressItem<? extends IAddressDAO> addr = selectedAddress.get();
+        if (model.getRowState() == DataRowState.NEW || addressChanged.get()) {
+            AddressItem<? extends IAddressDAO> addr = selectedAddress.get();
+            // FIXME: Ensure it's an AddressModel object
+        }
+
         // FIXME: Update address properties.
         model.setAddress(selectedAddress.get());
         model.setActive(activeTrueRadioButton.isSelected());
