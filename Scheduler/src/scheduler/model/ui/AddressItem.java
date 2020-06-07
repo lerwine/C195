@@ -1,6 +1,6 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
+import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -20,6 +20,36 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY
  * @param <T> Type of object for database access.
  */
 public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T> {
+
+    /**
+     * The name of the 'addressLines' property.
+     */
+    public static final String PROP_ADDRESSLINES = "addressLines";
+
+    /**
+     * The name of the 'cityName' property.
+     */
+    public static final String PROP_CITYNAME = "cityName";
+
+    /**
+     * The name of the 'countryName' property.
+     */
+    public static final String PROP_COUNTRYNAME = "countryName";
+
+    /**
+     * The name of the 'cityZipCountry' property.
+     */
+    public static final String PROP_CITYZIPCOUNTRY = "cityZipCountry";
+
+    /**
+     * The name of the 'timeZone' property.
+     */
+    public static final String PROP_TIMEZONE = "timeZone";
+
+    /**
+     * The name of the 'language' property.
+     */
+    public static final String PROP_LANGUAGE = "language";
 
     public static AddressItem<? extends IAddressDAO> createModel(IAddressDAO t) {
         if (null == t) {
@@ -66,12 +96,6 @@ public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T
             return (p.isEmpty()) ? String.format("%s%n%s%n%s", a1, a2, c)
                     : String.format("%s%n%s%n%s%n%s %s", a1, a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
         }, address1, address2, cityZipCountry, phone);
-    }
-
-    @Deprecated
-    public static StringBinding createMultiLineAddressBinding(AddressItem<? extends IAddressDAO> source) {
-        return createMultiLineAddressBinding(source.address1Property(), source.address2Property(), source.cityZipCountryProperty(),
-                source.phoneProperty());
     }
 
     /**
@@ -126,9 +150,9 @@ public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T
 
     ReadOnlyStringProperty cityZipCountryProperty();
 
-    ZoneId getZoneId();
+    TimeZone getTimeZone();
 
-    ReadOnlyObjectProperty<ZoneId> zoneIdProperty();
+    ReadOnlyObjectProperty<TimeZone> timeZoneProperty();
 
     String getLanguage();
 

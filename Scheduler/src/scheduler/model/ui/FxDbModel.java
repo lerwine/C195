@@ -25,11 +25,15 @@ import scheduler.model.DataRecord;
  * <li>{@link CountryItem}</li>
  * </ul>
  *
- *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
 public interface FxDbModel<T extends DbObject> extends DataObject {
+
+    /**
+     * The name of the 'valid' property.
+     */
+    public static final String PROP_VALID = "valid";
 
     /**
      * Gets the backing data access object.

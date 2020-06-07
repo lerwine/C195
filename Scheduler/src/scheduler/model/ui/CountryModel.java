@@ -41,10 +41,10 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        locale = new SimpleObjectProperty<>(this, "locale");
-        name = new ReadOnlyStringBindingProperty(this, "name", () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
-        language = new ReadOnlyStringBindingProperty(this, "language", () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        locale = new SimpleObjectProperty<>(this, PROP_LOCALE);
+        name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
                         .and(language.isNotEmpty()));
         locale.set(dao.getLocale());

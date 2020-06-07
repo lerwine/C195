@@ -9,6 +9,23 @@ import java.util.Objects;
  */
 public interface Customer extends DataObject {
 
+    public static final int MAX_LENGTH_NAME = 45;
+
+    /**
+     * The name of the 'name' property.
+     */
+    public static final String PROP_NAME = "name";
+
+    /**
+     * The name of the 'address' property.
+     */
+    public static final String PROP_ADDRESS = "address";
+
+    /**
+     * The name of the 'active' property.
+     */
+    public static final String PROP_ACTIVE = "active";
+
     public static int compare(Customer a, Customer b) {
         if (Objects.equals(a, b)) {
             return 0;
@@ -33,7 +50,7 @@ public interface Customer extends DataObject {
         if (null == a) {
             return null == b;
         }
-        
+
         return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName()) && a.isActive() == b.isActive()
                 && ModelHelper.areSameRecord(a.getAddress(), b.getAddress())));
     }

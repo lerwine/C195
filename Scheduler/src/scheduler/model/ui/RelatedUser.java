@@ -11,7 +11,6 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.IUserDAO;
-import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -33,16 +32,16 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
     public RelatedUser(IUserDAO rowData) {
         super(rowData);
         try {
-            userName = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(UserDAO.PROP_USERNAME).build();
-            status = ReadOnlyJavaBeanObjectPropertyBuilder.<UserStatus>create().bean(rowData).name(UserDAO.PROP_STATUS).build();
+            userName = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_USERNAME).build();
+            status = ReadOnlyJavaBeanObjectPropertyBuilder.<UserStatus>create().bean(rowData).name(PROP_STATUS).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        statusDisplay = new ReadOnlyStringBindingProperty(this, "statusDisplay", () -> UserStatus.toDisplayValue(status.get()), status);
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(userName.get()), userName)
-                .and(status.isNull()));
+                        .and(status.isNull()));
     }
 
     @Override

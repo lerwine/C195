@@ -16,7 +16,7 @@ public interface IUserDAO extends DbObject, User {
         if (userName.isEmpty()) {
             throw new IllegalStateException("User name not defined");
         }
-        if (userName.length() > UserDAO.MAX_LENGTH_USERNAME) {
+        if (userName.length() > MAX_LENGTH_USERNAME) {
             throw new IllegalStateException("User name too long");
         }
         if (target instanceof UserDAO) {
@@ -24,7 +24,7 @@ public interface IUserDAO extends DbObject, User {
             if (password.isEmpty()) {
                 throw new IllegalStateException("Password not defined");
             }
-            if (password.length() > UserDAO.MAX_LENGTH_PASSWORD) {
+            if (password.length() > MAX_LENGTH_PASSWORD) {
                 throw new IllegalStateException("Password length too long");
             }
         }

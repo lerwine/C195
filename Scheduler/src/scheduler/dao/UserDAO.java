@@ -44,25 +44,6 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 @DatabaseTable(DbTable.USER)
 public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
-    public static final int MAX_LENGTH_USERNAME = 50;
-
-    /**
-     * The name of the 'userName' property.
-     */
-    public static final String PROP_USERNAME = "userName";
-
-    public static final int MAX_LENGTH_PASSWORD = 50;
-
-    /**
-     * The name of the 'password' property.
-     */
-    public static final String PROP_PASSWORD = "password";
-
-    /**
-     * The name of the 'status' property.
-     */
-    public static final String PROP_STATUS = "status";
-
     public static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {

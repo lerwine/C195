@@ -9,6 +9,18 @@ import java.util.Objects;
  */
 public interface CountryProperties {
 
+    public static final int MAX_LENGTH_NAME = 50;
+
+    /**
+     * The name of the 'name' property.
+     */
+    public static final String PROP_NAME = "name";
+
+    /**
+     * The name of the 'locale' property.
+     */
+    public static final String PROP_LOCALE = "locale";
+
     public static String getCountryDisplayText(Locale locale) {
         if (null != locale) {
             return locale.getDisplayCountry();

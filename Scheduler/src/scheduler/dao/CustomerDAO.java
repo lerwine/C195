@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -42,23 +41,6 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  */
 @DatabaseTable(DbTable.CUSTOMER)
 public final class CustomerDAO extends DataAccessObject implements ICustomerDAO, CustomerRecord<Timestamp> {
-
-    public static final int MAX_LENGTH_NAME = 45;
-
-    /**
-     * The name of the 'name' property.
-     */
-    public static final String PROP_NAME = "name";
-
-    /**
-     * The name of the 'address' property.
-     */
-    public static final String PROP_ADDRESS = "address";
-
-    /**
-     * The name of the 'active' property.
-     */
-    public static final String PROP_ACTIVE = "active";
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
 

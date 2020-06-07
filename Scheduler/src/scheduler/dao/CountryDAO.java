@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -42,18 +41,6 @@ import static scheduler.view.country.EditCountryResourceKeys.*;
  */
 @DatabaseTable(DbTable.COUNTRY)
 public final class CountryDAO extends DataAccessObject implements CountryDbRecord {
-
-    public static final int MAX_LENGTH_NAME = 50;
-
-    /**
-     * The name of the 'name' property.
-     */
-    public static final String PROP_NAME = "name";
-
-    /**
-     * The name of the 'locale' property.
-     */
-    public static final String PROP_LOCALE = "locale";
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
 

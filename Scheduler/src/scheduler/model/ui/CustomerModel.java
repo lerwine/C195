@@ -15,6 +15,7 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
+import scheduler.model.AddressProperties;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -51,24 +52,24 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     public CustomerModel(CustomerDAO dao) {
         super(dao);
-        name = new NonNullableStringProperty(this, "name", dao.getName());
-        address = new SimpleObjectProperty<>(this, "address", AddressItem.createModel(dao.getAddress()));
-        active = new SimpleBooleanProperty(this, "active", dao.isActive());
-        address1 = new ReadOnlyStringBindingProperty(this, "address1", Bindings.selectString(address, "address1"));
-        address2 = new ReadOnlyStringBindingProperty(this, "address2", Bindings.selectString(address, "address2"));
-        cityName = new ReadOnlyStringBindingProperty(this, "cityName", Bindings.selectString(address, "cityName"));
-        countryName = new ReadOnlyStringBindingProperty(this, "countryName", Bindings.selectString(address, "countryName"));
-        postalCode = new ReadOnlyStringBindingProperty(this, "postalCode", Bindings.selectString(address, "postalCode"));
-        phone = new ReadOnlyStringBindingProperty(this, "phone", Bindings.selectString(address, "phone"));
-        cityZipCountry = new ReadOnlyStringBindingProperty(this, "cityZipCountry", Bindings.selectString(address, "cityZipCountry"));
-        addressText = new ReadOnlyStringBindingProperty(this, "cityZipCountry",
+        name = new NonNullableStringProperty(this, PROP_NAME, dao.getName());
+        address = new SimpleObjectProperty<>(this, PROP_ADDRESS, AddressItem.createModel(dao.getAddress()));
+        active = new SimpleBooleanProperty(this, PROP_ACTIVE, dao.isActive());
+        address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));
+        address2 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS2, Bindings.selectString(address, AddressProperties.PROP_ADDRESS2));
+        cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, AddressItem.PROP_CITYNAME));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(address, AddressItem.PROP_COUNTRYNAME));
+        postalCode = new ReadOnlyStringBindingProperty(this, PROP_POSTALCODE, Bindings.selectString(address, AddressProperties.PROP_POSTALCODE));
+        phone = new ReadOnlyStringBindingProperty(this, PROP_PHONE, Bindings.selectString(address, AddressProperties.PROP_PHONE));
+        cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY, Bindings.selectString(address, AddressItem.PROP_CITYZIPCOUNTRY));
+        addressText = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSTEXT,
                 () -> AddressModel.calculateSingleLineAddress(address1.get(), address2.get(), cityZipCountry.get(), phone.get()));
-        multiLineAddress = new ReadOnlyStringBindingProperty(this, "multiLineAddress",
+        multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
                 () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(Bindings.selectBoolean(address, "valid")).and(Bindings.select(address, "rowState").isNotEqualTo(DataRowState.DELETED)));
+                        .and(Bindings.selectBoolean(address, PROP_VALID)).and(Bindings.select(address, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override

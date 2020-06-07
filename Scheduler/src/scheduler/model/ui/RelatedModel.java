@@ -8,7 +8,6 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanIntegerProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanIntegerPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.DbObject;
 
@@ -28,8 +27,8 @@ public abstract class RelatedModel<T extends DbObject> implements FxDbModel<T> {
     protected RelatedModel(T dao) {
         dataObject = dao;
         try {
-            primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(DataAccessObject.PROP_PRIMARYKEY).build();
-            rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(DataAccessObject.PROP_ROWSTATE).build();
+            primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();
+            rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(PROP_ROWSTATE).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);

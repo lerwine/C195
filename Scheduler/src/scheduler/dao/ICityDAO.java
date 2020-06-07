@@ -29,7 +29,7 @@ public interface ICityDAO extends DbObject, City {
             throw new IllegalStateException("Zone Id not defined");
         }
 
-        if ((name.length() + zoneId.toZoneId().getId().length() + 1) > CountryDAO.MAX_LENGTH_NAME) {
+        if ((name.length() + zoneId.toZoneId().getId().length() + 1) > MAX_LENGTH_NAME) {
             throw new IllegalStateException("Name too long");
         }
 

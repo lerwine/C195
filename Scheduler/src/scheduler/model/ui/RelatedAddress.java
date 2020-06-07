@@ -1,6 +1,6 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -11,16 +11,16 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
+import scheduler.model.Address;
+import scheduler.model.CityProperties;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
-import scheduler.model.Address;
 
 /**
  *
@@ -41,36 +41,36 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     private final ReadOnlyJavaBeanStringProperty phone;
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyObjectBindingProperty<ZoneId> zoneId;
+    private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
     private final ReadOnlyBooleanBindingProperty valid;
 
     public RelatedAddress(IAddressDAO rowData) {
         super(rowData);
 
         try {
-            address1 = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(AddressDAO.PROP_ADDRESS1).build();
-            address2 = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(AddressDAO.PROP_ADDRESS2).build();
-            cityDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<ICityDAO>create().bean(rowData).name(AddressDAO.PROP_CITY).build();
-            postalCode = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(AddressDAO.PROP_POSTALCODE).build();
-            phone = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(AddressDAO.PROP_PHONE).build();
+            address1 = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_ADDRESS1).build();
+            address2 = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_ADDRESS2).build();
+            cityDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<ICityDAO>create().bean(rowData).name(PROP_CITY).build();
+            postalCode = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_POSTALCODE).build();
+            phone = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_PHONE).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        addressLines = new ReadOnlyStringBindingProperty(this, "addressLines",
+        addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
                 () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
-        city = new ReadOnlyObjectBindingProperty<>(this, "city", () -> CityItem.createModel(cityDAO.get()), cityDAO);
-        cityName = new ReadOnlyStringBindingProperty(this, "cityName", Bindings.selectString(city, "name"));
-        countryName = new ReadOnlyStringBindingProperty(this, "cityName", Bindings.selectString(city, "countryName"));
-        cityZipCountry = new ReadOnlyStringBindingProperty(this, "cityZipCountry",
+        city = new ReadOnlyObjectBindingProperty<>(this, PROP_CITY, () -> CityItem.createModel(cityDAO.get()), cityDAO);
+        cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(city, CityProperties.PROP_NAME));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, CityItem.PROP_COUNTRYNAME));
+        cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY,
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
-        language = new ReadOnlyStringBindingProperty(this, "language", Bindings.selectString(city, "language"));
-        zoneId = new ReadOnlyObjectBindingProperty<>(this, "zoneId", Bindings.select(city, "zoneId"));
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, CityItem.PROP_LANGUAGE));
+        timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityProperties.PROP_TIMEZONE));
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address1.get()), address1)
-                .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
-                .and(Bindings.selectBoolean(city, "valid")).and(Bindings.select(city, "rowState").isNotEqualTo(DataRowState.DELETED)));
+                        .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
+                        .and(Bindings.selectBoolean(city, PROP_VALID)).and(Bindings.select(city, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -163,13 +163,13 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     }
 
     @Override
-    public ZoneId getZoneId() {
-        return zoneId.get();
+    public TimeZone getTimeZone() {
+        return timeZone.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId;
+    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() {
+        return timeZone;
     }
 
     @Override

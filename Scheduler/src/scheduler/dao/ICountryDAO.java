@@ -20,6 +20,10 @@ public interface ICountryDAO extends DbObject, Country {
             throw new IllegalStateException("Country name not defined");
         }
 
+        if (name.length() > MAX_LENGTH_NAME) {
+            throw new IllegalStateException("Name too long");
+        }
+
         Locale locale = target.getLocale();
 
         if (null == locale) {

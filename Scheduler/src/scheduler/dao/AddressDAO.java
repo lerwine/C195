@@ -45,39 +45,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
 
-    public static final int MAX_LENGTH_ADDRESS1 = 50;
-
-    /**
-     * The name of the 'address1' property.
-     */
-    public static final String PROP_ADDRESS1 = "address1";
-
-    public static final int MAX_LENGTH_ADDRESS2 = 50;
-
-    /**
-     * The name of the 'address2' property.
-     */
-    public static final String PROP_ADDRESS2 = "address2";
-
-    /**
-     * The name of the 'city' property.
-     */
-    public static final String PROP_CITY = "city";
-
-    public static final int MAX_LENGTH_POSTALCODE = 10;
-
-    /**
-     * The name of the 'postalCode' property.
-     */
-    public static final String PROP_POSTALCODE = "postalCode";
-
-    public static final int MAX_LENGTH_PHONE = 20;
-
-    /**
-     * The name of the 'phone' property.
-     */
-    public static final String PROP_PHONE = "phone";
-
     private String address1;
     private String address2;
     private ICityDAO city;

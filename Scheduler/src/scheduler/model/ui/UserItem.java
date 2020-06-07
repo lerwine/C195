@@ -14,6 +14,11 @@ import scheduler.model.UserStatus;
  */
 public interface UserItem<T extends IUserDAO> extends User, FxDbModel<T> {
 
+    /**
+     * The name of the 'statusDisplay' property.
+     */
+    public static final String PROP_STATUSDISPLAY = "statusDisplay";
+
     public static UserItem<? extends IUserDAO> createModel(IUserDAO t) {
         if (null == t) {
             return null;

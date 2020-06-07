@@ -60,30 +60,23 @@ import scheduler.view.task.WaitBorderPane;
  */
 public abstract class DataAccessObject extends PropertyBindable implements DbRecord, EventTarget {
 
-    /**
-     * The name of the 'primaryKey' property.
-     */
-    public static final String PROP_PRIMARYKEY = "primaryKey";
-    /**
-     * The name of the 'createDate' property.
-     */
-    public static final String PROP_CREATEDATE = "createDate";
-    /**
-     * The name of the 'createdBy' property.
-     */
-    public static final String PROP_CREATEDBY = "createdBy";
-    /**
-     * The name of the 'lastModifiedDate' property.
-     */
-    public static final String PROP_LASTMODIFIEDDATE = "lastModifiedDate";
-    /**
-     * The name of the 'lastModifiedBy' property.
-     */
-    public static final String PROP_LASTMODIFIEDBY = "lastModifiedBy";
-    /**
-     * The name of the 'rowState' property.
-     */
-    public static final String PROP_ROWSTATE = "rowState";
+    private static final LinkedList<EventTarget> DATA_OBJECT_EVENT_TARGETS = new LinkedList<>();
+
+    public static void addDataObjectEventTarget(EventTarget target) {
+        synchronized (DATA_OBJECT_EVENT_TARGETS) {
+            if (!DATA_OBJECT_EVENT_TARGETS.contains(target)) {
+                DATA_OBJECT_EVENT_TARGETS.add(target);
+            }
+        }
+    }
+
+    public static void removeDataObjectEventTarget(EventTarget target) {
+        synchronized (DATA_OBJECT_EVENT_TARGETS) {
+            if (DATA_OBJECT_EVENT_TARGETS.contains(target)) {
+                DATA_OBJECT_EVENT_TARGETS.remove(target);
+            }
+        }
+    }
 
     private final EventHandlerManager eventHandlerManager;
     private final OriginalValues originalValues;
@@ -95,20 +88,20 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     private DataRowState rowState;
     private boolean changing = false;
 
-    private class OriginalValues {
-        private Timestamp createDate;
-        private String createdBy;
-        private Timestamp lastModifiedDate;
-        private String lastModifiedBy;
-        
-        private OriginalValues() {
-            this.createDate = DataAccessObject.this.createDate;
-            this.createdBy = DataAccessObject.this.createdBy;
-            this.lastModifiedDate = DataAccessObject.this.lastModifiedDate;
-            this.lastModifiedBy = DataAccessObject.this.lastModifiedBy;
-        }
+    /**
+     * Initializes a {@link DataRowState#NEW} data access object.
+     */
+    protected DataAccessObject() {
+        eventHandlerManager = new EventHandlerManager(this);
+        primaryKey = Integer.MIN_VALUE;
+        lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
+        lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
+        rowState = DataRowState.NEW;
+        originalValues = new OriginalValues();
     }
+
     protected abstract void onAcceptChanges();
+
     private void acceptChanges() {
         onAcceptChanges();
         originalValues.createDate = createDate;
@@ -116,7 +109,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         originalValues.lastModifiedDate = lastModifiedDate;
         originalValues.lastModifiedBy = lastModifiedBy;
     }
+
     protected abstract void onRejectChanges();
+
     public void rejectChanges() {
         beginChange();
         changing = true;
@@ -143,17 +138,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             endChange();
             changing = false;
         }
-    }
-    /**
-     * Initializes a {@link DataRowState#NEW} data access object.
-     */
-    protected DataAccessObject() {
-        eventHandlerManager = new EventHandlerManager(this);
-        primaryKey = Integer.MIN_VALUE;
-        lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
-        lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
-        rowState = DataRowState.NEW;
-        originalValues = new OriginalValues();
     }
 
     @Override
@@ -255,31 +239,14 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
     }
 
-    private static final LinkedList<EventTarget> DATA_OBJECT_EVENT_TARGETS = new LinkedList<>();
-    
-    public static void addDataObjectEventTarget(EventTarget target) {
-        synchronized (DATA_OBJECT_EVENT_TARGETS) {
-            if (!DATA_OBJECT_EVENT_TARGETS.contains(target)) {
-                DATA_OBJECT_EVENT_TARGETS.add(target);
-            }
-        }
-    }
-    
-    public static void removeDataObjectEventTarget(EventTarget target) {
-        synchronized (DATA_OBJECT_EVENT_TARGETS) {
-            if (DATA_OBJECT_EVENT_TARGETS.contains(target)) {
-                DATA_OBJECT_EVENT_TARGETS.remove(target);
-            }
-        }
-    }
-    
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         tail = Scheduler.buildDataObjectEventDispatchChain(tail.append(eventHandlerManager));
         synchronized (DATA_OBJECT_EVENT_TARGETS) {
             Iterator<EventTarget> iterator = DATA_OBJECT_EVENT_TARGETS.iterator();
-            while (iterator.hasNext())
+            while (iterator.hasNext()) {
                 tail = iterator.next().buildEventDispatchChain(tail);
+            }
         }
         return tail;
     }
@@ -601,7 +568,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
             dao.beginChange();
             DataRowState oldRowState = obj.rowState;
-            DataAccessObject dataAccessObject = (DataAccessObject)dao;
+            DataAccessObject dataAccessObject = (DataAccessObject) dao;
             dataAccessObject.changing = true;
             try {
                 Consumer<PropertyChangeSupport> consumer;
@@ -1019,6 +986,21 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return null != dao && getDaoClass().isAssignableFrom(dao.getClass());
         }
 
+    }
+
+    private class OriginalValues {
+
+        private Timestamp createDate;
+        private String createdBy;
+        private Timestamp lastModifiedDate;
+        private String lastModifiedBy;
+
+        private OriginalValues() {
+            this.createDate = DataAccessObject.this.createDate;
+            this.createdBy = DataAccessObject.this.createdBy;
+            this.lastModifiedDate = DataAccessObject.this.lastModifiedDate;
+            this.lastModifiedBy = DataAccessObject.this.lastModifiedBy;
+        }
     }
 
 }

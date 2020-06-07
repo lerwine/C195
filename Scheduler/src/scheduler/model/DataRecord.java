@@ -12,6 +12,26 @@ import scheduler.dao.DataRowState;
 public interface DataRecord<T extends Serializable & Comparable<? super T>> extends DataObject {
 
     /**
+     * The name of the 'createDate' property.
+     */
+    public static final String PROP_CREATEDATE = "createDate";
+
+    /**
+     * The name of the 'createdBy' property.
+     */
+    public static final String PROP_CREATEDBY = "createdBy";
+
+    /**
+     * The name of the 'lastModifiedDate' property.
+     */
+    public static final String PROP_LASTMODIFIEDDATE = "lastModifiedDate";
+
+    /**
+     * The name of the 'lastModifiedBy' property.
+     */
+    public static final String PROP_LASTMODIFIEDBY = "lastModifiedBy";
+
+    /**
      * Gets the timestamp when the data row associated with the current data object was inserted into the database.
      * <p>
      * This property corresponds to {@link scheduler.dao.schema.DbColumn#APPOINTMENT_CREATE_DATE}, {@link scheduler.dao.schema.DbColumn#CUSTOMER_CREATE_DATE},
@@ -55,14 +75,6 @@ public interface DataRecord<T extends Serializable & Comparable<? super T>> exte
      * @return The user name of the person who last modified the data row associated with the current data object in the database.
      */
     String getLastModifiedBy();
-
-    /**
-     * Gets a value which indicates the disposition of the current data object in relation to the corresponding data row in the database.
-     *
-     * @return {@link DataRowState} value that indicates the disposition of the current data object in relation to the corresponding data row in the
-     * database.
-     */
-    DataRowState getRowState();
 
     /**
      * Gets a value which indicates whether the current data object exists in the database.

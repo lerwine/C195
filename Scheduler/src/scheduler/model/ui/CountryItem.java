@@ -14,6 +14,11 @@ import scheduler.model.Country;
  */
 public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T> {
 
+    /**
+     * The name of the 'language' property.
+     */
+    public static final String PROP_LANGUAGE = "language";
+
     public static CountryItem<? extends ICountryDAO> createModel(ICountryDAO t) {
         if (null == t) {
             return null;

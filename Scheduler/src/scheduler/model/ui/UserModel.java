@@ -41,11 +41,11 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
     public UserModel(UserDAO dao) {
         super(dao);
-        userName = new ReadOnlyStringWrapper(this, "userName", dao.getUserName());
-        password = new SimpleStringProperty(this, "password", dao.getPassword());
-        status = new SimpleObjectProperty<>(this, "status", dao.getStatus());
-        statusDisplay = new ReadOnlyStringBindingProperty(this, "statusDisplay", () -> UserStatus.toDisplayValue(status.get()), status);
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        userName = new ReadOnlyStringWrapper(this, PROP_USERNAME, dao.getUserName());
+        password = new SimpleStringProperty(this, PROP_PASSWORD, dao.getPassword());
+        status = new SimpleObjectProperty<>(this, PROP_STATUS, dao.getStatus());
+        statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(userName.get()), userName).and(status.isNull()));
     }
 

@@ -37,14 +37,14 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        name = new ReadOnlyStringBindingProperty(this, "name", () -> {
+        name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> {
             return CountryProperties.getCountryDisplayText(locale.get());
         }, locale);
-        language = new ReadOnlyStringBindingProperty(this, "language", () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> {
-            return Values.isNotNullWhiteSpaceOrEmpty(name.get());
-        }, name)
+                    return Values.isNotNullWhiteSpaceOrEmpty(name.get());
+                }, name)
                         .and(language.isNotEmpty()));
     }
 

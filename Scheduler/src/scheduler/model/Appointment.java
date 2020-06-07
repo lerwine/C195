@@ -11,6 +11,68 @@ import java.util.Objects;
  */
 public interface Appointment<T extends Serializable & Comparable<? super T>> extends DataObject {
 
+    /**
+     * The name of the 'customer' property.
+     */
+    public static final String PROP_CUSTOMER = "customer";
+
+    /**
+     * The name of the 'user' property.
+     */
+    public static final String PROP_USER = "user";
+
+    public static final int MAX_LENGTH_TITLE = 255;
+
+    /**
+     * The name of the 'title' property.
+     */
+    public static final String PROP_TITLE = "title";
+
+    public static final int MAX_LENGTH_DESCRIPTION = 65535;
+
+    /**
+     * The name of the 'description' property.
+     */
+    public static final String PROP_DESCRIPTION = "description";
+
+    public static final int MAX_LENGTH_LOCATION = 65535;
+
+    /**
+     * The name of the 'location' property.
+     */
+    public static final String PROP_LOCATION = "location";
+
+    public static final int MAX_LENGTH_CONTACT = 65535;
+
+    /**
+     * The name of the 'contact' property.
+     */
+    public static final String PROP_CONTACT = "contact";
+
+    public static final int MAX_LENGTH_TYPE = 65535;
+
+    /**
+     * The name of the 'type' property.
+     */
+    public static final String PROP_TYPE = "type";
+
+    public static final int MAX_LENGTH_URL = 255;
+
+    /**
+     * The name of the 'url' property.
+     */
+    public static final String PROP_URL = "url";
+
+    /**
+     * The name of the 'start' property.
+     */
+    public static final String PROP_START = "start";
+
+    /**
+     * The name of the 'end' property.
+     */
+    public static final String PROP_END = "end";
+
     public static int compare(Appointment<?> a, Appointment<?> b) {
         if (Objects.equals(a, b)) {
             return 0;
@@ -23,8 +85,8 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
         }
 
         int result = a.compareStart(b.getStart());
-        if (result == 0 && (result = a.compareEnd(b.getEnd())) == 0 && (result = Customer.compare(a.getCustomer(), b.getCustomer())) == 0 &&
-                (result = User.compare(a.getUser(), b.getUser())) == 0) {
+        if (result == 0 && (result = a.compareEnd(b.getEnd())) == 0 && (result = Customer.compare(a.getCustomer(), b.getCustomer())) == 0
+                && (result = User.compare(a.getUser(), b.getUser())) == 0) {
             return a.getPrimaryKey() - b.getPrimaryKey();
         }
         return result;
@@ -49,7 +111,7 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
         if (null == a) {
             return null == b;
         }
-        
+
         return null != b && (a == b || (ModelHelper.areSameRecord(a.getCustomer(), b.getCustomer())
                 && ModelHelper.areSameRecord(a.getUser(), b.getUser())
                 && a.getContact().equalsIgnoreCase(b.getContact())

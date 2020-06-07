@@ -16,6 +16,19 @@ import scheduler.model.City;
  */
 public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
 
+    /**
+     * The name of the 'countryName' property.
+     */
+    public static final String PROP_COUNTRYNAME = "countryName";
+    /**
+     * The name of the 'language' property.
+     */
+    public static final String PROP_LANGUAGE = "language";
+    /**
+     * The name of the 'timeZoneDisplay' property.
+     */
+    public static final String PROP_TIMEZONEDISPLAY = "timeZoneDisplay";
+
     public static CityItem<? extends ICityDAO> createModel(ICityDAO t) {
         if (null == t) {
             return null;

@@ -1,7 +1,7 @@
 package scheduler.model.ui;
 
-import java.time.ZoneId;
 import java.util.Objects;
+import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -20,7 +20,9 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.City;
+import scheduler.model.CityProperties;
 import scheduler.model.Country;
+import scheduler.model.DataObject;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -170,29 +172,29 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     private final NonNullableStringProperty phone;
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyObjectBindingProperty<ZoneId> zoneId;
+    private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
     private final ReadOnlyBooleanBindingProperty valid;
 
     public AddressModel(AddressDAO dao) {
         super(dao);
-        address1 = new NonNullableStringProperty(this, "address1", dao.getAddress1());
-        address2 = new NonNullableStringProperty(this, "address2", dao.getAddress2());
-        addressLines = new ReadOnlyStringBindingProperty(this, "addressLines",
+        address1 = new NonNullableStringProperty(this, PROP_ADDRESS1, dao.getAddress1());
+        address2 = new NonNullableStringProperty(this, PROP_ADDRESS2, dao.getAddress2());
+        addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
                 () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
-        city = new SimpleObjectProperty<>(this, "city", CityItem.createModel(dao.getCity()));
-        cityName = new ReadOnlyStringBindingProperty(this, "cityName", Bindings.selectString(city, "name"));
-        countryName = new ReadOnlyStringBindingProperty(this, "cityName", Bindings.selectString(city, "countryName"));
-        postalCode = new NonNullableStringProperty(this, "postalCode", dao.getPostalCode());
-        phone = new NonNullableStringProperty(this, "phone", dao.getPhone());
-        cityZipCountry = new ReadOnlyStringBindingProperty(this, "cityZipCountry",
+        city = new SimpleObjectProperty<>(this, PROP_CITY, CityItem.createModel(dao.getCity()));
+        cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(city, CityProperties.PROP_NAME));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, CityItem.PROP_COUNTRYNAME));
+        postalCode = new NonNullableStringProperty(this, PROP_POSTALCODE, dao.getPostalCode());
+        phone = new NonNullableStringProperty(this, PROP_PHONE, dao.getPhone());
+        cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY,
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
-        language = new ReadOnlyStringBindingProperty(this, "language", Bindings.selectString(city, "language"));
-        zoneId = new ReadOnlyObjectBindingProperty<>(this, "zoneId", Bindings.select(city, "zoneId"));
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, CityItem.PROP_LANGUAGE));
+        timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityItem.PROP_TIMEZONE));
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address1.get()), address1)
                         .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
-                        .and(Bindings.selectBoolean(city, "valid")).and(Bindings.select(city, "rowState").isNotEqualTo(DataRowState.DELETED)));
+                        .and(Bindings.selectBoolean(city, PROP_VALID)).and(Bindings.select(city, DataObject.PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -305,13 +307,13 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public ZoneId getZoneId() {
-        return zoneId.get();
+    public TimeZone getTimeZone() {
+        return timeZone.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<ZoneId> zoneIdProperty() {
-        return zoneId;
+    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() {
+        return timeZone;
     }
 
     @Override

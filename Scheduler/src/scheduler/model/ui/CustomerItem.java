@@ -14,6 +14,51 @@ import scheduler.model.Customer;
  */
 public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbModel<T> {
 
+    /**
+     * The name of the 'address1' property.
+     */
+    public static final String PROP_ADDRESS1 = "address1";
+
+    /**
+     * The name of the 'address2' property.
+     */
+    public static final String PROP_ADDRESS2 = "address2";
+
+    /**
+     * The name of the 'cityName' property.
+     */
+    public static final String PROP_CITYNAME = "cityName";
+
+    /**
+     * The name of the 'countryName' property.
+     */
+    public static final String PROP_COUNTRYNAME = "countryName";
+
+    /**
+     * The name of the 'cityZipCountry' property.
+     */
+    public static final String PROP_CITYZIPCOUNTRY = "cityZipCountry";
+
+    /**
+     * The name of the 'addressText' property.
+     */
+    public static final String PROP_ADDRESSTEXT = "addressText";
+
+    /**
+     * The name of the 'multiLineAddress' property.
+     */
+    public static final String PROP_MULTILINEADDRESS = "multiLineAddress";
+
+    /**
+     * The name of the 'postalCode' property.
+     */
+    public static final String PROP_POSTALCODE = "postalCode";
+
+    /**
+     * The name of the 'phone' property.
+     */
+    public static final String PROP_PHONE = "phone";
+
     public static CustomerItem<? extends ICustomerDAO> createModel(ICustomerDAO t) {
         if (null == t) {
             return null;

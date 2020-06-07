@@ -23,7 +23,6 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.util.Pair;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
@@ -56,6 +55,18 @@ import scheduler.view.task.WaitBorderPane;
 public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRecordModel<T> {
 
     private static final Logger LOG = Logger.getLogger(FxRecordModel.class.getName());
+    /**
+     * The name of the 'newRow' property.
+     */
+    public static final String PROP_NEWROW = "newRow";
+    /**
+     * The name of the 'change' property.
+     */
+    public static final String PROP_CHANGE = "change";
+    /**
+     * The name of the 'existingInDb' property.
+     */
+    public static final String PROP_EXISTINGINDB = "existingInDb";
 
     private final T dataObject;
     private ReadOnlyJavaBeanIntegerProperty primaryKey;
@@ -81,23 +92,23 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
         dataObject = dao;
         try {
-            primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(DataAccessObject.PROP_PRIMARYKEY).build();
-            rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(DataAccessObject.PROP_ROWSTATE).build();
-            rawCreateDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(CountryDAO.PROP_CREATEDATE).build();
-            createdBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(DataAccessObject.PROP_CREATEDBY).build();
-            rawLastModifiedDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(CountryDAO.PROP_LASTMODIFIEDDATE).build();
-            lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(DataAccessObject.PROP_LASTMODIFIEDBY).build();
+            primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();
+            rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(PROP_ROWSTATE).build();
+            rawCreateDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_CREATEDATE).build();
+            createdBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_CREATEDBY).build();
+            rawLastModifiedDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_LASTMODIFIEDDATE).build();
+            lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_LASTMODIFIEDBY).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        createDate = new ReadOnlyObjectBindingProperty<>(this, "createDate",
+        createDate = new ReadOnlyObjectBindingProperty<>(this, PROP_CREATEDATE,
                 () -> DB.toLocalDateTime(rawCreateDate.get()), rawCreateDate);
-        lastModifiedDate = new ReadOnlyObjectBindingProperty<>(this, "lastModifiedDate",
+        lastModifiedDate = new ReadOnlyObjectBindingProperty<>(this, PROP_LASTMODIFIEDDATE,
                 () -> DB.toLocalDateTime(rawLastModifiedDate.get()), rawLastModifiedDate);
-        newRow = new ReadOnlyBooleanBindingProperty(this, "newRow", () -> DataRowState.isNewRow(rowState.get()), rowState);
-        change = new ReadOnlyBooleanBindingProperty(this, "change", () -> DataRowState.isChange(rowState.get()), rowState);
-        existingInDb = new ReadOnlyBooleanBindingProperty(this, "existingInDb",() ->  DataRowState.existsInDb(rowState.get()), rowState);
+        newRow = new ReadOnlyBooleanBindingProperty(this, PROP_NEWROW, () -> DataRowState.isNewRow(rowState.get()), rowState);
+        change = new ReadOnlyBooleanBindingProperty(this, PROP_CHANGE, () -> DataRowState.isChange(rowState.get()), rowState);
+        existingInDb = new ReadOnlyBooleanBindingProperty(this, PROP_EXISTINGINDB, () -> DataRowState.existsInDb(rowState.get()), rowState);
     }
 
     @Override
@@ -327,11 +338,11 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         public abstract ItemMutateEvent<U> createInsertEvent(U source, Event fxEvent);
-        
+
         public abstract ItemMutateEvent<U> createUpdateEvent(U source, Event fxEvent);
-        
+
         public abstract ItemMutateEvent<U> createDeleteEvent(U source, Event fxEvent);
-        
+
     }
 
     @FunctionalInterface

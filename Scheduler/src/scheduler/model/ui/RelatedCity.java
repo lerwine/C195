@@ -11,11 +11,11 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import scheduler.dao.CityDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.CityProperties;
+import scheduler.model.CountryProperties;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -41,23 +41,23 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     public RelatedCity(ICityDAO dao) {
         super(dao);
         try {
-            name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(CityDAO.PROP_NAME).build();
-            timeZone = ReadOnlyJavaBeanObjectPropertyBuilder.<TimeZone>create().bean(dao).name(CityDAO.PROP_TIMEZONE).build();
-            countryDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<ICountryDAO>create().bean(dao).name(CityDAO.PROP_COUNTRY).build();
+            name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_NAME).build();
+            timeZone = ReadOnlyJavaBeanObjectPropertyBuilder.<TimeZone>create().bean(dao).name(PROP_TIMEZONE).build();
+            countryDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<ICountryDAO>create().bean(dao).name(PROP_COUNTRY).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        country = new ReadOnlyObjectBindingProperty<>(this, "country", () -> CountryItem.createModel(countryDAO.get()), countryDAO);
-        timeZoneDisplay = new ReadOnlyStringBindingProperty(this, "timeZoneDisplay", () -> {
+        country = new ReadOnlyObjectBindingProperty<>(this, PROP_COUNTRY, () -> CountryItem.createModel(countryDAO.get()), countryDAO);
+        timeZoneDisplay = new ReadOnlyStringBindingProperty(this, PROP_TIMEZONEDISPLAY, () -> {
             return CityProperties.getTimeZoneDisplayText(timeZone.get());
         }, timeZone);
-        countryName = new ReadOnlyStringBindingProperty(this, "countryName", Bindings.selectString(country, "name"));
-        language = new ReadOnlyStringBindingProperty(this, "language", Bindings.selectString(country, "language"));
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, CountryProperties.PROP_NAME));
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, CountryItem.PROP_LANGUAGE));
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, "valid"))
-                        .and(Bindings.select(country, "rowState").isNotEqualTo(DataRowState.DELETED)));
+                        .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, PROP_VALID))
+                        .and(Bindings.select(country, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override

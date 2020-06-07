@@ -52,23 +52,6 @@ import scheduler.view.country.EditCountryResourceKeys;
 @DatabaseTable(DbTable.CITY)
 public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
-    public static final int MAX_LENGTH_NAME = 50;
-
-    /**
-     * The name of the 'name' property.
-     */
-    public static final String PROP_NAME = "name";
-
-    /**
-     * The name of the 'country' property.
-     */
-    public static final String PROP_COUNTRY = "country";
-
-    /**
-     * The name of the 'timeZone' property.
-     */
-    public static final String PROP_TIMEZONE = "timeZone";
-
     public static final FactoryImpl FACTORY = new FactoryImpl();
 
     public static FactoryImpl getFactory() {

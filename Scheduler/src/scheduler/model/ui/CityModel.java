@@ -19,6 +19,7 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.CityProperties;
+import scheduler.model.Country;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
@@ -48,20 +49,20 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
     public CityModel(CityDAO dao) {
         super(dao);
-        name = new SimpleStringProperty(this, "name");
+        name = new SimpleStringProperty(this, PROP_NAME);
         timeZone = new SimpleObjectProperty<>();
         country = new SimpleObjectProperty<>();
-        timeZoneDisplay = new ReadOnlyStringBindingProperty(this, "timeZoneDisplay", () -> {
+        timeZoneDisplay = new ReadOnlyStringBindingProperty(this, PROP_TIMEZONEDISPLAY, () -> {
             return CityProperties.getTimeZoneDisplayText(timeZone.get());
         }, timeZone);
-        countryName = new ReadOnlyStringBindingProperty(this, "countryName", Bindings.selectString(country, "name"));
-        language = new ReadOnlyStringBindingProperty(this, "language", Bindings.selectString(country, "language"));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country.get().getLanguage(), CountryItem.PROP_LANGUAGE));
         name.set(dao.getName());
         timeZone.set(dao.getTimeZone());
         country.set(CountryItem.createModel(dao.getCountry()));
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
+        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, "valid")));
+                        .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, PROP_VALID)));
     }
 
     @Override

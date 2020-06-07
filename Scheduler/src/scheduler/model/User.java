@@ -9,6 +9,25 @@ import java.util.Objects;
  */
 public interface User extends DataObject {
 
+    public static final int MAX_LENGTH_USERNAME = 50;
+
+    /**
+     * The name of the 'userName' property.
+     */
+    public static final String PROP_USERNAME = "userName";
+
+    public static final int MAX_LENGTH_PASSWORD = 50;
+
+    /**
+     * The name of the 'password' property.
+     */
+    public static final String PROP_PASSWORD = "password";
+
+    /**
+     * The name of the 'status' property.
+     */
+    public static final String PROP_STATUS = "status";
+
     public static int compare(User a, User b) {
         if (Objects.equals(a, b)) {
             return 0;
@@ -33,7 +52,7 @@ public interface User extends DataObject {
         if (null == a) {
             return null == b;
         }
-        
+
         return null != b && (a == b || (a.getUserName().equalsIgnoreCase(b.getUserName()) && a.getStatus().equals(b.getStatus())));
     }
 

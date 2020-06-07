@@ -12,24 +12,24 @@ public interface ICustomerDAO extends DbObject, Customer {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Customer has already been deleted");
         }
-        
+
         IAddressDAO address = target.getAddress();
-        
+
         if (null == address) {
             throw new IllegalStateException("Address not specified");
         }
-        
+
         IAddressDAO.assertValidAddress(address);
-        
+
         String name = target.getName();
-        
+
         if (name.isEmpty()) {
             throw new IllegalStateException("Customer name not defined");
         }
-        if (name.length() > CustomerDAO.MAX_LENGTH_NAME) {
+        if (name.length() > MAX_LENGTH_NAME) {
             throw new IllegalStateException("Name too long");
         }
-        
+
         return target;
     }
 
