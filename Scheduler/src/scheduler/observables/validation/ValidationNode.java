@@ -1,6 +1,5 @@
 package scheduler.observables.validation;
 
-import scheduler.util.BooleanConsumer;
 import com.sun.javafx.binding.ExpressionHelper;
 import java.util.Collection;
 import java.util.Iterator;
@@ -14,6 +13,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableBooleanValue;
+import scheduler.util.BooleanConsumer;
 
 /**
  *
@@ -52,14 +52,15 @@ public abstract class ValidationNode<T> implements ReadOnlyProperty<T> {
     protected void fireValueChangedEvent() {
         ExpressionHelper.fireValueChangedEvent(helper);
     }
-    
+
     private void fireValidValueChangedEvent() {
         onValidValueChanged(validValue.value);
         ExpressionHelper.fireValueChangedEvent(validValue.vHelper);
     }
-    
-    protected void onValidValueChanged(boolean isValidValue) { }
-    
+
+    protected void onValidValueChanged(boolean isValidValue) {
+    }
+
     protected void updateValidity(Consumer<BooleanConsumer> action) {
         synchronized (validValue) {
             boolean oldValue = validValue.value;

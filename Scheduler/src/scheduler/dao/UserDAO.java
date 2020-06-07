@@ -6,10 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,19 +63,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         password = "";
         status = UserStatus.NORMAL;
         originalValues = new OriginalValues();
-    }
-
-    private class OriginalValues {
-
-        private String userName;
-        private String password;
-        private UserStatus status;
-
-        private OriginalValues() {
-            this.userName = UserDAO.this.userName;
-            this.password = UserDAO.this.password;
-            this.status = UserDAO.this.status;
-        }
     }
 
     @Override
@@ -448,5 +433,18 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             return null != obj && obj instanceof User && ModelHelper.areSameRecord(this, (User) obj);
         }
 
+    }
+
+    private class OriginalValues {
+
+        private String userName;
+        private String password;
+        private UserStatus status;
+
+        private OriginalValues() {
+            this.userName = UserDAO.this.userName;
+            this.password = UserDAO.this.password;
+            this.status = UserDAO.this.status;
+        }
     }
 }

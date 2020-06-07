@@ -1,7 +1,6 @@
 package scheduler.view.event;
 
 import javafx.event.Event;
-import static javafx.event.Event.ANY;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;

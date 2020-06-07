@@ -3,9 +3,7 @@ package scheduler.view.event;
 import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.AddressDAO;
 import scheduler.model.ui.AddressModel;
-import static scheduler.view.event.ItemMutateEvent.ITEM_MUTATE_EVENT;
 
 /**
  *

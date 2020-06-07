@@ -3,7 +3,6 @@ package scheduler.view.event;
 import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.CustomerDAO;
 import scheduler.model.ui.CustomerModel;
 
 public class CustomerMutateEvent extends ItemMutateEvent<CustomerModel> {
