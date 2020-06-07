@@ -255,7 +255,7 @@ public final class DbConnector implements AutoCloseable {
                 LOG.fine(() -> String.format("Executing sql statement: %s", sql));
                 try (PreparedStatement ps = CONNECTION.prepareStatement(sql)) {
                     ps.execute();
-                    SQLWarning sqlWarning = connection.getWarnings();
+                    SQLWarning sqlWarning = CONNECTION.getWarnings();
                     if (null != sqlWarning) {
                         do {
                             LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
