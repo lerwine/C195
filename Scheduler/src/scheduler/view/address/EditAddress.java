@@ -618,11 +618,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private class NewDataLoadTask extends Task<Tuple<List<CountryDAO>, List<CityDAO>>> {
 
-        private final AddressDAO dao;
-
         private NewDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
-            dao = model.dataObject();
         }
 
         @Override

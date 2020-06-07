@@ -678,10 +678,12 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             this.modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter", modelFilter);
         }
 
+        @SuppressWarnings("unused")
         public String getText() {
             return text.get();
         }
 
+        @SuppressWarnings("unused")
         public ReadOnlyStringProperty textProperty() {
             return text.getReadOnlyProperty();
         }
@@ -690,6 +692,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             return modelFilter.get();
         }
 
+        @SuppressWarnings("unused")
         public ReadOnlyObjectProperty<AppointmentModelFilter> modelFilterProperty() {
             return modelFilter.getReadOnlyProperty();
         }

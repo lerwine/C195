@@ -1,7 +1,6 @@
 package scheduler.util;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -143,43 +142,6 @@ public final class ResourceBundleHelper {
             }
         }
         return result;
-    }
-
-    private static final class CacheKey {
-
-        private final int hash;
-        private final String[] names;
-        private final String[] classes;
-
-        CacheKey(Class<?>[] targetAndAncestors) {
-            int i = targetAndAncestors.length;
-            names = new String[i];
-            classes = new String[i];
-            for (int n = 0; n < i; n++) {
-                Class<?> c = targetAndAncestors[n];
-                names[n] = getGlobalizationResourceName(c);
-                classes[n] = c.getName();
-            }
-            hash = 37 * (259 + Arrays.deepHashCode(names)) + Arrays.deepHashCode(classes);
-        }
-
-        @Override
-        public int hashCode() {
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final CacheKey other = (CacheKey) obj;
-            return Arrays.deepEquals(names, other.names) && Arrays.deepEquals(classes, other.classes);
-        }
-
     }
 
 }
