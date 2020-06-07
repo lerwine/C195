@@ -2,6 +2,7 @@ package scheduler.view.address;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +25,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
@@ -31,6 +33,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
@@ -55,6 +58,7 @@ import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.BindingHelper;
+import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -111,6 +115,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private final SimpleBooleanProperty editingCity;
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
+    private ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry;
     private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
@@ -232,7 +237,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onNewCityButtonAction(ActionEvent event) {
         CityModel c;
         try {
-            c = EditCity.editNew(countryListView.getSelectionModel().getSelectedItem(), getScene().getWindow(), false);
+            c = EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);
             c = null;
@@ -292,7 +297,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         BooleanBinding addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
         addressValidationLabel.visibleProperty().bind(addressValid.not());
 
-        ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
+        selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
         selectedCountry.addListener(this::onSelectedCountryChanged);
         selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
         selectedCity.addListener(this::onSelectedCityChanged);
@@ -552,11 +557,24 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void editCustomer(CustomerModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#editCustomer
+        if (null != item) {
+            try {
+                EditCustomer.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
+        }
     }
 
     private void deleteCustomer(CustomerModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.address.EditAddress#deleteCustomer
+        if (null != item) {
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
+            }
+        }
     }
 
     private class EditDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {
@@ -634,6 +652,45 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             }
         }
 
+    }
+
+    private class DeleteTask extends Task<String> {
+
+        private final CustomerModel customerModel;
+        private final Window parentWindow;
+        private final CustomerDAO dao;
+
+        DeleteTask(CustomerModel model, Window parentWindow) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+            dao = model.dataObject();
+            customerModel = model;
+            this.parentWindow = parentWindow;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            String message = getValue();
+            if (null != message && !message.trim().isEmpty()) {
+                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            } else if (dao.getRowState() == DataRowState.DELETED) {
+                CustomerModel.getFactory().updateItem(customerModel, dao);
+            }
+        }
+
+        @Override
+        protected String call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
+                String message = CustomerDAO.FACTORY.getDeleteDependencyMessage(dao, connector.getConnection());
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
+                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
+                CustomerDAO.FACTORY.delete(dao, connector.getConnection());
+            }
+            return null;
+        }
     }
 
 }

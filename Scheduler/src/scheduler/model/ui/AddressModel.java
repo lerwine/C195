@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -30,6 +31,8 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
+import scheduler.view.event.AddressMutateEvent;
+import scheduler.view.event.ItemMutateEvent;
 
 /**
  *
@@ -188,8 +191,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         zoneId = new ReadOnlyObjectBindingProperty<>(this, "zoneId", Bindings.select(city, "zoneId"));
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address1.get()), address1)
-                .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
-                .and(Bindings.selectBoolean(city, "valid")).and(Bindings.select(city, "rowState").isNotEqualTo(DataRowState.DELETED)));
+                        .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
+                        .and(Bindings.selectBoolean(city, "valid")).and(Bindings.select(city, "rowState").isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -435,6 +438,21 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         @Override
         public ModelFilter<AddressDAO, AddressModel, ? extends DaoFilter<AddressDAO>> getDefaultFilter() {
             return getAllItemsFilter();
+        }
+
+        @Override
+        public ItemMutateEvent<AddressModel> createInsertEvent(AddressModel source, Event fxEvent) {
+            return new AddressMutateEvent(source, AddressMutateEvent.ADDRESS_INSERT_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<AddressModel> createUpdateEvent(AddressModel source, Event fxEvent) {
+            return new AddressMutateEvent(source, AddressMutateEvent.ADDRESS_UPDATE_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<AddressModel> createDeleteEvent(AddressModel source, Event fxEvent) {
+            return new AddressMutateEvent(source, AddressMutateEvent.ADDRESS_DELETE_EVENT, fxEvent);
         }
 
     }

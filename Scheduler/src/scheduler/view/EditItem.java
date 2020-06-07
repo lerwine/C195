@@ -12,6 +12,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -42,6 +43,7 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.event.ItemMutateEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -202,18 +204,28 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     private void onSaveButtonAction(ActionEvent event) {
-        editorRegion.updateModel();
-        waitBorderPane.startNow(new SaveTask(editorRegion.modelFactory().updateDAO(model)));
+        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
+        ItemMutateEvent<U> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event) : factory.createUpdateEvent(model, event);
+        editorRegion.fireEvent(updateEvent);
+        if (!updateEvent.isCanceled()) {
+            editorRegion.updateModel();
+            waitBorderPane.startNow(new SaveTask(factory.updateDAO(model)));
+        }
     }
 
     @FXML
     private void onDeleteButtonAction(ActionEvent event) {
-        Stage stage = (Stage) getScene().getWindow();
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new DeleteTask(stage));
+        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
+        ItemMutateEvent<U> deleteEvent = factory.createDeleteEvent(model, event);
+        editorRegion.fireEvent(deleteEvent);
+        if (!deleteEvent.isCanceled()) {
+            Stage stage = (Stage) getScene().getWindow();
+            Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new DeleteTask(stage));
+            }
         }
     }
 
@@ -284,7 +296,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         void onNewModelSaved();
 
         void updateModel();
-
+        
     }
 
     private class SaveTask extends Task<String> {
@@ -299,6 +311,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
             isNew = (this.dataAccessobject = dataAccessobject).getRowState() == DataRowState.NEW;
             daoFactory = editorRegion.modelFactory().getDaoFactory();
+            super.run();
         }
 
         @Override
@@ -317,8 +330,24 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             } else {
                 AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVEFAILURE), message);
+                dataAccessobject.rejectChanges();
+                editorRegion.modelFactory().updateItem(model, dataAccessobject);
             }
             super.succeeded();
+        }
+
+        @Override
+        protected void cancelled() {
+            dataAccessobject.rejectChanges();
+            editorRegion.modelFactory().updateItem(model, dataAccessobject);
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            dataAccessobject.rejectChanges();
+            editorRegion.modelFactory().updateItem(model, dataAccessobject);
+            super.failed();
         }
 
         @Override

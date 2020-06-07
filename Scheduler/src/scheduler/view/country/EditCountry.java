@@ -397,14 +397,14 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private class DeleteTask extends Task<String> {
 
-        private final CityModel model;
+        private final CityModel cityModel;
         private final Window parentWindow;
         private final CityDAO dao;
 
         DeleteTask(CityModel model, Window parentWindow) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
             dao = model.dataObject();
-            this.model = model;
+            cityModel = model;
             this.parentWindow = parentWindow;
         }
 
@@ -414,6 +414,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             String message = getValue();
             if (null != message && !message.trim().isEmpty()) {
                 AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            } else if (dao.getRowState() == DataRowState.DELETED) {
+                CityModel.getFactory().updateItem(cityModel, dao);
             }
         }
 
@@ -421,15 +423,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = CityDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
+                String message = CityDAO.FACTORY.getDeleteDependencyMessage(dao, connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
                 CityDAO.FACTORY.delete(dao, connector.getConnection());
-                if (dao.getRowState() == DataRowState.DELETED) {
-                    CityModel.getFactory().updateItem(model, dao);
-                }
             }
             return null;
         }

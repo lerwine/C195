@@ -32,7 +32,7 @@ public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T
     ReadOnlyStringProperty languageProperty();
 
     ReadOnlyObjectProperty<Locale> localeProperty();
-    
+
     @Override
     T dataObject();
 

@@ -10,6 +10,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
@@ -20,6 +21,8 @@ import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.AppointmentType;
+import scheduler.model.CorporateAddress;
+import scheduler.model.PredefinedData;
 import scheduler.model.UserStatus;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -28,6 +31,8 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.DB;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
+import scheduler.view.event.AppointmentMutateEvent;
+import scheduler.view.event.ItemMutateEvent;
 
 /**
  * List item model for {@link AppointmentDAO} data access objects.
@@ -47,10 +52,10 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 return (url.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
                         : url;
             case CORPORATE_LOCATION:
-//                AddressDAO a = PredefinedData.lookupAddress(location);
-//                return AddressModel.calculateSingleLineAddress(a.getAddress1(), a.getAddress2(),
-//                                AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()), a.getPhone());
-                throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AppointmentModel#calculateEffectiveLocation
+                CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(location);
+                return AddressModel.calculateSingleLineAddress(corporateAddress.getAddress1(), corporateAddress.getAddress2(),
+                        AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(), corporateAddress.getCity().getCountry().getName(),
+                                corporateAddress.getPostalCode()), corporateAddress.getPhone());
             case PHONE:
                 return (location.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
                         : String.format("tel: %s", location);
@@ -113,6 +118,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final NonNullableStringProperty location;
     private final NonNullableStringProperty contact;
     private final SimpleObjectProperty<AppointmentType> type;
+    private final ReadOnlyStringBindingProperty typeDisplay;
     private final NonNullableStringProperty url;
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
@@ -142,6 +148,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         location = new NonNullableStringProperty(this, "location", dao.getLocation());
         AppointmentType at = dao.getType();
         type = new SimpleObjectProperty<>(this, "type", (null == at) ? AppointmentType.OTHER : at);
+        typeDisplay = new ReadOnlyStringBindingProperty(this, "typeDisplay",
+                Bindings.createStringBinding(() -> AppointmentType.toDisplayText(type.get()), type));
         contact = new NonNullableStringProperty(this, "contact");
         url = new NonNullableStringProperty(this, "url");
         start = new SimpleObjectProperty<>(this, "start");
@@ -158,13 +166,10 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 switch (t) {
                     case CORPORATE_LOCATION:
                         if (!l.isEmpty()) {
-//                                    AddressDAO a = PredefinedData.lookupAddress(l);
-//                                    return AddressModel.calculateMultiLineAddress(
-//                                            AddressModel.calculateAddressLines(a.getAddress1(), a.getAddress2()),
-//                                            AddressModel.calculateCityZipCountry(a.getCity(), a.getPostalCode()),
-//                                            a.getPhone()
-//                                    );
-                            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CountryModel#isValid
+                            CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(l);
+                            return AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(corporateAddress.getAddress1(), corporateAddress.getAddress2()),
+                                    AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(), corporateAddress.getCity().getCountry().getName(),
+                                            corporateAddress.getPostalCode()), corporateAddress.getPhone());
                         }
                         break;
                     case CUSTOMER_SITE:
@@ -459,12 +464,12 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public String getTypeDisplay() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AppointmentModel#getTypeDisplay
+        return typeDisplay.get();
     }
 
     @Override
     public ReadOnlyStringProperty typeDisplayProperty() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.AppointmentModel#typeDisplayProperty
+        return typeDisplay;
     }
 
     @Override
@@ -618,6 +623,21 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             item.setUrl(dao.getUrl());
             item.setStart(item.getStart());
             item.setEnd(item.getEnd());
+        }
+
+        @Override
+        public ItemMutateEvent<AppointmentModel> createInsertEvent(AppointmentModel source, Event fxEvent) {
+            return new AppointmentMutateEvent(source, AppointmentMutateEvent.APPOINTMENT_INSERT_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<AppointmentModel> createUpdateEvent(AppointmentModel source, Event fxEvent) {
+            return new AppointmentMutateEvent(source, AppointmentMutateEvent.APPOINTMENT_UPDATE_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<AppointmentModel> createDeleteEvent(AppointmentModel source, Event fxEvent) {
+            return new AppointmentMutateEvent(source, AppointmentMutateEvent.APPOINTMENT_DELETE_EVENT, fxEvent);
         }
 
     }

@@ -553,14 +553,14 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     private class DeleteTask extends Task<String> {
 
-        private final AddressModel model;
+        private final AddressModel addressModel;
         private final Window parentWindow;
         private final AddressDAO dao;
 
         DeleteTask(AddressModel model, Window parentWindow) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
             dao = model.dataObject();
-            this.model = model;
+            addressModel = model;
             this.parentWindow = parentWindow;
         }
 
@@ -570,6 +570,8 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             String message = getValue();
             if (null != message && !message.trim().isEmpty()) {
                 AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            } else if (dao.getRowState() == DataRowState.DELETED) {
+                AddressModel.getFactory().updateItem(addressModel, dao);
             }
         }
 
@@ -577,15 +579,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         protected String call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = AddressDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
+                String message = AddressDAO.FACTORY.getDeleteDependencyMessage(dao, connector.getConnection());
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
                 AddressDAO.FACTORY.delete(dao, connector.getConnection());
-                if (dao.getRowState() == DataRowState.DELETED) {
-                    AddressModel.getFactory().updateItem(model, dao);
-                }
             }
             return null;
         }

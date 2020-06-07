@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
@@ -16,6 +17,8 @@ import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
+import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.UserMutateEvent;
 import scheduler.view.user.UserModelFilter;
 
 /**
@@ -179,6 +182,21 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
             item.setUserName(dao.getUserName());
             item.setPassword(dao.getPassword());
             item.setStatus(dao.getStatus());
+        }
+
+        @Override
+        public ItemMutateEvent<UserModel> createInsertEvent(UserModel source, Event fxEvent) {
+            return new UserMutateEvent(source, UserMutateEvent.USER_INSERT_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<UserModel> createUpdateEvent(UserModel source, Event fxEvent) {
+            return new UserMutateEvent(source, UserMutateEvent.USER_UPDATE_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<UserModel> createDeleteEvent(UserModel source, Event fxEvent) {
+            return new UserMutateEvent(source, UserMutateEvent.USER_DELETE_EVENT, fxEvent);
         }
 
     }

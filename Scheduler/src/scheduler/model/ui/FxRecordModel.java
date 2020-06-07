@@ -21,6 +21,7 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.util.Pair;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
@@ -31,6 +32,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
 import scheduler.view.ModelFilter;
+import scheduler.view.event.ItemMutateEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -220,6 +222,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         public final void updateItem(U item, T updatedDao) {
             T currentDao = item.dataObject();
             if (Objects.requireNonNull(updatedDao) == currentDao) {
+                updateItemProperties(item, currentDao);
                 return;
             }
             if (updatedDao.getRowState() == DataRowState.NEW) {
@@ -323,6 +326,12 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
+        public abstract ItemMutateEvent<U> createInsertEvent(U source, Event fxEvent);
+        
+        public abstract ItemMutateEvent<U> createUpdateEvent(U source, Event fxEvent);
+        
+        public abstract ItemMutateEvent<U> createDeleteEvent(U source, Event fxEvent);
+        
     }
 
     @FunctionalInterface

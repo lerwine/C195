@@ -10,6 +10,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
@@ -19,6 +20,8 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
+import scheduler.view.event.CustomerMutateEvent;
+import scheduler.view.event.ItemMutateEvent;
 
 /**
  *
@@ -292,6 +295,21 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             item.setName(dao.getName());
             item.setActive(dao.isActive());
             item.setAddress(AddressItem.createModel(dao.getAddress()));
+        }
+
+        @Override
+        public ItemMutateEvent<CustomerModel> createInsertEvent(CustomerModel source, Event fxEvent) {
+            return new CustomerMutateEvent(source, CustomerMutateEvent.CUSTOMER_INSERT_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<CustomerModel> createUpdateEvent(CustomerModel source, Event fxEvent) {
+            return new CustomerMutateEvent(source, CustomerMutateEvent.CUSTOMER_UPDATE_EVENT, fxEvent);
+        }
+
+        @Override
+        public ItemMutateEvent<CustomerModel> createDeleteEvent(CustomerModel source, Event fxEvent) {
+            return new CustomerMutateEvent(source, CustomerMutateEvent.CUSTOMER_DELETE_EVENT, fxEvent);
         }
 
     }

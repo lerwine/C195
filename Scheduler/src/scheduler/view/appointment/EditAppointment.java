@@ -596,7 +596,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @Override
     public void onNewModelSaved() {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.appointment.EditAppointment#applyEditMode
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME:  Implement scheduler.view.appointment.EditAppointment#applyEditMode
     }
 
     @Override

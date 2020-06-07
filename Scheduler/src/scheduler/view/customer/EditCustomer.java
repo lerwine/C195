@@ -13,6 +13,7 @@ import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -40,6 +41,7 @@ import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.Scheduler.getMainController;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -50,11 +52,16 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.model.CityProperties;
+import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.observables.BindingHelper;
@@ -65,14 +72,17 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.Quadruplet;
-import scheduler.util.Triplet;
+import scheduler.util.Tuple;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.EditAppointment;
+import scheduler.view.city.EditCity;
+import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
+import scheduler.view.event.CustomerMutateEvent;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -106,16 +116,22 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
+    private final ReadOnlyIntegerWrapper addressCustomerCount;
+    private final ReadOnlyObjectWrapper<AddressItem<? extends IAddressDAO>> selectedAddress;
     private final ObservableList<String> unavailableNames;
     private final ObservableList<AppointmentModel> customerAppointments;
     private final ObservableList<CityItem<? extends ICityDAO>> allCities;
     private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
     private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
+//    private ReadOnlyJavaBeanObjectProperty<IAddressDAO> originalAddress;
+//    private ObjectBinding<DataRowState> originalAddressRowState;
+//    private IntegerBinding originalAddressPrimaryKey;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedName;
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
+    private ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry;
     private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
@@ -187,6 +203,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private ButtonBar addAppointmentButtonBar; // Value injected by FXMLLoader
 
     public EditCustomer() {
+        addressCustomerCount = new ReadOnlyIntegerWrapper(0);
+        selectedAddress = new ReadOnlyObjectWrapper<>();
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);
         modified = new ReadOnlyBooleanWrapper(false);
@@ -228,24 +246,47 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     @FXML
     private void onNewCityButtonAction(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onNewCityButtonAction
+        CityModel c;
+        try {
+            c = EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading city edit window", ex);
+            c = null;
+        }
+        if (null != c) {
+            allCities.add(c);
+            CountryItem<? extends ICountryDAO> n = c.getCountry();
+            int pk = n.getPrimaryKey();
+            CountryItem<? extends ICountryDAO> sn = allCountries.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElseGet(() -> {
+                allCountries.add(n);
+                allCountries.sort(CountryProperties::compare);
+                return n;
+            });
+            countryComboBox.getSelectionModel().select(sn);
+            cityOptions.add(c);
+            cityOptions.sort(CityProperties::compare);
+            cityComboBox.getSelectionModel().select(c);
+        }
     }
 
     @FXML
     private void onNewCountryButtonAction(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onNewCountryButtonAction
+        CountryModel c;
+        try {
+            c = EditCountry.editNew(getScene().getWindow(), false);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading city edit window", ex);
+            c = null;
+        }
+        if (null != c) {
+            allCountries.add(c);
+            allCountries.sort(CountryProperties::compare);
+            countryComboBox.getSelectionModel().select(c);
+        }
     }
 
     private void onAppointmentFilterComboBoxAction(ActionEvent event) {
         waitBorderPane.startNow(new AppointmentReloadTask());
-    }
-
-    private void onCityComboBoxAction(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onCityComboBoxAction
-    }
-
-    private void onCountryComboBoxAction(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // CURRENT: Implement scheduler.view.customer.EditCustomer#onCountryComboBoxAction
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -274,8 +315,25 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         appointmentFilterComboBox.setItems(filterOptions);
         appointmentsTableView.setItems(customerAppointments);
 
-        selectedFilter = Bindings.select(appointmentFilterComboBox.selectionModelProperty(), "selectedItem");
-        
+        selectedAddress.set(model.getAddress());
+        if (null == selectedAddress.get()) {
+            selectedAddress.set(new AddressModel(new AddressDAO()));
+        }
+
+//        try {
+//            originalAddress = ReadOnlyJavaBeanObjectPropertyBuilder.<IAddressDAO>create().bean(model.dataObject()).name(CustomerDAO.PROP_ADDRESS).build();
+//        } catch (NoSuchMethodException ex) {
+//            LOG.log(Level.SEVERE, "Error creating originalAdress property", ex);
+//            throw new RuntimeException(ex);
+//        }
+//        originalAddressRowState = Bindings.when(originalAddress.isNull())
+//                .then(DataRowState.NEW)
+//                .otherwise(Bindings.<DataRowState>select(originalAddress, DataAccessObject.PROP_ROWSTATE));
+//        originalAddressPrimaryKey = Bindings.selectInteger(originalAddress, DataAccessObject.PROP_PRIMARYKEY);
+        selectedFilter = Bindings.<AppointmentFilterItem>select(appointmentFilterComboBox.selectionModelProperty(), "selectedItem");
+        selectedCountry = Bindings.<CountryItem<? extends ICountryDAO>>select(countryComboBox.selectionModelProperty(), "selectedItem");
+        selectedCity = Bindings.<CityItem<? extends ICityDAO>>select(cityComboBox.selectionModelProperty(), "selectedItem");
+
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         BooleanBinding nameValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
@@ -289,12 +347,10 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         BooleanBinding addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
         addressValidationLabel.visibleProperty().bind(addressValid.not());
 
-        ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry = Bindings.select(countryComboBox.selectionModelProperty(), "selectedItem");
         cityComboBox.disableProperty().bind(selectedCountry.isNull());
         newCityButton.disableProperty().bind(selectedCountry.isNull());
         countryValidationLabel.visibleProperty().bind(selectedCountry.isNull());
         selectedCountry.addListener(this::onSelectedCountryChanged);
-        selectedCity = Bindings.select(cityComboBox.selectionModelProperty(), "selectedItem");
         selectedCity.addListener(this::onSelectedCityChanged);
         StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
             CityItem<? extends ICityDAO> c = selectedCity.get();
@@ -378,10 +434,63 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
+
+        addEventHandler(CustomerMutateEvent.CUSTOMER_UPDATE_EVENT, this::onCustomerUpdate);
+        addEventHandler(CustomerMutateEvent.CUSTOMER_INSERT_EVENT, this::onCustomerUpdate);
     }
 
     private void initializeEditMode() {
+        LocalDate today = LocalDate.now();
+        CustomerDAO dao = model.dataObject();
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
+                AppointmentModelFilter.of(today, null, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
+                AppointmentModelFilter.of(today, today.plusDays(1), dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
+                AppointmentModelFilter.of(null, today, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+        appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+    }
+
+    private void onCustomerUpdate(CustomerMutateEvent event) {
+        AddressItem<? extends IAddressDAO> address = selectedAddress.get();
+        int existingCount = addressCustomerCount.get();
+        if (address.getRowState() != DataRowState.NEW) {
+            AddressItem<? extends IAddressDAO> originalAddress = model.getAddress();
+            if (null != originalAddress && originalAddress.getRowState() != DataRowState.NEW && address.getPrimaryKey() == originalAddress.getPrimaryKey()) {
+                if (existingCount < 2) {
+                    return;
+                }
+                existingCount--;
+            } else if (existingCount < 1) {
+                return;
+            }
+        } else if (existingCount < 1) {
+            return;
+        }
+        Stage stage = (Stage) getScene().getWindow();
+        StringBuilder message = new StringBuilder();
+        if (existingCount == 1)
+            message.append("is 1 other customer that shares");
+        else
+            message.append("are ").append(existingCount).append(" other customers that share");
+        
+        Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
+                "Multiple Customers Affected",
+                String.format("There %s the same address."
+                        + "%nChange address for all customers?%nSelect \"No\" to create a new address for the current customer or "
+                        + "\"Cancel\" to abort the save operation.", message), ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+        if (response.isPresent()) {
+            if (response.get() == ButtonType.YES) {
+                return;
+            }
+            if (response.get() == ButtonType.NO) {
+                selectedAddress.set(new AddressModel(new AddressDAO()));
+                return;
+            }
+        }
+        event.setCanceled(true);
     }
 
     private void onAppointmentAdded(AppointmentDaoEvent event) {
@@ -484,29 +593,22 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         restoreNode(appointmentsTableView);
         restoreNode(addAppointmentButtonBar);
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-        LocalDate today = LocalDate.now();
-        CustomerDAO dao = model.dataObject();
-        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
-                AppointmentModelFilter.of(today, null, dao)));
-        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
-                AppointmentModelFilter.of(today, today.plusDays(1), dao)));
-        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
-                AppointmentModelFilter.of(null, today, dao)));
-        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-        appointmentFilterComboBox.getSelectionModel().selectFirst();
-        appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
         initializeEditMode();
+        appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
+        updateValidation();
     }
 
     @Override
     public void updateModel() {
         model.setName(nameTextField.getText().trim());
+        AddressItem<? extends IAddressDAO> addr = selectedAddress.get();
+        // FIXME: Update address properties.
+        model.setAddress(selectedAddress.get());
         model.setActive(activeTrueRadioButton.isSelected());
-        // CURRENT: Finish implementing EditCustomer#updateMmodel
-        //model.setAddress( );
     }
 
-    private void loadData(List<CityDAO> cities, List<CountryDAO> countries) {
+    private void loadData(int sameAddr, List<CityDAO> cities, List<CountryDAO> countries) {
+        addressCustomerCount.set(sameAddr);
         AddressItem<? extends IAddressDAO> address = model.getAddress();
         CityItem<? extends ICityDAO> city;
         CountryItem<? extends ICountryDAO> country;
@@ -541,8 +643,9 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         } else {
             cities.forEach((t) -> allCities.add(CityItem.createModel(t)));
         }
-        cityComboBox.setOnAction(this::onCityComboBoxAction);
-        countryComboBox.setOnAction(this::onCountryComboBoxAction);
+        cityComboBox.setOnAction((event) -> updateValidation());
+        countryComboBox.setOnAction((event) -> updateValidation());
+        updateValidation();
     }
 
     private void deleteAppointment(AppointmentModel item) {
@@ -609,47 +712,43 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     }
 
-    private class EditDataLoadTask extends Task<Quadruplet<List<AppointmentDAO>, List<CustomerDAO>, List<CityDAO>, List<CountryDAO>>> {
+    private class EditDataLoadTask extends Task<Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, List<CityDAO>, List<CountryDAO>>> {
 
         private final AppointmentFilter filter;
+        private final IAddressDAO address;
 
         private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             AppointmentFilterItem filterItem = selectedFilter.get();
+            address = model.dataObject().getAddress();
             filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
         }
 
         @Override
         protected void succeeded() {
-            Quadruplet<List<AppointmentDAO>, List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> result = getValue();
-            if (null != result.getValue2() && !result.getValue2().isEmpty()) {
+            Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, List<CityDAO>, List<CountryDAO>> result = getValue();
+            List<CustomerDAO> allCustomers = result.getValue2().getValue1();
+            int sameAddr = result.getValue2().getValue2();
+            if (null != allCustomers && !allCustomers.isEmpty()) {
                 int pk = model.getPrimaryKey();
-                result.getValue2().stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
+                allCustomers.stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
             }
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
                 result.getValue1().stream().map((t) -> new AppointmentModel(t)).forEach(customerAppointments::add);
             }
-            LocalDate today = LocalDate.now();
-            CustomerDAO dao = model.dataObject();
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
-                    AppointmentModelFilter.of(today, null, dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
-                    AppointmentModelFilter.of(today, today.plusDays(1), dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
-                    AppointmentModelFilter.of(null, today, dao)));
-            filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-            appointmentFilterComboBox.getSelectionModel().selectFirst();
             appointmentFilterComboBox.setOnAction(EditCustomer.this::onAppointmentFilterComboBoxAction);
             waitBorderPane.startNow(new AppointmentReloadTask());
-            loadData(result.getValue3(), result.getValue4());
+            loadData(sameAddr, result.getValue3(), result.getValue4());
         }
 
         @Override
-        protected Quadruplet<List<AppointmentDAO>, List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> call() throws Exception {
+        protected Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, List<CityDAO>, List<CountryDAO>> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
+                int sameAddr = (null == address || address.getRowState() == DataRowState.NEW) ? 0
+                        : uf.countByAddress(dbConnector.getConnection(), address.getPrimaryKey());
                 List<CustomerDAO> customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
                 CityDAO.FactoryImpl tf = CityDAO.FACTORY;
@@ -660,41 +759,46 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
                 updateMessage(resources.getString(RESOURCEKEY_LOADINGAPPOINTMENTS));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 return Quadruplet.of(af.load(dbConnector.getConnection(), (null != filter) ? filter : af.getAllItemsFilter()),
-                        customers, cities, countries);
+                        Tuple.of(customers, sameAddr), cities, countries);
             }
         }
 
     }
 
-    private class NewDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CityDAO>, List<CountryDAO>>> {
+    private class NewDataLoadTask extends Task<Quadruplet<List<CustomerDAO>, Integer, List<CityDAO>, List<CountryDAO>>> {
+
+        private final IAddressDAO address;
 
         private NewDataLoadTask() {
+            address = model.dataObject().getAddress();
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
         }
 
         @Override
         protected void succeeded() {
-            Triplet<List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> result = getValue();
+            Quadruplet<List<CustomerDAO>, Integer, List<CityDAO>, List<CountryDAO>> result = getValue();
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
                 result.getValue1().stream().map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
             }
-            loadData(result.getValue2(), result.getValue3());
+            loadData(result.getValue2(), result.getValue3(), result.getValue4());
         }
 
         @Override
-        protected Triplet<List<CustomerDAO>, List<CityDAO>, List<CountryDAO>> call() throws Exception {
+        protected Quadruplet<List<CustomerDAO>, Integer, List<CityDAO>, List<CountryDAO>> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
                 List<CustomerDAO> customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
+                int sameAddr = (null == address || address.getRowState() == DataRowState.NEW) ? 0
+                        : uf.countByAddress(dbConnector.getConnection(), address.getPrimaryKey());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
                 CityDAO.FactoryImpl tf = CityDAO.FACTORY;
                 List<CityDAO> cities = tf.load(dbConnector.getConnection(), tf.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
                 List<CountryDAO> countries = nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
-                return Triplet.of(customers, cities, countries);
+                return Quadruplet.of(customers, sameAddr, cities, countries);
             }
         }
 
@@ -728,6 +832,27 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 return af.load(dbConnector.getConnection(), filter);
+            }
+        }
+
+    }
+
+    private class AddressCustomerLoadTask extends Task<Integer> {
+
+        private final IAddressDAO address;
+
+        private AddressCustomerLoadTask() {
+            address = model.dataObject().getAddress();
+        }
+
+        @Override
+        protected Integer call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
+                return (null == address || address.getRowState() == DataRowState.NEW) ? 0
+                        : uf.countByAddress(dbConnector.getConnection(), address.getPrimaryKey());
             }
         }
 
