@@ -40,10 +40,20 @@ public class ObjectActionRequestEvent extends Event {
         delete = isDelete;
     }
 
+    /**
+     * Gets a value that indicates whether the event is for a deletion.
+     * 
+     * @return {@code true} if this is a delete event; otherwise, {@code false} if it is an edit event.
+     */
     public boolean isDelete() {
         return delete;
     }
 
+    /**
+     * Gets the {@link ActionEvent} that initiated this request.
+     * 
+     * @return The {@link ActionEvent} that initiated this request.
+     */
     public Event getFxEvent() {
         return fxEvent;
     }

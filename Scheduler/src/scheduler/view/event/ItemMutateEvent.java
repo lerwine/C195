@@ -7,9 +7,10 @@ import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
 
 /**
+ * Base class for {@link FxRecordModel} save and delete events.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T>
+ * @param <T> The {@link FxRecordModel} type.
  */
 public class ItemMutateEvent<T extends FxRecordModel<? extends DataAccessObject>> extends Event {
 
@@ -22,16 +23,27 @@ public class ItemMutateEvent<T extends FxRecordModel<? extends DataAccessObject>
     private final Event fxEvent;
     private boolean canceled;
 
-    protected ItemMutateEvent(T source, EventTarget target, EventType<? extends ItemMutateEvent<? extends FxRecordModel<? extends DataAccessObject>>> type, Event fxEvent) {
+    protected ItemMutateEvent(T source, EventTarget target,
+            EventType<? extends ItemMutateEvent<? extends FxRecordModel<? extends DataAccessObject>>> type, Event fxEvent) {
         super(source, target, type);
         this.fxEvent = fxEvent;
         canceled = false;
     }
 
+    /**
+     * Gets the {@link ActionEvent} that initiated this event.
+     * 
+     * @return The {@link ActionEvent} that initiated this event.
+     */
     public Event getFxEvent() {
         return fxEvent;
     }
 
+    /**
+     * Gets a value that indicates whether the represented save or delete operation is to be canceled.
+     * 
+     * @return {@code true} if the represented save or delete operation is to be canceled; otherwise {@code false}.
+     */
     public boolean isCanceled() {
         return canceled;
     }

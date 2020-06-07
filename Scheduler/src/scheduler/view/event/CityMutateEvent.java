@@ -6,6 +6,7 @@ import javafx.event.EventType;
 import scheduler.model.ui.CityModel;
 
 /**
+ * Event that is fired when a {@link CityModel} is about to be saved or deleted.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

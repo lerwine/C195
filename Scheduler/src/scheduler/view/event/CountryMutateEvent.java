@@ -6,6 +6,7 @@ import javafx.event.EventType;
 import scheduler.model.ui.CountryModel;
 
 /**
+ * Event that is fired when a {@link CountryModel} is about to be saved or deleted.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
