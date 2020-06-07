@@ -63,12 +63,7 @@
     </xs:complexType>
     <xs:complexType name="countryType">
         <xs:sequence>
-            <xs:element name="city" type="a:cityType" minOccurs="1" maxOccurs="unbounded">
-                <xs:key name="addressKey">
-                    <xs:selector xpath="./a:address" />
-                    <xs:field xpath="@name" />
-                </xs:key>
-            </xs:element>
+            <xs:element name="city" type="a:cityType" minOccurs="1" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="languageTag" use="required">
             <xs:simpleType>
@@ -82,7 +77,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="country" type="a:countryType" minOccurs="1" maxOccurs="unbounded">
-                    <xs:key name="cityKey">
+                    <xs:key name="cityName">
                         <xs:selector xpath="./a:city" />
                         <xs:field xpath="@name" />
                     </xs:key>
@@ -92,6 +87,10 @@
         <xs:key name="countryKey">
             <xs:selector xpath="./a:country" />
             <xs:field xpath="@languageTag" />
+        </xs:key>
+        <xs:key name="addressKey">
+            <xs:selector xpath="./a:country/a:city/a:address" />
+            <xs:field xpath="@name" />
         </xs:key>
     </xs:element>
 </xs:schema>
