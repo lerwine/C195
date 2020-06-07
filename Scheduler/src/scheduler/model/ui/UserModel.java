@@ -16,6 +16,7 @@ import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.PwHash;
 import scheduler.util.Values;
 import scheduler.view.event.ItemMutateEvent;
 import scheduler.view.event.UserMutateEvent;
@@ -42,7 +43,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     public UserModel(UserDAO dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, PROP_USERNAME, dao.getUserName());
-        password = new SimpleStringProperty(this, PROP_PASSWORD, dao.getPassword());
+        password = new SimpleStringProperty(this, PROP_PASSWORD, "");
         status = new SimpleObjectProperty<>(this, PROP_STATUS, dao.getStatus());
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
         valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
@@ -172,7 +173,11 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
                 throw new IllegalArgumentException("User has been deleted");
             }
             dao.setUserName(item.userName.get());
-            dao.setPassword(item.password.get());
+            String pw = item.password.get();
+            if (!pw.isEmpty()) {
+                PwHash h = new PwHash(pw, true);
+                dao.setPassword(h.getEncodedHash());
+            }
             dao.setStatus(item.getStatus());
             return dao;
         }
@@ -180,7 +185,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         @Override
         protected void updateItemProperties(UserModel item, UserDAO dao) {
             item.setUserName(dao.getUserName());
-            item.setPassword(dao.getPassword());
+            item.setPassword("");
             item.setStatus(dao.getStatus());
         }
 

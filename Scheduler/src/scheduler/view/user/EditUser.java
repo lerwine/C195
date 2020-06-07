@@ -96,7 +96,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private StringBinding normalizedUserName;
     private BooleanBinding validationBinding;
     private ObjectBinding<UserStatus> selectedStatus;
-    private StringBinding passwordHash;
     private BooleanBinding modificationBinding;
 
     @ModelEditor
@@ -150,17 +149,17 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @FXML
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
-
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#onCustomerDeleteMenuItemAction
     }
 
     @FXML
     private void onCustomerEditMenuItemAction(ActionEvent event) {
-
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#onCustomerEditMenuItemAction
     }
 
     @FXML
     private void onItemActionRequest(ItemActionRequestEvent<UserModel> event) {
-
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#onItemActionRequest
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -215,14 +214,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         passwordErrorMessageLabel.visibleProperty().bind(passwordInvalid);
         passwordErrorMessageLabel.textProperty().bind(passwordErrorMessage);
         changePasswordCheckBox.selectedProperty().addListener(this::changePasswordCheckBoxChanged);
-        passwordHash = Bindings.createStringBinding(() -> {
-            String p = passwordField.getText();
-            if (passwordInvalid.get() || p.isEmpty()) {
-                return "";
-            }
-            return "";
-        }, passwordInvalid, passwordField.textProperty());
-
         userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
@@ -357,16 +348,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
     }
 
-    public boolean applyChangesToModel() {
-        model.setUserName(userNameTextField.getText());
-        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
-        if (changePasswordCheckBox.isSelected()) {
-            PwHash pw = new PwHash(passwordField.getText(), true);
-            model.setPassword(pw.getEncodedHash());
-        }
-        return true;
-    }
-
     @Override
     public boolean isValid() {
         return valid.get();
@@ -413,9 +394,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @Override
     public void updateModel() {
-        model.setUserName(userNameTextField.getText().trim());
-        model.setPassword(passwordField.getText());
+        model.setUserName(userNameTextField.getText());
         model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
+        if (changePasswordCheckBox.isSelected()) {
+            PwHash pw = new PwHash(passwordField.getText(), true);
+            model.setPassword(pw.getEncodedHash());
+        }
     }
 
     private void loadUsers(List<UserDAO> users) {
@@ -436,6 +420,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private class AppointmentFilterItem {
 
         private final ReadOnlyStringWrapper text;
+        private final ReadOnlyObjectWrapper<AppointmentModelFilter> modelFilter;
+
+        AppointmentFilterItem(String text, AppointmentModelFilter modelFilter) {
+            this.text = new ReadOnlyStringWrapper(this, "text", text);
+            this.modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter", modelFilter);
+        }
 
         @SuppressWarnings("unused")
         public String getText() {
@@ -446,7 +436,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         public ReadOnlyStringProperty textProperty() {
             return text.getReadOnlyProperty();
         }
-        private final ReadOnlyObjectWrapper<AppointmentModelFilter> modelFilter;
 
         public AppointmentModelFilter getModelFilter() {
             return modelFilter.get();
@@ -455,11 +444,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         @SuppressWarnings("unused")
         public ReadOnlyObjectProperty<AppointmentModelFilter> modelFilterProperty() {
             return modelFilter.getReadOnlyProperty();
-        }
-
-        AppointmentFilterItem(String text, AppointmentModelFilter modelFilter) {
-            this.text = new ReadOnlyStringWrapper(this, "text", text);
-            this.modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter", modelFilter);
         }
 
         @Override
