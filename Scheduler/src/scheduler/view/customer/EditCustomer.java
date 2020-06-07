@@ -117,7 +117,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
     private final ReadOnlyIntegerWrapper addressCustomerCount;
-    private final ReadOnlyObjectWrapper<AddressItem<? extends IAddressDAO>> selectedAddress;
+    private final ReadOnlyObjectWrapper<AddressModel> selectedAddress;
     private final ObservableList<String> unavailableNames;
     private final ObservableList<AppointmentModel> customerAppointments;
     private final ObservableList<CityItem<? extends ICityDAO>> allCities;
@@ -202,7 +202,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     public EditCustomer() {
         addressCustomerCount = new ReadOnlyIntegerWrapper(0);
-        selectedAddress = new ReadOnlyObjectWrapper<>();
+        selectedAddress = new ReadOnlyObjectWrapper<>(new AddressModel(new AddressDAO()));
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);
         modified = new ReadOnlyBooleanWrapper(false);
@@ -312,11 +312,6 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         countryComboBox.setItems(allCountries);
         appointmentFilterComboBox.setItems(filterOptions);
         appointmentsTableView.setItems(customerAppointments);
-
-        selectedAddress.set(model.getAddress());
-        if (null == selectedAddress.get()) {
-            selectedAddress.set(new AddressModel(new AddressDAO()));
-        }
 
         selectedFilter = Bindings.<AppointmentFilterItem>select(appointmentFilterComboBox.selectionModelProperty(), "selectedItem");
         selectedCountry = Bindings.<CountryItem<? extends ICountryDAO>>select(countryComboBox.selectionModelProperty(), "selectedItem");
@@ -448,10 +443,10 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     private void onCustomerUpdate(CustomerMutateEvent event) {
-        AddressItem<? extends IAddressDAO> address = selectedAddress.get();
+        AddressModel address = selectedAddress.get();
         int existingCount = addressCustomerCount.get();
         if (address.getRowState() != DataRowState.NEW) {
-            AddressItem<? extends IAddressDAO> originalAddress = model.getAddress();
+            IAddressDAO originalAddress = model.dataObject().getAddress();
             if (null != originalAddress && originalAddress.getRowState() != DataRowState.NEW && address.getPrimaryKey() == originalAddress.getPrimaryKey()) {
                 if (existingCount < 2) {
                     return;
@@ -596,36 +591,40 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     @Override
     public void updateModel() {
         model.setName(nameTextField.getText().trim());
-        if (model.getRowState() == DataRowState.NEW || addressChanged.get()) {
-            AddressItem<? extends IAddressDAO> addr = selectedAddress.get();
-            // FIXME: Ensure it's an AddressModel object
+        if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
+            AddressModel addr = selectedAddress.get();
+            addr.setAddress1(normalizedAddress1.get());
+            addr.setAddress2(normalizedAddress2.get());
+            addr.setCity(selectedCity.get());
+            addr.setPostalCode(normalizedPostalCode.get());
+            addr.setPhone(normalizedPhone.get());
+            model.setAddress(selectedAddress.get());
         }
-
-        // FIXME: Update address properties.
-        model.setAddress(selectedAddress.get());
         model.setActive(activeTrueRadioButton.isSelected());
     }
 
-    private void loadData(int sameAddr, List<CityDAO> cities, List<CountryDAO> countries) {
+    private void loadData(int sameAddr, Tuple<AddressDAO, List<CityDAO>> addressAndCities, List<CountryDAO> countries) {
         addressCustomerCount.set(sameAddr);
-        AddressItem<? extends IAddressDAO> address = model.getAddress();
+        AddressItem<? extends IAddressDAO> addrItem = model.getAddress();
+        AddressModel address;
+        if (null != addrItem && addrItem instanceof AddressModel) {
+            address = (AddressModel) addrItem;
+        } else {
+            address = new AddressModel(addressAndCities.getValue1());
+        }
+        selectedAddress.set(address);
         CityItem<? extends ICityDAO> city;
         CountryItem<? extends ICountryDAO> country;
-        if (null != address) {
-            city = address.getCity();
-            if (null != city) {
-                country = city.getCountry();
-            } else {
-                country = null;
-            }
-            address1TextField.setText(address.getAddress1());
-            address2TextField.setText(address.getAddress2());
-            postalCodeTextField.setText(address.getPostalCode());
-            phoneNumberTextField.setText(address.getPhone());
+        city = address.getCity();
+        if (null != city) {
+            country = city.getCountry();
         } else {
-            city = null;
             country = null;
         }
+        address1TextField.setText(address.getAddress1());
+        address2TextField.setText(address.getAddress2());
+        postalCodeTextField.setText(address.getPostalCode());
+        phoneNumberTextField.setText(address.getPhone());
 
         if (null != country && country.getRowState() != DataRowState.NEW) {
             int pk = country.getPrimaryKey();
@@ -637,10 +636,10 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         if (null != city && city.getRowState() != DataRowState.NEW) {
             int pk = city.getPrimaryKey();
-            cities.forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? city : CityItem.createModel(t)));
+            addressAndCities.getValue2().forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? city : CityItem.createModel(t)));
             cityComboBox.getSelectionModel().select(city);
         } else {
-            cities.forEach((t) -> allCities.add(CityItem.createModel(t)));
+            addressAndCities.getValue2().forEach((t) -> allCities.add(CityItem.createModel(t)));
         }
         cityComboBox.setOnAction((event) -> updateValidation());
         countryComboBox.setOnAction((event) -> updateValidation());
@@ -714,21 +713,23 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
     }
 
-    private class EditDataLoadTask extends Task<Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, List<CityDAO>, List<CountryDAO>>> {
+    private class EditDataLoadTask extends Task<Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>>> {
 
         private final AppointmentFilter filter;
         private final IAddressDAO address;
+        private final CustomerDAO dao;
 
         private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
             AppointmentFilterItem filterItem = selectedFilter.get();
-            address = model.dataObject().getAddress();
+            dao = model.dataObject();
+            address = dao.getAddress();
             filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
         }
 
         @Override
         protected void succeeded() {
-            Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, List<CityDAO>, List<CountryDAO>> result = getValue();
+            Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> result = getValue();
             List<CustomerDAO> allCustomers = result.getValue2().getValue1();
             int sameAddr = result.getValue2().getValue2();
             if (null != allCustomers && !allCustomers.isEmpty()) {
@@ -744,13 +745,22 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
 
         @Override
-        protected Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, List<CityDAO>, List<CountryDAO>> call() throws Exception {
+        protected Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
-                int sameAddr = (null == address || address.getRowState() == DataRowState.NEW) ? 0
-                        : uf.countByAddress(dbConnector.getConnection(), address.getPrimaryKey());
+                AddressDAO addressDAO;
+                if (null == address) {
+                    addressDAO = new AddressDAO();
+                } else if (address instanceof AddressDAO) {
+                    addressDAO = (AddressDAO) address;
+                } else {
+                    addressDAO = AddressDAO.FACTORY.loadByPrimaryKey(dbConnector.getConnection(), address.getPrimaryKey()).get();
+                }
+
+                int sameAddr = (addressDAO.getRowState() == DataRowState.NEW) ? 0
+                        : uf.countByAddress(dbConnector.getConnection(), addressDAO.getPrimaryKey());
                 List<CustomerDAO> customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
                 CityDAO.FactoryImpl tf = CityDAO.FACTORY;
@@ -761,13 +771,13 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
                 updateMessage(resources.getString(RESOURCEKEY_LOADINGAPPOINTMENTS));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 return Quadruplet.of(af.load(dbConnector.getConnection(), (null != filter) ? filter : af.getAllItemsFilter()),
-                        Tuple.of(customers, sameAddr), cities, countries);
+                        Tuple.of(customers, sameAddr), Tuple.of(addressDAO, cities), countries);
             }
         }
 
     }
 
-    private class NewDataLoadTask extends Task<Quadruplet<List<CustomerDAO>, Integer, List<CityDAO>, List<CountryDAO>>> {
+    private class NewDataLoadTask extends Task<Quadruplet<List<CustomerDAO>, Integer, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>>> {
 
         private final IAddressDAO address;
 
@@ -778,7 +788,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         @Override
         protected void succeeded() {
-            Quadruplet<List<CustomerDAO>, Integer, List<CityDAO>, List<CountryDAO>> result = getValue();
+            Quadruplet<List<CustomerDAO>, Integer, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> result = getValue();
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
                 result.getValue1().stream().map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
             }
@@ -786,21 +796,30 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
 
         @Override
-        protected Quadruplet<List<CustomerDAO>, Integer, List<CityDAO>, List<CountryDAO>> call() throws Exception {
+        protected Quadruplet<List<CustomerDAO>, Integer, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
                 List<CustomerDAO> customers = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
-                int sameAddr = (null == address || address.getRowState() == DataRowState.NEW) ? 0
-                        : uf.countByAddress(dbConnector.getConnection(), address.getPrimaryKey());
+                AddressDAO addressDAO;
+                if (null == address) {
+                    addressDAO = new AddressDAO();
+                } else if (address instanceof AddressDAO) {
+                    addressDAO = (AddressDAO) address;
+                } else {
+                    addressDAO = AddressDAO.FACTORY.loadByPrimaryKey(dbConnector.getConnection(), address.getPrimaryKey()).get();
+                }
+
+                int sameAddr = (addressDAO.getRowState() == DataRowState.NEW) ? 0
+                        : uf.countByAddress(dbConnector.getConnection(), addressDAO.getPrimaryKey());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
                 CityDAO.FactoryImpl tf = CityDAO.FACTORY;
                 List<CityDAO> cities = tf.load(dbConnector.getConnection(), tf.getAllItemsFilter());
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
                 List<CountryDAO> countries = nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
-                return Quadruplet.of(customers, sameAddr, cities, countries);
+                return Quadruplet.of(customers, sameAddr, Tuple.of(addressDAO, cities), countries);
             }
         }
 
