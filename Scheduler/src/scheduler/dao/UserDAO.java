@@ -12,9 +12,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.Scheduler;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DbChangeType;
-import scheduler.dao.event.UserDaoEvent;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -31,6 +28,7 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.view.event.UserEvent;
 
 /**
  * Data access object for the {@code user} database table.
@@ -390,8 +388,18 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected DataObjectEvent<? extends UserDAO> createDataObjectEvent(Object source, UserDAO dataAccessObject, DbChangeType changeAction) {
-            return new UserDaoEvent(source, dataAccessObject, changeAction);
+        protected UserEvent createInsertedEvent(Object source, UserDAO dataAccessObject) {
+            return new UserEvent(source, dataAccessObject, UserEvent.USER_INSERTED_EVENT, null);
+        }
+
+        @Override
+        protected UserEvent createUpdatedEvent(Object source, UserDAO dataAccessObject) {
+            return new UserEvent(source, dataAccessObject, UserEvent.USER_UPDATED_EVENT, null);
+        }
+
+        @Override
+        protected UserEvent createDeletedEvent(Object source, UserDAO dataAccessObject) {
+            return new UserEvent(source, dataAccessObject, UserEvent.USER_DELETED_EVENT, null);
         }
 
     }

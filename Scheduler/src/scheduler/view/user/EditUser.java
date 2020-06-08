@@ -40,7 +40,6 @@ import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
-import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;
@@ -58,6 +57,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
+import scheduler.view.event.AppointmentEvent;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -245,15 +245,15 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             private void onChange(boolean hasParent) {
                 if (hasParent) {
                     if (!isListening) {
-                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditUser.this::onAppointmentAdded);
-                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditUser.this::onAppointmentUpdated);
-                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditUser.this::onAppointmentDeleted);
+                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, EditUser.this::onAppointmentAdded);
+                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, EditUser.this::onAppointmentUpdated);
+                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_DELETED_EVENT, EditUser.this::onAppointmentDeleted);
                         isListening = true;
                     }
                 } else if (isListening) {
-                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditUser.this::onAppointmentAdded);
-                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditUser.this::onAppointmentUpdated);
-                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditUser.this::onAppointmentDeleted);
+                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, EditUser.this::onAppointmentAdded);
+                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, EditUser.this::onAppointmentUpdated);
+                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_DELETED_EVENT, EditUser.this::onAppointmentDeleted);
                     isListening = false;
                 }
             }
@@ -310,10 +310,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
     }
 
-    private void onAppointmentAdded(AppointmentDaoEvent event) {
+    private void onAppointmentAdded(AppointmentEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getTarget();
+            AppointmentDAO dao = event.getDataAccessObject();
+            // TODO: Check to see if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
                 userAppointments.add(new AppointmentModel(dao));
@@ -321,10 +322,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
     }
 
-    private void onAppointmentUpdated(AppointmentDaoEvent event) {
+    private void onAppointmentUpdated(AppointmentEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getTarget();
+            AppointmentDAO dao = event.getDataAccessObject();
+            // TODO: Check to see if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             int pk = dao.getPrimaryKey();
             AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
@@ -339,10 +341,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
     }
 
-    private void onAppointmentDeleted(AppointmentDaoEvent event) {
+    private void onAppointmentDeleted(AppointmentEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getTarget();
+            AppointmentDAO dao = event.getDataAccessObject();
+            // TODO: Check to see if we need to get/set model
             int pk = dao.getPrimaryKey();
             userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> userAppointments.remove(t));
         }

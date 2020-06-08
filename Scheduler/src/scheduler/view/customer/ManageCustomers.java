@@ -20,7 +20,6 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
 import scheduler.model.ui.CustomerModel;
@@ -33,6 +32,7 @@ import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.customer.ManageCustomersResourceKeys.*;
+import scheduler.view.event.CustomerEvent;
 
 /**
  * FXML Controller class for viewing a list of {@link CustomerModel} items.
@@ -43,7 +43,7 @@ import static scheduler.view.customer.ManageCustomersResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public final class ManageCustomers extends MainListingControl<CustomerDAO, CustomerModel, CustomerDaoEvent> {
+public final class ManageCustomers extends MainListingControl<CustomerDAO, CustomerModel, CustomerEvent> {
 
     private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
@@ -167,18 +167,18 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     }
 
     @Override
-    protected EventType<CustomerDaoEvent> getInsertedEventType() {
-        return CustomerDaoEvent.CUSTOMER_DAO_INSERT;
+    protected EventType<CustomerEvent> getInsertedEventType() {
+        return CustomerEvent.CUSTOMER_INSERTED_EVENT;
     }
 
     @Override
-    protected EventType<CustomerDaoEvent> getUpdatedEventType() {
-        return CustomerDaoEvent.CUSTOMER_DAO_UPDATE;
+    protected EventType<CustomerEvent> getUpdatedEventType() {
+        return CustomerEvent.CUSTOMER_UPDATED_EVENT;
     }
 
     @Override
-    protected EventType<CustomerDaoEvent> getDeletedEventType() {
-        return CustomerDaoEvent.CUSTOMER_DAO_DELETE;
+    protected EventType<CustomerEvent> getDeletedEventType() {
+        return CustomerEvent.CUSTOMER_DELETED_EVENT;
     }
 
     private class DeleteTask extends Task<String> {

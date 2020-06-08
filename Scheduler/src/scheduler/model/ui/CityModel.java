@@ -24,8 +24,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.CityMutateEvent;
-import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.CityEvent;
 
 /**
  *
@@ -217,18 +216,18 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public ItemMutateEvent<CityModel> createInsertEvent(CityModel source, Event fxEvent) {
-            return new CityMutateEvent(source, source.dataObject(), CityMutateEvent.CITY_INSERT_EVENT, fxEvent);
+        public CityEvent createInsertEvent(CityModel source, Event fxEvent) {
+            return new CityEvent(source, source.dataObject(), CityEvent.CITY_INSERTING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<CityModel> createUpdateEvent(CityModel source, Event fxEvent) {
-            return new CityMutateEvent(source, source.dataObject(), CityMutateEvent.CITY_UPDATE_EVENT, fxEvent);
+        public CityEvent createUpdateEvent(CityModel source, Event fxEvent) {
+            return new CityEvent(source, source.dataObject(), CityEvent.CITY_UPDATING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<CityModel> createDeleteEvent(CityModel source, Event fxEvent) {
-            return new CityMutateEvent(source, source.dataObject(), CityMutateEvent.CITY_DELETE_EVENT, fxEvent);
+        public CityEvent createDeleteEvent(CityModel source, Event fxEvent) {
+            return new CityEvent(source, source.dataObject(), CityEvent.CITY_DELETING_EVENT, fxEvent);
         }
 
     }

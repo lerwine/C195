@@ -17,9 +17,6 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.ZoneIdMappings.fromZoneId;
 import static scheduler.ZoneIdMappings.toZoneId;
-import scheduler.dao.event.CityDaoEvent;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.IntColumnValueFilter;
@@ -43,6 +40,7 @@ import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.EditCountryResourceKeys;
+import scheduler.view.event.CityEvent;
 
 /**
  * Data access object for the {@code city} database table.
@@ -477,8 +475,18 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected DataObjectEvent<? extends CityDAO> createDataObjectEvent(Object source, CityDAO dataAccessObject, DbChangeType changeAction) {
-            return new CityDaoEvent(source, dataAccessObject, changeAction);
+        protected CityEvent createInsertedEvent(Object source, CityDAO dataAccessObject) {
+            return new CityEvent(source, dataAccessObject, CityEvent.CITY_INSERTED_EVENT, null);
+        }
+
+        @Override
+        protected CityEvent createUpdatedEvent(Object source, CityDAO dataAccessObject) {
+            return new CityEvent(source, dataAccessObject, CityEvent.CITY_UPDATED_EVENT, null);
+        }
+
+        @Override
+        protected CityEvent createDeletedEvent(Object source, CityDAO dataAccessObject) {
+            return new CityEvent(source, dataAccessObject, CityEvent.CITY_DELETED_EVENT, null);
         }
 
     }

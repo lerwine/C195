@@ -42,7 +42,7 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -204,9 +204,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     private void onSaveButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ItemMutateEvent<U> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event) : factory.createUpdateEvent(model, event);
+        ModelItemEvent<U, T> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event) : factory.createUpdateEvent(model, event);
         editorRegion.fireEvent(updateEvent);
-        if (!updateEvent.isCanceled()) {
+        if (!updateEvent.isHandled()) {
             editorRegion.updateModel();
             waitBorderPane.startNow(new SaveTask(factory.updateDAO(model)));
         }
@@ -215,9 +215,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     private void onDeleteButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ItemMutateEvent<U> deleteEvent = factory.createDeleteEvent(model, event);
+        ModelItemEvent<U, T> deleteEvent = factory.createDeleteEvent(model, event);
         editorRegion.fireEvent(deleteEvent);
-        if (!deleteEvent.isCanceled()) {
+        if (!deleteEvent.isHandled()) {
             Stage stage = (Stage) getScene().getWindow();
             Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),

@@ -21,8 +21,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
-import scheduler.view.event.CustomerMutateEvent;
-import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.CustomerEvent;
 
 /**
  *
@@ -299,18 +298,18 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public ItemMutateEvent<CustomerModel> createInsertEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerMutateEvent(source, source.dataObject(), CustomerMutateEvent.CUSTOMER_INSERT_EVENT, fxEvent);
+        public CustomerEvent createInsertEvent(CustomerModel source, Event fxEvent) {
+            return new CustomerEvent(source, source.dataObject(), CustomerEvent.CUSTOMER_INSERTING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<CustomerModel> createUpdateEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerMutateEvent(source, source.dataObject(), CustomerMutateEvent.CUSTOMER_UPDATE_EVENT, fxEvent);
+        public CustomerEvent createUpdateEvent(CustomerModel source, Event fxEvent) {
+            return new CustomerEvent(source, source.dataObject(), CustomerEvent.CUSTOMER_UPDATING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<CustomerModel> createDeleteEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerMutateEvent(source, source.dataObject(), CustomerMutateEvent.CUSTOMER_DELETE_EVENT, fxEvent);
+        public CustomerEvent createDeleteEvent(CustomerModel source, Event fxEvent) {
+            return new CustomerEvent(source, source.dataObject(), CustomerEvent.CUSTOMER_DELETING_EVENT, fxEvent);
         }
 
     }

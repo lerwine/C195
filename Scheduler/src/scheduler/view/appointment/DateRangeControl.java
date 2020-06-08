@@ -158,7 +158,7 @@ public final class DateRangeControl extends GridPane {
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
         assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
         assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'DateRange.fxml'.";

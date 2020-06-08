@@ -170,7 +170,7 @@ public class CustomerPicker extends BorderPane {
         assert waitBorderPane != null : "fx:id=\"waitBorderPane\" was not injected: check your FXML file 'CustomerPicker.fxml'.";
     }
 
-    void customerSelected(CustomerModel customer) {
+    private void customerSelected(CustomerModel customer) {
         selectedCustomer = customer;
         if (null == customer) {
             nameLabel.setText("");

@@ -19,8 +19,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.CountryMutateEvent;
-import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.CountryEvent;
 
 /**
  *
@@ -156,18 +155,18 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public ItemMutateEvent<CountryModel> createInsertEvent(CountryModel source, Event fxEvent) {
-            return new CountryMutateEvent(source, source.dataObject(), CountryMutateEvent.COUNTRY_INSERT_EVENT, fxEvent);
+        public CountryEvent createInsertEvent(CountryModel source, Event fxEvent) {
+            return new CountryEvent(source, source.dataObject(), CountryEvent.COUNTRY_INSERTING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<CountryModel> createUpdateEvent(CountryModel source, Event fxEvent) {
-            return new CountryMutateEvent(source, source.dataObject(), CountryMutateEvent.COUNTRY_UPDATE_EVENT, fxEvent);
+        public CountryEvent createUpdateEvent(CountryModel source, Event fxEvent) {
+            return new CountryEvent(source, source.dataObject(), CountryEvent.COUNTRY_UPDATING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<CountryModel> createDeleteEvent(CountryModel source, Event fxEvent) {
-            return new CountryMutateEvent(source, source.dataObject(), CountryMutateEvent.COUNTRY_DELETE_EVENT, fxEvent);
+        public CountryEvent createDeleteEvent(CountryModel source, Event fxEvent) {
+            return new CountryEvent(source, source.dataObject(), CountryEvent.COUNTRY_DELETING_EVENT, fxEvent);
         }
 
     }

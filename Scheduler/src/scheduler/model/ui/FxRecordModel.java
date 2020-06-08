@@ -31,7 +31,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -337,11 +337,11 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract ItemMutateEvent<U> createInsertEvent(U source, Event fxEvent);
+        public abstract ModelItemEvent<U, T> createInsertEvent(U source, Event fxEvent);
 
-        public abstract ItemMutateEvent<U> createUpdateEvent(U source, Event fxEvent);
+        public abstract ModelItemEvent<U, T> createUpdateEvent(U source, Event fxEvent);
 
-        public abstract ItemMutateEvent<U> createDeleteEvent(U source, Event fxEvent);
+        public abstract ModelItemEvent<U, T> createDeleteEvent(U source, Event fxEvent);
 
     }
 

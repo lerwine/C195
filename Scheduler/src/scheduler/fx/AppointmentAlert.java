@@ -42,7 +42,6 @@ import scheduler.AppResources;
 import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
-import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
@@ -60,6 +59,7 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.event.AppointmentEvent;
 
 /**
  * FXML Controller class
@@ -117,21 +117,22 @@ public class AppointmentAlert extends BorderPane {
             i = 2;
         }
         checkFrequency = i;
-        addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, this::onAppointmentInserted);
-        addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, this::onAppointmentUpdated);
-        addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, this::onAppointmentDeleted);
+        addEventFilter(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, this::onAppointmentInserted);
+        addEventFilter(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, this::onAppointmentUpdated);
+        addEventFilter(AppointmentEvent.APPOINTMENT_DELETED_EVENT, this::onAppointmentDeleted);
     }
 
-    private synchronized void onAppointmentInserted(AppointmentDaoEvent event) {
+    private synchronized void onAppointmentInserted(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
+        AppointmentDAO dao = event.getDataAccessObject();
+        // TODO: Check for model
         LocalDateTime start = LocalDateTime.now();
         if (start.compareTo(DB.toLocalDateTime(dao.getEnd())) < 0) {
             LocalDateTime end = start.plusMinutes(alertLeadtime);
             if (end.compareTo(DB.toLocalDateTime(dao.getStart())) >= 0) {
                 ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
                 Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
-                Stream.concat(stream, Stream.of(new AppointmentModel(event.getTarget()))).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
+                Stream.concat(stream, Stream.of(new AppointmentModel(dao))).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
                     int index = -1;
 
                     @Override
@@ -147,9 +148,10 @@ public class AppointmentAlert extends BorderPane {
         }
     }
 
-    private synchronized void onAppointmentUpdated(AppointmentDaoEvent event) {
+    private synchronized void onAppointmentUpdated(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
+        AppointmentDAO dao = event.getDataAccessObject();
+        // TODO: Check for model
         int key = dao.getPrimaryKey();
         FlowPane view = getViewNode(key);
         ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
@@ -199,9 +201,10 @@ public class AppointmentAlert extends BorderPane {
         }
     }
 
-    private synchronized void onAppointmentDeleted(AppointmentDaoEvent event) {
+    private synchronized void onAppointmentDeleted(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        AppointmentDAO dao = event.getTarget();
+        AppointmentDAO dao = event.getDataAccessObject();
+        // TODO: Check for model
         int pk = dao.getPrimaryKey();
         if (dismissed.contains(pk)) {
             dismissed.remove(pk);

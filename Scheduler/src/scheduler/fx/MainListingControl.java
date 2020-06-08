@@ -24,7 +24,6 @@ import javafx.scene.layout.StackPane;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.event.DataObjectEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
@@ -34,6 +33,7 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 import scheduler.view.event.ItemActionRequestEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  * Base class for item list management.
@@ -43,7 +43,7 @@ import scheduler.view.event.ItemActionRequestEvent;
  * @param <T> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, T extends DataObjectEvent<D>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, T extends ModelItemEvent<M, D>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
@@ -206,7 +206,8 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
-            D dao = event.getTarget();
+            D dao = event.getDataAccessObject();
+            // TODO: Check to see if we need to get/update model
             if (f.getDaoFilter().test(dao)) {
                 items.add(getModelFactory().createNew(dao));
             }
@@ -215,7 +216,8 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected void onUpdatedEvent(T event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        D dao = event.getTarget();
+        D dao = event.getDataAccessObject();
+        // TODO: Check to see if we need to get/update model
         FxRecordModel.ModelFactory<D, M> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
@@ -235,7 +237,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     protected void onDeletedEvent(T event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (!items.isEmpty()) {
-            getModelFactory().find(items, event.getTarget()).ifPresent((t) -> items.remove(t));
+            D dao = event.getDataAccessObject();
+            // TODO: Check to see if we need to get/update model
+            getModelFactory().find(items, dao).ifPresent((t) -> items.remove(t));
         }
     }
 

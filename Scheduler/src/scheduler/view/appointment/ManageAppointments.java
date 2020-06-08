@@ -39,7 +39,6 @@ import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.IUserDAO;
-import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.fx.MainListingControl;
@@ -61,6 +60,7 @@ import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
+import scheduler.view.event.AppointmentEvent;
 import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
@@ -75,7 +75,7 @@ import scheduler.view.export.TsvDataExporter;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
-public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentDaoEvent> {
+public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
     private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
 
@@ -505,18 +505,18 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected EventType<AppointmentDaoEvent> getInsertedEventType() {
-        return AppointmentDaoEvent.APPOINTMENT_DAO_INSERT;
+    protected EventType<AppointmentEvent> getInsertedEventType() {
+        return AppointmentEvent.APPOINTMENT_INSERTED_EVENT;
     }
 
     @Override
-    protected EventType<AppointmentDaoEvent> getUpdatedEventType() {
-        return AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE;
+    protected EventType<AppointmentEvent> getUpdatedEventType() {
+        return AppointmentEvent.APPOINTMENT_UPDATED_EVENT;
     }
 
     @Override
-    protected EventType<AppointmentDaoEvent> getDeletedEventType() {
-        return AppointmentDaoEvent.APPOINTMENT_DAO_DELETE;
+    protected EventType<AppointmentEvent> getDeletedEventType() {
+        return AppointmentEvent.APPOINTMENT_DELETED_EVENT;
     }
 
     private class DeleteTask extends Task<String> {

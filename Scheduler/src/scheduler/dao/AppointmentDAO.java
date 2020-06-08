@@ -14,9 +14,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.dao.event.AppointmentDaoEvent;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -35,6 +32,7 @@ import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.view.event.AppointmentEvent;
 
 /**
  * Data access object for the {@code appointment} database table.
@@ -781,8 +779,18 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected DataObjectEvent<? extends AppointmentDAO> createDataObjectEvent(Object source, AppointmentDAO dataAccessObject, DbChangeType changeAction) {
-            return new AppointmentDaoEvent(source, dataAccessObject, changeAction);
+        protected AppointmentEvent createInsertedEvent(Object source, AppointmentDAO dataAccessObject) {
+            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_INSERTED_EVENT, null);
+        }
+
+        @Override
+        protected AppointmentEvent createUpdatedEvent(Object source, AppointmentDAO dataAccessObject) {
+            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_UPDATED_EVENT, null);
+        }
+
+        @Override
+        protected AppointmentEvent createDeletedEvent(Object source, AppointmentDAO dataAccessObject) {
+            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_DELETED_EVENT, null);
         }
 
     }

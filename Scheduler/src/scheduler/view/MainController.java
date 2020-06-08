@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
@@ -24,24 +23,12 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import scheduler.Scheduler;
-import scheduler.dao.AddressDAO;
-import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CityDAO;
-import scheduler.dao.CountryDAO;
-import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.UserDAO;
-import scheduler.dao.event.AddressDaoEvent;
-import scheduler.dao.event.AppointmentDaoEvent;
-import scheduler.dao.event.CityDaoEvent;
-import scheduler.dao.event.CountryDaoEvent;
-import scheduler.dao.event.CustomerDaoEvent;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.UserDaoEvent;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.HelpContent;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;
@@ -57,6 +44,7 @@ import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.report.AppointmentTypesByMonth;
 import scheduler.view.report.AppointmentsByRegion;
 import scheduler.view.report.ConsultantSchedule;
@@ -156,11 +144,6 @@ public final class MainController implements EventTarget {
 
     public MainController() {
         eventHandlerManager = new EventHandlerManager(this);
-        // Add handlers that will fire a separate generic event for each specificDbObject event.
-        eventHandlerManager.addEventFilter(AddressDaoEvent.ANY_ADDRESS_EVENT, this::onAddressDaoEvent);
-        eventHandlerManager.addEventFilter(AppointmentDaoEvent.ANY_APPOINTMENT_EVENT, this::onAppointmentDaoEvent);
-        eventHandlerManager.addEventFilter(CityDaoEvent.ANY_CITY_EVENT, this::onCityDaoEvent);
-        eventHandlerManager.addEventFilter(CountryDaoEvent.ANY_COUNTRY_EVENT, this::onCountryDaoEvent);
     }
 
     @FXML
@@ -290,26 +273,6 @@ public final class MainController implements EventTarget {
         }
     }
 
-    private void onAddressDaoEvent(AddressDaoEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-//        PredefinedData.onAddressDaoEvent(event);
-    }
-
-    private void onAppointmentDaoEvent(AppointmentDaoEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        // TODO: Add handler for AppointmentAlert
-    }
-
-    private void onCityDaoEvent(CityDaoEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-//        PredefinedData.onCityDaoEvent(event);
-    }
-
-    private void onCountryDaoEvent(CountryDaoEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-//        PredefinedData.onCountryDaoEvent(event);
-    }
-
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         tail = tail.append(eventHandlerManager);
@@ -353,111 +316,31 @@ public final class MainController implements EventTarget {
         helpContent.hide();
     }
 
-    /**
-     * Registers a {@link DataObjectEvent} handler in the {@code EventHandlerManager}.
-     * <dl>
-     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
-     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
-     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
-     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
-     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
-     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
-     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
-     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
-     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
-     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
-     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
-     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
-     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
-     * </dl>
-     *
-     * @param <T> The type of {@link Event}.
-     * @param type The {@link EventType}.
-     * @param eventHandler The {@link EventHandler}.
-     */
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void addModelEventHandler(
+            EventType<T> type,
+            EventHandler<T> eventHandler
+    ) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
-    /**
-     * Registers a {@link DataObjectEvent} filter in the {@code EventHandlerManager}.
-     * <dl>
-     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
-     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
-     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
-     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
-     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
-     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
-     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
-     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
-     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
-     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
-     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
-     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
-     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
-     * </dl>
-     *
-     * @param <T> The type of {@link Event}.
-     * @param type The {@link EventType}.
-     * @param eventHandler The {@link EventHandler}.
-     */
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void addDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void addModelEventFilter(
+            EventType<T> type,
+            EventHandler<T> eventHandler
+    ) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
-    /**
-     * Un-registers a {@link DataObjectEvent} handler from the {@code EventHandlerManager}.
-     * <dl>
-     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
-     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
-     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
-     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
-     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
-     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
-     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
-     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
-     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
-     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
-     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
-     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
-     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
-     * </dl>
-     *
-     * @param <T> The type of {@link Event}.
-     * @param type The {@link EventType}.
-     * @param eventHandler The {@link EventHandler}.
-     */
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void removeModelEventHandler(
+            EventType<T> type,
+            EventHandler<T> eventHandler
+    ) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
-    /**
-     * Un-registers a {@link DataObjectEvent} filter in the {@code EventHandlerManager}.
-     * <dl>
-     * <dt>{@link AddressDAO}</dt><dd>{@link AddressDaoEvent#ANY_ADDRESS_EVENT}, {@link AddressDaoEvent#ADDRESS_DAO_INSERT},
-     * {@link AddressDaoEvent#ADDRESS_DAO_UPDATE}, {@link AddressDaoEvent#ADDRESS_DAO_DELETE}</dd>
-     * <dt>{@link AppointmentDAO}</dt><dd>{@link AppointmentDaoEvent#ANY_APPOINTMENT_EVENT}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_INSERT},
-     * {@link AppointmentDaoEvent#APPOINTMENT_DAO_UPDATE}, {@link AppointmentDaoEvent#APPOINTMENT_DAO_DELETE}</dd>
-     * <dt>{@link CityDAO}</dt><dd>{@link CityDaoEvent#ANY_CITY_EVENT}, {@link CityDaoEvent#CITY_DAO_INSERT}, {@link CityDaoEvent#CITY_DAO_UPDATE},
-     * {@link CityDaoEvent#CITY_DAO_DELETE}</dd>
-     * <dt>{@link CountryDAO}</dt><dd>{@link CountryDaoEvent#ANY_COUNTRY_EVENT}, {@link CountryDaoEvent#COUNTRY_DAO_INSERT},
-     * {@link CountryDaoEvent#COUNTRY_DAO_UPDATE}, {@link CountryDaoEvent#COUNTRY_DAO_DELETE}</dd>
-     * <dt>{@link CustomerDAO}</dt><dd>{@link CustomerDaoEvent#ANY_CUSTOMER_EVENT}, {@link CustomerDaoEvent#CUSTOMER_DAO_INSERT},
-     * {@link CustomerDaoEvent#CUSTOMER_DAO_UPDATE}, {@link CustomerDaoEvent#CUSTOMER_DAO_DELETE}</dd>
-     * <dt>{@link UserDAO}</dt><dd>{@link UserDaoEvent#ANY_USER_EVENT}, {@link UserDaoEvent#USER_DAO_INSERT}, {@link UserDaoEvent#USER_DAO_UPDATE},
-     * {@link UserDaoEvent#USER_DAO_DELETE}</dd>
-     * <dt>{@link DataAccessObject}</dt><dd>{@link DataObjectEvent#ANY_DAO_EVENT}, {@link DataObjectEvent#ANY_DAO_INSERT},
-     * {@link DataObjectEvent#ANY_DAO_UPDATE}, {@link DataObjectEvent#ANY_DAO_DELETE}</dd>
-     * </dl>
-     *
-     * @param <T> The type of {@link Event}.
-     * @param type The {@link EventType}.
-     * @param eventHandler The {@link EventHandler}.
-     */
-    public <T extends DataObjectEvent<? extends DataAccessObject>> void removeDaoEventFilter(EventType<T> type, EventHandler<T> eventHandler) {
+    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void removeModelEventFilter(
+            EventType<T> type,
+            EventHandler<T> eventHandler
+    ) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 

@@ -39,7 +39,6 @@ import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.event.CityDaoEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
@@ -57,6 +56,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import static scheduler.view.country.EditCountryResourceKeys.*;
+import scheduler.view.event.CityEvent;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -267,15 +267,15 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             private void onChange(boolean hasParent) {
                 if (hasParent) {
                     if (!isListening) {
-                        getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
-                        getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
-                        getMainController().addDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
+                        getMainController().addModelEventHandler(CityEvent.CITY_INSERTED_EVENT, EditCountry.this::onCityAdded);
+                        getMainController().addModelEventHandler(CityEvent.CITY_UPDATED_EVENT, EditCountry.this::onCityUpdated);
+                        getMainController().addModelEventHandler(CityEvent.CITY_DELETED_EVENT, EditCountry.this::onCityDeleted);
                         isListening = true;
                     }
                 } else if (isListening) {
-                    getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_INSERT, EditCountry.this::onCityAdded);
-                    getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_UPDATE, EditCountry.this::onCityUpdated);
-                    getMainController().removeDaoEventHandler(CityDaoEvent.CITY_DAO_DELETE, EditCountry.this::onCityDeleted);
+                    getMainController().removeModelEventHandler(CityEvent.CITY_INSERTED_EVENT, EditCountry.this::onCityAdded);
+                    getMainController().removeModelEventHandler(CityEvent.CITY_UPDATED_EVENT, EditCountry.this::onCityUpdated);
+                    getMainController().removeModelEventHandler(CityEvent.CITY_DELETED_EVENT, EditCountry.this::onCityDeleted);
                     isListening = false;
                 }
             }
@@ -291,17 +291,19 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         initializeEditMode();
     }
 
-    private void onCityAdded(CityDaoEvent event) {
+    private void onCityAdded(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        CityDAO dao = event.getTarget();
+        // TODO: See if we need to get/set model.
+        CityDAO dao = event.getDataAccessObject();
         if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
             itemList.add(new CityModel(dao));
         }
     }
 
-    private void onCityUpdated(CityDaoEvent event) {
+    private void onCityUpdated(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        CityDAO dao = event.getTarget();
+        // TODO: See if we need to get/set model.
+        CityDAO dao = event.getDataAccessObject();
         int pk = dao.getPrimaryKey();
         Optional<CityModel> match = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny();
         if (match.isPresent()) {
@@ -316,9 +318,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
-    private void onCityDeleted(CityDaoEvent event) {
+    private void onCityDeleted(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        int pk = event.getTarget().getPrimaryKey();
+        // TODO: See if we need to get/set model.
+        int pk = event.getDataAccessObject().getPrimaryKey();
         itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> itemList.remove(t));
     }
 

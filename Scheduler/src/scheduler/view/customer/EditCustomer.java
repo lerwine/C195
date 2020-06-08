@@ -50,7 +50,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
@@ -82,7 +81,8 @@ import scheduler.view.appointment.EditAppointment;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
-import scheduler.view.event.CustomerMutateEvent;
+import scheduler.view.event.AppointmentEvent;
+import scheduler.view.event.CustomerEvent;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -395,15 +395,15 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             private void onChange(boolean hasParent) {
                 if (hasParent) {
                     if (!isListening) {
-                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditCustomer.this::onAppointmentAdded);
-                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditCustomer.this::onAppointmentUpdated);
-                        getMainController().addDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditCustomer.this::onAppointmentDeleted);
+                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, EditCustomer.this::onAppointmentAdded);
+                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, EditCustomer.this::onAppointmentUpdated);
+                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_DELETED_EVENT, EditCustomer.this::onAppointmentDeleted);
                         isListening = true;
                     }
                 } else if (isListening) {
-                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, EditCustomer.this::onAppointmentAdded);
-                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, EditCustomer.this::onAppointmentUpdated);
-                    getMainController().removeDaoEventHandler(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, EditCustomer.this::onAppointmentDeleted);
+                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, EditCustomer.this::onAppointmentAdded);
+                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, EditCustomer.this::onAppointmentUpdated);
+                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_DELETED_EVENT, EditCustomer.this::onAppointmentDeleted);
                     isListening = false;
                 }
             }
@@ -424,8 +424,8 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
             waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
 
-        addEventHandler(CustomerMutateEvent.CUSTOMER_UPDATE_EVENT, this::onCustomerUpdate);
-        addEventHandler(CustomerMutateEvent.CUSTOMER_INSERT_EVENT, this::onCustomerUpdate);
+        addEventHandler(CustomerEvent.CUSTOMER_UPDATING_EVENT, this::onCustomerUpdate);
+        addEventHandler(CustomerEvent.CUSTOMER_INSERTING_EVENT, this::onCustomerUpdate);
     }
 
     private void initializeEditMode() {
@@ -442,7 +442,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
     }
 
-    private void onCustomerUpdate(CustomerMutateEvent event) {
+    private void onCustomerUpdate(CustomerEvent event) {
         AddressModel address = selectedAddress.get();
         int existingCount = addressCustomerCount.get();
         if (address.getRowState() != DataRowState.NEW) {
@@ -480,13 +480,14 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
                 return;
             }
         }
-        event.setCanceled(true);
+        event.setHandled(true);
     }
 
-    private void onAppointmentAdded(AppointmentDaoEvent event) {
+    private void onAppointmentAdded(AppointmentEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getTarget();
+            AppointmentDAO dao = event.getDataAccessObject();
+            // TODO: See if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
                 customerAppointments.add(new AppointmentModel(dao));
@@ -494,10 +495,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
     }
 
-    private void onAppointmentUpdated(AppointmentDaoEvent event) {
+    private void onAppointmentUpdated(AppointmentEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getTarget();
+            AppointmentDAO dao = event.getDataAccessObject();
+            // TODO: See if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             int pk = dao.getPrimaryKey();
             AppointmentModel m = customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
@@ -512,10 +514,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         }
     }
 
-    private void onAppointmentDeleted(AppointmentDaoEvent event) {
+    private void onAppointmentDeleted(AppointmentEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getTarget();
+            AppointmentDAO dao = event.getDataAccessObject();
+            // TODO: See if we need to get/set model
             int pk = dao.getPrimaryKey();
             customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerAppointments.remove(t));
         }

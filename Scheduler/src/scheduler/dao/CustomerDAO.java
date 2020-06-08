@@ -12,9 +12,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import scheduler.dao.event.CustomerDaoEvent;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -33,6 +30,7 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.view.event.CustomerEvent;
 
 /**
  * Data access object for the {@code customer} database table.
@@ -421,9 +419,18 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected DataObjectEvent<? extends CustomerDAO> createDataObjectEvent(Object source, CustomerDAO dataAccessObject,
-                DbChangeType changeAction) {
-            return new CustomerDaoEvent(source, dataAccessObject, changeAction);
+        protected CustomerEvent createInsertedEvent(Object source, CustomerDAO dataAccessObject) {
+            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_INSERTED_EVENT, null);
+        }
+
+        @Override
+        protected CustomerEvent createUpdatedEvent(Object source, CustomerDAO dataAccessObject) {
+            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_UPDATED_EVENT, null);
+        }
+
+        @Override
+        protected CustomerEvent createDeletedEvent(Object source, CustomerDAO dataAccessObject) {
+            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_DELETED_EVENT, null);
         }
 
     }

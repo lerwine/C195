@@ -18,7 +18,6 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.event.CountryDaoEvent;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
@@ -32,6 +31,7 @@ import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.country.ManageCountriesResourceKeys.*;
+import scheduler.view.event.CountryEvent;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
@@ -42,7 +42,7 @@ import static scheduler.view.country.ManageCountriesResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryDaoEvent> {
+public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryEvent> {
 
     private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
 
@@ -126,18 +126,18 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     }
 
     @Override
-    protected EventType<CountryDaoEvent> getInsertedEventType() {
-        return CountryDaoEvent.COUNTRY_DAO_INSERT;
+    protected EventType<CountryEvent> getInsertedEventType() {
+        return CountryEvent.COUNTRY_INSERTED_EVENT;
     }
 
     @Override
-    protected EventType<CountryDaoEvent> getUpdatedEventType() {
-        return CountryDaoEvent.COUNTRY_DAO_UPDATE;
+    protected EventType<CountryEvent> getUpdatedEventType() {
+        return CountryEvent.COUNTRY_UPDATED_EVENT;
     }
 
     @Override
-    protected EventType<CountryDaoEvent> getDeletedEventType() {
-        return CountryDaoEvent.COUNTRY_DAO_DELETE;
+    protected EventType<CountryEvent> getDeletedEventType() {
+        return CountryEvent.COUNTRY_DELETED_EVENT;
     }
 
     private class DeleteTask extends Task<String> {

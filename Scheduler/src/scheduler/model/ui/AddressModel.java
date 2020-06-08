@@ -33,8 +33,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.event.AddressMutateEvent;
-import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.AddressEvent;
 
 /**
  *
@@ -443,18 +442,18 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public ItemMutateEvent<AddressModel> createInsertEvent(AddressModel source, Event fxEvent) {
-            return new AddressMutateEvent(source, source.dataObject(), AddressMutateEvent.ADDRESS_INSERT_EVENT, fxEvent);
+        public AddressEvent createInsertEvent(AddressModel source, Event fxEvent) {
+            return new AddressEvent(source, source.dataObject(), AddressEvent.ADDRESS_INSERTING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<AddressModel> createUpdateEvent(AddressModel source, Event fxEvent) {
-            return new AddressMutateEvent(source, source.dataObject(), AddressMutateEvent.ADDRESS_UPDATE_EVENT, fxEvent);
+        public AddressEvent createUpdateEvent(AddressModel source, Event fxEvent) {
+            return new AddressEvent(source, source.dataObject(), AddressEvent.ADDRESS_UPDATING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<AddressModel> createDeleteEvent(AddressModel source, Event fxEvent) {
-            return new AddressMutateEvent(source, source.dataObject(), AddressMutateEvent.ADDRESS_DELETE_EVENT, fxEvent);
+        public AddressEvent createDeleteEvent(AddressModel source, Event fxEvent) {
+            return new AddressEvent(source, source.dataObject(), AddressEvent.ADDRESS_DELETING_EVENT, fxEvent);
         }
 
     }

@@ -45,7 +45,6 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
-import scheduler.dao.event.AddressDaoEvent;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
@@ -69,6 +68,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
+import scheduler.view.event.AddressEvent;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -319,15 +319,15 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             private void onChange(boolean hasParent) {
                 if (hasParent) {
                     if (!isListening) {
-                        getMainController().addDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_INSERT, EditCity.this::onAddressAdded);
-                        getMainController().addDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_UPDATE, EditCity.this::onAddressUpdated);
-                        getMainController().addDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_DELETE, EditCity.this::onAddressDeleted);
+                        getMainController().addModelEventHandler(AddressEvent.ADDRESS_INSERTED_EVENT, EditCity.this::onAddressAdded);
+                        getMainController().addModelEventHandler(AddressEvent.ADDRESS_UPDATED_EVENT, EditCity.this::onAddressUpdated);
+                        getMainController().addModelEventHandler(AddressEvent.ADDRESS_DELETED_EVENT, EditCity.this::onAddressDeleted);
                         isListening = true;
                     }
                 } else if (isListening) {
-                    getMainController().removeDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_INSERT, EditCity.this::onAddressAdded);
-                    getMainController().removeDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_UPDATE, EditCity.this::onAddressUpdated);
-                    getMainController().removeDaoEventHandler(AddressDaoEvent.ADDRESS_DAO_DELETE, EditCity.this::onAddressDeleted);
+                    getMainController().addModelEventHandler(AddressEvent.ADDRESS_INSERTED_EVENT, EditCity.this::onAddressAdded);
+                    getMainController().addModelEventHandler(AddressEvent.ADDRESS_UPDATED_EVENT, EditCity.this::onAddressUpdated);
+                    getMainController().addModelEventHandler(AddressEvent.ADDRESS_DELETED_EVENT, EditCity.this::onAddressDeleted);
                     isListening = false;
                 }
             }
@@ -374,20 +374,22 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
     }
 
-    private void onAddressAdded(AddressDaoEvent event) {
+    private void onAddressAdded(AddressEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AddressDAO dao = event.getTarget();
+            AddressDAO dao = event.getDataAccessObject();
+            // TODO: Update model if null
             if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
                 addressItemList.add(new AddressModel(dao));
             }
         }
     }
 
-    private void onAddressUpdated(AddressDaoEvent event) {
+    private void onAddressUpdated(AddressEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AddressDAO dao = event.getTarget();
+            AddressDAO dao = event.getDataAccessObject();
+            // TODO: Update model if null
             int pk = dao.getPrimaryKey();
             AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
@@ -401,10 +403,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
-    private void onAddressDeleted(AddressDaoEvent event) {
+    private void onAddressDeleted(AddressEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            AddressDAO dao = event.getTarget();
+            AddressDAO dao = event.getDataAccessObject();
+            // TODO: Update model if null
             int pk = dao.getPrimaryKey();
             addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> addressItemList.remove(t));
         }

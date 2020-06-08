@@ -14,9 +14,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.dao.event.CountryDaoEvent;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DatabaseTable;
 import scheduler.dao.schema.DbColumn;
@@ -33,6 +30,7 @@ import scheduler.util.ResourceBundleHelper;
 import scheduler.util.Values;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
+import scheduler.view.event.CountryEvent;
 
 /**
  * Data access object for the {@code country} database table.
@@ -354,8 +352,18 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected DataObjectEvent<? extends CountryDAO> createDataObjectEvent(Object source, CountryDAO dataAccessObject, DbChangeType changeAction) {
-            return new CountryDaoEvent(source, dataAccessObject, changeAction);
+        protected CountryEvent createInsertedEvent(Object source, CountryDAO dataAccessObject) {
+            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_INSERTED_EVENT, null);
+        }
+
+        @Override
+        protected CountryEvent createUpdatedEvent(Object source, CountryDAO dataAccessObject) {
+            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_UPDATED_EVENT, null);
+        }
+
+        @Override
+        protected CountryEvent createDeletedEvent(Object source, CountryDAO dataAccessObject) {
+            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_DELETED_EVENT, null);
         }
 
     }

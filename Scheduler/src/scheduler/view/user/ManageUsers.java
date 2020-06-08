@@ -20,7 +20,6 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
-import scheduler.dao.event.UserDaoEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.User;
 import scheduler.model.ui.UserModel;
@@ -31,6 +30,7 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.event.UserEvent;
 import static scheduler.view.user.ManageUsersResourceKeys.*;
 
 /**
@@ -42,7 +42,7 @@ import static scheduler.view.user.ManageUsersResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public final class ManageUsers extends MainListingControl<UserDAO, UserModel, UserDaoEvent> {
+public final class ManageUsers extends MainListingControl<UserDAO, UserModel, UserEvent> {
 
     private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
 
@@ -164,18 +164,18 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     }
 
     @Override
-    protected EventType<UserDaoEvent> getInsertedEventType() {
-        return UserDaoEvent.USER_DAO_INSERT;
+    protected EventType<UserEvent> getInsertedEventType() {
+        return UserEvent.USER_INSERTED_EVENT;
     }
 
     @Override
-    protected EventType<UserDaoEvent> getUpdatedEventType() {
-        return UserDaoEvent.USER_DAO_UPDATE;
+    protected EventType<UserEvent> getUpdatedEventType() {
+        return UserEvent.USER_UPDATED_EVENT;
     }
 
     @Override
-    protected EventType<UserDaoEvent> getDeletedEventType() {
-        return UserDaoEvent.USER_DAO_DELETE;
+    protected EventType<UserEvent> getDeletedEventType() {
+        return UserEvent.USER_DELETED_EVENT;
     }
 
     private class DeleteTask extends Task<String> {

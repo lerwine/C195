@@ -14,9 +14,6 @@ import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
-import scheduler.dao.event.AddressDaoEvent;
-import scheduler.dao.event.DataObjectEvent;
-import scheduler.dao.event.DbChangeType;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.IntColumnValueFilter;
@@ -34,6 +31,7 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
+import scheduler.view.event.AddressEvent;
 
 /**
  * Data access object for the {@code address} database table.
@@ -479,8 +477,18 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected DataObjectEvent<? extends AddressDAO> createDataObjectEvent(Object source, AddressDAO dataAccessObject, DbChangeType changeAction) {
-            return new AddressDaoEvent(source, dataAccessObject, changeAction);
+        protected AddressEvent createInsertedEvent(Object source, AddressDAO dataAccessObject) {
+            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_INSERTED_EVENT, null);
+        }
+
+        @Override
+        protected AddressEvent createUpdatedEvent(Object source, AddressDAO dataAccessObject) {
+            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_UPDATED_EVENT, null);
+        }
+
+        @Override
+        protected AddressEvent createDeletedEvent(Object source, AddressDAO dataAccessObject) {
+            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_DELETED_EVENT, null);
         }
 
     }

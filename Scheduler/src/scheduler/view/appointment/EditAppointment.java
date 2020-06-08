@@ -229,7 +229,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
+    private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
         editingUserOptions = false;
         if (showActiveCustomers.isPresent()) {
             dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -246,7 +246,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    void onDropdownOptionsCancelButtonAction(ActionEvent event) {
+    private void onDropdownOptionsCancelButtonAction(ActionEvent event) {
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -255,7 +255,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    void onDropdownOptionsOkButtonAction(ActionEvent event) {
+    private void onDropdownOptionsOkButtonAction(ActionEvent event) {
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -283,7 +283,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    void onIncludeRemoteCheckBoxAction(ActionEvent event) {
+    private void onIncludeRemoteCheckBoxAction(ActionEvent event) {
         if (includeRemoteCheckBox.isSelected()) {
             remoteLocationList.forEach((t) -> {
                 if (!corporateLocationList.contains(t)) {
@@ -299,7 +299,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    void onUserDropDownOptionsButtonAction(ActionEvent event) {
+    private void onUserDropDownOptionsButtonAction(ActionEvent event) {
         editingUserOptions = true;
         if (showActiveUsers.isPresent()) {
             dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -315,7 +315,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";

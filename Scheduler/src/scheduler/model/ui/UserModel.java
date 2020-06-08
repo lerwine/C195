@@ -18,8 +18,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.PwHash;
 import scheduler.util.Values;
-import scheduler.view.event.ItemMutateEvent;
-import scheduler.view.event.UserMutateEvent;
+import scheduler.view.event.UserEvent;
 import scheduler.view.user.UserModelFilter;
 
 /**
@@ -190,18 +189,18 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public ItemMutateEvent<UserModel> createInsertEvent(UserModel source, Event fxEvent) {
-            return new UserMutateEvent(source, source.dataObject(), UserMutateEvent.USER_INSERT_EVENT, fxEvent);
+        public UserEvent createInsertEvent(UserModel source, Event fxEvent) {
+            return new UserEvent(source, source.dataObject(), UserEvent.USER_INSERTING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<UserModel> createUpdateEvent(UserModel source, Event fxEvent) {
-            return new UserMutateEvent(source, source.dataObject(), UserMutateEvent.USER_UPDATE_EVENT, fxEvent);
+        public UserEvent createUpdateEvent(UserModel source, Event fxEvent) {
+            return new UserEvent(source, source.dataObject(), UserEvent.USER_UPDATING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<UserModel> createDeleteEvent(UserModel source, Event fxEvent) {
-            return new UserMutateEvent(source, source.dataObject(), UserMutateEvent.USER_DELETE_EVENT, fxEvent);
+        public UserEvent createDeleteEvent(UserModel source, Event fxEvent) {
+            return new UserEvent(source, source.dataObject(), UserEvent.USER_DELETING_EVENT, fxEvent);
         }
 
     }

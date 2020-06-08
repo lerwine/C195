@@ -46,7 +46,6 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.dao.event.CustomerDaoEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -73,6 +72,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
+import scheduler.view.event.CustomerEvent;
 import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -354,15 +354,15 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             private void onChange(boolean hasParent) {
                 if (hasParent) {
                     if (!isListening) {
-                        getMainController().addDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_INSERT, EditAddress.this::onCustomerAdded);
-                        getMainController().addDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_UPDATE, EditAddress.this::onCustomerUpdated);
-                        getMainController().addDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_DELETE, EditAddress.this::onCustomerDeleted);
+                        getMainController().addModelEventHandler(CustomerEvent.CUSTOMER_INSERTED_EVENT, EditAddress.this::onCustomerAdded);
+                        getMainController().addModelEventHandler(CustomerEvent.CUSTOMER_UPDATED_EVENT, EditAddress.this::onCustomerUpdated);
+                        getMainController().addModelEventHandler(CustomerEvent.CUSTOMER_DELETED_EVENT, EditAddress.this::onCustomerDeleted);
                         isListening = true;
                     }
                 } else if (isListening) {
-                    getMainController().removeDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_INSERT, EditAddress.this::onCustomerAdded);
-                    getMainController().removeDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_UPDATE, EditAddress.this::onCustomerUpdated);
-                    getMainController().removeDaoEventHandler(CustomerDaoEvent.CUSTOMER_DAO_DELETE, EditAddress.this::onCustomerDeleted);
+                    getMainController().removeModelEventHandler(CustomerEvent.CUSTOMER_INSERTED_EVENT, EditAddress.this::onCustomerAdded);
+                    getMainController().removeModelEventHandler(CustomerEvent.CUSTOMER_UPDATED_EVENT, EditAddress.this::onCustomerUpdated);
+                    getMainController().removeModelEventHandler(CustomerEvent.CUSTOMER_DELETED_EVENT, EditAddress.this::onCustomerDeleted);
                     isListening = false;
                 }
             }
@@ -389,20 +389,22 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
     }
 
-    private void onCustomerAdded(CustomerDaoEvent event) {
+    private void onCustomerAdded(CustomerEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getTarget();
+            CustomerDAO dao = event.getDataAccessObject();
+            // TODO: See if we need to get/set model
             if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
                 itemList.add(new CustomerModel(dao));
             }
         }
     }
 
-    private void onCustomerUpdated(CustomerDaoEvent event) {
+    private void onCustomerUpdated(CustomerEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getTarget();
+            CustomerDAO dao = event.getDataAccessObject();
+            // TODO: See if we need to get/set model
             int pk = dao.getPrimaryKey();
             CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
@@ -416,10 +418,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    private void onCustomerDeleted(CustomerDaoEvent event) {
+    private void onCustomerDeleted(CustomerEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getTarget();
+            CustomerDAO dao = event.getDataAccessObject();
+            // TODO: See if we need to get/set model
             int pk = dao.getPrimaryKey();
             itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> itemList.remove(t));
         }

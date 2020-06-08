@@ -21,13 +21,13 @@ import javafx.event.EventTarget;
 import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
-import scheduler.dao.event.AppointmentDaoEvent;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.util.Tuple;
+import scheduler.view.event.AppointmentEvent;
 
 /**
  *
@@ -159,23 +159,26 @@ public class AppointmentAlertManager implements EventTarget {
         return false;
     }
 
-    private void onAppointmentInserted(AppointmentDaoEvent event) {
+    private void onAppointmentInserted(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        if (checkInsert(event.getTarget(), true)) {
+        // TODO: Check to see if we need to get model, instead
+        if (checkInsert(event.getDataAccessObject(), true)) {
             alerting.set(true);
         }
     }
 
-    private void onAppointmentUpdated(AppointmentDaoEvent event) {
+    private void onAppointmentUpdated(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        if (checkUpdate(event.getTarget(), true)) {
+        // TODO: Check to see if we need to get model, instead
+        if (checkUpdate(event.getDataAccessObject(), true)) {
             alerting.set(!alertingList.isEmpty());
         }
     }
 
-    private void onAppointmentDeleted(AppointmentDaoEvent event) {
+    private void onAppointmentDeleted(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        if (checkDelete(event.getTarget().getPrimaryKey())) {
+        // TODO: Check to see if we need to get model, instead
+        if (checkDelete(event.getDataAccessObject().getPrimaryKey())) {
             alerting.set(false);
         }
     }
@@ -185,9 +188,9 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized void start(boolean isInitial) {
-        eventHandlerManager.addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, this::onAppointmentInserted);
-        eventHandlerManager.addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, this::onAppointmentUpdated);
-        eventHandlerManager.addEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, this::onAppointmentDeleted);
+        eventHandlerManager.addEventFilter(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, this::onAppointmentInserted);
+        eventHandlerManager.addEventFilter(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, this::onAppointmentUpdated);
+        eventHandlerManager.addEventFilter(AppointmentEvent.APPOINTMENT_DELETED_EVENT, this::onAppointmentDeleted);
         if (null != appointmentCheckTimer) {
             if (isInitial) {
                 return;
@@ -199,9 +202,9 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized boolean stop(boolean isPermanent) {
-        eventHandlerManager.removeEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_INSERT, this::onAppointmentInserted);
-        eventHandlerManager.removeEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_UPDATE, this::onAppointmentUpdated);
-        eventHandlerManager.removeEventFilter(AppointmentDaoEvent.APPOINTMENT_DAO_DELETE, this::onAppointmentDeleted);
+        eventHandlerManager.removeEventFilter(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, this::onAppointmentInserted);
+        eventHandlerManager.removeEventFilter(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, this::onAppointmentUpdated);
+        eventHandlerManager.removeEventFilter(AppointmentEvent.APPOINTMENT_DELETED_EVENT, this::onAppointmentDeleted);
         if (null == appointmentCheckTimer) {
             return false;
         }

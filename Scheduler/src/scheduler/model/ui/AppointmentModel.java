@@ -31,8 +31,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.DB;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.event.AppointmentMutateEvent;
-import scheduler.view.event.ItemMutateEvent;
+import scheduler.view.event.AppointmentEvent;
 
 /**
  * List item model for {@link AppointmentDAO} data access objects.
@@ -626,18 +625,18 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public ItemMutateEvent<AppointmentModel> createInsertEvent(AppointmentModel source, Event fxEvent) {
-            return new AppointmentMutateEvent(source, source.dataObject(), AppointmentMutateEvent.APPOINTMENT_INSERT_EVENT, fxEvent);
+        public AppointmentEvent createInsertEvent(AppointmentModel source, Event fxEvent) {
+            return new AppointmentEvent(source, source.dataObject(), AppointmentEvent.APPOINTMENT_INSERTING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<AppointmentModel> createUpdateEvent(AppointmentModel source, Event fxEvent) {
-            return new AppointmentMutateEvent(source, source.dataObject(), AppointmentMutateEvent.APPOINTMENT_UPDATE_EVENT, fxEvent);
+        public AppointmentEvent createUpdateEvent(AppointmentModel source, Event fxEvent) {
+            return new AppointmentEvent(source, source.dataObject(), AppointmentEvent.APPOINTMENT_UPDATING_EVENT, fxEvent);
         }
 
         @Override
-        public ItemMutateEvent<AppointmentModel> createDeleteEvent(AppointmentModel source, Event fxEvent) {
-            return new AppointmentMutateEvent(source, source.dataObject(), AppointmentMutateEvent.APPOINTMENT_DELETE_EVENT, fxEvent);
+        public AppointmentEvent createDeleteEvent(AppointmentModel source, Event fxEvent) {
+            return new AppointmentEvent(source, source.dataObject(), AppointmentEvent.APPOINTMENT_DELETING_EVENT, fxEvent);
         }
 
     }

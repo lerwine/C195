@@ -41,7 +41,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/AppointmentConflicts.fxml")
-public class AppointmentConflicts {
+public class AppointmentConflicts extends BorderPane {
 
     private WaitBorderPane waitBorderPane;
     private EditAppointment parentController;
@@ -57,20 +57,16 @@ public class AppointmentConflicts {
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="rootBorderPane"
-    private BorderPane rootBorderPane; // Value injected by FXMLLoader
-
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
 
     @FXML
     private void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
-        rootBorderPane.setVisible(false);
+        setVisible(false);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
-        assert rootBorderPane != null : "fx:id=\"rootBorderPane\" was not injected: check your FXML file 'AppointmentConflicts.fxml'.";
+    private void initialize() {
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'AppointmentConflicts.fxml'.";
         currentCustomer = null;
         currentUser = null;
@@ -89,9 +85,8 @@ public class AppointmentConflicts {
         return parentController;
     }
 
-    @FXML
     private void onShowConflictsButtonAction(ActionEvent event) {
-        rootBorderPane.setVisible(true);
+        setVisible(true);
     }
 
     private void onCheckConflictsButtonAction(ActionEvent event) {

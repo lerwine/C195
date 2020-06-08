@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.String?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import scheduler.fx.DateTimeTableCellFactory?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import scheduler.fx.DateTimeTableCellFactory?>
 
-
-<BorderPane fx:id="rootBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.AppointmentConflicts">
+<fx:root minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
             <top>
@@ -25,7 +22,7 @@
                 </Label>
             </top>
             <center>
-                <TableView styleClass="content" fx:id="conflictingAppointmentsTableView">
+                <TableView fx:id="conflictingAppointmentsTableView" styleClass="content">
                     <columns>
                         <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%titleColHeading">
                             <cellValueFactory>
@@ -110,4 +107,4 @@
             </styleClass>
         </BorderPane>
     </center>
-</BorderPane>
+</fx:root>
