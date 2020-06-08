@@ -27,6 +27,7 @@
 <?import scheduler.fx.CustomerListCellFactory?>
 <?import scheduler.fx.UserListCell?>
 <?import scheduler.fx.UserListCellFactory?>
+<?import scheduler.view.appointment.DateRangeControl?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
@@ -114,6 +115,7 @@
                 </ComboBox>
                 <VBox fx:id="lowerLeftVBox" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
                     <children>
+                  <DateRangeControl fx:id="dateRangeControl" maxWidth="1.7976931348623157E308" />
                         <HBox>
                             <VBox.margin>
                                 <Insets top="6.0" />
@@ -241,7 +243,7 @@
                         </RadioButton>
                     </left>
                     <center>
-                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" text="%inactive" styleClass="content" toggleGroup="$dropdownOptions" />
+                        <RadioButton fx:id="dropdownOptionsInactiveRadioButton" mnemonicParsing="false" styleClass="content" text="%inactive" toggleGroup="$dropdownOptions" />
                     </center>
                     <right>
                         <RadioButton fx:id="dropdownOptionsAllRadioButton" mnemonicParsing="false" styleClass="right" text="%all" toggleGroup="$dropdownOptions" BorderPane.alignment="CENTER" />

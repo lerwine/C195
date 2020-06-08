@@ -17,7 +17,7 @@
 <?import scheduler.fx.TimeZoneListCell?>
 <?import scheduler.fx.TimeZoneListCellFactory?>
 
-<GridPane alignment="CENTER" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scheduler.view.appointment.DateRange">
+<fx:root alignment="CENTER" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="GridPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <columnConstraints>
         <ColumnConstraints />
         <ColumnConstraints />
@@ -133,4 +133,4 @@
             <String fx:value="collapsed" />
          </styleClass></Label>
     </children>
-</GridPane>
+</fx:root>

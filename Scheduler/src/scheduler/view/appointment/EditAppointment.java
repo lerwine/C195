@@ -31,7 +31,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -77,8 +76,6 @@ import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
- * <p>
- * The associated view is {@code /resources/scheduler/view/appointment/EditAppointment.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -108,6 +105,24 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
+    // Items for the customerComboBox control.
+    private final ObservableList<CustomerModel> customerModelList;
+
+    // Items for the corporateLocationComboBox control.
+    private final ObservableList<AddressDAO> corporateLocationList;
+    private final ObservableList<AddressDAO> remoteLocationList;
+
+    // Items for the userComboBox control.
+    private final ObservableList<UserModel> userModelList;
+
+    private final HashSet<String> invalidControlIds;
+
+    private Optional<Boolean> showActiveCustomers;
+    private Optional<Boolean> showActiveUsers;
+    private boolean editingUserOptions;
+    // TODO: Convert to custom control
+    private AppointmentConflicts appointmentConflictsController;
+    private AppointmentType currentType;
 
     @ModelEditor
     private AppointmentModel model;
@@ -118,26 +133,23 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="titleValidationLabel"
-    private Label titleValidationLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="titleTextField"
     private TextField titleTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="customerValidationLabel"
-    private Label customerValidationLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="titleValidationLabel"
+    private Label titleValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="userValidationLabel"
-    private Label userValidationLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="customerComboBox"
+    private ComboBox<CustomerModel> customerComboBox; // Value injected by FXMLLoader
 
-    @FXML // CustomerDAO selection control
-    private ComboBox<CustomerModel> customerComboBox;
-
-    @FXML // UserDAO selection control.
-    private ComboBox<UserModel> userComboBox;
+    @FXML // fx:id="userComboBox"
+    private ComboBox<UserModel> userComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="lowerLeftVBox"
-    private VBox lowerLeftVBox;
+    private VBox lowerLeftVBox; // Value injected by FXMLLoader
+
+    @FXML
+    private DateRangeControl dateRangeControl;
 
     @FXML // fx:id="locationLabel"
     private Label locationLabel; // Value injected by FXMLLoader
@@ -148,9 +160,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @FXML // fx:id="corporateLocationComboBox"
     private ComboBox<AddressDAO> corporateLocationComboBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="locationValidationLabel"
-    private Label locationValidationLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="locationTextArea"
     private TextArea locationTextArea; // Value injected by FXMLLoader
 
@@ -160,32 +169,35 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @FXML // fx:id="implicitLocationLabel"
     private Label implicitLocationLabel; // Value injected by FXMLLoader
 
-    @FXML // AppointmentDAO type selection control.
-    private ComboBox<AppointmentType> typeComboBox;
+    @FXML // fx:id="locationValidationLabel"
+    private Label locationValidationLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="contactValidationLabel"
-    private Label contactValidationLabel; // Value injected by FXMLLoader
+    @FXML // fx:id="typeComboBox"
+    private ComboBox<AppointmentType> typeComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="contactTextField"
     private TextField contactTextField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="urlValidationLabel"
-    private Label urlValidationLabel; // Value injected by FXMLLoader
-
     @FXML // fx:id="urlTextField"
     private TextField urlTextField; // Value injected by FXMLLoader
+
+    @FXML // fx:id="urlValidationLabel"
+    private Label urlValidationLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="descriptionTextArea"
     private TextArea descriptionTextArea; // Value injected by FXMLLoader
 
+    @FXML // fx:id="customerValidationLabel"
+    private Label customerValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="userValidationLabel"
+    private Label userValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="contactValidationLabel"
+    private Label contactValidationLabel; // Value injected by FXMLLoader
+
     @FXML // fx:id="dropdownOptionsBorderPane"
     private BorderPane dropdownOptionsBorderPane; // Value injected by FXMLLoader
-
-    @FXML // fx:id="dropdownOptionsInactiveRadioButton"
-    private RadioButton dropdownOptionsInactiveRadioButton; // Value injected by FXMLLoader
-
-    @FXML // fx:id="dropdownOptions"
-    private ToggleGroup dropdownOptions; // Value injected by FXMLLoader
 
     @FXML // fx:id="dropdownOptionsLabel"
     private Label dropdownOptionsLabel; // Value injected by FXMLLoader
@@ -193,37 +205,31 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @FXML // fx:id="dropdownOptionsActiveRadioButton"
     private RadioButton dropdownOptionsActiveRadioButton; // Value injected by FXMLLoader
 
+    @FXML // fx:id="dropdownOptions"
+    private ToggleGroup dropdownOptions; // Value injected by FXMLLoader
+
+    @FXML // fx:id="dropdownOptionsInactiveRadioButton"
+    private RadioButton dropdownOptionsInactiveRadioButton; // Value injected by FXMLLoader
+
     @FXML // fx:id="dropdownOptionsAllRadioButton"
     private RadioButton dropdownOptionsAllRadioButton; // Value injected by FXMLLoader
-
-    // Items for the customerComboBox control.
-    private ObservableList<CustomerModel> customerModelList;
-
-    // Items for the corporateLocationComboBox control.
-    private ObservableList<AddressDAO> corporateLocationList;
-    private ObservableList<AddressDAO> remoteLocationList;
-
-    // Items for the userComboBox control.
-    private ObservableList<UserModel> userModelList;
-
-    private Optional<Boolean> showActiveCustomers;
-    private Optional<Boolean> showActiveUsers;
-    private boolean editingUserOptions;
-    // TODO: Convert to custom control
-    private DateRange dateRangeController;
-    // TODO: Convert to custom control
-    private AppointmentConflicts appointmentConflictsController;
-    private AppointmentType currentType;
-    private HashSet<String> invalidControlIds;
 
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper("");
         valid = new ReadOnlyBooleanWrapper(false);
         modified = new ReadOnlyBooleanWrapper(false);
+        currentType = AppointmentType.OTHER;
+        invalidControlIds = new HashSet<>();
+        corporateLocationList = FXCollections.observableArrayList();
+        remoteLocationList = FXCollections.observableArrayList();
+        customerModelList = FXCollections.observableArrayList();
+        userModelList = FXCollections.observableArrayList();
+        showActiveCustomers = Optional.of(true);
+        showActiveUsers = Optional.of(true);
     }
 
     @FXML
-    private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
+    void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
         editingUserOptions = false;
         if (showActiveCustomers.isPresent()) {
             dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -236,26 +242,11 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         dropdownOptionsBorderPane.prefWidthProperty().bind(widthProperty());
         dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
         dropdownOptionsBorderPane.prefHeightProperty().bind(heightProperty());
+
     }
 
     @FXML
-    private void onUserDropDownOptionsButtonAction(ActionEvent event) {
-        editingUserOptions = true;
-        if (showActiveUsers.isPresent()) {
-            dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
-        } else {
-            dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
-        }
-        dropdownOptionsLabel.setText(resources.getString(RESOURCEKEY_USERSTOSHOW));
-        dropdownOptionsBorderPane.setVisible(true);
-        dropdownOptionsBorderPane.minWidthProperty().bind(widthProperty());
-        dropdownOptionsBorderPane.prefWidthProperty().bind(widthProperty());
-        dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
-        dropdownOptionsBorderPane.prefHeightProperty().bind(heightProperty());
-    }
-
-    @FXML
-    private void onDropdownOptionsCancelButtonAction(ActionEvent event) {
+    void onDropdownOptionsCancelButtonAction(ActionEvent event) {
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -264,7 +255,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    private void onDropdownOptionsOkButtonAction(ActionEvent event) {
+    void onDropdownOptionsOkButtonAction(ActionEvent event) {
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -292,7 +283,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @FXML
-    private void onIncludeRemoteCheckBoxAction(ActionEvent event) {
+    void onIncludeRemoteCheckBoxAction(ActionEvent event) {
         if (includeRemoteCheckBox.isSelected()) {
             remoteLocationList.forEach((t) -> {
                 if (!corporateLocationList.contains(t)) {
@@ -307,15 +298,32 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
     }
 
-    //@SuppressWarnings({"incomplete-switch"})
+    @FXML
+    void onUserDropDownOptionsButtonAction(ActionEvent event) {
+        editingUserOptions = true;
+        if (showActiveUsers.isPresent()) {
+            dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
+        } else {
+            dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
+        }
+        dropdownOptionsLabel.setText(resources.getString(RESOURCEKEY_USERSTOSHOW));
+        dropdownOptionsBorderPane.setVisible(true);
+        dropdownOptionsBorderPane.minWidthProperty().bind(widthProperty());
+        dropdownOptionsBorderPane.prefWidthProperty().bind(widthProperty());
+        dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
+        dropdownOptionsBorderPane.prefHeightProperty().bind(heightProperty());
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    private void initialize() {
+    void initialize() {
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert userComboBox != null : "fx:id=\"userComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert includeRemoteCheckBox != null : "fx:id=\"includeRemoteCheckBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert lowerLeftVBox != null : "fx:id=\"lowerLeftVBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationLabel != null : "fx:id=\"locationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert includeRemoteCheckBox != null : "fx:id=\"includeRemoteCheckBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert corporateLocationComboBox != null : "fx:id=\"corporateLocationComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationTextArea != null : "fx:id=\"locationTextArea\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert phoneTextField != null : "fx:id=\"phoneTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert implicitLocationLabel != null : "fx:id=\"implicitLocationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -329,20 +337,12 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         assert userValidationLabel != null : "fx:id=\"userValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert contactValidationLabel != null : "fx:id=\"contactValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsBorderPane != null : "fx:id=\"dropdownOptionsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert dropdownOptionsInactiveRadioButton != null : "fx:id=\"dropdownOptionsInactiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert dropdownOptions != null : "fx:id=\"dropdownOptions\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsLabel != null : "fx:id=\"dropdownOptionsLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsActiveRadioButton != null : "fx:id=\"dropdownOptionsActiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptions != null : "fx:id=\"dropdownOptions\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert dropdownOptionsInactiveRadioButton != null : "fx:id=\"dropdownOptionsInactiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
-        currentType = AppointmentType.OTHER;
-        invalidControlIds = new HashSet<>();
-        corporateLocationList = FXCollections.observableArrayList();
-        remoteLocationList = FXCollections.observableArrayList();
-        customerModelList = FXCollections.observableArrayList();
-        userModelList = FXCollections.observableArrayList();
-        showActiveCustomers = Optional.of(true);
-        showActiveUsers = Optional.of(true);
         // TODO: Reimplement
 //        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).map((t) -> {
 //            AddressDAO dao = t.getDataAccessObject();
@@ -376,7 +376,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 //                remoteLocationList.add(t);
 //            }
 //        });
-
         invalidControlIds.add(titleTextField.getId());
         invalidControlIds.add(customerComboBox.getId());
         invalidControlIds.add(contactTextField.getId());
@@ -391,13 +390,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         typeComboBox.getSelectionModel().select(AppointmentType.OTHER);
 
         try {
-            ViewAndController<GridPane, DateRange> drVc = ViewControllerLoader.loadViewAndController(DateRange.class);
             ViewAndController<BorderPane, AppointmentConflicts> acVc = ViewControllerLoader.loadViewAndController(AppointmentConflicts.class);
-            dateRangeController = drVc.getController();
-            GridPane gp = drVc.getView();
-            lowerLeftVBox.getChildren().add(0, gp);
-            gp.prefWidthProperty().bind(lowerLeftVBox.widthProperty());
-            gp.minWidthProperty().bind(lowerLeftVBox.widthProperty());
             appointmentConflictsController = acVc.getController();
             BorderPane bp = acVc.getView();
             getChildren().add(bp);
@@ -416,35 +409,34 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         typeSelectionModel.select(model.getType());
         titleTextField.setText(model.getTitle());
         contactTextField.setText(model.getContact());
-        if (null != dateRangeController) {
-            LocalDateTime start = model.getStart();
-            LocalDateTime end = model.getEnd();
-            CustomerItem<? extends ICustomerDAO> c = model.getCustomer();
-            TimeZone z = null;
-            if (null != c) {
-                AddressItem<? extends IAddressDAO> a = c.getAddress();
-                if (null != a) {
-                    CityItem<? extends ICityDAO> t = a.getCity();
-                    if (null != t) {
-                        z = t.getTimeZone();
-                    }
+        LocalDateTime start = model.getStart();
+        LocalDateTime end = model.getEnd();
+        CustomerItem<? extends ICustomerDAO> c = model.getCustomer();
+        TimeZone z = null;
+        if (null != c) {
+            AddressItem<? extends IAddressDAO> a = c.getAddress();
+            if (null != a) {
+                CityItem<? extends ICityDAO> t = a.getCity();
+                if (null != t) {
+                    z = t.getTimeZone();
                 }
             }
-            if (null == z) {
-                z = TimeZone.getTimeZone(ZoneId.systemDefault());
-            }
-            Duration duration;
-            if (null != start && null != end) {
-                duration = Duration.between(start, end);
-            } else {
-                duration = null;
-            }
-            dateRangeController.setDateRange(start, duration, z);
-            WaitTitledPane pane = new WaitTitledPane();
-            pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
-                    .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
-            waitBorderPane.startNow(pane, new ItemsLoadTask());
         }
+        if (null == z) {
+            z = TimeZone.getTimeZone(ZoneId.systemDefault());
+        }
+        Duration duration;
+        if (null != start && null != end) {
+            duration = Duration.between(start, end);
+        } else {
+            duration = null;
+        }
+        dateRangeControl.setDateRange(start, duration, z);
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new ItemsLoadTask());
+
         switch (typeSelectionModel.getSelectedItem()) {
             case OTHER:
                 locationTextArea.setText(model.getLocation());
@@ -464,7 +456,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     public boolean applyChangesToModel() {
-        ZonedAppointmentTimeSpan ts = dateRangeController.getTimeSpan();
+        ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpan();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime apptEnd = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime busStart;
@@ -585,8 +577,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         return userComboBox.getValue();
     }
 
-    DateRange getDateRangeController() {
-        return dateRangeController;
+    DateRangeControl getDateRangeControl() {
+        return dateRangeControl;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.DateTimeException;
@@ -15,6 +16,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
@@ -31,6 +34,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import scheduler.fx.CssClassName;
 import scheduler.observables.BinaryOptionalBinding;
 import scheduler.observables.BindingHelper;
@@ -41,6 +45,7 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.removeCssClass;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
@@ -48,15 +53,18 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 /**
  * FXML Controller class for editing the date range for an {@link scheduler.model.ui.AppointmentModel}.
  * <p>
- * This is loaded by the {@link EditAppointment} controller. The associated view is {@code /resources/scheduler/view/appointment/DateRange.fxml}.</p>
+ * This is loaded by the {@link EditAppointment} controller. The associated view is
+ * {@code /resources/scheduler/view/appointment/DateRangeControl.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/DateRange.fxml")
-public final class DateRange {
+public final class DateRangeControl extends GridPane {
 
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
+
+    private static final Logger LOG = Logger.getLogger(DateRangeControl.class.getName());
 
     private static int tryParseInteger(String s, int max) {
         NumberFormat fmt = NumberFormat.getIntegerInstance();
@@ -86,6 +94,16 @@ public final class DateRange {
         }
         return Optional.empty();
     }
+
+    private final ObservableList<TimeZone> timeZones;
+    private BinaryOptionalBinding<ZonedDateAndTimeSelection, String> parseStartBinding;
+    private BinaryOptionalBinding<AppointmentDuration, String> parseDurationBinding;
+    private OptionalBinding<ZonedAppointmentTimeSpan> timeSpan;
+    private StringBinding startParseMessage;
+    private StringBinding durationParseMessage;
+    private StringBinding startMessage;
+    private SimpleStringProperty conflictMessage;
+    private AppointmentConflicts conflictsController;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -129,33 +147,32 @@ public final class DateRange {
     @FXML // fx:id="localTimeValue"
     private Label localTimeValue; // Value injected by FXMLLoader
 
-    private ObservableList<TimeZone> timeZones;
-    private BinaryOptionalBinding<ZonedDateAndTimeSelection, String> parseStartBinding;
-    private BinaryOptionalBinding<AppointmentDuration, String> parseDurationBinding;
-    private OptionalBinding<ZonedAppointmentTimeSpan> timeSpan;
-    private StringBinding startParseMessage;
-    private StringBinding durationParseMessage;
-    private StringBinding startMessage;
-    private SimpleStringProperty conflictMessage;
-    private AppointmentConflicts conflictsController;
+    @SuppressWarnings("LeakingThisInConstructor")
+    public DateRangeControl() {
+        this.timeZones = FXCollections.observableArrayList();
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+        }
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    private void initialize() {
-        assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'temp.fxml'.";
-        assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'temp.fxml'.";
-        assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'temp.fxml'.";
-        assert startValidationLabel != null : "fx:id=\"startValidationLabel\" was not injected: check your FXML file 'temp.fxml'.";
-        assert startHourTextField != null : "fx:id=\"startHourTextField\" was not injected: check your FXML file 'temp.fxml'.";
-        assert startMinuteTextField != null : "fx:id=\"startMinuteTextField\" was not injected: check your FXML file 'temp.fxml'.";
-        assert amPmComboBox != null : "fx:id=\"amPmComboBox\" was not injected: check your FXML file 'temp.fxml'.";
-        assert durationHourTextField != null : "fx:id=\"durationHourTextField\" was not injected: check your FXML file 'temp.fxml'.";
-        assert durationMinuteTextField != null : "fx:id=\"durationMinuteTextField\" was not injected: check your FXML file 'temp.fxml'.";
-        assert timeZoneComboBox != null : "fx:id=\"timeZoneComboBox\" was not injected: check your FXML file 'temp.fxml'.";
-        assert durationValidationLabel != null : "fx:id=\"durationValidationLabel\" was not injected: check your FXML file 'temp.fxml'.";
-        assert localTimeLabel != null : "fx:id=\"localTimeLabel\" was not injected: check your FXML file 'temp.fxml'.";
-        assert localTimeValue != null : "fx:id=\"localTimeValue\" was not injected: check your FXML file 'temp.fxml'.";
+    void initialize() {
+        assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert startValidationLabel != null : "fx:id=\"startValidationLabel\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert startHourTextField != null : "fx:id=\"startHourTextField\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert startMinuteTextField != null : "fx:id=\"startMinuteTextField\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert amPmComboBox != null : "fx:id=\"amPmComboBox\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert durationHourTextField != null : "fx:id=\"durationHourTextField\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert durationMinuteTextField != null : "fx:id=\"durationMinuteTextField\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert timeZoneComboBox != null : "fx:id=\"timeZoneComboBox\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert durationValidationLabel != null : "fx:id=\"durationValidationLabel\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert localTimeLabel != null : "fx:id=\"localTimeLabel\" was not injected: check your FXML file 'DateRange.fxml'.";
+        assert localTimeValue != null : "fx:id=\"localTimeValue\" was not injected: check your FXML file 'DateRange.fxml'.";
 
-        timeZones = FXCollections.observableArrayList();
         Arrays.stream(TimeZone.getAvailableIDs()).map((t) -> TimeZone.getTimeZone(t)).sorted((o1, o2) -> {
             return o1.getRawOffset() - o2.getRawOffset();
         }).forEachOrdered((t) -> timeZones.add(t));

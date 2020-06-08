@@ -45,7 +45,7 @@ public class AppointmentConflicts {
 
     private WaitBorderPane waitBorderPane;
     private EditAppointment parentController;
-    private DateRange dateRangeController;
+    private DateRangeControl dateRangeController;
     private ObservableList<AppointmentModel> allAppointments;
     private ObservableList<AppointmentModel> conflictingAppointments;
     private Customer currentCustomer;
@@ -104,7 +104,7 @@ public class AppointmentConflicts {
         }
         this.waitBorderPane = waitBorderPane;
         this.parentController = parentController;
-        dateRangeController = parentController.getDateRangeController();
+        dateRangeController = parentController.getDateRangeControl();
         currentCustomer = parentController.getCustomer();
         currentUser = parentController.getUser();
         currentRange = dateRangeController.getTimeSpan();
