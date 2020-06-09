@@ -46,7 +46,8 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.model.CityProperties;
+import scheduler.model.City;
+import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
@@ -97,7 +98,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         if (null != city) {
             control.getProperties().put(TARGET_CITY_KEY, city);
         }
-        return EditItem.showAndWait(parentWindow, EditAddress.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
+        return EditItem.showAndWait(parentWindow, control, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
     }
 
     public static AddressModel edit(AddressModel model, Window parentWindow) throws IOException {
@@ -107,15 +108,15 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
-    private final ObservableList<CountryItem<? extends ICountryDAO>> countryOptions;
-    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
-    private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
+    private final ObservableList<CountryModel> countryOptions;
+    private final ObservableList<CityModel> allCities;
+    private final ObservableList<CityModel> cityOptions;
     private final ObservableList<CustomerModel> itemList;
     private final SimpleBooleanProperty editingCity;
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
-    private ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry;
-    private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
+    private ObjectBinding<CountryModel> selectedCountry;
+    private ObjectBinding<CityModel> selectedCity;
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
     private BooleanBinding changedBinding;
@@ -143,10 +144,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private SplitPane countryCitySplitPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryListView"
-    private ListView<CountryItem<? extends ICountryDAO>> countryListView; // Value injected by FXMLLoader
+    private ListView<CountryModel> countryListView; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityListView"
-    private ListView<CityItem<? extends ICityDAO>> cityListView; // Value injected by FXMLLoader
+    private ListView<CityModel> cityListView; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryCityValueLabel"
     private Label countryCityValueLabel; // Value injected by FXMLLoader
@@ -174,6 +175,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
+    private BooleanBinding showEditCityControls;
 
     public EditAddress() {
         windowTitle = new ReadOnlyStringWrapper("");
@@ -245,15 +247,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             allCities.add(c);
             CountryItem<? extends ICountryDAO> n = c.getCountry();
             int pk = n.getPrimaryKey();
-            CountryItem<? extends ICountryDAO> sn = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElseGet(() -> {
-                countryOptions.add(n);
-                countryOptions.sort(CountryProperties::compare);
-                return n;
-            });
-            countryListView.getSelectionModel().select(sn);
-            cityOptions.add(c);
-            cityOptions.sort(CityProperties::compare);
-            cityListView.getSelectionModel().select(c);
+            CountryModel sn = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            if (null != sn) {
+                addCountryOption(sn, c);
+            } else {
+                waitBorderPane.startNow(new GetCountryModelTask(n.getPrimaryKey(), c));
+            }
         }
     }
 
@@ -303,17 +302,25 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
             CityItem<? extends ICityDAO> c = selectedCity.get();
             CountryItem<? extends ICountryDAO> n = selectedCountry.get();
+            String result;
             if (null == n) {
-                return "Country must be selected, first";
+                result = "Country must be selected, first";
+            } else {
+                result = (null == c) ? "* Required" : "";
             }
-            return (null == c) ? "* Required" : "";
+            LOG.info(() -> String.format("cityValidationMessage changing to %s", LogHelper.toLogText(result)));
+            return result;
         }, selectedCity, selectedCountry);
         BooleanBinding cityInvalid = cityValidationMessage.isNotEmpty();
         cityValidationLabel.textProperty().bind(cityValidationMessage);
         cityValidationLabel.visibleProperty().bind(cityInvalid);
-        BooleanBinding showEditCityControls = cityInvalid.or(editingCity);
+        showEditCityControls = cityInvalid.or(editingCity);
         showEditCityControls.addListener(this::onShowEditCityControlsChanged);
-
+        countryCityValueLabel.textProperty().bind(Bindings.when(selectedCity.isNull())
+            .then("")
+            .otherwise(Bindings.format("%s, %s", Bindings.selectString(selectedCity, City.PROP_NAME),
+                    Bindings.selectString(selectedCountry, Country.PROP_NAME)))
+        );
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
         postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
@@ -325,10 +332,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))
                 .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
         validityBinding = addressValid.and(cityInvalid.not());
-
-        onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
-        onSelectedCityChanged(selectedCity, null, selectedCity.get());
-        onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
 
         ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
             private boolean isListening = false;
@@ -368,6 +371,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
         });
 
+        address1TextField.setText(model.getAddress1());
+        address2TextField.setText(model.getAddress2());
+        postalCodeTextField.setText(model.getPostalCode());
+        phoneTextField.setText(model.getPhone());
+        
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -375,6 +383,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             collapseNode(customersHeadingLabel);
             collapseNode(customersTableView);
             collapseNode(newCustomerButtonBar);
+            LOG.info(() -> "Setting editingCity to true");
             editingCity.set(true);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
@@ -385,6 +394,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void initializeEditMode() {
+        
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
     }
 
@@ -428,20 +438,25 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+        LOG.fine(() -> String.format("showEditCityControls changed from %s to %s", oldValue, newValue));
         if (newValue) {
             collapseNode(countryCityValueLabel);
             collapseNode(editCityButton);
-            restoreNode(countryListView);
-            restoreNode(cityListView);
+            restoreNode(countryCitySplitPane);
             restoreNode(newCityButton);
         } else {
-            collapseNode(countryListView);
-            collapseNode(cityListView);
+            collapseNode(countryCitySplitPane);
             collapseNode(newCityButton);
             restoreNode(countryCityValueLabel);
             restoreNode(editCityButton);
-            restoreNode(editCityButton);
         }
+    }
+
+    private void addCountryOption(CountryModel country, CityModel city) {
+        countryOptions.add(country);
+        countryOptions.sort(CountryProperties::compare);
+        countryListView.getSelectionModel().select(country);
+        cityListView.getSelectionModel().select(city);
     }
 
     @Override
@@ -502,8 +517,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         valid.set(validityBinding.get());
     }
 
-    private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable, CountryItem<? extends ICountryDAO> oldValue,
-            CountryItem<? extends ICountryDAO> newValue) {
+    private void onSelectedCountryChanged(ObservableValue<? extends CountryModel> observable, CountryModel oldValue, CountryModel newValue) {
+        LOG.fine(() -> String.format("selectedCountry changed from %s to %s", oldValue, newValue));
         cityListView.getSelectionModel().clearSelection();
         cityOptions.clear();
         if (null != newValue) {
@@ -513,8 +528,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         updateValidation();
     }
 
-    private void onSelectedCityChanged(ObservableValue<? extends CityItem<? extends ICityDAO>> observable, CityItem<? extends ICityDAO> oldValue,
-            CityItem<? extends ICityDAO> newValue) {
+    private void onSelectedCityChanged(ObservableValue<? extends CityModel> observable, CityModel oldValue, CityModel newValue) {
+        LOG.fine(() -> String.format("selectedCity changed from %s to %s", oldValue, newValue));
         updateValidation();
     }
 
@@ -522,11 +537,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         CountryModel.Factory nf = CountryModel.getFactory();
         CountryItem<? extends ICountryDAO> countryItem = (null == targetCity) ? null : targetCity.getCountry();
         if (null != countryDaoList && !countryDaoList.isEmpty()) {
-            if (null != countryItem) {
+            if (null != countryItem && countryItem instanceof CountryModel) {
                 int pk = countryItem.getPrimaryKey();
                 countryDaoList.forEach((t) -> {
                     if (t.getPrimaryKey() == pk) {
-                        countryOptions.add(countryItem);
+                        countryOptions.add((CountryModel) countryItem);
                     } else {
                         countryOptions.add(nf.createNew(t));
                     }
@@ -537,11 +552,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
         CityModel.Factory cf = CityModel.getFactory();
         if (null != cityDaoList && !cityDaoList.isEmpty()) {
-            if (null != targetCity) {
+            if (null != targetCity && targetCity instanceof CityModel) {
                 int pk = targetCity.getPrimaryKey();
                 cityDaoList.forEach((t) -> {
                     if (t.getPrimaryKey() == pk) {
-                        allCities.add(targetCity);
+                        allCities.add((CityModel) targetCity);
                     } else {
                         allCities.add(cf.createNew(t));
                     }
@@ -550,12 +565,25 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 cityDaoList.forEach((t) -> allCities.add(cf.createNew(t)));
             }
         }
-        if (null != countryItem && countryOptions.contains(countryItem)) {
-            countryListView.getSelectionModel().select(countryItem);
-            if (null != targetCity && cityOptions.contains(targetCity)) {
-                cityListView.getSelectionModel().select(targetCity);
+        if (null != countryItem) {
+            if (countryItem.getRowState() != DataRowState.NEW) {
+                int npk = countryItem.getPrimaryKey();
+                CountryModel nm = countryOptions.stream().filter((t) -> t.getPrimaryKey() == npk).findFirst().orElse(null);
+                if (null != nm) {
+                    LOG.fine(() -> String.format("Selectimg country %s", nm));
+                    countryListView.getSelectionModel().select(nm);
+                    if (null != targetCity && targetCity.getRowState() != DataRowState.NEW) {
+                        int cpk = targetCity.getPrimaryKey();
+                        CityModel cm = cityOptions.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().orElse(null);
+                        if (null != cm) {
+                            LOG.fine(() -> String.format("Selectimg city %s", cm));
+                            cityListView.getSelectionModel().select(cm);
+                        }
+                    }
+                }
             }
         }
+        onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
     }
 
     private void editCustomer(CustomerModel item) {
@@ -579,13 +607,63 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
+    private class GetCountryModelTask extends Task<CountryDAO> {
+
+        private final int countryPk;
+        private final CityModel city;
+
+        public GetCountryModelTask(int countryPk, CityModel city) {
+            this.countryPk = countryPk;
+            this.city = city;
+        }
+
+        @Override
+        protected void succeeded() {
+            CountryDAO value = getValue();
+            addCountryOption((null == value) ? null : new CountryModel(value), city);
+            super.succeeded();
+        }
+
+        @Override
+        protected CountryDAO call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                return CountryDAO.FACTORY.loadByPrimaryKey(dbConnector.getConnection(), countryPk).orElse(null);
+            }
+        }
+    }
+
     private class EditDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {
 
         private final AddressDAO dao;
+        private final Optional<Integer> countryPk;
+        private final Optional<Integer> cityPk;
 
         private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             dao = model.dataObject();
+            CityItem<? extends ICityDAO> cm = model.getCity();
+            CountryItem<? extends ICountryDAO> nm;
+            if (null == cm) {
+                nm = null;
+            } else {
+                nm = cm.getCountry();
+            }
+            if (null != nm && nm.getRowState() != DataRowState.NEW) {
+                if (nm instanceof CountryModel) {
+                    countryPk = Optional.empty();
+                } else {
+                    countryPk = Optional.of(nm.getPrimaryKey());
+                }
+                if (null != cm && cm.getRowState() != DataRowState.NEW && !(cm instanceof CityModel)) {
+                    cityPk = Optional.of(cm.getPrimaryKey());
+                    return;
+                }
+            } else {
+                countryPk = Optional.of(nm.getPrimaryKey());
+            }
+            cityPk = Optional.empty();
         }
 
         @Override
@@ -626,15 +704,16 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
         @Override
         protected void succeeded() {
-            CityItem<? extends ICityDAO> targetCity = model.getCity();
-            if (null == targetCity) {
-                ObservableMap<Object, Object> properties = getProperties();
-                if (properties.containsKey(TARGET_CITY_KEY)) {
-                    targetCity = (CityModel) properties.get(TARGET_CITY_KEY);
-                    properties.remove(TARGET_CITY_KEY);
-                }
-            }
             Tuple<List<CountryDAO>, List<CityDAO>> result = getValue();
+            ObservableMap<Object, Object> properties = EditAddress.this.getProperties();
+            CityItem<? extends ICityDAO> targetCity;
+            if (properties.containsKey(TARGET_CITY_KEY)) {
+                targetCity = (CityModel) properties.get(TARGET_CITY_KEY);
+                properties.remove(TARGET_CITY_KEY);
+            } else {
+                targetCity = model.getCity();
+            }
+
             initializeCountriesAndCities(result.getValue1(), result.getValue2(), targetCity);
             super.succeeded();
         }
