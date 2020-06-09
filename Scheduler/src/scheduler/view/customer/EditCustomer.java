@@ -34,7 +34,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -95,7 +95,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
-public final class EditCustomer extends StackPane implements EditItem.ModelEditor<CustomerDAO, CustomerModel> {
+public final class EditCustomer extends VBox implements EditItem.ModelEditor<CustomerDAO, CustomerModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
 
@@ -318,7 +318,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
 
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
-        BooleanBinding nameValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
+        BooleanBinding nameValid = nameTextField.textProperty().isNotEmpty();
         nameValidationLabel.visibleProperty().bind(nameValid.not());
 
         normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
@@ -351,17 +351,17 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneNumberTextField.textProperty());
         phoneNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
 
+        modelCity = Bindings.select(model.addressProperty(), AddressModel.PROP_CITY);
         addressChanged = normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                 AddressModel.PROP_ADDRESS1)))
                 .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                         AddressModel.PROP_ADDRESS2))))
                 .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), modelCity.get()), selectedCity,
-                        Bindings.<CityItem<? extends ICityDAO>>select(selectedAddress, AddressModel.PROP_CITY)))
+                        modelCity))
                 .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                         AddressModel.PROP_POSTALCODE))))
                 .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                         AddressModel.PROP_PHONE))));
-        modelCity = Bindings.select(model.addressProperty(), "city");
         changedBinding = normalizedName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.nameProperty()))
                 .or(addressChanged).or(activeTrueRadioButton.selectedProperty().isNotEqualTo(model.activeProperty()));
         validityBinding = nameValid.and(addressValid).and(cityInvalid.not());
@@ -380,7 +380,7 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
                     oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
                 }
                 if (null != newValue) {
-                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    newValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
                     onChange(true);
                 } else {
                     onChange(false);
