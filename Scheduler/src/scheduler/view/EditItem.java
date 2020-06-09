@@ -204,18 +204,20 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     private void onSaveButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ModelItemEvent<U, T> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event) : factory.createUpdateEvent(model, event);
+        ModelItemEvent<U, T> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event.getSource(), editorRegion)
+                : factory.createUpdateEvent(model, event.getSource(), editorRegion);
         editorRegion.fireEvent(updateEvent);
         if (!updateEvent.isHandled()) {
             editorRegion.updateModel();
-            waitBorderPane.startNow(new SaveTask(factory.updateDAO(model)));
+            factory.updateDAO(model);
+            waitBorderPane.startNow(new SaveTask(updateEvent));
         }
     }
 
     @FXML
     private void onDeleteButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ModelItemEvent<U, T> deleteEvent = factory.createDeleteEvent(model, event);
+        ModelItemEvent<U, T> deleteEvent = factory.createDeleteEvent(model, event.getSource(), editorRegion);
         editorRegion.fireEvent(deleteEvent);
         if (!deleteEvent.isHandled()) {
             Stage stage = (Stage) getScene().getWindow();
@@ -223,7 +225,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
             if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new DeleteTask(stage));
+                waitBorderPane.startNow(new DeleteTask(deleteEvent));
             }
         }
     }
@@ -295,22 +297,22 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         void onNewModelSaved();
 
         void updateModel();
-        
+
     }
 
     private class SaveTask extends Task<String> {
 
+        private final ModelItemEvent<U, T> updateEvent;
         private final T dataAccessobject;
         private final DaoFactory<T> daoFactory;
         private final boolean closeOnSuccess;
         private final boolean isNew;
 
-        SaveTask(T dataAccessobject) {
+        SaveTask(ModelItemEvent<U, T> updateEvent) {
+            isNew = (dataAccessobject = (this.updateEvent = updateEvent).getDataAccessObject()).getRowState() == DataRowState.NEW;
             closeOnSuccess = dataAccessobject.isExisting() || !keepOpen;
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
-            isNew = (this.dataAccessobject = dataAccessobject).getRowState() == DataRowState.NEW;
             daoFactory = editorRegion.modelFactory().getDaoFactory();
-            super.run();
         }
 
         @Override
@@ -370,13 +372,15 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     private class DeleteTask extends Task<String> {
 
+        private final ModelItemEvent<U, T> deleteEvent;
         private final T dataAccessobject;
         private final DaoFactory<T> daoFactory;
 
-        DeleteTask(Stage stage) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+        DeleteTask(ModelItemEvent<U, T> deleteEvent) {
+            dataAccessobject = (this.deleteEvent = deleteEvent).getDataAccessObject();
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
             daoFactory = editorRegion.modelFactory().getDaoFactory();
-            dataAccessobject = model.dataObject();
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
         }
 
         @Override

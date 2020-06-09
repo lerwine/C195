@@ -353,17 +353,17 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent createInsertedEvent(Object source, CountryDAO dataAccessObject) {
-            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_INSERTED_EVENT, null);
+            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_INSERTED_EVENT);
         }
 
         @Override
         protected CountryEvent createUpdatedEvent(Object source, CountryDAO dataAccessObject) {
-            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_UPDATED_EVENT, null);
+            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_UPDATED_EVENT);
         }
 
         @Override
         protected CountryEvent createDeletedEvent(Object source, CountryDAO dataAccessObject) {
-            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_DELETED_EVENT, null);
+            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_DELETED_EVENT);
         }
 
     }

@@ -420,17 +420,17 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         protected CustomerEvent createInsertedEvent(Object source, CustomerDAO dataAccessObject) {
-            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_INSERTED_EVENT, null);
+            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_INSERTED_EVENT);
         }
 
         @Override
         protected CustomerEvent createUpdatedEvent(Object source, CustomerDAO dataAccessObject) {
-            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_UPDATED_EVENT, null);
+            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_UPDATED_EVENT);
         }
 
         @Override
         protected CustomerEvent createDeletedEvent(Object source, CustomerDAO dataAccessObject) {
-            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_DELETED_EVENT, null);
+            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_DELETED_EVENT);
         }
 
     }

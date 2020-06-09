@@ -69,7 +69,6 @@ import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.event.AddressEvent;
-import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -207,11 +206,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
-    private void onItemActionRequest(ItemActionRequestEvent<AddressModel> event) {
-        if (event.isDelete()) {
-            deleteAddress(event.getItem());
+    private void onItemActionRequest(AddressEvent event) {
+        if (event.isDeleteRequest()) {
+            deleteAddress(event.getModel());
         } else {
-            editAddress(event.getItem());
+            editAddress(event.getModel());
         }
     }
 

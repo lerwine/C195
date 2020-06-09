@@ -16,11 +16,11 @@ import scheduler.model.ui.FxRecordModel;
  */
 public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataAccessObject> extends Event {
 
-    public static final EventType<ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> MODEL_ITEM_EVENT = new EventType<>(
-            ANY,
-            "MODEL_ITEM_EVENT");
+    private static final long serialVersionUID = -6832461936768738020L;
 
-    private final Event fxEvent;
+    public static final EventType<ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> MODEL_ITEM_EVENT
+            = new EventType<>(ANY, "MODEL_ITEM_EVENT");
+
     private final U dataAccessObject;
     private T model;
     private boolean handled;
@@ -36,20 +36,17 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
             }
             copyFrom.nextCopy = this;
         }
-        this.fxEvent = copyFrom.fxEvent;
         this.dataAccessObject = copyFrom.dataAccessObject;
     }
 
-    protected ModelItemEvent(T model, Object source, EventTarget target, EventType<? extends ModelItemEvent<T, U>> type, Event fxEvent) {
+    protected ModelItemEvent(T model, Object source, EventTarget target, EventType<? extends ModelItemEvent<T, U>> type) {
         super((null == source) ? model : source, (null == target) ? model.dataObject() : target, type);
-        this.fxEvent = fxEvent;
         this.dataAccessObject = (this.model = model).dataObject();
         this.handled = false;
     }
 
-    protected ModelItemEvent(Object source, U target, EventType<? extends ModelItemEvent<T, U>> type, Event fxEvent) {
+    protected ModelItemEvent(Object source, U target, EventType<? extends ModelItemEvent<T, U>> type) {
         super((null == source) ? target : source, target, type);
-        this.fxEvent = fxEvent;
         dataAccessObject = target;
         this.handled = false;
     }
@@ -98,15 +95,6 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
     }
 
     /**
-     * Gets the {@link ActionEvent} that initiated this event.
-     *
-     * @return The {@link ActionEvent} that initiated this event.
-     */
-    public Event getFxEvent() {
-        return fxEvent;
-    }
-
-    /**
      * Gets a value that indicates whether the represented save or delete operation was handled.
      *
      * @return {@code true} if the represented save or delete operation was handled; otherwise {@code false}.
@@ -129,8 +117,11 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EventType<? extends ModelItemEvent<T, U>> getEventType() {
         return (EventType<? extends ModelItemEvent<T, U>>) super.getEventType();
     }
+
+    public abstract boolean isDeleteRequest();
 
 }

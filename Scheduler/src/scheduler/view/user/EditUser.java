@@ -58,7 +58,6 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.view.event.AppointmentEvent;
-import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
@@ -158,7 +157,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @FXML
-    private void onItemActionRequest(ItemActionRequestEvent<UserModel> event) {
+    private void onItemActionRequest(AppointmentEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#onItemActionRequest
     }
 

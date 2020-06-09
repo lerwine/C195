@@ -16,7 +16,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.CountryEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
 
@@ -92,7 +92,7 @@
                                 <RelayCellValueFactory />
                             </cellValueFactory>
                             <cellFactory>
-                                <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                <CountryEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                             </cellFactory>
                         </TableColumn>
                     </columns>

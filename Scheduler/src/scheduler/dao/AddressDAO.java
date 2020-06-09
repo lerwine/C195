@@ -478,17 +478,17 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected AddressEvent createInsertedEvent(Object source, AddressDAO dataAccessObject) {
-            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_INSERTED_EVENT, null);
+            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_INSERTED_EVENT);
         }
 
         @Override
         protected AddressEvent createUpdatedEvent(Object source, AddressDAO dataAccessObject) {
-            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_UPDATED_EVENT, null);
+            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_UPDATED_EVENT);
         }
 
         @Override
         protected AddressEvent createDeletedEvent(Object source, AddressDAO dataAccessObject) {
-            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_DELETED_EVENT, null);
+            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_DELETED_EVENT);
         }
 
     }

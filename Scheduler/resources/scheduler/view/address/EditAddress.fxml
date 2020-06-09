@@ -21,7 +21,7 @@
 <?import scheduler.fx.CityListCellFactory?>
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.CustomerEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
 
@@ -158,7 +158,7 @@
                         <RelayCellValueFactory />
                     </cellValueFactory>
                     <cellFactory>
-                        <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                        <CustomerEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

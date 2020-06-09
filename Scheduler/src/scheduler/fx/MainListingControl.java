@@ -32,7 +32,6 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.event.ModelItemEvent;
 
 /**
@@ -111,11 +110,11 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     @FXML
-    private void onItemActionRequest(ItemActionRequestEvent<M> event) {
-        if (event.isDelete()) {
-            onDeleteItem(event.getItem());
+    private void onItemActionRequest(ModelItemEvent<M, D> event) {
+        if (event.isDeleteRequest()) {
+            onDeleteItem(event.getModel());
         } else {
-            onEditItem(event.getItem());
+            onEditItem(event.getModel());
         }
         event.consume();
     }

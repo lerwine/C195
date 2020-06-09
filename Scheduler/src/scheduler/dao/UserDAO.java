@@ -389,17 +389,17 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent createInsertedEvent(Object source, UserDAO dataAccessObject) {
-            return new UserEvent(source, dataAccessObject, UserEvent.USER_INSERTED_EVENT, null);
+            return new UserEvent(source, dataAccessObject, UserEvent.USER_INSERTED_EVENT);
         }
 
         @Override
         protected UserEvent createUpdatedEvent(Object source, UserDAO dataAccessObject) {
-            return new UserEvent(source, dataAccessObject, UserEvent.USER_UPDATED_EVENT, null);
+            return new UserEvent(source, dataAccessObject, UserEvent.USER_UPDATED_EVENT);
         }
 
         @Override
         protected UserEvent createDeletedEvent(Object source, UserDAO dataAccessObject) {
-            return new UserEvent(source, dataAccessObject, UserEvent.USER_DELETED_EVENT, null);
+            return new UserEvent(source, dataAccessObject, UserEvent.USER_DELETED_EVENT);
         }
 
     }

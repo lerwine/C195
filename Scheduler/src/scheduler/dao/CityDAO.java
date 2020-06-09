@@ -476,17 +476,17 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected CityEvent createInsertedEvent(Object source, CityDAO dataAccessObject) {
-            return new CityEvent(source, dataAccessObject, CityEvent.CITY_INSERTED_EVENT, null);
+            return new CityEvent(source, dataAccessObject, CityEvent.CITY_INSERTED_EVENT);
         }
 
         @Override
         protected CityEvent createUpdatedEvent(Object source, CityDAO dataAccessObject) {
-            return new CityEvent(source, dataAccessObject, CityEvent.CITY_UPDATED_EVENT, null);
+            return new CityEvent(source, dataAccessObject, CityEvent.CITY_UPDATED_EVENT);
         }
 
         @Override
         protected CityEvent createDeletedEvent(Object source, CityDAO dataAccessObject) {
-            return new CityEvent(source, dataAccessObject, CityEvent.CITY_DELETED_EVENT, null);
+            return new CityEvent(source, dataAccessObject, CityEvent.CITY_DELETED_EVENT);
         }
 
     }

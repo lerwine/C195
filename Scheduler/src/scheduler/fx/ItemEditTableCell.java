@@ -8,22 +8,26 @@ import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
+import scheduler.dao.DataAccessObject;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.NodeUtil;
-import scheduler.view.SymbolText;
 import static scheduler.util.NodeUtil.createSymbolButton;
-import scheduler.view.event.ItemActionRequestEvent;
+import scheduler.view.SymbolText;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
  */
-public class ItemEditTableCell<T> extends TableCell<T, T> {
+public class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>> extends TableCell<T, T> {
 
+    private final FxRecordModel.ModelFactory<? extends DataAccessObject, T> factory;
     private final HBox graphic;
-    private final ObjectProperty<EventHandler<ItemActionRequestEvent<T>>> onItemEdit = new SimpleObjectProperty<>();
+    private final ObjectProperty<EventHandler<ModelItemEvent<T, ? extends DataAccessObject>>> onItemEdit = new SimpleObjectProperty<>();
 
-    public ItemEditTableCell() {
+    public ItemEditTableCell(FxRecordModel.ModelFactory<? extends DataAccessObject, T> factory) {
+        this.factory = factory;
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));
         graphic.setSpacing(8);
         graphic.setMaxHeight(USE_PREF_SIZE);
@@ -31,28 +35,34 @@ public class ItemEditTableCell<T> extends TableCell<T, T> {
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
 
-    public EventHandler<ItemActionRequestEvent<T>> getOnItemEdit() {
+    public EventHandler<ModelItemEvent<T, ? extends DataAccessObject>> getOnItemEdit() {
         return onItemEdit.get();
     }
 
-    public void setOnItemEdit(EventHandler<ItemActionRequestEvent<T>> value) {
+    public void setOnItemEdit(EventHandler<ModelItemEvent<T, ? extends DataAccessObject>> value) {
         onItemEdit.set(value);
     }
 
-    public ObjectProperty<EventHandler<ItemActionRequestEvent<T>>> onItemEditProperty() {
+    public ObjectProperty<EventHandler<ModelItemEvent<T, ? extends DataAccessObject>>> onItemEditProperty() {
         return onItemEdit;
     }
 
     private void onEditButtonAction(ActionEvent event) {
-        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), false));
+        T item = getItem();
+        if (null != item) {
+            onItemActionRequest(factory.createEditRequestEvent(item, event.getSource(), item.dataObject()));
+        }
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
-        onItemActionRequest(new ItemActionRequestEvent<>(event, getItem(), true));
+        T item = getItem();
+        if (null != item) {
+            onItemActionRequest(factory.createDeleteRequestEvent(item, event.getSource(), item.dataObject()));
+        }
     }
 
-    protected void onItemActionRequest(ItemActionRequestEvent<T> event) {
-        EventHandler<ItemActionRequestEvent<T>> listener = onItemEdit.get();
+    protected void onItemActionRequest(ModelItemEvent<T, ? extends DataAccessObject> event) {
+        EventHandler<ModelItemEvent<T, ? extends DataAccessObject>> listener = onItemEdit.get();
         if (null != listener) {
             listener.handle(event);
         }

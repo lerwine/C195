@@ -9,7 +9,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
+import javafx.event.EventTarget;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
@@ -18,6 +18,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.PwHash;
 import scheduler.util.Values;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.event.UserEvent;
 import scheduler.view.user.UserModelFilter;
 
@@ -27,7 +28,7 @@ import scheduler.view.user.UserModelFilter;
  */
 public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<UserDAO> {
 
-    private static final Factory FACTORY = new Factory();
+    public static final Factory FACTORY = new Factory();
 
     public static final Factory getFactory() {
         return FACTORY;
@@ -189,18 +190,28 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public UserEvent createInsertEvent(UserModel source, Event fxEvent) {
-            return new UserEvent(source, source.dataObject(), UserEvent.USER_INSERTING_EVENT, fxEvent);
+        public UserEvent createInsertEvent(UserModel model, Object source, EventTarget target) {
+            return new UserEvent(model, source, target, UserEvent.USER_INSERTING_EVENT);
         }
 
         @Override
-        public UserEvent createUpdateEvent(UserModel source, Event fxEvent) {
-            return new UserEvent(source, source.dataObject(), UserEvent.USER_UPDATING_EVENT, fxEvent);
+        public UserEvent createUpdateEvent(UserModel model, Object source, EventTarget target) {
+            return new UserEvent(model, source, target, UserEvent.USER_UPDATING_EVENT);
         }
 
         @Override
-        public UserEvent createDeleteEvent(UserModel source, Event fxEvent) {
-            return new UserEvent(source, source.dataObject(), UserEvent.USER_DELETING_EVENT, fxEvent);
+        public UserEvent createDeleteEvent(UserModel model, Object source, EventTarget target) {
+            return new UserEvent(model, source, target, UserEvent.USER_DELETING_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<UserModel, UserDAO> createEditRequestEvent(UserModel model, Object source, EventTarget target) {
+            return new UserEvent(model, source, target, UserEvent.USER_EDIT_REQUEST_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<UserModel, UserDAO> createDeleteRequestEvent(UserModel model, Object source, EventTarget target) {
+            return new UserEvent(model, source, target, UserEvent.USER_DELETE_REQUEST_EVENT);
         }
 
     }

@@ -25,7 +25,7 @@
 <?import scheduler.fx.CountryListCell?>
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.AppointmentEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 
 <fx:root styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
@@ -209,7 +209,7 @@
                         <RelayCellValueFactory />
                     </cellValueFactory>
                     <cellFactory>
-                        <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

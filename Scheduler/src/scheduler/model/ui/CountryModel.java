@@ -6,7 +6,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.Event;
+import javafx.event.EventTarget;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -20,6 +20,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 import scheduler.view.event.CountryEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  *
@@ -27,7 +28,7 @@ import scheduler.view.event.CountryEvent;
  */
 public final class CountryModel extends FxRecordModel<CountryDAO> implements CountryItem<CountryDAO> {
 
-    private static final Factory FACTORY = new Factory();
+    public static final Factory FACTORY = new Factory();
 
     public static final Factory getFactory() {
         return FACTORY;
@@ -155,18 +156,28 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public CountryEvent createInsertEvent(CountryModel source, Event fxEvent) {
-            return new CountryEvent(source, source.dataObject(), CountryEvent.COUNTRY_INSERTING_EVENT, fxEvent);
+        public CountryEvent createInsertEvent(CountryModel model, Object source, EventTarget target) {
+            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_INSERTING_EVENT);
         }
 
         @Override
-        public CountryEvent createUpdateEvent(CountryModel source, Event fxEvent) {
-            return new CountryEvent(source, source.dataObject(), CountryEvent.COUNTRY_UPDATING_EVENT, fxEvent);
+        public CountryEvent createUpdateEvent(CountryModel model, Object source, EventTarget target) {
+            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_UPDATING_EVENT);
         }
 
         @Override
-        public CountryEvent createDeleteEvent(CountryModel source, Event fxEvent) {
-            return new CountryEvent(source, source.dataObject(), CountryEvent.COUNTRY_DELETING_EVENT, fxEvent);
+        public CountryEvent createDeleteEvent(CountryModel model, Object source, EventTarget target) {
+            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_DELETING_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<CountryModel, CountryDAO> createEditRequestEvent(CountryModel model, Object source, EventTarget target) {
+            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_EDIT_REQUEST_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<CountryModel, CountryDAO> createDeleteRequestEvent(CountryModel model, Object source, EventTarget target) {
+            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_DELETE_REQUEST_EVENT);
         }
 
     }

@@ -57,7 +57,6 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.event.CityEvent;
-import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -159,11 +158,11 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @FXML
-    private void onItemActionRequest(ItemActionRequestEvent<CityModel> event) {
-        if (event.isDelete()) {
-            deleteCity(event.getItem());
+    private void onItemActionRequest(CityEvent event) {
+        if (event.isDeleteRequest()) {
+            deleteCity(event.getModel());
         } else {
-            openCity(event.getItem());
+            openCity(event.getModel());
         }
     }
 

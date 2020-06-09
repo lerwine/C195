@@ -780,17 +780,17 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected AppointmentEvent createInsertedEvent(Object source, AppointmentDAO dataAccessObject) {
-            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_INSERTED_EVENT, null);
+            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_INSERTED_EVENT);
         }
 
         @Override
         protected AppointmentEvent createUpdatedEvent(Object source, AppointmentDAO dataAccessObject) {
-            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_UPDATED_EVENT, null);
+            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_UPDATED_EVENT);
         }
 
         @Override
         protected AppointmentEvent createDeletedEvent(Object source, AppointmentDAO dataAccessObject) {
-            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_DELETED_EVENT, null);
+            return new AppointmentEvent(source, dataAccessObject, AppointmentEvent.APPOINTMENT_DELETED_EVENT);
         }
 
     }

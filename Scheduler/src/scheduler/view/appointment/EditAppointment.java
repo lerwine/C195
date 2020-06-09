@@ -148,7 +148,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @FXML // fx:id="lowerLeftVBox"
     private VBox lowerLeftVBox; // Value injected by FXMLLoader
 
-    @FXML
+    @FXML // fx:id="dateRangeControl"
     private DateRangeControl dateRangeControl;
 
     @FXML // fx:id="locationLabel"

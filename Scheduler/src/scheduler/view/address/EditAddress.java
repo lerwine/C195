@@ -73,7 +73,6 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -225,11 +224,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @FXML
-    private void onItemActionRequest(ItemActionRequestEvent<CustomerModel> event) {
-        if (event.isDelete()) {
-            deleteCustomer(event.getItem());
+    private void onItemActionRequest(CustomerEvent event) {
+        if (event.isDeleteRequest()) {
+            deleteCustomer(event.getModel());
         } else {
-            editCustomer(event.getItem());
+            editCustomer(event.getModel());
         }
     }
 

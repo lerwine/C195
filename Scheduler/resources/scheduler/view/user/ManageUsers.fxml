@@ -19,7 +19,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.UserEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
@@ -82,7 +82,7 @@
                                 <RelayCellValueFactory />
                             </cellValueFactory>
                             <cellFactory>
-                                <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                <UserEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                             </cellFactory>
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="8.0">

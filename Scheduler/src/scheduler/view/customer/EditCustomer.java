@@ -83,7 +83,6 @@ import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.event.AppointmentEvent;
 import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.ItemActionRequestEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -234,11 +233,11 @@ public final class EditCustomer extends StackPane implements EditItem.ModelEdito
     }
 
     @FXML
-    private void onItemActionRequest(ItemActionRequestEvent<AppointmentModel> event) {
-        if (event.isDelete()) {
-            deleteAppointment(event.getItem());
+    private void onItemActionRequest(AppointmentEvent event) {
+        if (event.isDeleteRequest()) {
+            deleteAppointment(event.getModel());
         } else {
-            editAppointment(event.getItem());
+            editAppointment(event.getModel());
         }
     }
 

@@ -21,7 +21,7 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import javafx.collections.ObservableList;
-import javafx.event.Event;
+import javafx.event.EventTarget;
 import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -337,11 +337,15 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract ModelItemEvent<U, T> createInsertEvent(U source, Event fxEvent);
+        public abstract ModelItemEvent<U, T> createEditRequestEvent(U model, Object source, EventTarget target);
 
-        public abstract ModelItemEvent<U, T> createUpdateEvent(U source, Event fxEvent);
+        public abstract ModelItemEvent<U, T> createDeleteRequestEvent(U model, Object source, EventTarget target);
 
-        public abstract ModelItemEvent<U, T> createDeleteEvent(U source, Event fxEvent);
+        public abstract ModelItemEvent<U, T> createInsertEvent(U model, Object source, EventTarget target);
+
+        public abstract ModelItemEvent<U, T> createUpdateEvent(U model, Object source, EventTarget target);
+
+        public abstract ModelItemEvent<U, T> createDeleteEvent(U model, Object source, EventTarget target);
 
     }
 

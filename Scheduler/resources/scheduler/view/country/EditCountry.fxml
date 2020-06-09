@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.CityEditTableCellFactory?>
 <?import scheduler.fx.LocaleCountryAndLanguageListCell?>
 <?import scheduler.fx.LocaleCountryAndLanguageListCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
@@ -111,7 +111,7 @@
                         <RelayCellValueFactory />
                     </cellValueFactory>
                     <cellFactory>
-                        <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                        <CityEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

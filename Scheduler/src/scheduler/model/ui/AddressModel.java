@@ -9,7 +9,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
+import javafx.event.EventTarget;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -34,6 +34,7 @@ import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.event.AddressEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  *
@@ -41,7 +42,7 @@ import scheduler.view.event.AddressEvent;
  */
 public final class AddressModel extends FxRecordModel<AddressDAO> implements AddressItem<AddressDAO> {
 
-    private static final Factory FACTORY = new Factory();
+    public static final Factory FACTORY = new Factory();
 
     public static final Factory getFactory() {
         return FACTORY;
@@ -442,18 +443,28 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public AddressEvent createInsertEvent(AddressModel source, Event fxEvent) {
-            return new AddressEvent(source, source.dataObject(), AddressEvent.ADDRESS_INSERTING_EVENT, fxEvent);
+        public AddressEvent createInsertEvent(AddressModel model, Object source, EventTarget target) {
+            return new AddressEvent(model, source, target, AddressEvent.ADDRESS_INSERTING_EVENT);
         }
 
         @Override
-        public AddressEvent createUpdateEvent(AddressModel source, Event fxEvent) {
-            return new AddressEvent(source, source.dataObject(), AddressEvent.ADDRESS_UPDATING_EVENT, fxEvent);
+        public AddressEvent createUpdateEvent(AddressModel model, Object source, EventTarget target) {
+            return new AddressEvent(model, source, target, AddressEvent.ADDRESS_UPDATING_EVENT);
         }
 
         @Override
-        public AddressEvent createDeleteEvent(AddressModel source, Event fxEvent) {
-            return new AddressEvent(source, source.dataObject(), AddressEvent.ADDRESS_DELETING_EVENT, fxEvent);
+        public AddressEvent createDeleteEvent(AddressModel model, Object source, EventTarget target) {
+            return new AddressEvent(model, source, target, AddressEvent.ADDRESS_DELETING_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<AddressModel, AddressDAO> createEditRequestEvent(AddressModel model, Object source, EventTarget target) {
+            return new AddressEvent(model, source, target, AddressEvent.ADDRESS_EDIT_REQUEST_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<AddressModel, AddressDAO> createDeleteRequestEvent(AddressModel model, Object source, EventTarget target) {
+            return new AddressEvent(model, source, target, AddressEvent.ADDRESS_DELETE_REQUEST_EVENT);
         }
 
     }

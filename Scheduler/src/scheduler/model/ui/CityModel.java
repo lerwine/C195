@@ -8,7 +8,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
+import javafx.event.EventTarget;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -25,6 +25,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 import scheduler.view.event.CityEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  *
@@ -32,7 +33,7 @@ import scheduler.view.event.CityEvent;
  */
 public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<CityDAO> {
 
-    private static final Factory FACTORY = new Factory();
+    public static final Factory FACTORY = new Factory();
 
     public static final Factory getFactory() {
         return FACTORY;
@@ -216,18 +217,28 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public CityEvent createInsertEvent(CityModel source, Event fxEvent) {
-            return new CityEvent(source, source.dataObject(), CityEvent.CITY_INSERTING_EVENT, fxEvent);
+        public CityEvent createInsertEvent(CityModel model, Object source, EventTarget target) {
+            return new CityEvent(model, source, target, CityEvent.CITY_INSERTING_EVENT);
         }
 
         @Override
-        public CityEvent createUpdateEvent(CityModel source, Event fxEvent) {
-            return new CityEvent(source, source.dataObject(), CityEvent.CITY_UPDATING_EVENT, fxEvent);
+        public CityEvent createUpdateEvent(CityModel model, Object source, EventTarget target) {
+            return new CityEvent(model, source, target, CityEvent.CITY_UPDATING_EVENT);
         }
 
         @Override
-        public CityEvent createDeleteEvent(CityModel source, Event fxEvent) {
-            return new CityEvent(source, source.dataObject(), CityEvent.CITY_DELETING_EVENT, fxEvent);
+        public CityEvent createDeleteEvent(CityModel model, Object source, EventTarget target) {
+            return new CityEvent(model, source, target, CityEvent.CITY_DELETING_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<CityModel, CityDAO> createEditRequestEvent(CityModel model, Object source, EventTarget target) {
+            return new CityEvent(model, source, target, CityEvent.CITY_EDIT_REQUEST_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<CityModel, CityDAO> createDeleteRequestEvent(CityModel model, Object source, EventTarget target) {
+            return new CityEvent(model, source, target, CityEvent.CITY_DELETE_REQUEST_EVENT);
         }
 
     }

@@ -20,7 +20,7 @@
 <?import scheduler.fx.CountryListCell?>
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.AddressEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.TimeZoneListCell?>
 <?import scheduler.fx.TimeZoneListCellFactory?>
@@ -145,7 +145,7 @@
                         <RelayCellValueFactory />
                     </cellValueFactory>
                     <cellFactory>
-                        <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                        <AddressEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

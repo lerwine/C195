@@ -834,6 +834,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 ((DataAccessObject) dao).changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
                 if (null != event) {
+                    // FIXME: Ensure it's fired on the FX app thread
                     Event.fireEvent(dao, event);
                 }
             }
@@ -963,6 +964,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
                 if (success) {
                     ModelItemEvent<? extends FxRecordModel<T>, T> event = createDeletedEvent(this, dao);
+                    // FIXME: Ensure it's fired on the FX app thread
                     Event.fireEvent(dao, event);
                 }
             }

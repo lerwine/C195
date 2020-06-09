@@ -20,7 +20,7 @@
 <?import scheduler.fx.DateTimeTableCellFactory?>
 <?import scheduler.fx.UserStatusListCell?>
 <?import scheduler.fx.UserStatusListCellFactory?>
-<?import scheduler.fx.ItemEditTableCellFactory?>
+<?import scheduler.fx.AppointmentEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
 
@@ -172,7 +172,7 @@
                         <RelayCellValueFactory />
                     </cellValueFactory>
                     <cellFactory>
-                        <ItemEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

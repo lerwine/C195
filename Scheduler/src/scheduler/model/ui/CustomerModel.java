@@ -10,7 +10,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
+import javafx.event.EventTarget;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
@@ -22,6 +22,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
 import scheduler.view.event.CustomerEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  *
@@ -29,7 +30,7 @@ import scheduler.view.event.CustomerEvent;
  */
 public final class CustomerModel extends FxRecordModel<CustomerDAO> implements CustomerItem<CustomerDAO> {
 
-    private static final Factory FACTORY = new Factory();
+    public static final Factory FACTORY = new Factory();
 
     public static final Factory getFactory() {
         return FACTORY;
@@ -298,18 +299,28 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public CustomerEvent createInsertEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerEvent(source, source.dataObject(), CustomerEvent.CUSTOMER_INSERTING_EVENT, fxEvent);
+        public CustomerEvent createInsertEvent(CustomerModel model, Object source, EventTarget target) {
+            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_INSERTING_EVENT);
         }
 
         @Override
-        public CustomerEvent createUpdateEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerEvent(source, source.dataObject(), CustomerEvent.CUSTOMER_UPDATING_EVENT, fxEvent);
+        public CustomerEvent createUpdateEvent(CustomerModel model, Object source, EventTarget target) {
+            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_UPDATING_EVENT);
         }
 
         @Override
-        public CustomerEvent createDeleteEvent(CustomerModel source, Event fxEvent) {
-            return new CustomerEvent(source, source.dataObject(), CustomerEvent.CUSTOMER_DELETING_EVENT, fxEvent);
+        public CustomerEvent createDeleteEvent(CustomerModel model, Object source, EventTarget target) {
+            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_DELETING_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<CustomerModel, CustomerDAO> createEditRequestEvent(CustomerModel model, Object source, EventTarget target) {
+            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_EDIT_REQUEST_EVENT);
+        }
+
+        @Override
+        public ModelItemEvent<CustomerModel, CustomerDAO> createDeleteRequestEvent(CustomerModel model, Object source, EventTarget target) {
+            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_DELETE_REQUEST_EVENT);
         }
 
     }
