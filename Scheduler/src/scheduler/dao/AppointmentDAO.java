@@ -30,7 +30,6 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
-import scheduler.util.LogHelper;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.AppointmentEvent;
 
@@ -333,7 +332,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {

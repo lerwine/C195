@@ -32,7 +32,6 @@ import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
-import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.util.Values;
@@ -154,7 +153,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         @Override
         public boolean isCompoundSelect() {

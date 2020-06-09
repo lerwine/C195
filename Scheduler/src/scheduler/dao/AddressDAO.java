@@ -28,7 +28,6 @@ import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.util.InternalException;
-import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.event.AddressEvent;
@@ -210,7 +209,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {

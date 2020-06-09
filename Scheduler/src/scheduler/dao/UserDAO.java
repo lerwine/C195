@@ -25,7 +25,6 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.util.InternalException;
-import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.UserEvent;
@@ -160,7 +159,8 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {

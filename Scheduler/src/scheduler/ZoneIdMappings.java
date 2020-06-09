@@ -19,12 +19,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import scheduler.util.LogHelper;
 import scheduler.util.Values;
 
 /**
  * Utility class to map Zone IDs to country/region codes.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @XmlRootElement(name = ZoneIdMappings.ELEMENT_NAME, namespace = ZoneIdMappings.NAMESPACE_URI)
@@ -32,7 +31,8 @@ import scheduler.util.Values;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ZoneIdMappings {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ZoneIdMappings.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ZoneIdMappings.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(ZoneIdMappings.class.getName());
 
     public static final String ELEMENT_NAME = "mappings";
     public static final String NAMESPACE_URI = "urn:Erwine.Leonard.T:C195:ZoneIdMap.xsd";
