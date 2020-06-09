@@ -66,7 +66,7 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
      * @return The {@link FxRecordModel} for the {@code ModelItemEvent}.
      */
     public T getModel() {
-        return (null != previousCopy) ? model : previousCopy.getModel();
+        return (null != previousCopy) ? previousCopy.getModel() : model;
     }
 
     public abstract FxRecordModel.ModelFactory<U, T> getModelFactory();

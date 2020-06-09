@@ -304,7 +304,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                     oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
                 }
                 if (null != newValue) {
-                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    newValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
                     onChange(true);
                 } else {
                     onChange(false);

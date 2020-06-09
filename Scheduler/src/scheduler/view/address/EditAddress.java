@@ -339,7 +339,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                     oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
                 }
                 if (null != newValue) {
-                    oldValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+                    newValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
                     onChange(true);
                 } else {
                     onChange(false);
