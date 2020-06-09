@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.value.ObservableValue;
@@ -152,6 +152,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML // fx:id="deleteButton"
     private Button deleteButton; // Value injected by FXMLLoader
 
+    @FXML // fx:id="cancelButton"
+    private Button cancelButton; // Value injected by FXMLLoader
+
     @FXML // fx:id="waitBorderPane"
     private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
 
@@ -159,6 +162,61 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         this.editorRegion = editorRegion;
         this.model = model;
         this.keepOpen = keepOpen;
+    }
+
+    @FXML
+    void onCancelButtonAction(ActionEvent event) {
+        Stage stage = (Stage) getScene().getWindow();
+        ButtonType response;
+        if (editorRegion.isModified()) {
+            if (model.getRowState() == DataRowState.NEW) {
+                response = AlertHelper.showWarningAlert(stage, LOG,
+                        resources.getString(RESOURCEKEY_CONFIRMCANCELNEW),
+                        resources.getString(RESOURCEKEY_AREYOUSURECANCELNEW), ButtonType.YES, ButtonType.NO)
+                        .orElse(ButtonType.NO);
+            } else {
+                response = AlertHelper.showWarningAlert(stage, LOG,
+                        resources.getString(RESOURCEKEY_CONFIRMDISCARDCHANGES),
+                        resources.getString(RESOURCEKEY_AREYOUSUREDISCARDCHANGES), ButtonType.YES, ButtonType.NO)
+                        .orElse(ButtonType.NO);
+            }
+            if (response != ButtonType.YES) {
+                return;
+            }
+        }
+
+        getScene().getWindow().hide();
+    }
+
+    @FXML
+    void onDeleteButtonAction(ActionEvent event) {
+        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
+        ModelItemEvent<U, T> deleteEvent = factory.createDeleteEvent(model, event.getSource(), editorRegion);
+        editorRegion.fireEvent(deleteEvent);
+        if (!deleteEvent.isHandled()) {
+            Stage stage = (Stage) getScene().getWindow();
+            AlertHelper.showWarningAlert(stage, LOG,
+                    resources.getString(RESOURCEKEY_CONFIRMDELETE),
+                    resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
+                    .ifPresent((t) -> {
+                        if (t == ButtonType.YES) {
+                            waitBorderPane.startNow(new DeleteTask(deleteEvent));
+                        }
+                    });
+        }
+    }
+
+    @FXML
+    void onSaveButtonAction(ActionEvent event) {
+        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
+        ModelItemEvent<U, T> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event.getSource(), editorRegion)
+                : factory.createUpdateEvent(model, event.getSource(), editorRegion);
+        editorRegion.fireEvent(updateEvent);
+        if (!updateEvent.isHandled()) {
+            editorRegion.updateModel();
+            factory.updateDAO(model);
+            waitBorderPane.startNow(new SaveTask(updateEvent));
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -171,6 +229,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         assert lastUpdateValue != null : "fx:id=\"lastUpdateValue\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert saveChangesButton != null : "fx:id=\"saveChangesButton\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert deleteButton != null : "fx:id=\"deleteButton\" was not injected: check your FXML file 'EditItem.fxml'.";
+        assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'EditItem.fxml'.";
+        assert waitBorderPane != null : "fx:id=\"waitBorderPane\" was not injected: check your FXML file 'EditItem.fxml'.";
 
         parentVBox.getChildren().add(0, editorRegion);
         VBox.setVgrow(editorRegion, Priority.ALWAYS);
@@ -190,6 +250,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     private void onEditMode() {
         restoreNode(deleteButton);
+        cancelButton.textProperty().bind(Bindings.when(editorRegion.modifiedProperty())
+                .then(resources.getString(RESOURCEKEY_CANCEL))
+                .otherwise(resources.getString(RESOURCEKEY_CLOSE))
+        );
         deleteButton.setDisable(false);
         DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
         Locale.getDefault(Locale.Category.DISPLAY);
@@ -199,40 +263,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         restoreNode(lastUpdateLabel);
         restoreLabeled(lastUpdateValue, String.format(resources.getString(RESOURCEKEY_ONBYNAME),
                 dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
-    }
-
-    @FXML
-    private void onSaveButtonAction(ActionEvent event) {
-        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ModelItemEvent<U, T> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event.getSource(), editorRegion)
-                : factory.createUpdateEvent(model, event.getSource(), editorRegion);
-        editorRegion.fireEvent(updateEvent);
-        if (!updateEvent.isHandled()) {
-            editorRegion.updateModel();
-            factory.updateDAO(model);
-            waitBorderPane.startNow(new SaveTask(updateEvent));
-        }
-    }
-
-    @FXML
-    private void onDeleteButtonAction(ActionEvent event) {
-        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ModelItemEvent<U, T> deleteEvent = factory.createDeleteEvent(model, event.getSource(), editorRegion);
-        editorRegion.fireEvent(deleteEvent);
-        if (!deleteEvent.isHandled()) {
-            Stage stage = (Stage) getScene().getWindow();
-            Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new DeleteTask(deleteEvent));
-            }
-        }
-    }
-
-    @FXML
-    private void onCancelButtonAction(ActionEvent event) {
-        getScene().getWindow().hide();
     }
 
     private void onWindowChanged(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
@@ -311,7 +341,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         SaveTask(ModelItemEvent<U, T> updateEvent) {
             isNew = (dataAccessobject = (this.updateEvent = updateEvent).getDataAccessObject()).getRowState() == DataRowState.NEW;
             closeOnSuccess = dataAccessobject.isExisting() || !keepOpen;
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
+            updateTitle(resources.getString(RESOURCEKEY_SAVINGCHANGES));
             daoFactory = editorRegion.modelFactory().getDaoFactory();
         }
 
