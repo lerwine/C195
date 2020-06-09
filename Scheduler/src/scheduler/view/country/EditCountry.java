@@ -213,7 +213,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         selectedLocale = Bindings.select(localeComboBox.selectionModelProperty(), "selectedItem");
         languageValidationLabel.visibleProperty().bind(selectedLocale.isNull());
 
-        BooleanBinding modificationBinding = selectedLocale.isNotEqualTo(model.localeProperty());
+        BooleanBinding modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
+                .or(selectedLocale.isNotEqualTo(model.localeProperty()));
         modificationBinding.addListener((observable, oldValue, newValue) -> {
             LOG.fine(() -> String.format("modificationBinding changed from %s to %s ", oldValue, newValue));
             modified.set(newValue);

@@ -356,13 +356,13 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 AddressModel.PROP_ADDRESS1)))
                 .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                         AddressModel.PROP_ADDRESS2))))
-                .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), modelCity.get()), selectedCity,
-                        modelCity))
+                .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), modelCity.get()), selectedCity, modelCity))
                 .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                         AddressModel.PROP_POSTALCODE))))
                 .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                         AddressModel.PROP_PHONE))));
-        changedBinding = normalizedName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.nameProperty()))
+        changedBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
+                .or(normalizedName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.nameProperty())))
                 .or(addressChanged).or(activeTrueRadioButton.selectedProperty().isNotEqualTo(model.activeProperty()));
         validityBinding = nameValid.and(addressValid).and(cityInvalid.not());
 
@@ -430,12 +430,10 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private void initializeEditMode() {
         LocalDate today = LocalDate.now();
         CustomerDAO dao = model.dataObject();
-        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
-                AppointmentModelFilter.of(today, null, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE), AppointmentModelFilter.of(today, null, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTAPPOINTMENTS),
                 AppointmentModelFilter.of(today, today.plusDays(1), dao)));
-        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
-                AppointmentModelFilter.of(null, today, dao)));
+        filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS), AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
@@ -446,7 +444,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         int existingCount = addressCustomerCount.get();
         if (address.getRowState() != DataRowState.NEW) {
             IAddressDAO originalAddress = model.dataObject().getAddress();
-            if (null != originalAddress && originalAddress.getRowState() != DataRowState.NEW && address.getPrimaryKey() == originalAddress.getPrimaryKey()) {
+            if (null != originalAddress && originalAddress.getRowState() != DataRowState.NEW
+                    && address.getPrimaryKey() == originalAddress.getPrimaryKey()) {
                 if (existingCount < 2) {
                     return;
                 }
@@ -507,7 +506,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
                     customerAppointments.remove(m);
                 }
-            } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
+            } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey()
+                    : filter.getModelFilter().getDaoFilter().test(dao)) {
                 customerAppointments.add(new AppointmentModel(dao));
             }
         }
@@ -523,8 +523,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         }
     }
 
-    private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable, CountryItem<? extends ICountryDAO> oldValue,
-            CountryItem<? extends ICountryDAO> newValue) {
+    private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable,
+            CountryItem<? extends ICountryDAO> oldValue, CountryItem<? extends ICountryDAO> newValue) {
         cityComboBox.getSelectionModel().clearSelection();
         cityOptions.clear();
         if (null != newValue) {
@@ -731,7 +731,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
         @Override
         protected void succeeded() {
-            Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> result = getValue();
+            Quadruplet<
+                    List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> result = getValue();
             List<CustomerDAO> allCustomers = result.getValue2().getValue1();
             int sameAddr = result.getValue2().getValue2();
             if (null != allCustomers && !allCustomers.isEmpty()) {
@@ -747,7 +748,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         }
 
         @Override
-        protected Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> call() throws Exception {
+        protected Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> call()
+                throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));

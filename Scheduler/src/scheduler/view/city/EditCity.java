@@ -232,16 +232,18 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     private void onChange(String cityName) {
         valid.set(Values.isNotNullWhiteSpaceOrEmpty(cityName) && null != selectedCountry.get() && null != selectedTimeZone.get());
-        if (normalizedName.get().equals(Values.asNonNullAndWsNormalized(model.getName()))
-                && ModelHelper.areSameRecord(selectedCountry.get(), model.getCountry())) {
-            TimeZone z1 = selectedTimeZone.get();
-            TimeZone z2 = model.getTimeZone();
-            if ((null == z1) ? null == z2 : null != z2 && z1.getID().equals(z2.getID())) {
-                modified.set(false);
-                return;
+        if (model.getRowState() != DataRowState.NEW) {
+            if (normalizedName.get().equals(Values.asNonNullAndWsNormalized(model.getName()))
+                    && ModelHelper.areSameRecord(selectedCountry.get(), model.getCountry())) {
+                TimeZone z1 = selectedTimeZone.get();
+                TimeZone z2 = model.getTimeZone();
+                if ((null == z1) ? null == z2 : null != z2 && z1.getID().equals(z2.getID())) {
+                    modified.set(false);
+                    return;
+                }
             }
+            modified.set(true);
         }
-        modified.set(true);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

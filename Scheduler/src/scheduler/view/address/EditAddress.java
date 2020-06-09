@@ -325,8 +325,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
         phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
-
-        changedBinding = normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property()))
+        
+        changedBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
+                .or(normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property())))
                 .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address2Property())))
                 .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), model.getCity()), selectedCity, model.cityProperty()))
                 .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))

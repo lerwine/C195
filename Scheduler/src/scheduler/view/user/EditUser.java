@@ -218,7 +218,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         selectedStatus = Bindings.select(activeComboBox.selectionModelProperty(), "selectedItem");
         validationBinding = userNameInvalid.or(passwordInvalid).not();
-        modificationBinding = changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus()))
+        modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
+                .or(changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus())))
                 .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
 
         ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
