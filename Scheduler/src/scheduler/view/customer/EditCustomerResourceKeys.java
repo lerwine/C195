@@ -197,6 +197,11 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_NOADDRESSESTOSHOW = "noAddressesToShow";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "(no appointments to show)"}.
+     */
+    public static final String RESOURCEKEY_NOAPPOINTMENTSTOSHOW = "noAppointmentsToShow";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Past"}.
      */
     public static final String RESOURCEKEY_PAST = "past";
