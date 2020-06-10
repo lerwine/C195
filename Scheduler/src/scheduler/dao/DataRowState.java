@@ -22,7 +22,7 @@ public enum DataRowState {
         }
     }
     
-    public static boolean isChange(DataRowState status) {
+    public static boolean isChanged(DataRowState status) {
         if (null == status)
             return false;
         switch (status) {
