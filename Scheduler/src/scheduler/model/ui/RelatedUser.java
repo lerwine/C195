@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -10,10 +11,13 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
+import scheduler.dao.DataRowState;
 import scheduler.dao.IUserDAO;
+import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 
 /**
@@ -83,4 +87,45 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
     }
+
+    @Override
+    public int hashCode() {
+        if (getRowState() == DataRowState.NEW) {
+            int hash = 7;
+            hash = 31 * hash + Objects.hashCode(this.userName);
+            hash = 31 * hash + Objects.hashCode(this.status);
+            return hash;
+        }
+        return getPrimaryKey();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (null != obj && obj instanceof UserItem) {
+            final UserItem<? extends UserDAO> other = (UserItem<? extends UserDAO>) obj;
+            if (getRowState() == DataRowState.NEW) {
+                return other.getRowState() == DataRowState.NEW && userName.isEqualTo(other.userNameProperty()).get()
+                        && status.isEqualTo(other.statusProperty()).get();
+            }
+            return other.getRowState() != DataRowState.NEW && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+         return ToStringPropertyBuilder.create(this)
+                .addNumber(primaryKeyProperty())
+                .addString(userName)
+                .addEnum(status);
+    }
+
 }

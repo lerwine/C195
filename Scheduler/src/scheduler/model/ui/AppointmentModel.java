@@ -29,6 +29,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.DB;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.event.AppointmentEvent;
@@ -515,6 +516,16 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid;
+    }
+
+    @Override
     public int hashCode() {
         if (isNewRow()) {
             int hash = 7;
@@ -552,13 +563,32 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public boolean isValid() {
-        return valid.get();
+    public String toString() {
+        return toStringBuilder().build();
     }
 
     @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(primaryKeyProperty());
+        }
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addDataObject(customer)
+                .addDataObject(user)
+                .addString(title)
+                .addString(description)
+                .addString(location)
+                .addString(contact)
+                .addEnum(type)
+                .addString(url)
+                .addLocalDateTime(start)
+                .addLocalDateTime(end)
+                .addLocalDateTime(createDateProperty())
+                .addString(createdByProperty())
+                .addLocalDateTime(lastModifiedDateProperty())
+                .addString(lastModifiedByProperty())
+                .addBoolean(valid);
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> {

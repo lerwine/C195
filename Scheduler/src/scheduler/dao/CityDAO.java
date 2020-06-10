@@ -29,11 +29,13 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.model.City;
 import scheduler.model.Country;
+import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.*;
@@ -125,13 +127,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     @Override
     public int hashCode() {
-        if (this.getRowState() != DataRowState.NEW) {
-            return this.getPrimaryKey();
+        if (getRowState() == DataRowState.NEW) {
+            int hash = 7;
+            hash = 89 * hash + Objects.hashCode(name);
+            hash = 89 * hash + Objects.hashCode(country);
+            hash = 89 * hash + Objects.hashCode(timeZone);
+            return hash;
         }
-        int hash = 7;
-        hash = 53 * hash + Objects.hashCode(this.name);
-        hash = 53 * hash + Objects.hashCode(this.country);
-        return hash;
+        return getPrimaryKey();
     }
 
     @Override
@@ -141,11 +144,23 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     @Override
     public String toString() {
-        ICountryDAO c = country;
-        if (getRowState() == DataRowState.NEW) {
-            return String.format("CityDAO{name=%s, country=%s}", name, (null == c) ? "null" : c.toString());
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
         }
-        return String.format("CityDAO{primaryKey=%d, name=%s, country=%s}", getPrimaryKey(), name, (null == c) ? "null" : c.toString());
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(PROP_NAME, name)
+                .addDataObject(PROP_COUNTRY, country)
+                .addTimeZone(PROP_TIMEZONE, timeZone)
+                .addTimestamp(PROP_CREATEDATE, getCreateDate())
+                .addString(PROP_CREATEDBY, getCreatedBy())
+                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
+                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
     }
 
     /**
@@ -533,6 +548,19 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         @Override
         public int hashCode() {
             return primaryKey;
+        }
+
+        @Override
+        public String toString() {
+            return toStringBuilder().build();
+        }
+
+        @Override
+        public ToStringPropertyBuilder toStringBuilder() {
+            return ToStringPropertyBuilder.create(this)
+                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
+                    .addString(PROP_NAME, name)
+                    .addDataObject(PROP_COUNTRY, country);
         }
 
     }

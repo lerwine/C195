@@ -1,10 +1,12 @@
 package scheduler.model;
 
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import scheduler.util.ToStringPropertyBuilder;
 
 /**
  *
@@ -65,6 +67,32 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
     @Override
     public String getPhone() {
         return phone;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(address1);
+        hash = 79 * hash + Objects.hashCode(address2);
+        hash = 79 * hash + Objects.hashCode(getCity());
+        hash = 79 * hash + Objects.hashCode(postalCode);
+        hash = 79 * hash + Objects.hashCode(phone);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return null != obj && obj instanceof AddressProperties
+                && (this == obj || AddressProperties.arePropertiesEqual(this, (AddressProperties) obj));
+    }
+
+    @Override
+    public String toString() {
+        return ToStringPropertyBuilder.create(this).addString(PROP_ADDRESS1, address1)
+                .addString(PROP_ADDRESS2, address2)
+                .addToStringPropertyBuilder(PROP_CITY, getCity().toStringBuilder())
+                .addString(PROP_POSTALCODE, postalCode)
+                .addString(PROP_PHONE, phone).build();
     }
 
 }

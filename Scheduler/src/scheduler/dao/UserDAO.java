@@ -26,6 +26,7 @@ import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
+import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.UserEvent;
 
@@ -148,10 +149,23 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     @Override
     public String toString() {
-        if (getRowState() == DataRowState.NEW) {
-            return String.format("UserDAO{userName=%s, status=%s}", userName, status.name());
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
         }
-        return String.format("UserDAO{primaryKey=%d, userName=%s, status=%s}", getPrimaryKey(), userName, status.name());
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(PROP_USERNAME, userName)
+                .addString(PROP_PASSWORD, password)
+                .addEnum(PROP_STATUS, status)
+                .addTimestamp(PROP_CREATEDATE, getCreateDate())
+                .addString(PROP_CREATEDBY, getCreatedBy())
+                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
+                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
     }
 
     /**
@@ -439,6 +453,19 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         public boolean equals(Object obj) {
             return null != obj && obj instanceof User && ModelHelper.areSameRecord(this, (User) obj);
+        }
+
+        @Override
+        public String toString() {
+            return toStringBuilder().build();
+        }
+
+        @Override
+        public ToStringPropertyBuilder toStringBuilder() {
+            return ToStringPropertyBuilder.create(this)
+                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
+                    .addString(PROP_USERNAME, userName)
+                    .addEnum(PROP_STATUS, status);
         }
 
     }

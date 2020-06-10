@@ -99,6 +99,40 @@ public final class Values {
         return result;
     }
 
+    public static ArrayList<String> splitByText(String source, String delimiter) {
+        ArrayList<String> result = new ArrayList<>();
+        if (null == source) {
+            return result;
+        }
+        // ab_cd
+        int b = source.indexOf(delimiter);
+        if (b < 0) {
+            result.add(source);
+        } else {
+            if (b == 0) {
+                result.add("");
+            } else {
+                result.add(source.substring(0, b));
+            }
+            int e;
+            int i = delimiter.length();
+            while ((e = source.indexOf(delimiter, b + i)) > 0) {
+                if (e == b) {
+                    result.add("");
+                } else {
+                    result.add(source.substring(b, e));
+                }
+                b = e + i;
+            }
+            if (b < source.length()) {
+                result.add(source.substring(b + i));
+            } else {
+                result.add("");
+            }
+        }
+        return result;
+    }
+
     /**
      * Ensures a {@link String} value is not null.
      *

@@ -20,6 +20,7 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 
 /**
@@ -200,6 +201,22 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     @Override
     public int hashCode() {
         return getPrimaryKey();
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        return ToStringPropertyBuilder.create(this)
+                .addNumber(primaryKeyProperty())
+                .addString(address1)
+                .addString(address2)
+                .addDataObject(city)
+                .addString(postalCode)
+                .addString(phone);
     }
 
 }

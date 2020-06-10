@@ -20,6 +20,7 @@ import scheduler.model.AddressProperties;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 
 /**
@@ -197,4 +198,19 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
     }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        return ToStringPropertyBuilder.create(this)
+                .addNumber(primaryKeyProperty())
+                .addString(name)
+                .addDataObject(address)
+                .addBoolean(active);
+    }
+
 }

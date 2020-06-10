@@ -30,6 +30,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
+import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.AppointmentEvent;
 
@@ -288,20 +289,20 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     public int hashCode() {
-        if (this.getRowState() != DataRowState.NEW) {
-            return this.getPrimaryKey();
+        if (getRowState() != DataRowState.NEW) {
+            return getPrimaryKey();
         }
         int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.customer);
-        hash = 97 * hash + Objects.hashCode(this.user);
-        hash = 97 * hash + Objects.hashCode(this.title);
-        hash = 97 * hash + Objects.hashCode(this.description);
-        hash = 97 * hash + Objects.hashCode(this.location);
-        hash = 97 * hash + Objects.hashCode(this.contact);
-        hash = 97 * hash + Objects.hashCode(this.type);
-        hash = 97 * hash + Objects.hashCode(this.url);
-        hash = 97 * hash + Objects.hashCode(this.start);
-        hash = 97 * hash + Objects.hashCode(this.end);
+        hash = 97 * hash + Objects.hashCode(customer);
+        hash = 97 * hash + Objects.hashCode(user);
+        hash = 97 * hash + Objects.hashCode(title);
+        hash = 97 * hash + Objects.hashCode(description);
+        hash = 97 * hash + Objects.hashCode(location);
+        hash = 97 * hash + Objects.hashCode(contact);
+        hash = 97 * hash + Objects.hashCode(type);
+        hash = 97 * hash + Objects.hashCode(url);
+        hash = 97 * hash + Objects.hashCode(start);
+        hash = 97 * hash + Objects.hashCode(end);
         return hash;
     }
 
@@ -313,18 +314,30 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     public String toString() {
-        ICustomerDAO c = customer;
-        IUserDAO u = user;
-        Timestamp s = start;
-        Timestamp e = end;
-        if (getRowState() == DataRowState.NEW) {
-            return String.format("AppointmentDAO{customer=%s, user=%s, title=%s, description=%s, location=%s, contact=%s, type=%s, url=%s, start=%s, end=%s}",
-                    (null == c) ? "null" : c.toString(), (null == u) ? "null" : u.toString(), title, description, location, contact, type.name(), url,
-                    (null == s) ? "null" : s.toLocalDateTime().toString(), (null == e) ? "null" : e.toLocalDateTime().toString());
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
         }
-        return String.format("AppointmentDAO{primaryKey=%d, customer=%s, user=%s, title=%s, description=%s, location=%s, contact=%s, type=%s, url=%s, start=%s, end=%s}",
-                (null == c) ? "null" : c.toString(), (null == u) ? "null" : u.toString(), getPrimaryKey(), title, description, location, contact,
-                type.name(), url, (null == s) ? "null" : s.toLocalDateTime().toString(), (null == e) ? "null" : e.toLocalDateTime().toString());
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addDataObject(PROP_CUSTOMER, customer)
+                .addDataObject(PROP_USER, user)
+                .addString(PROP_TITLE, title)
+                .addString(PROP_DESCRIPTION, description)
+                .addString(PROP_LOCATION, location)
+                .addString(PROP_CONTACT, contact)
+                .addEnum(PROP_TYPE, type)
+                .addString(PROP_URL, url)
+                .addTimestamp(PROP_START, start)
+                .addTimestamp(PROP_END, end)
+                .addTimestamp(PROP_CREATEDATE, getCreateDate())
+                .addString(PROP_CREATEDBY, getCreatedBy())
+                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
+                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
     }
 
     /**

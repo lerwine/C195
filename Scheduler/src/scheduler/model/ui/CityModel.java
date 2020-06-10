@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.util.Objects;
 import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -18,10 +19,13 @@ import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
+import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 import scheduler.view.event.CityEvent;
@@ -145,6 +149,44 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
+    }
+
+    @Override
+    public int hashCode() {
+        if (getRowState() != DataRowState.NEW) {
+            return getPrimaryKey();
+        }
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(name.get());
+        hash = 53 * hash + Objects.hashCode(country.get());
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(primaryKeyProperty());
+        }
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(name)
+                .addDataObject(country)
+                .addTimeZone(timeZone)
+                .addLocalDateTime(createDateProperty())
+                .addString(createdByProperty())
+                .addLocalDateTime(lastModifiedDateProperty())
+                .addString(lastModifiedByProperty())
+                .addBoolean(valid);
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CityDAO, CityModel> {

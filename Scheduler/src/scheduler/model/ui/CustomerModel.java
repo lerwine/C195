@@ -19,6 +19,7 @@ import scheduler.model.AddressProperties;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
 import scheduler.view.event.CustomerEvent;
@@ -201,7 +202,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     @Override
     public String toString() {
-        return name.get();
+        return toStringBuilder().build();
     }
 
     @Override
@@ -239,6 +240,23 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(primaryKeyProperty());
+        }
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(name)
+                .addDataObject(address)
+                .addBoolean(active)
+                .addLocalDateTime(createDateProperty())
+                .addString(createdByProperty())
+                .addLocalDateTime(lastModifiedDateProperty())
+                .addString(lastModifiedByProperty())
+                .addBoolean(valid);
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> {

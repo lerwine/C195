@@ -17,6 +17,7 @@ import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.PwHash;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.event.ModelItemEvent;
 import scheduler.view.event.UserEvent;
@@ -101,6 +102,16 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     }
 
     @Override
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid;
+    }
+
+    @Override
     public int hashCode() {
         if (isNewRow()) {
             int hash = 7;
@@ -117,24 +128,43 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof UserModel) {
-            final UserModel other = (UserModel) obj;
+        if (null != obj && obj instanceof UserItem) {
+            final UserItem<? extends UserDAO> other = (UserModel) obj;
             if (isNewRow()) {
-                return userName.isEqualTo(other.userName).get() && password.isEqualTo(other.password).get() && status.isEqualTo(other.status).get();
+                if (other.getRowState() == DataRowState.NEW && userName.isEqualTo(other.userNameProperty()).get()
+                        && status.isEqualTo(other.statusProperty()).get()) {
+                    if (other instanceof UserModel) {
+                        return password.isEqualTo(((UserModel) other).passwordProperty()).get();
+                    }
+                    return true;
+                }
+            } else {
+                return other.getRowState() != DataRowState.NEW && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
             }
-            return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
     }
 
     @Override
-    public boolean isValid() {
-        return valid.get();
+    public String toString() {
+        return toStringBuilder().build();
     }
 
     @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(primaryKeyProperty());
+        }
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(userName)
+                .addString(password)
+                .addEnum(status)
+                .addLocalDateTime(createDateProperty())
+                .addString(createdByProperty())
+                .addLocalDateTime(lastModifiedDateProperty())
+                .addString(lastModifiedByProperty())
+                .addBoolean(valid);
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<UserDAO, UserModel> {

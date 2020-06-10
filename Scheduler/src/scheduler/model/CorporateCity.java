@@ -1,10 +1,12 @@
 package scheduler.model;
 
+import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import scheduler.util.ToStringPropertyBuilder;
 
 /**
  *
@@ -32,6 +34,31 @@ public class CorporateCity extends PredefinedData.PredefinedCity {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(getName());
+        hash = 89 * hash + Objects.hashCode(getCountry());
+        hash = 89 * hash + Objects.hashCode(getTimeZone());
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return null != obj && obj instanceof CityProperties && (this == obj || CityProperties.arePropertiesEqual(this, (CityProperties) obj));
+    }
+
+    ToStringPropertyBuilder toStringBuilder() {
+        return ToStringPropertyBuilder.create(this)
+                .addString(PROP_NAME, name)
+                .addToStringPropertyBuilder(PROP_COUNTRY, getCountry().toStringBuilder());
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
     }
 
 }

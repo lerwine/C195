@@ -25,9 +25,11 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
+import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
+import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.CustomerEvent;
 
@@ -148,13 +150,23 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     @Override
     public String toString() {
-        IAddressDAO a = address;
-        if (getRowState() == DataRowState.NEW) {
-            return String.format("CustomerDAO{name=%s, address=%s, active=%s}", name, (null == a) ? "null" : a.toString(),
-                    (active) ? "true}" : "false}");
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
         }
-        return String.format("CustomerDAO{primaryKey=%d, name=%s, address=%s, active=%s}", getPrimaryKey(), name, (null == a) ? "null" : a.toString(),
-                (active) ? "true}" : "false}");
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(PROP_NAME, name)
+                .addDataObject(PROP_ADDRESS, address)
+                .addBoolean(PROP_ACTIVE, active)
+                .addTimestamp(PROP_CREATEDATE, getCreateDate())
+                .addString(PROP_CREATEDBY, getCreatedBy())
+                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
+                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
     }
 
     /**
@@ -477,6 +489,20 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         public boolean equals(Object obj) {
             return null != obj && obj instanceof Customer && ModelHelper.areSameRecord(this, (Customer) obj);
+        }
+
+        @Override
+        public String toString() {
+            return toStringBuilder().build();
+        }
+
+        @Override
+        public ToStringPropertyBuilder toStringBuilder() {
+            return ToStringPropertyBuilder.create(this)
+                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
+                    .addString(PROP_NAME, name)
+                    .addDataObject(PROP_ADDRESS, address)
+                    .addBoolean(PROP_ACTIVE, active);
         }
 
     }

@@ -102,8 +102,8 @@ public interface CityProperties {
             return null == b;
         }
 
-        return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName()) && CountryProperties.arePropertiesEqual(a.getCountry(), b.getCountry())
-                && Objects.equals(a.getTimeZone(), b.getTimeZone())));
+        return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName())
+                && CountryProperties.arePropertiesEqual(a.getCountry(), b.getCountry()) && Objects.equals(a.getTimeZone(), b.getTimeZone())));
     }
 
     /**

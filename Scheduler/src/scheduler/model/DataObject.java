@@ -1,6 +1,7 @@
 package scheduler.model;
 
 import scheduler.dao.DataRowState;
+import scheduler.util.ToStringPropertyBuilder;
 
 /**
  * Base interface for all objects that represent a database entity.
@@ -23,6 +24,8 @@ public interface DataObject {
      */
     int getPrimaryKey();
 
+    ToStringPropertyBuilder toStringBuilder();
+    
     default DataRowState getRowState() {
         return DataRowState.UNMODIFIED;
     }

@@ -14,11 +14,14 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
+import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 
 /**
@@ -129,4 +132,29 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return getPrimaryKey();
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        return ToStringPropertyBuilder.create(this)
+                .addNumber(primaryKeyProperty())
+                .addString(name)
+                .addDataObject(country)
+                .addTimeZone(timeZone);
+    }
+
 }

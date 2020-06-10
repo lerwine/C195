@@ -28,6 +28,7 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
@@ -360,6 +361,30 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(primaryKeyProperty());
+        }
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(address1)
+                .addString(address2)
+                .addDataObject(city)
+                .addString(postalCode)
+                .addString(phone)
+                .addLocalDateTime(createDateProperty())
+                .addString(createdByProperty())
+                .addLocalDateTime(lastModifiedDateProperty())
+                .addString(lastModifiedByProperty())
+                .addBoolean(valid);
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel> {

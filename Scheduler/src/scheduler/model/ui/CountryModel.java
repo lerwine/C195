@@ -1,6 +1,7 @@
 package scheduler.model.ui;
 
 import java.util.Locale;
+import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -13,10 +14,15 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
+import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.model.Country;
 import scheduler.model.CountryProperties;
+import static scheduler.model.DataObject.PROP_ROWSTATE;
+import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 import scheduler.view.event.CountryEvent;
@@ -92,6 +98,43 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
+    }
+
+    @Override
+    public int hashCode() {
+        if (getRowState() == DataRowState.NEW) {
+            int hash = 5;
+            hash = 67 * hash + Objects.hashCode(name.get());
+            hash = 67 * hash + Objects.hashCode(locale.get());
+            return hash;
+        }
+        return getPrimaryKey();
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(primaryKeyProperty());
+        }
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(name)
+                .addLocale(locale)
+                .addLocalDateTime(createDateProperty())
+                .addString(createdByProperty())
+                .addLocalDateTime(lastModifiedDateProperty())
+                .addString(lastModifiedByProperty())
+                .addBoolean(valid);
     }
 
     public final static class Factory extends FxRecordModel.ModelFactory<CountryDAO, CountryModel> {

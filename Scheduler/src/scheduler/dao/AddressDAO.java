@@ -29,6 +29,7 @@ import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
+import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.event.AddressEvent;
 
@@ -194,14 +195,26 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     @Override
-    public String toString() {
-        ICityDAO c = city;
-        if (getRowState() == DataRowState.NEW) {
-            return String.format("AddressDAO{address1=%s, address2=%s, city=%s, postalCode=%s, phone=%s}", address1, address2,
-                    (null == c) ? "null" : c.toString(), postalCode, phone);
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
         }
-        return String.format("AddressDAO{primaryKey=%d, address1=%s, address2=%s, city=%s, postalCode=%s, phone=%s}", getPrimaryKey(), address1,
-                address2, (null == c) ? "null" : c.toString(), postalCode, phone);
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(PROP_ADDRESS1, address1)
+                .addString(PROP_ADDRESS2, address2)
+                .addDataObject(PROP_CITY, city)
+                .addString(PROP_POSTALCODE, postalCode)
+                .addString(PROP_PHONE, phone)
+                .addTimestamp(PROP_CREATEDATE, getCreateDate())
+                .addString(PROP_CREATEDBY, getCreatedBy())
+                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
+                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
     }
 
     /**
@@ -549,6 +562,22 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         @Override
         public boolean equals(Object obj) {
             return null != obj && obj instanceof Address && ModelHelper.areSameRecord(this, (Address) obj);
+        }
+
+        @Override
+        public String toString() {
+            return toStringBuilder().build();
+        }
+
+        @Override
+        public ToStringPropertyBuilder toStringBuilder() {
+            return ToStringPropertyBuilder.create(this)
+                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
+                    .addString(PROP_ADDRESS1, address1)
+                    .addString(PROP_ADDRESS2, address2)
+                    .addDataObject(PROP_CITY, city)
+                    .addString(PROP_POSTALCODE, postalCode)
+                    .addString(PROP_PHONE, phone);
         }
 
     }

@@ -60,9 +60,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
      */
     public static final String PROP_NEWROW = "newRow";
     /**
-     * The name of the 'change' property.
+     * The name of the 'changed' property.
      */
-    public static final String PROP_CHANGE = "change";
+    public static final String PROP_CHANGED = "changed";
     /**
      * The name of the 'existingInDb' property.
      */
@@ -78,7 +78,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     private final ReadOnlyObjectProperty<LocalDateTime> createDate;
     private final ReadOnlyObjectProperty<LocalDateTime> lastModifiedDate;
     private final ReadOnlyBooleanProperty newRow;
-    private final ReadOnlyBooleanProperty change;
+    private final ReadOnlyBooleanProperty changed;
     private final ReadOnlyBooleanProperty existingInDb;
 
     /**
@@ -107,7 +107,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         lastModifiedDate = new ReadOnlyObjectBindingProperty<>(this, PROP_LASTMODIFIEDDATE,
                 () -> DB.toLocalDateTime(rawLastModifiedDate.get()), rawLastModifiedDate);
         newRow = new ReadOnlyBooleanBindingProperty(this, PROP_NEWROW, () -> DataRowState.isNewRow(rowState.get()), rowState);
-        change = new ReadOnlyBooleanBindingProperty(this, PROP_CHANGE, () -> DataRowState.isChange(rowState.get()), rowState);
+        changed = new ReadOnlyBooleanBindingProperty(this, PROP_CHANGED, () -> DataRowState.isChanged(rowState.get()), rowState);
         existingInDb = new ReadOnlyBooleanBindingProperty(this, PROP_EXISTINGINDB, () -> DataRowState.existsInDb(rowState.get()), rowState);
     }
 
@@ -184,12 +184,12 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         return newRow;
     }
 
-    public boolean isChange() {
-        return change.get();
+    public boolean isChanged() {
+        return changed.get();
     }
 
-    public ReadOnlyBooleanProperty changeProperty() {
-        return change;
+    public ReadOnlyBooleanProperty changedProperty() {
+        return changed;
     }
 
     public boolean isExistingInDb() {

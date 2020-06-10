@@ -26,6 +26,7 @@ import scheduler.model.ModelHelper;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
@@ -96,31 +97,39 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     }
 
     @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 67 * hash + Objects.hashCode(name);
-        hash = 67 * hash + Objects.hashCode(locale);
-        return hash;
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
     }
 
     @Override
-    public String toString() {
-        Locale l = locale;
+    public int hashCode() {
         if (getRowState() == DataRowState.NEW) {
-            if (null == l) {
-                return String.format("CountryDAO{name=%s}", name);
-            }
-            return String.format("CountryDAO{name=%s, locale=%s}", name, l.toLanguageTag());
+            int hash = 5;
+            hash = 67 * hash + Objects.hashCode(name);
+            hash = 67 * hash + Objects.hashCode(locale);
+            return hash;
         }
-        if (null == l) {
-            return String.format("CountryDAO{primaryKey=%d, name=%s}", getPrimaryKey(), name);
+        return getPrimaryKey();
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        if (getRowState() != DataRowState.NEW) {
+            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
         }
-        return String.format("CountryDAO{primaryKey=%d, name=%s, locale=%s}", getPrimaryKey(), name, l.toLanguageTag());
+        return builder.addEnum(PROP_ROWSTATE, getRowState())
+                .addString(PROP_NAME, name)
+                .addLocale(PROP_LOCALE, locale)
+                .addTimestamp(PROP_CREATEDATE, getCreateDate())
+                .addString(PROP_CREATEDBY, getCreatedBy())
+                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
+                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
     }
 
     /**
@@ -403,6 +412,19 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         @Override
         public int hashCode() {
             return primaryKey;
+        }
+
+        @Override
+        public String toString() {
+            return toStringBuilder().build();
+        }
+
+        @Override
+        public ToStringPropertyBuilder toStringBuilder() {
+            return ToStringPropertyBuilder.create(this)
+                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
+                    .addString(PROP_NAME, name)
+                    .addLocale(PROP_LOCALE, locale);
         }
 
     }

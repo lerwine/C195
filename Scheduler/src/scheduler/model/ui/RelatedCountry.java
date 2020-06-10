@@ -11,9 +11,12 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.model.Country;
 import scheduler.model.CountryProperties;
+import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 
 /**
@@ -87,4 +90,28 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return getPrimaryKey();
+    }
+
+    @Override
+    public String toString() {
+        return toStringBuilder().build();
+    }
+
+    @Override
+    public ToStringPropertyBuilder toStringBuilder() {
+        return ToStringPropertyBuilder.create(this)
+                .addNumber(primaryKeyProperty())
+                .addString(name)
+                .addLocale(locale);
+    }
+
 }
