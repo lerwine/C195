@@ -115,9 +115,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
 
     public EditCountry() {
-        windowTitle = new ReadOnlyStringWrapper("");
-        valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(true);
+        windowTitle = new ReadOnlyStringWrapper(this, "", "");
+        valid = new ReadOnlyBooleanWrapper(this, "", false);
+        modified = new ReadOnlyBooleanWrapper(this, "", true);
         itemList = FXCollections.observableArrayList();
         localeList = FXCollections.observableArrayList();
         Arrays.stream(Locale.getAvailableLocales()).filter((t)

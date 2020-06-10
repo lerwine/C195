@@ -215,9 +215,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private RadioButton dropdownOptionsAllRadioButton; // Value injected by FXMLLoader
 
     public EditAppointment() {
-        windowTitle = new ReadOnlyStringWrapper("");
-        valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(false);
+        windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
+        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
+        modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         currentType = AppointmentType.OTHER;
         invalidControlIds = new HashSet<>();
         corporateLocationList = FXCollections.observableArrayList();

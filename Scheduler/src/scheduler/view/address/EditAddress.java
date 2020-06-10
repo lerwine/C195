@@ -178,10 +178,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private BooleanBinding showEditCityControls;
 
     public EditAddress() {
-        windowTitle = new ReadOnlyStringWrapper("");
-        valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(false);
-        editingCity = new SimpleBooleanProperty(false);
+        windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
+        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
+        modified = new ReadOnlyBooleanWrapper(this, "modified", true);
+        editingCity = new SimpleBooleanProperty(this, "editingCity", false);
         countryOptions = FXCollections.observableArrayList();
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
@@ -317,15 +317,15 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         showEditCityControls = cityInvalid.or(editingCity);
         showEditCityControls.addListener(this::onShowEditCityControlsChanged);
         countryCityValueLabel.textProperty().bind(Bindings.when(selectedCity.isNull())
-            .then("")
-            .otherwise(Bindings.format("%s, %s", Bindings.selectString(selectedCity, City.PROP_NAME),
-                    Bindings.selectString(selectedCountry, Country.PROP_NAME)))
+                .then("")
+                .otherwise(Bindings.format("%s, %s", Bindings.selectString(selectedCity, City.PROP_NAME),
+                        Bindings.selectString(selectedCountry, Country.PROP_NAME)))
         );
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
         postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
         phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
-        
+
         changedBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
                 .or(normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property())))
                 .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address2Property())))
@@ -376,7 +376,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         address2TextField.setText(model.getAddress2());
         postalCodeTextField.setText(model.getPostalCode());
         phoneTextField.setText(model.getPhone());
-        
+
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -395,7 +395,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void initializeEditMode() {
-        
+
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
     }
 

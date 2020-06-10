@@ -137,9 +137,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
 
     public EditUser() {
-        windowTitle = new ReadOnlyStringWrapper("");
-        valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(false);
+        windowTitle = new ReadOnlyStringWrapper(this, "", "");
+        valid = new ReadOnlyBooleanWrapper(this, "", false);
+        modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         userActiveStateOptions = FXCollections.observableArrayList(UserStatus.values());
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();

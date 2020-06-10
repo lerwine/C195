@@ -148,9 +148,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private StringBinding nameValidationMessage;
 
     public EditCity() {
-        windowTitle = new ReadOnlyStringWrapper("");
-        valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(true);
+        windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
+        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
+        modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         countryOptionList = FXCollections.observableArrayList();
         timeZoneOptionList = FXCollections.observableArrayList();
         Arrays.stream(TimeZone.getAvailableIDs()).map((t) -> TimeZone.getTimeZone(t)).sorted(Values::compareTimeZones)
