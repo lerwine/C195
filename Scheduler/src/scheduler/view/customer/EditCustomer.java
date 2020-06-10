@@ -119,19 +119,19 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private final ReadOnlyObjectWrapper<AddressModel> selectedAddress;
     private final ObservableList<String> unavailableNames;
     private final ObservableList<AppointmentModel> customerAppointments;
-    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
-    private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
-    private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
+    private final ObservableList<CityModel> allCities;
+    private final ObservableList<CityModel> cityOptions;
+    private final ObservableList<CountryModel> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedName;
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
-    private ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry;
-    private ObjectBinding<CityItem<? extends ICityDAO>> selectedCity;
+    private ObjectBinding<CountryModel> selectedCountry;
+    private ObjectBinding<CityModel> selectedCity;
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
-    private ObjectBinding<CityItem<? extends ICityDAO>> modelCity;
+    private ObjectBinding<CityModel> modelCity;
     private BooleanBinding addressChanged;
     private BooleanBinding changedBinding;
     private BooleanBinding validityBinding;
@@ -170,7 +170,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private Label addressValidationLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityComboBox"
-    private ComboBox<CityItem<? extends ICityDAO>> cityComboBox; // Value injected by FXMLLoader
+    private ComboBox<CityModel> cityComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityValidationLabel"
     private Label cityValidationLabel; // Value injected by FXMLLoader
@@ -182,7 +182,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private TextField phoneNumberTextField; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CountryItem<? extends ICountryDAO>> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryModel> countryComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
@@ -200,11 +200,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private ButtonBar addAppointmentButtonBar; // Value injected by FXMLLoader
 
     public EditCustomer() {
-        addressCustomerCount = new ReadOnlyIntegerWrapper(0);
-        selectedAddress = new ReadOnlyObjectWrapper<>(new AddressModel(new AddressDAO()));
-        windowTitle = new ReadOnlyStringWrapper("");
-        valid = new ReadOnlyBooleanWrapper(false);
-        modified = new ReadOnlyBooleanWrapper(false);
+        addressCustomerCount = new ReadOnlyIntegerWrapper(this, "addressCustomerCount", 0);
+        selectedAddress = new ReadOnlyObjectWrapper<>(this, "selectedAddress", new AddressModel(new AddressDAO()));
+        windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
+        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
+        modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         unavailableNames = FXCollections.observableArrayList();
         customerAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
@@ -254,15 +254,21 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             allCities.add(c);
             CountryItem<? extends ICountryDAO> n = c.getCountry();
             int pk = n.getPrimaryKey();
-            CountryItem<? extends ICountryDAO> sn = allCountries.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElseGet(() -> {
-                allCountries.add(n);
-                allCountries.sort(CountryProperties::compare);
-                return n;
+            CountryModel sn = allCountries.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElseGet(() -> {
+                if (n instanceof CountryModel) {
+                    CountryModel cm = (CountryModel) n;
+                    allCountries.add(cm);
+                    allCountries.sort(CountryProperties::compare);
+                    return cm;
+                }
+                return null;
             });
             countryComboBox.getSelectionModel().select(sn);
-            cityOptions.add(c);
-            cityOptions.sort(CityProperties::compare);
-            cityComboBox.getSelectionModel().select(c);
+            if (null != sn) {
+                cityOptions.add(c);
+                cityOptions.sort(CityProperties::compare);
+                cityComboBox.getSelectionModel().select(c);
+            }
         }
     }
 
@@ -313,8 +319,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         appointmentsTableView.setItems(customerAppointments);
 
         selectedFilter = Bindings.<AppointmentFilterItem>select(appointmentFilterComboBox.selectionModelProperty(), "selectedItem");
-        selectedCountry = Bindings.<CountryItem<? extends ICountryDAO>>select(countryComboBox.selectionModelProperty(), "selectedItem");
-        selectedCity = Bindings.<CityItem<? extends ICityDAO>>select(cityComboBox.selectionModelProperty(), "selectedItem");
+        selectedCountry = Bindings.<CountryModel>select(countryComboBox.selectionModelProperty(), "selectedItem");
+        selectedCity = Bindings.<CityModel>select(cityComboBox.selectionModelProperty(), "selectedItem");
 
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
@@ -482,7 +488,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onAppointmentAdded(AppointmentEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
             // TODO: See if we need to get/set model
@@ -494,7 +500,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onAppointmentUpdated(AppointmentEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
             // TODO: See if we need to get/set model
@@ -514,7 +520,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onAppointmentDeleted(AppointmentEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
             // TODO: See if we need to get/set model
@@ -525,6 +531,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable,
             CountryItem<? extends ICountryDAO> oldValue, CountryItem<? extends ICountryDAO> newValue) {
+        LOG.fine(() -> String.format("Country selection changed from %s to %s", LogHelper.toLogText(oldValue), LogHelper.toLogText(newValue)));
         cityComboBox.getSelectionModel().clearSelection();
         cityOptions.clear();
         if (null != newValue) {
@@ -628,21 +635,22 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         postalCodeTextField.setText(address.getPostalCode());
         phoneNumberTextField.setText(address.getPhone());
 
+        countries.forEach((t) -> allCountries.add(new CountryModel(t)));
+        addressAndCities.getValue2().forEach((t) -> allCities.add(new CityModel(t)));
         if (null != country && country.getRowState() != DataRowState.NEW) {
             int pk = country.getPrimaryKey();
-            countries.forEach((t) -> allCountries.add((pk == t.getPrimaryKey()) ? country : CountryItem.createModel(t)));
-            countryComboBox.getSelectionModel().select(country);
-        } else {
-            countries.forEach((t) -> allCountries.add(CountryItem.createModel(t)));
+            allCountries.stream().filter((t) -> pk == t.getPrimaryKey()).findFirst().ifPresent((t) -> {
+                countryComboBox.getSelectionModel().select(t);
+                allCities.stream().filter((u) -> pk == u.getCountry().getPrimaryKey()).forEach((u) -> cityOptions.add(u));
+                if (null != city && city.getRowState() != DataRowState.NEW) {
+                    int cpk = city.getPrimaryKey();
+                    cityOptions.stream().filter((u) -> cpk == u.getPrimaryKey()).findFirst().ifPresent((u) -> {
+                        cityComboBox.getSelectionModel().select(u);
+                    });
+                }
+            });
         }
 
-        if (null != city && city.getRowState() != DataRowState.NEW) {
-            int pk = city.getPrimaryKey();
-            addressAndCities.getValue2().forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? city : CityItem.createModel(t)));
-            cityComboBox.getSelectionModel().select(city);
-        } else {
-            addressAndCities.getValue2().forEach((t) -> allCities.add(CityItem.createModel(t)));
-        }
         cityComboBox.setOnAction((event) -> updateValidation());
         countryComboBox.setOnAction((event) -> updateValidation());
         updateValidation();
