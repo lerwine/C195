@@ -1,8 +1,10 @@
 package scheduler.fx;
 
+import java.util.logging.Logger;
 import javafx.scene.control.ListCell;
 import scheduler.dao.ICityDAO;
 import scheduler.model.ui.CityItem;
+import scheduler.util.LogHelper;
 
 /**
  *
@@ -17,6 +19,8 @@ public class CityListCell<T extends CityItem<? extends ICityDAO>> extends ListCe
         if (null == item) {
             setText("");
         } else {
+            String name = item.getName();
+            Logger.getLogger(getClass().getName()).info(String.format("Setting city list cell to %s", LogHelper.toLogText(name)));
             setText(item.getName());
         }
     }
