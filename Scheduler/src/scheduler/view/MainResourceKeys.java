@@ -33,7 +33,8 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_ALLUSERS = "allUsers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointment listing."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading appointment listing."}.
      */
     public static final String RESOURCEKEY_APPOINTMENTLOADERROR = "appointmentLoadError";
 
@@ -68,7 +69,8 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_CONSULTANTSCHEDULE = "consultantSchedule";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading country listing."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading country listing."}.
      */
     public static final String RESOURCEKEY_COUNTRYLOADERROR = "countryLoadError";
 
@@ -78,7 +80,8 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_CUSTOMER = "customer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customer listing."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading customer listing."}.
      */
     public static final String RESOURCEKEY_CUSTOMERLOADERROR = "customerLoadError";
 
@@ -108,57 +111,68 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_END = "end";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error checking impending appointments."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error checking impending appointments."}.
      */
     public static final String RESOURCEKEY_ERRORCHECKINGIMPENDINGAPPOINTMENTS = "errorCheckingImpendingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading address edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading address edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGADDRESSEDITWINDOW = "errorLoadingAddressEditWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointment edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading appointment edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTEDITWINDOW = "errorLoadingAppointmentEditWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading city edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading city edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCITYEDITWINDOW = "errorLoadingCityEditWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading country edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading country edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCOUNTRYEDITWINDOW = "errorLoadingCountryEditWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customer edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading customer edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCUSTOMEREDITWINDOW = "errorLoadingCustomerEditWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading new address edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading new address edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGNEWADDRESSWINDOW = "errorLoadingNewAddressWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading new appointment edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading new appointment edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGNEWAPPOINTMENTWINDOW = "errorLoadingNewAppointmentWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading new customer edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading new customer edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW = "errorLoadingNewCustomerWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading new user edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading new user edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW = "errorLoadingNewUserWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading user edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading user edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW = "errorLoadingUserEditWindow";
 
@@ -188,7 +202,8 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_MONTHLYCALENDAR = "monthlyCalendar";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "My Current and Upcoming Appointments"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "My Current and Upcoming Appointments"}.
      */
     public static final String RESOURCEKEY_MYCURRENTANDUPCOMING = "myCurrentAndUpcoming";
 
@@ -218,7 +233,8 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_OVERVIEW = "overview";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading overview window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading overview window."}.
      */
     public static final String RESOURCEKEY_OVERVIEWLOADERROR = "overviewLoadError";
 

@@ -8,7 +8,8 @@ package scheduler.view.country;
 public interface ManageCountriesResourceKeys {
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That country is referenced by one or more cities and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "That country is referenced by one or more cities and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_COUNTRYHASCITIES = "countryHasCities";
 
@@ -43,7 +44,8 @@ public interface ManageCountriesResourceKeys {
     public static final String RESOURCEKEY_EDIT = "edit";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading countries.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading countries.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCOUNTRIES = "errorLoadingCountries";
 
@@ -53,7 +55,8 @@ public interface ManageCountriesResourceKeys {
     public static final String RESOURCEKEY_LANGUAGE = "language";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading countries, please wait\u2026"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Loading countries, please wait\u2026"}.
      */
     public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
 

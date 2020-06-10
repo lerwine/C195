@@ -33,7 +33,8 @@ public interface ManageUsersResourceKeys {
     public static final String RESOURCEKEY_EDIT = "edit";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading users.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading users.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGUSERS = "errorLoadingUsers";
 
@@ -78,7 +79,8 @@ public interface ManageUsersResourceKeys {
     public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That user is referenced in one or more appointments and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "That user is referenced in one or more appointments and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 

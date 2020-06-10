@@ -28,12 +28,14 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_ADDRESSES = "addresses";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That city is referenced by one or more addresses and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "That city is referenced by one or more addresses and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_CITYHASADDRESSES = "cityHasAddresses";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That city name is being used by another record."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "That city name is being used by another record."}.
      */
     public static final String RESOURCEKEY_CITYNAMEINUSE = "cityNameInUse";
 

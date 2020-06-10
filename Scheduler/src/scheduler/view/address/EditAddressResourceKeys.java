@@ -33,7 +33,8 @@ public interface EditAddressResourceKeys {
     public static final String RESOURCEKEY_ADDRESSCANNOTBEEMPTY = "addressCannotBeEmpty";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That address is referenced by one or more customers and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "That address is referenced by one or more customers and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_ADDRESSHASCUSTOMERS = "addressHasCustomers";
 

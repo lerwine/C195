@@ -43,7 +43,8 @@ public interface ManageCustomersResourceKeys {
     public static final String RESOURCEKEY_CREATEDON = "createdOn";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That customer is referenced in one or more appointments and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "That customer is referenced in one or more appointments and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_CUSTOMERHASAPPOINTMENTS = "customerHasAppointments";
 
@@ -73,7 +74,8 @@ public interface ManageCustomersResourceKeys {
     public static final String RESOURCEKEY_EDIT = "edit";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customers.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading customers.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGCUSTOMERS = "errorLoadingCustomers";
 
