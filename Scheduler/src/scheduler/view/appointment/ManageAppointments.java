@@ -417,7 +417,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                         alert.showAndWait();
                     }
                 } catch (IOException ex) {
-                    // TODO: Alert user
+                    // XXX: Alert user
                     LOG.log(Level.SEVERE, "Error saving file", ex);
                 }
             }
