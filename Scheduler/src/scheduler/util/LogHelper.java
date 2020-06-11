@@ -1,6 +1,7 @@
 package scheduler.util;
 
 import java.text.NumberFormat;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Handler;
@@ -56,13 +57,42 @@ public class LogHelper {
         return logger;
     }
 
+    public static String iterableToLogText(Iterable<?> iterable) {
+        if (null == iterable) {
+            return "null";
+        }
+        return iteratorToLogText(iterable.iterator())   ;
+    }
+    
+    public static String iteratorToLogText(Iterator<?> iterator) {
+        if (null == iterator) {
+            return "null";
+        }
+        
+        if (iterator.hasNext()) {
+            String nl = System.lineSeparator();
+            StringBuilder sb = new StringBuilder("{").append(nl).append("  ").append(toLogText(iterator.next()));
+            int count = 1;
+            while (iterator.hasNext()) {
+                count++;
+                sb.append(",").append(nl).append("  ").append(toLogText(iterator.next()));
+                if (count == 255) {
+                    sb.append(",").append(nl).append("  ...").append(nl).append("}");
+                    return sb.toString();
+                }
+            }
+            return sb.append(nl).append("}; count=").append(count).toString();
+        }
+        return "{ }; count=0";
+    }
+    
     public static <T extends Enum<T>> String toLogText(T value) {
         if (null == value) {
             return "null";
         }
         return String.format("%s.%s", value.getClass().getTypeName(), value.name());
     }
-
+    
     public static String toLogText(Object obj) {
         if (null == obj) {
             return "null";
