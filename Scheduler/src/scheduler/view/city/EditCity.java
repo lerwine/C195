@@ -123,7 +123,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    // FIXME: City names cannot contain semicolons
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
 
