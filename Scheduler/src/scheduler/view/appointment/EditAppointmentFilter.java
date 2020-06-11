@@ -129,7 +129,7 @@ public final class EditAppointmentFilter extends BorderPane {
     private ObservableList<LocationTextSelectionItem> locationTextSearchOptionList;
     private StringBindingProperty dateRangeValidationBinding;
 
-    // TODO: Add WaitBorderPane
+    // FIXME: Add WaitBorderPane
     private WaitBorderPane waitBorderPane;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -1380,25 +1380,7 @@ public final class EditAppointmentFilter extends BorderPane {
     private final class CitySelectionItem extends DataObjectItem<CityDAO> {
 
         private final ReadOnlyStringWrapper text;
-
-        @Override
-        public String getText() {
-            return text.get();
-        }
-
-        @Override
-        public ReadOnlyStringProperty textProperty() {
-            return text.getReadOnlyProperty();
-        }
         private final ReadOnlyIntegerWrapper countryId;
-
-        public int getCountryId() {
-            return countryId.get();
-        }
-
-        public ReadOnlyIntegerProperty countryIdProperty() {
-            return countryId.getReadOnlyProperty();
-        }
 
         public CitySelectionItem(CityDAO city) {
             super(city);
@@ -1410,11 +1392,6 @@ public final class EditAppointmentFilter extends BorderPane {
                 countryId = new ReadOnlyIntegerWrapper(city.getCountry().getPrimaryKey());
             }
         }
-    }
-
-    private final class CountrySelectionItem extends DataObjectItem<CountryDAO> {
-
-        private final ReadOnlyStringWrapper text;
 
         @Override
         public String getText() {
@@ -1426,9 +1403,33 @@ public final class EditAppointmentFilter extends BorderPane {
             return text.getReadOnlyProperty();
         }
 
+        public int getCountryId() {
+            return countryId.get();
+        }
+
+        public ReadOnlyIntegerProperty countryIdProperty() {
+            return countryId.getReadOnlyProperty();
+        }
+
+    }
+
+    private final class CountrySelectionItem extends DataObjectItem<CountryDAO> {
+
+        private final ReadOnlyStringWrapper text;
+
         public CountrySelectionItem(CountryDAO country) {
             super(country);
             text = new ReadOnlyStringWrapper((null == country) ? resources.getString(RESOURCEKEY_ANY) : country.getName());
+        }
+
+        @Override
+        public String getText() {
+            return text.get();
+        }
+
+        @Override
+        public ReadOnlyStringProperty textProperty() {
+            return text.getReadOnlyProperty();
         }
 
     }

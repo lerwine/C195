@@ -403,7 +403,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
-            // TODO: See if we need to get/set model
+            // XXX: See if we need to get/set model
             if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
                 itemList.add(new CustomerModel(dao));
             }
@@ -414,7 +414,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
-            // TODO: See if we need to get/set model
+            // XXX: See if we need to get/set model
             int pk = dao.getPrimaryKey();
             CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
@@ -432,7 +432,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
-            // TODO: See if we need to get/set model
+            // XXX: See if we need to get/set model
             int pk = dao.getPrimaryKey();
             itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> itemList.remove(t));
         }

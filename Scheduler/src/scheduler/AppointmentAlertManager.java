@@ -161,7 +161,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     private void onAppointmentInserted(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        // TODO: Check to see if we need to get model, instead
+        // XXX: Check to see if we need to get model, instead
         if (checkInsert(event.getDataAccessObject(), true)) {
             alerting.set(true);
         }
@@ -169,7 +169,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     private void onAppointmentUpdated(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        // TODO: Check to see if we need to get model, instead
+        // XXX: Check to see if we need to get model, instead
         if (checkUpdate(event.getDataAccessObject(), true)) {
             alerting.set(!alertingList.isEmpty());
         }
@@ -177,7 +177,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     private void onAppointmentDeleted(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
-        // TODO: Check to see if we need to get model, instead
+        // XXX: Check to see if we need to get model, instead
         if (checkDelete(event.getDataAccessObject().getPrimaryKey())) {
             alerting.set(false);
         }

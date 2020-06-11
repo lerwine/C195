@@ -120,7 +120,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
-    // TODO: Convert to custom control
     private AppointmentConflicts appointmentConflictsController;
     private AppointmentType currentType;
 
@@ -343,7 +342,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         assert dropdownOptionsInactiveRadioButton != null : "fx:id=\"dropdownOptionsInactiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
-        // TODO: Reimplement
+        // FIXME: Reimplement
 //        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).map((t) -> {
 //            AddressDAO dao = t.getDataAccessObject();
 //            if (null == dao) {
@@ -588,12 +587,12 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @Override
     public void onNewModelSaved() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME:  Implement scheduler.view.appointment.EditAppointment#applyEditMode
+        throw new UnsupportedOperationException("Not supported yet."); // TODO:  Implement scheduler.view.appointment.EditAppointment#applyEditMode
     }
 
     @Override
     public void updateModel() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#updateModel
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#updateModel
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

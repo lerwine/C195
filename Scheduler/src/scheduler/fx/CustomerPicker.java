@@ -522,7 +522,7 @@ public class CustomerPicker extends BorderPane {
 //            }
 //            return CustomerFilter.byCity(city).get(connection);
                 throw new UnsupportedOperationException();
-                // FIXME: Implement scheduler.view.customer.CustomerPicker#getResult(Connection connection)
+                // TODO: Implement scheduler.view.customer.CustomerPicker#getResult(Connection connection)
             }
         }
 

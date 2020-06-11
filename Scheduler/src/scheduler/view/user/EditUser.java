@@ -314,7 +314,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
-            // TODO: Check to see if we need to get/set model
+            // XXX: Check to see if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
                 userAppointments.add(new AppointmentModel(dao));
@@ -326,7 +326,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
-            // TODO: Check to see if we need to get/set model
+            // XXX: Check to see if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             int pk = dao.getPrimaryKey();
             AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
@@ -345,7 +345,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
-            // TODO: Check to see if we need to get/set model
+            // XXX: Check to see if we need to get/set model
             int pk = dao.getPrimaryKey();
             userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> userAppointments.remove(t));
         }

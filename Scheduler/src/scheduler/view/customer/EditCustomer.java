@@ -491,7 +491,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
-            // TODO: See if we need to get/set model
+            // XXX: See if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
                 customerAppointments.add(new AppointmentModel(dao));
@@ -503,7 +503,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
-            // TODO: See if we need to get/set model
+            // XXX: See if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
             int pk = dao.getPrimaryKey();
             AppointmentModel m = customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
@@ -523,7 +523,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
-            // TODO: See if we need to get/set model
+            // XXX: See if we need to get/set model
             int pk = dao.getPrimaryKey();
             customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerAppointments.remove(t));
         }
@@ -635,13 +635,15 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         postalCodeTextField.setText(address.getPostalCode());
         phoneNumberTextField.setText(address.getPhone());
 
+        allCountries.clear();
+        allCities.clear();
+        cityOptions.clear();
         countries.forEach((t) -> allCountries.add(new CountryModel(t)));
         addressAndCities.getValue2().forEach((t) -> allCities.add(new CityModel(t)));
         if (null != country && country.getRowState() != DataRowState.NEW) {
             int pk = country.getPrimaryKey();
             allCountries.stream().filter((t) -> pk == t.getPrimaryKey()).findFirst().ifPresent((t) -> {
                 countryComboBox.getSelectionModel().select(t);
-                allCities.stream().filter((u) -> pk == u.getCountry().getPrimaryKey()).forEach((u) -> cityOptions.add(u));
                 if (null != city && city.getRowState() != DataRowState.NEW) {
                     int cpk = city.getPrimaryKey();
                     cityOptions.stream().filter((u) -> cpk == u.getPrimaryKey()).findFirst().ifPresent((u) -> {

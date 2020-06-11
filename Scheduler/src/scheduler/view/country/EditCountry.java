@@ -293,7 +293,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private void onCityAdded(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        // TODO: See if we need to get/set model.
+        // XXX: See if we need to get/set model.
         CityDAO dao = event.getDataAccessObject();
         if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
             itemList.add(new CityModel(dao));
@@ -302,7 +302,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private void onCityUpdated(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        // TODO: See if we need to get/set model.
+        // XXX: See if we need to get/set model.
         CityDAO dao = event.getDataAccessObject();
         int pk = dao.getPrimaryKey();
         Optional<CityModel> match = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny();
@@ -320,7 +320,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private void onCityDeleted(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        // TODO: See if we need to get/set model.
+        // XXX: See if we need to get/set model.
         int pk = event.getDataAccessObject().getPrimaryKey();
         itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> itemList.remove(t));
     }

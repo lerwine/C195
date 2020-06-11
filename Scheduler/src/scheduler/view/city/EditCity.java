@@ -445,7 +445,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AddressDAO dao = event.getDataAccessObject();
-            // TODO: Update model if null
             int pk = dao.getPrimaryKey();
             AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
