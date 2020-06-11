@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
@@ -17,10 +18,10 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import scheduler.fx.AddressEditTableCellFactory?>
 <?import scheduler.fx.CountryListCell?>
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.AddressEditTableCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.TimeZoneListCell?>
 <?import scheduler.fx.TimeZoneListCellFactory?>
@@ -32,15 +33,15 @@
             <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
                 <ColumnConstraints hgrow="ALWAYS" />
-            <ColumnConstraints hgrow="NEVER" />
+                <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints minHeight="19.0" valignment="TOP" vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints minHeight="19.0" valignment="TOP" vgrow="SOMETIMES" />
                 <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints vgrow="SOMETIMES" />
+                <RowConstraints minHeight="19.0" valignment="TOP" vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
                 <Label styleClass="leftControlLabel" text="%name" />
@@ -52,7 +53,7 @@
                     </styleClass>
                 </Label>
                 <Label styleClass="leftControlLabel" text="%country" GridPane.rowIndex="2" />
-                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                <ComboBox fx:id="countryComboBox" maxWidth="1.7976931348623157E308" onAction="#onCountryComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2">
                     <cellFactory>
                         <CountryListCellFactory />
                     </cellFactory>
@@ -67,9 +68,9 @@
                     </styleClass>
                 </Label>
                 <Label styleClass="leftControlLabel" text="%timeZone" GridPane.rowIndex="4" />
-                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" onAction="#onComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4">
+                <ComboBox fx:id="timeZoneComboBox" maxWidth="1.7976931348623157E308" onAction="#onTimeZoneComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4">
                     <cellFactory>
-                        <TimeZoneListCellFactory />
+                        <TimeZoneListCellFactory fx:id="timeZoneListCellFactory" />
                     </cellFactory>
                     <buttonCell>
                         <TimeZoneListCell />
@@ -81,7 +82,8 @@
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-            <Button mnemonicParsing="false" onAction="#onNewCountryButtonAction" styleClass="small-button" text="%newCountry" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                <CheckBox fx:id="showAllTimeZonesCheckBox" mnemonicParsing="false" onAction="#onShowAllTimeZonesCheckBoxAction" styleClass="small-control" text="Show All" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+                <Button mnemonicParsing="false" onAction="#onNewCountryButtonAction" styleClass="small-control" text="%newCountry" GridPane.columnIndex="2" GridPane.rowIndex="3" />
             </children>
             <VBox.margin>
                 <Insets bottom="8.0" />

@@ -1,7 +1,6 @@
 package scheduler.view.city;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -27,6 +26,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -38,6 +38,7 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.RegionTable;
 import static scheduler.Scheduler.getMainController;
 import scheduler.ZoneIdMappings;
 import scheduler.dao.AddressDAO;
@@ -45,6 +46,7 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
+import scheduler.fx.TimeZoneListCellFactory;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
@@ -103,12 +105,14 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
-    private final ObservableList<CountryItem<? extends ICountryDAO>> countryOptionList;
+    private final ObservableList<CountryModel> countryOptionList;
+    private final ObservableList<TimeZone> allTimeZones;
     private final ObservableList<TimeZone> timeZoneOptionList;
     private final ObservableList<AddressModel> addressItemList;
-    private ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry;
+    private ObjectBinding<CountryModel> selectedCountry;
     private ObjectBinding<TimeZone> selectedTimeZone;
     private StringBinding normalizedName;
+    private StringBinding nameValidationMessage;
 
     @ModelEditor
     private CityModel model;
@@ -119,6 +123,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
+    // FIXME: City names cannot contain semicolons
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
 
@@ -126,7 +131,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private Label nameValidationLabel; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryComboBox"
-    private ComboBox<CountryItem<? extends ICountryDAO>> countryComboBox; // Value injected by FXMLLoader
+    private ComboBox<CountryModel> countryComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
@@ -134,8 +139,14 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML // fx:id="timeZoneComboBox"
     private ComboBox<TimeZone> timeZoneComboBox; // Value injected by FXMLLoader
 
+    @FXML // fx:id="timeZoneListCellFactory"
+    private TimeZoneListCellFactory timeZoneListCellFactory; // Value injected by FXMLLoader
+
     @FXML // fx:id="timeZoneValidationLabel"
     private Label timeZoneValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="showAllTimeZonesCheckBox"
+    private CheckBox showAllTimeZonesCheckBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressesLabel"
     private Label addressesLabel; // Value injected by FXMLLoader
@@ -145,22 +156,20 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML // fx:id="addCityButtonBar"
     private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
-    private StringBinding nameValidationMessage;
 
     public EditCity() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         countryOptionList = FXCollections.observableArrayList();
+        allTimeZones = FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(RegionTable.getAllTimeZones()));
         timeZoneOptionList = FXCollections.observableArrayList();
-        Arrays.stream(TimeZone.getAvailableIDs()).map((t) -> TimeZone.getTimeZone(t)).sorted(Values::compareTimeZones)
-                .forEach((t) -> timeZoneOptionList.add(t));
+        timeZoneOptionList.addAll(allTimeZones);
         addressItemList = FXCollections.observableArrayList();
     }
 
     @FXML
-    @SuppressWarnings("unused-parameter")
-    private void onAddAddressButtonAction(ActionEvent event) {
+    void onAddAddressButtonAction(ActionEvent event) {
         try {
             EditAddress.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -169,18 +178,18 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
-    private void onAddressDeleteMenuItemAction(ActionEvent event) {
+    void onAddressDeleteMenuItemAction(ActionEvent event) {
         deleteAddress(addressesTableView.getSelectionModel().getSelectedItem());
     }
 
     @FXML
-    private void onAddressEditMenuItemAction(ActionEvent event) {
+    void onAddressEditMenuItemAction(ActionEvent event) {
         editAddress(addressesTableView.getSelectionModel().getSelectedItem());
     }
 
-    @SuppressWarnings("incomplete-switch")
     @FXML
-    private void onAddressesTableViewKeyReleased(KeyEvent event) {
+    @SuppressWarnings("incomplete-switch")
+    void onAddressesTableViewKeyReleased(KeyEvent event) {
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             AddressModel item;
             switch (event.getCode()) {
@@ -201,12 +210,18 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
-    private void onComboBoxAction(ActionEvent event) {
+    void onCountryComboBoxAction(ActionEvent event) {
+        onChange(nameTextField.getText());
+        onZoneOptionChange(selectedCountry.get());
+    }
+
+    @FXML
+    void onTimeZoneComboBoxAction(ActionEvent event) {
         onChange(nameTextField.getText());
     }
 
     @FXML
-    private void onItemActionRequest(AddressEvent event) {
+    void onItemActionRequest(AddressEvent event) {
         if (event.isDeleteRequest()) {
             deleteAddress(event.getModel());
         } else {
@@ -215,7 +230,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
-    private void onNewCountryButtonAction(ActionEvent event) {
+    void onNewCountryButtonAction(ActionEvent event) {
         CountryModel c;
         try {
             c = EditCountry.editNew(getScene().getWindow(), false);
@@ -230,30 +245,53 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
-    private void onChange(String cityName) {
-        valid.set(Values.isNotNullWhiteSpaceOrEmpty(cityName) && null != selectedCountry.get() && null != selectedTimeZone.get());
-        if (model.getRowState() != DataRowState.NEW) {
-            if (normalizedName.get().equals(Values.asNonNullAndWsNormalized(model.getName()))
-                    && ModelHelper.areSameRecord(selectedCountry.get(), model.getCountry())) {
-                TimeZone z1 = selectedTimeZone.get();
-                TimeZone z2 = model.getTimeZone();
-                if ((null == z1) ? null == z2 : null != z2 && z1.getID().equals(z2.getID())) {
-                    modified.set(false);
+    @FXML
+    void onShowAllTimeZonesCheckBoxAction(ActionEvent event) {
+        CountryModel country = selectedCountry.get();
+        if (null != country) {
+            onZoneOptionChange(country);
+        }
+    }
+
+    private void onZoneOptionChange(CountryModel country) {
+        if (null != country) {
+            Locale locale = country.getLocale();
+            if (null != locale && !showAllTimeZonesCheckBox.isSelected()) {
+                timeZoneListCellFactory.setCurrentCountry(null);
+                List<TimeZone> zonesForCountry = RegionTable.getZonesForCountry(locale.getCountry());
+                if (!zonesForCountry.isEmpty()) {
+                    TimeZone selTz = selectedTimeZone.get();
+                    timeZoneOptionList.setAll(zonesForCountry);
+                    if (null != selTz) {
+                        if (!timeZoneOptionList.contains(selTz)) {
+                            timeZoneOptionList.add(selTz);
+                        }
+                        timeZoneComboBox.getSelectionModel().select(selTz);
+                    }
                     return;
                 }
             }
-            modified.set(true);
+        }
+        timeZoneListCellFactory.setCurrentCountry(country);
+        if (timeZoneOptionList.size() != allTimeZones.size()) {
+            TimeZone selTz = selectedTimeZone.get();
+            timeZoneOptionList.setAll(allTimeZones);
+            if (null != selTz) {
+                timeZoneComboBox.getSelectionModel().select(selTz);
+            }
         }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    private void initialize() {
+    void initialize() {
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert countryValidationLabel != null : "fx:id=\"countryValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert timeZoneComboBox != null : "fx:id=\"timeZoneComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert timeZoneListCellFactory != null : "fx:id=\"timeZoneListCellFactory\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert timeZoneValidationLabel != null : "fx:id=\"timeZoneValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
+        assert showAllTimeZonesCheckBox != null : "fx:id=\"showAllTimeZonesCheckBox\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert addressesLabel != null : "fx:id=\"addressesLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert addressesTableView != null : "fx:id=\"addressesTableView\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert addCityButtonBar != null : "fx:id=\"addCityButtonBar\" was not injected: check your FXML file 'EditCity.fxml'.";
@@ -294,7 +332,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         if (null != zoneId) {
             String id = zoneId.toZoneId().getId();
             timeZoneOptionList.stream().filter((t) -> t.toZoneId().getId().equals(id)).findFirst()
-                    .ifPresent((t) -> timeZoneComboBox.getSelectionModel().select(t));
+                    .ifPresent((t) -> {
+                        timeZoneComboBox.getSelectionModel().select(t);
+                    });
         }
 
         ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
@@ -350,6 +390,22 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
+    private void onChange(String cityName) {
+        valid.set(Values.isNotNullWhiteSpaceOrEmpty(cityName) && null != selectedCountry.get() && null != selectedTimeZone.get());
+        if (model.getRowState() != DataRowState.NEW) {
+            if (normalizedName.get().equals(Values.asNonNullAndWsNormalized(model.getName()))
+                    && ModelHelper.areSameRecord(selectedCountry.get(), model.getCountry())) {
+                TimeZone z1 = selectedTimeZone.get();
+                TimeZone z2 = model.getTimeZone();
+                if ((null == z1) ? null == z2 : null != z2 && z1.getID().equals(z2.getID())) {
+                    modified.set(false);
+                    return;
+                }
+            }
+            modified.set(true);
+        }
+    }
+
     private void deleteAddress(AddressModel item) {
         if (null != item) {
             Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
@@ -379,7 +435,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AddressDAO dao = event.getDataAccessObject();
-            // TODO: Update model if null
             if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
                 addressItemList.add(new AddressModel(dao));
             }
@@ -408,7 +463,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             AddressDAO dao = event.getDataAccessObject();
-            // TODO: Update model if null
             int pk = dao.getPrimaryKey();
             addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> addressItemList.remove(t));
         }
@@ -464,7 +518,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     private void loadCountries(List<CountryDAO> result, CountryItem<? extends ICountryDAO> country) {
-        HashMap<String, CountryItem<? extends ICountryDAO>> map = new HashMap<>();
+        HashMap<String, CountryModel> map = new HashMap<>();
         CountryModel.Factory factory = CountryModel.getFactory();
         for (Locale al : Locale.getAvailableLocales()) {
             if (!(al.getDisplayCountry().isEmpty() || al.getDisplayLanguage().isEmpty())) {
@@ -473,16 +527,22 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
         if (null != result && !result.isEmpty()) {
             result.forEach((t) -> map.put(t.getLocale().toLanguageTag(), factory.createNew(t)));
-        }
-        if (null != country) {
-            Locale locale = country.getLocale();
-            if (null != locale) {
-                map.put(locale.toLanguageTag(), country);
+            map.values().stream().sorted(CountryProperties::compare).forEach((t) -> countryOptionList.add(t));
+            if (null != country) {
+                Locale locale = country.getLocale();
+                if (null != locale) {
+                    String t = locale.toLanguageTag();
+                    if (map.containsKey(t)) {
+                        countryComboBox.getSelectionModel().select(map.get(t));
+                    } else {
+                        String c = locale.getCountry();
+                        CountryModel cm = map.values().stream().filter((u) -> u.getLocale().getCountry().equals(c)).findFirst().orElse(null);
+                        if (null != cm) {
+                            countryComboBox.getSelectionModel().select(cm);
+                        }
+                    }
+                }
             }
-        }
-        map.values().stream().sorted(CountryProperties::compare).forEach((t) -> countryOptionList.add(t));
-        if (null != country) {
-            countryComboBox.getSelectionModel().select(country);
         }
     }
 
