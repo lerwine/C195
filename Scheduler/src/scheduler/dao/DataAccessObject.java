@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventDispatchChain;
@@ -834,8 +835,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 ((DataAccessObject) dao).changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
                 if (null != event) {
-                    // FIXME: Ensure it's fired on the FX app thread
-                    Event.fireEvent(dao, event);
+                    if (Platform.isFxApplicationThread()) {
+                        Event.fireEvent(dao, event);
+                    } else {
+                        ModelItemEvent<? extends FxRecordModel<T>, T> e = event;
+                        Platform.runLater(() -> Event.fireEvent(dao, e));
+                    }
                 }
             }
         }
@@ -964,8 +969,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
                 if (success) {
                     ModelItemEvent<? extends FxRecordModel<T>, T> event = createDeletedEvent(this, dao);
-                    // FIXME: Ensure it's fired on the FX app thread
-                    Event.fireEvent(dao, event);
+                    if (Platform.isFxApplicationThread()) {
+                        Event.fireEvent(dao, event);
+                    } else {
+                        ModelItemEvent<? extends FxRecordModel<T>, T> e = event;
+                        Platform.runLater(() -> Event.fireEvent(dao, e));
+                    }
                 }
             }
         }
