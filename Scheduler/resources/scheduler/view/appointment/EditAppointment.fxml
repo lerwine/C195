@@ -64,7 +64,7 @@
                                 <Insets />
                             </HBox.margin>
                         </Label>
-                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#onCustomerDropDownOptionsButtonAction" styleClass="small-button" text="">
+                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#onCustomerDropDownOptionsButtonAction" styleClass="small-control" text="">
                             <font>
                                 <Font name="Segoe UI Symbol" size="10.0" />
                             </font>
@@ -84,7 +84,7 @@
                                 <Insets />
                             </HBox.margin>
                         </Label>
-                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#onUserDropDownOptionsButtonAction" styleClass="small-button" text="">
+                        <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#onUserDropDownOptionsButtonAction" styleClass="small-control" text="">
                             <font>
                                 <Font name="Segoe UI Symbol" size="10.0" />
                             </font>

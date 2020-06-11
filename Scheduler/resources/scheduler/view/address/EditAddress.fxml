@@ -72,14 +72,14 @@
                     </items>
                 </SplitPane>
                 <Label fx:id="countryCityValueLabel" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                <Button fx:id="editCityButton" mnemonicParsing="false" onAction="#onEditCityButtonAction" styleClass="small-button" text="%edit" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                <Button fx:id="editCityButton" mnemonicParsing="false" onAction="#onEditCityButtonAction" styleClass="small-control" text="%edit" GridPane.columnIndex="2" GridPane.rowIndex="3" />
                 <Label fx:id="cityValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="4">
                     <styleClass>
                         <String fx:value="validationMessage" />
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <Button fx:id="newCityButton" mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-button" text="%newCity" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                <Button fx:id="newCityButton" mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-control" text="%newCity" GridPane.columnIndex="2" GridPane.rowIndex="4" />
                 <Label styleClass="leftControlLabel" text="%postalCode" GridPane.rowIndex="5">
                     <GridPane.margin>
                         <Insets bottom="16.0" />

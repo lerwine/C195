@@ -135,8 +135,8 @@
                         <String fx:value="error" />
                     </styleClass>
                 </Label>
-                <Button fx:id="newCityButton" mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-button" text="New City" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
-                <Button mnemonicParsing="false" onAction="#onNewCountryButtonAction" styleClass="small-button" text="New Country" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="11" />
+                <Button fx:id="newCityButton" mnemonicParsing="false" onAction="#onNewCityButtonAction" styleClass="small-control" text="New City" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
+                <Button mnemonicParsing="false" onAction="#onNewCountryButtonAction" styleClass="small-control" text="New Country" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="11" />
             </children>
         </GridPane>
         <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" />

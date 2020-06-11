@@ -15,7 +15,7 @@
     -scheduler-progress-gradient: linear-gradient(-scheduler-info-color-lighter, -scheduler-info-color-light);
     -scheduler-transparent-mask: #a3a3a359; /* Hue: 0, Saturation: 0, Lightness: 64, Transparency: 35 */
     -scheduler-shadow: #00000065; /* Hue: 0, Saturation: 0, Lightness: 0, Transparency: 60 */
-    
+
     -scheduler-alt-dark-color: saddlebrown; /* #8b4513, Hue: 25, Saturation: 75, Lightness: 30 */
     -scheduler-alt-darker-color: derive(-scheduler-alt-dark-color, -60%);
     -scheduler-alt-dark-gradient: linear-gradient(derive(-scheduler-alt-dark-color, 20%), -scheduler-alt-darker-color);
@@ -387,9 +387,12 @@ RadioButton.leftLabeledControl,
     -fx-font-family: "Segoe UI Symbol", sans-serif;
 }
 
-.small-button,
-.symbol-button {
+.small-control {
     -fx-font-size: 10px;
+}
+
+Button .small-control,
+.symbol-button {
     -fx-padding: 1px 4px 1px 4px;
 }
 
