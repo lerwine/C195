@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 
 /**
  * Base class for objects that support property binding through {@link PropertyChangeSupport}. This only actually fires events when the old and new
@@ -62,13 +63,13 @@ public class PropertyBindable implements IPropertyBindable {
     }
 
     protected void firePropertyChange(String propertyName, String oldValue, String newValue) {
-        if ((null == oldValue) ? null != newValue : oldValue.equals(newValue)) {
+        if ((null == oldValue) ? null != newValue : !oldValue.equals(newValue)) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
 
     protected void firePropertyChange(String propertyName, Timestamp oldValue, Timestamp newValue) {
-        if ((null == oldValue) ? null != newValue : oldValue.equals(newValue)) {
+        if ((null == oldValue) ? null != newValue : !oldValue.equals(newValue)) {
             propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
@@ -122,6 +123,10 @@ public class PropertyBindable implements IPropertyBindable {
         private int noNameChange = -1;
         private final HashMap<Integer, Integer> noNameIndexedChange = new HashMap<>();
 
+        PropertyChangeSupportImpl() {
+            super(PropertyBindable.this);
+        }
+
         protected synchronized final void beginChange() {
             changing++;
         }
@@ -153,10 +158,6 @@ public class PropertyBindable implements IPropertyBindable {
             return null;
         }
 
-        PropertyChangeSupportImpl() {
-            super(PropertyBindable.this);
-        }
-
         // We are handling any exceptions on purpose.
         @SuppressWarnings("UseSpecificCatch")
         private void firePropertyChangeImpl(PropertyChangeEvent event) {
@@ -174,12 +175,24 @@ public class PropertyBindable implements IPropertyBindable {
                             event.getPropertyName()), e);
                     eh.uncaughtException(t, e);
                 });
-                try {
-                    super.firePropertyChange(event);
-                } catch (Throwable ex) {
-                    Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
-                } finally {
-                    Thread.currentThread().setUncaughtExceptionHandler(eh);
+                if (Platform.isFxApplicationThread()) {
+                    try {
+                        super.firePropertyChange(event);
+                    } catch (Throwable ex) {
+                        Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
+                    } finally {
+                        Thread.currentThread().setUncaughtExceptionHandler(eh);
+                    }
+                } else {
+                    Platform.runLater(() -> {
+                        try {
+                            super.firePropertyChange(event);
+                        } catch (Throwable ex) {
+                            Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
+                        } finally {
+                            Thread.currentThread().setUncaughtExceptionHandler(eh);
+                        }
+                    });
                 }
             }
         }
