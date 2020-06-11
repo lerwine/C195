@@ -29,6 +29,12 @@ public interface EditCityResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Name cannot contain semicolon character (;)."}.
+     */
+    public static final String RESOURCEKEY_CANNOTCONTAINSEMICOLON = "cannotContainSemicolon";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
      * {@code "That city is referenced by one or more addresses and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_CITYHASADDRESSES = "cityHasAddresses";

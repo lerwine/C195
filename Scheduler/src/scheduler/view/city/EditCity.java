@@ -315,6 +315,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             if (nn.isEmpty()) {
                 return resources.getString(RESOURCEKEY_REQUIRED);
             }
+            if (nn.contains(";")) {
+                return resources.getString(RESOURCEKEY_CANNOTCONTAINSEMICOLON);
+            }
             int maxLen = CityDAO.MAX_LENGTH_NAME - c.length() - 1;
             LOG.fine(() -> String.format("Testing max lengh of %d", maxLen));
             if (nn.length() > maxLen) {
