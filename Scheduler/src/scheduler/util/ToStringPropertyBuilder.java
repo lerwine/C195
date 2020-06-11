@@ -21,9 +21,9 @@ import javafx.beans.property.ReadOnlyProperty;
 import scheduler.model.DataObject;
 
 /**
+ * Utility class to create a string representation of an object for debugging/reporting purposes.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.util.ToStringPropertyBuilder}
  */
 public class ToStringPropertyBuilder {
 
