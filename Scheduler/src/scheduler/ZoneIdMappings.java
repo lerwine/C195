@@ -57,6 +57,12 @@ public class ZoneIdMappings {
         return CODE_MAP;
     }
 
+    /**
+     * Decodes time zone ID components from an internally-defined shorthand representation.
+     *
+     * @param source The internally-defined shorthand zone id string.
+     * @return The decoded time zone id string.
+     */
     public static String toZoneId(String source) {
         checkLoadEntries();
         ArrayList<String> elements = Values.splitByChar(Objects.requireNonNull(source), '/');
@@ -85,6 +91,12 @@ public class ZoneIdMappings {
         return result;
     }
 
+    /**
+     * Encodes time zone ID components to an internally-defined shorthand representation.
+     *
+     * @param zoneId The Zone ID string.
+     * @return The internally-defined shorthand representation if any match is found; otherwise, the original {@code zoneId} is returned.
+     */
     public static String fromZoneId(String zoneId) {
         checkLoadEntries();
         String result;
@@ -145,6 +157,9 @@ public class ZoneIdMappings {
         entries = new ArrayList<>();
     }
 
+    /**
+     * Maps a 2-letter key to a region-based Zone ID.
+     */
     @XmlRootElement(name = Entry.ELEMENT_NAME, namespace = NAMESPACE_URI)
     @XmlType(name = Entry.ELEMENT_NAME, namespace = NAMESPACE_URI, factoryMethod = "createInstanceJAXB")
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -158,10 +173,20 @@ public class ZoneIdMappings {
         @XmlAttribute
         private String value;
 
+        /**
+         * Gets the 2-letter key that represents a Zone ID. The value of this key is not necessarily the same as the ISO 3166 alpha-2 country code.
+         *
+         * @return The 2-letter key that represents a Zone ID.
+         */
         public String getKey() {
             return key;
         }
 
+        /**
+         * Gets the region-based Zone ID.
+         *
+         * @return The region-based Zone ID.
+         */
         public String getValue() {
             return value;
         }
