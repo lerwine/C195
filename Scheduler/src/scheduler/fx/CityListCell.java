@@ -20,7 +20,7 @@ public class CityListCell<T extends CityItem<? extends ICityDAO>> extends ListCe
             setText("");
         } else {
             String name = item.getName();
-            Logger.getLogger(getClass().getName()).info(String.format("Setting city list cell to %s", LogHelper.toLogText(name)));
+            Logger.getLogger(getClass().getName()).fine(String.format("Setting city list cell to %s", LogHelper.toLogText(name)));
             setText(item.getName());
         }
     }

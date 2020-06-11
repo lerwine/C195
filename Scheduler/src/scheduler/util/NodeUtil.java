@@ -1,12 +1,8 @@
 package scheduler.util;
 
-import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static javafx.scene.layout.Region.USE_PREF_SIZE;
-
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
-
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -38,6 +34,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
@@ -74,7 +72,7 @@ public class NodeUtil {
      * Adds CSS class names.
      *
      * @param <T> The {@link Styleable} type.
-     * @param stylable  The target {@link Styleable} node.
+     * @param stylable The target {@link Styleable} node.
      * @param classNames The {@link CssClassName} values representing CSS class names to be added.
      * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
      */
@@ -623,14 +621,14 @@ public class NodeUtil {
         whenFalse.remove(n);
         if (whenFalse.isEmpty()) {
             predicate.addListener((observable, oldValue, newValue) -> {
-                    css.clear();
+                css.clear();
                 if (newValue) {
                     css.add(n);
                 }
             });
         } else {
             predicate.addListener((observable, oldValue, newValue) -> {
-                    css.clear();
+                css.clear();
                 if (newValue) {
                     css.add(n);
                 } else {
@@ -639,8 +637,8 @@ public class NodeUtil {
             });
         }
     }
-    
-    public static void bindCssCollapse(Styleable target, BooleanBinding predicate, CssClassName ...whenFalse) {
+
+    public static void bindCssCollapse(Styleable target, BooleanBinding predicate, CssClassName... whenFalse) {
         final ObservableList<String> targetCss = target.getStyleClass();
         final ObservableList<String> removed = FXCollections.observableArrayList(targetCss);
         final String n = CssClassName.COLLAPSED.toString();
@@ -669,10 +667,11 @@ public class NodeUtil {
             final ObservableList<String> css = FXCollections.observableArrayList();
             for (CssClassName c : whenFalse) {
                 String s = c.toString();
-                if (!css.contains(s))
-                css.add(s);
+                if (!css.contains(s)) {
+                    css.add(s);
+                }
             }
-             listener = (observable, oldValue, newValue) -> {
+            listener = (observable, oldValue, newValue) -> {
                 if (newValue) {
                     targetCss.forEach((t) -> {
                         if (!removed.contains(t)) {
@@ -701,7 +700,7 @@ public class NodeUtil {
         boolean b = predicate.get();
         listener.changed(predicate, !b, b);
     }
-    
+
     /**
      * Restores the visibility and dimensions of a JavaFX scene graph {@link javafx.scene.Node}. This removes the CSS class "collapsed" from the
      * {@link javafx.scene.Node#styleClass} list.
