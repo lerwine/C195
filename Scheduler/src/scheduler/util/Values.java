@@ -82,7 +82,8 @@ public final class Values {
                 result.add(source.substring(0, b));
             }
             int e;
-            while ((e = source.indexOf(delimiter, b + 1)) > 0) {
+            b++;
+            while (b < source.length() && (e = source.indexOf(delimiter, b)) > 0) {
                 if (e == b) {
                     result.add("");
                 } else {
@@ -91,7 +92,7 @@ public final class Values {
                 b = e + 1;
             }
             if (b < source.length()) {
-                result.add(source.substring(b + 1));
+                result.add(source.substring(b));
             } else {
                 result.add("");
             }
@@ -116,7 +117,8 @@ public final class Values {
             }
             int e;
             int i = delimiter.length();
-            while ((e = source.indexOf(delimiter, b + i)) > 0) {
+            b += i;
+            while (b < source.length() && (e = source.indexOf(delimiter, b)) > 0) {
                 if (e == b) {
                     result.add("");
                 } else {
@@ -125,7 +127,7 @@ public final class Values {
                 b = e + i;
             }
             if (b < source.length()) {
-                result.add(source.substring(b + i));
+                result.add(source.substring(b));
             } else {
                 result.add("");
             }
