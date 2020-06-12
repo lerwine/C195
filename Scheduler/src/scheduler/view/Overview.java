@@ -94,7 +94,7 @@ public class Overview extends VBox {
 
     @FXML
     private void onCustomerListingHyperlinkAction(ActionEvent event) {
-        ManageCustomers.loadIntoMainContent(CustomerModel.getFactory().getDefaultFilter());
+        ManageCustomers.loadIntoMainContent(CustomerModel.FACTORY.getDefaultFilter());
     }
 
     @FXML
@@ -113,7 +113,7 @@ public class Overview extends VBox {
 
     @FXML
     private void onUserListingHyperlinkAction(ActionEvent event) {
-        ManageUsers.loadIntoMainContent(UserModel.getFactory().getDefaultFilter());
+        ManageUsers.loadIntoMainContent(UserModel.FACTORY.getDefaultFilter());
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

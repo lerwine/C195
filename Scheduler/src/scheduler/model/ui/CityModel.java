@@ -28,8 +28,8 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.CityEvent;
-import scheduler.view.event.ModelItemEvent;
 
 /**
  *
@@ -38,10 +38,6 @@ import scheduler.view.event.ModelItemEvent;
 public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<CityDAO> {
 
     public static final Factory FACTORY = new Factory();
-
-    public static final Factory getFactory() {
-        return FACTORY;
-    }
 
     private final StringProperty name;
     private final ObjectProperty<TimeZone> timeZone;
@@ -193,6 +189,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         // Singleton
         private Factory() {
+            super(CityEvent.CITY_MODEL_EVENT);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -208,6 +205,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
             return new CityModel(dao);
         }
 
+        @Deprecated
         @Override
         public CityDAO updateDAO(CityModel item) {
             CityDAO dao = item.dataObject();
@@ -221,6 +219,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
             return dao;
         }
 
+        @Deprecated
         @Override
         protected void updateItemProperties(CityModel item, CityDAO dao) {
             item.setName(dao.getName());
@@ -259,28 +258,8 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public CityEvent createInsertEvent(CityModel model, Object source, EventTarget target) {
-            return new CityEvent(model, source, target, CityEvent.CITY_INSERTING_EVENT);
-        }
-
-        @Override
-        public CityEvent createUpdateEvent(CityModel model, Object source, EventTarget target) {
-            return new CityEvent(model, source, target, CityEvent.CITY_UPDATING_EVENT);
-        }
-
-        @Override
-        public CityEvent createDeleteEvent(CityModel model, Object source, EventTarget target) {
-            return new CityEvent(model, source, target, CityEvent.CITY_DELETING_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<CityModel, CityDAO> createEditRequestEvent(CityModel model, Object source, EventTarget target) {
-            return new CityEvent(model, source, target, CityEvent.CITY_EDIT_REQUEST_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<CityModel, CityDAO> createDeleteRequestEvent(CityModel model, Object source, EventTarget target) {
-            return new CityEvent(model, source, target, CityEvent.CITY_DELETE_REQUEST_EVENT);
+        public CityEvent createModelItemEvent(CityModel model, Object source, EventTarget target, ActivityType action) {
+            return new CityEvent(model, source, target, action);
         }
 
     }

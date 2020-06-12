@@ -3,6 +3,7 @@ package scheduler.view.user;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,27 +17,28 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
@@ -45,19 +47,22 @@ import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
+import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.PwHash;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
+import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.AppointmentEvent;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
@@ -76,7 +81,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 
     public static UserModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
-        UserModel.Factory factory = UserModel.getFactory();
+        UserModel.Factory factory = UserModel.FACTORY;
         return EditItem.showAndWait(parentWindow, EditUser.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
     }
 
@@ -147,18 +152,68 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @FXML
-    private void onCustomerDeleteMenuItemAction(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#onCustomerDeleteMenuItemAction
+    @SuppressWarnings("incomplete-switch")
+    private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
+        if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
+            AppointmentModel item;
+            switch (event.getCode()) {
+                case DELETE:
+                    item = appointmentsTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+                    }
+                    break;
+                case ENTER:
+                    item = appointmentsTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+                    }
+                    break;
+            }
+        }
     }
 
     @FXML
-    private void onCustomerEditMenuItemAction(ActionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#onCustomerEditMenuItemAction
+    private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
+        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+        }
+    }
+
+    @FXML
+    private void onEditAppointmentMenuItemAction(ActionEvent event) {
+        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+        }
     }
 
     @FXML
     private void onItemActionRequest(AppointmentEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.user.EditUser#onItemActionRequest
+        AppointmentModel item;
+        if (event.isConsumed() || null == (item = event.getState().getModel())) {
+            return;
+        }
+        switch (event.getActivity()) {
+            case EDIT_REQUEST:
+                try {
+                    EditAppointment.edit(item, getScene().getWindow());
+                } catch (IOException ex) {
+                    LOG.log(Level.SEVERE, "Error opening child window", ex);
+                }
+                event.consume();
+                break;
+            case DELETE_REQUEST:
+                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                if (response.isPresent() && response.get() == ButtonType.YES) {
+                    waitBorderPane.startNow(new DeleteTask(event));
+                }
+                event.consume();
+                break;
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -222,43 +277,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 .or(changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus())))
                 .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
 
-        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
-            private boolean isListening = false;
-
-            @Override
-            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
-                if (null != oldValue) {
-                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
-                }
-                if (null != newValue) {
-                    newValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
-                    onChange(true);
-                } else {
-                    onChange(false);
-                }
-            }
-
-            private void onWindowHidden(WindowEvent event) {
-                onChange(false);
-            }
-
-            private void onChange(boolean hasParent) {
-                if (hasParent) {
-                    if (!isListening) {
-                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, EditUser.this::onAppointmentAdded);
-                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, EditUser.this::onAppointmentUpdated);
-                        getMainController().addModelEventHandler(AppointmentEvent.APPOINTMENT_DELETED_EVENT, EditUser.this::onAppointmentDeleted);
-                        isListening = true;
-                    }
-                } else if (isListening) {
-                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, EditUser.this::onAppointmentAdded);
-                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, EditUser.this::onAppointmentUpdated);
-                    getMainController().removeModelEventHandler(AppointmentEvent.APPOINTMENT_DELETED_EVENT, EditUser.this::onAppointmentDeleted);
-                    isListening = false;
-                }
-            }
-
-        });
+        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentDeleted));
 
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
@@ -331,7 +352,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             int pk = dao.getPrimaryKey();
             AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                AppointmentModel.getFactory().updateItem(m, dao);
+                AppointmentModel.FACTORY.updateItem(m, dao);
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
                     userAppointments.remove(m);
                 }
@@ -383,7 +404,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @Override
     public FxRecordModel.ModelFactory<UserDAO, UserModel> modelFactory() {
-        return UserModel.getFactory();
+        return UserModel.FACTORY;
     }
 
     @Override
@@ -417,6 +438,47 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                     }
                 });
             }
+        }
+    }
+
+    private class DeleteTask extends Task<Void> {
+
+        private final AppointmentEvent event;
+
+        DeleteTask(AppointmentEvent event) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            this.event = event;
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            ModelItemEvent.State state = event.getState();
+            if (!state.isSucceeded()) {
+                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
+            }
+        }
+
+        @Override
+        protected void failed() {
+            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
+            super.failed();
+        }
+
+        @Override
+        protected void cancelled() {
+            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            super.cancelled();
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                AppointmentDAO.FACTORY.delete(event, connector.getConnection());
+            }
+            return null;
         }
     }
 

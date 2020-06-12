@@ -140,7 +140,7 @@
             </children>
         </GridPane>
         <ComboBox fx:id="appointmentFilterComboBox" maxWidth="1.7976931348623157E308" />
-        <TableView fx:id="appointmentsTableView" VBox.vgrow="ALWAYS">
+        <TableView fx:id="appointmentsTableView" onKeyReleased="#onAppointmentsTableViewTableViewKeyReleased" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
                     <cellValueFactory>

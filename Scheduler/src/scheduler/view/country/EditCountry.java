@@ -16,12 +16,11 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -32,10 +31,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
@@ -48,7 +45,6 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -56,7 +52,9 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import static scheduler.view.country.EditCountryResourceKeys.*;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.CityEvent;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -74,7 +72,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
 
     public static CountryModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
-        CountryModel.Factory factory = CountryModel.getFactory();
+        CountryModel.Factory factory = CountryModel.FACTORY;
 
         return EditItem.showAndWait(parentWindow, EditCountry.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
     }
@@ -134,13 +132,13 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 case DELETE:
                     item = citiesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteCity(item);
+                        onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = citiesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        openCity(item);
+                        onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -149,20 +147,44 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML
     private void onCityDeleteMenuItemAction(ActionEvent event) {
-        deleteCity(citiesTableView.getSelectionModel().getSelectedItem());
+        CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+        }
     }
 
     @FXML
     private void onCityEditMenuItemAction(ActionEvent event) {
-        openCity(citiesTableView.getSelectionModel().getSelectedItem());
+        CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+        }
     }
 
     @FXML
     private void onItemActionRequest(CityEvent event) {
-        if (event.isDeleteRequest()) {
-            deleteCity(event.getModel());
-        } else {
-            openCity(event.getModel());
+        CityModel item;
+        if (event.isConsumed() || (null == (item = event.getState().getModel()))) {
+            return;
+        }
+        switch (event.getActivity()) {
+            case EDIT_REQUEST:
+                try {
+                    EditCity.edit(item, getScene().getWindow());
+                } catch (IOException ex) {
+                    LOG.log(Level.SEVERE, "Error opening child window", ex);
+                }
+                event.consume();
+                break;
+            case DELETE_REQUEST:
+                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                if (response.isPresent() && response.get() == ButtonType.YES) {
+                    waitBorderPane.startNow(new DeleteTask(event));
+                }
+                event.consume();
+                break;
         }
     }
 
@@ -178,27 +200,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             EditCity.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
-        }
-    }
-
-    private void deleteCity(CityModel item) {
-        if (null != item) {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
-            }
-        }
-    }
-
-    private void openCity(CityModel item) {
-        if (null != item) {
-            try {
-                EditCity.edit(item, getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
-            }
         }
     }
 
@@ -244,43 +245,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
-        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
-            private boolean isListening = false;
-
-            @Override
-            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
-                if (null != oldValue) {
-                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
-                }
-                if (null != newValue) {
-                    newValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
-                    onChange(true);
-                } else {
-                    onChange(false);
-                }
-            }
-
-            private void onWindowHidden(WindowEvent event) {
-                onChange(false);
-            }
-
-            private void onChange(boolean hasParent) {
-                if (hasParent) {
-                    if (!isListening) {
-                        getMainController().addModelEventHandler(CityEvent.CITY_INSERTED_EVENT, EditCountry.this::onCityAdded);
-                        getMainController().addModelEventHandler(CityEvent.CITY_UPDATED_EVENT, EditCountry.this::onCityUpdated);
-                        getMainController().addModelEventHandler(CityEvent.CITY_DELETED_EVENT, EditCountry.this::onCityDeleted);
-                        isListening = true;
-                    }
-                } else if (isListening) {
-                    getMainController().removeModelEventHandler(CityEvent.CITY_INSERTED_EVENT, EditCountry.this::onCityAdded);
-                    getMainController().removeModelEventHandler(CityEvent.CITY_UPDATED_EVENT, EditCountry.this::onCityUpdated);
-                    getMainController().removeModelEventHandler(CityEvent.CITY_DELETED_EVENT, EditCountry.this::onCityDeleted);
-                    isListening = false;
-                }
-            }
-
-        });
+        CityModel.FACTORY.addEventHandler(CityEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onCityAdded));
+        CityModel.FACTORY.addEventHandler(CityEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onCityUpdated));
+        CityModel.FACTORY.addEventHandler(CityEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onCityDeleted));
     }
 
     @Override
@@ -293,34 +260,46 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private void onCityAdded(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        // XXX: See if we need to get/set model.
-        CityDAO dao = event.getDataAccessObject();
-        if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-            itemList.add(new CityModel(dao));
+        CityModel m = event.getState().getModel();
+        if (null == m) {
+            CityDAO dao = event.getDataAccessObject();
+            if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(new CityModel(dao));
+            }
+        } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+            itemList.add(m);
         }
     }
 
     private void onCityUpdated(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        // XXX: See if we need to get/set model.
-        CityDAO dao = event.getDataAccessObject();
-        int pk = dao.getPrimaryKey();
-        Optional<CityModel> match = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny();
-        if (match.isPresent()) {
-            CityModel item = match.get();
-            if (dao.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
-                itemList.remove(item);
-            } else {
-                CityModel.getFactory().updateItem(item, dao);
+        CityModel item = event.getState().getModel();
+        if (null == item) {
+            CityDAO dao = event.getDataAccessObject();
+            int pk = dao.getPrimaryKey();
+            item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            if (null == item) {
+                if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+                    itemList.add(new CityModel(dao));
+                }
+                return;
             }
-        } else if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-            itemList.add(new CityModel(dao));
+        }
+        if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
+            itemList.remove(item);
+        } else if (!itemList.contains(item)) {
+            int pk = item.getPrimaryKey();
+            CityModel existing = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            if (null == existing) {
+                itemList.add(item);
+            } else {
+                itemList.set(itemList.indexOf(existing), item);
+            }
         }
     }
 
     private void onCityDeleted(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        // XXX: See if we need to get/set model.
         int pk = event.getDataAccessObject().getPrimaryKey();
         itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> itemList.remove(t));
     }
@@ -357,7 +336,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @Override
     public FxRecordModel.ModelFactory<CountryDAO, CountryModel> modelFactory() {
-        return CountryModel.getFactory();
+        return CountryModel.FACTORY;
     }
 
     @Override
@@ -379,7 +358,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             super.succeeded();
             List<CityDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
-                CityModel.Factory factory = CityModel.getFactory();
+                CityModel.Factory factory = CityModel.FACTORY;
                 result.stream().sorted(CityProperties::compare).forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });
@@ -398,43 +377,46 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     }
 
-    private class DeleteTask extends Task<String> {
+    private class DeleteTask extends Task<Void> {
 
-        private final CityModel cityModel;
-        private final Window parentWindow;
-        private final CityDAO dao;
+        private final CityEvent event;
 
-        DeleteTask(CityModel model, Window parentWindow) {
+        DeleteTask(CityEvent event) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.dataObject();
-            cityModel = model;
-            this.parentWindow = parentWindow;
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            this.event = event;
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
-            String message = getValue();
-            if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
-            } else if (dao.getRowState() == DataRowState.DELETED) {
-                CityModel.getFactory().updateItem(cityModel, dao);
+            ModelItemEvent.State state = event.getState();
+            if (!state.isSucceeded()) {
+                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
             }
         }
 
         @Override
-        protected String call() throws Exception {
+        protected void failed() {
+            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
+            super.failed();
+        }
+
+        @Override
+        protected void cancelled() {
+            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            super.cancelled();
+        }
+
+        @Override
+        protected Void call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = CityDAO.FACTORY.getDeleteDependencyMessage(dao, connector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                CityDAO.FACTORY.delete(dao, connector.getConnection());
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                CityDAO.FACTORY.delete(event, connector.getConnection());
             }
             return null;
         }
+
     }
 
 }

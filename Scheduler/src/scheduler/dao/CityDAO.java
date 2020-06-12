@@ -13,6 +13,7 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.ZoneIdMappings.fromZoneId;
@@ -31,6 +32,8 @@ import scheduler.model.City;
 import scheduler.model.Country;
 import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
+import scheduler.model.ui.CityModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
@@ -41,7 +44,10 @@ import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.EditCountryResourceKeys;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.CityEvent;
+import scheduler.view.event.CountryEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  * Data access object for the {@code city} database table.
@@ -231,7 +237,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        public String getDeleteDependencyMessage(CityDAO dao, Connection connection) throws SQLException {
+        protected String getDeleteDependencyMessage(CityDAO dao, Connection connection) throws SQLException {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
@@ -247,12 +253,25 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        public void save(CityDAO dao, Connection connection, boolean force) throws SQLException {
-            ICountryDAO country = ICityDAO.assertValidCity(dao).country;
-            if (country instanceof CountryDAO) {
-                CountryDAO.FACTORY.save((CountryDAO) country, connection, force);
+        public <U extends ModelItemEvent<? extends FxRecordModel<CityDAO>, CityDAO>> void save(U event, Connection connection, boolean force)
+                throws SQLException {
+            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
+            if (!message.isEmpty()) {
+                event.setUnsuccessful("Cannot save address", message);
+                return;
             }
-            super.save(dao, connection, force);
+            ICountryDAO country = ICityDAO.assertValidCity(event.getDataAccessObject()).country;
+            if (country instanceof CountryDAO) {
+                CountryEvent countryEvent = new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                        (country.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                CountryDAO.FACTORY.save(countryEvent, connection, force);
+                ModelItemEvent.State state = countryEvent.getState();
+                if (!state.isSucceeded()) {
+                    event.setUnsuccessful(state.getSummaryTitle(), state.getDetailMessage());
+                    return;
+                }
+            }
+            super.save(event, connection, force);
         }
 
         @Override
@@ -299,9 +318,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             return propertyChanges;
         }
 
-        @Override
         @SuppressWarnings("incomplete-switch")
-        public String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
+        String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
             ICountryDAO country;
             switch (dao.getRowState()) {
                 case DELETED:
@@ -490,18 +508,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected CityEvent createInsertedEvent(Object source, CityDAO dataAccessObject) {
-            return new CityEvent(source, dataAccessObject, CityEvent.CITY_INSERTED_EVENT);
-        }
-
-        @Override
-        protected CityEvent createUpdatedEvent(Object source, CityDAO dataAccessObject) {
-            return new CityEvent(source, dataAccessObject, CityEvent.CITY_UPDATED_EVENT);
-        }
-
-        @Override
-        protected CityEvent createDeletedEvent(Object source, CityDAO dataAccessObject) {
-            return new CityEvent(source, dataAccessObject, CityEvent.CITY_DELETED_EVENT);
+        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<CityDAO>, CityDAO> sourceEvent, ActivityType activity) {
+            CityModel model = (CityModel) sourceEvent.getState().getModel();
+            if (null != model) {
+                Event.fireEvent(CityModel.FACTORY, new CityEvent(model, sourceEvent.getSource(), CityModel.FACTORY, activity));
+            } else {
+                Event.fireEvent(CityModel.FACTORY, new CityEvent(sourceEvent.getSource(), CityModel.FACTORY,
+                        sourceEvent.getDataAccessObject(), activity));
+            }
         }
 
     }

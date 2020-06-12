@@ -15,7 +15,6 @@ import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.EventDispatchChain;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -76,17 +75,6 @@ public final class Scheduler extends Application {
             return app.mainController;
         }
         throw new IllegalStateException();
-    }
-
-    public static EventDispatchChain buildDataObjectEventDispatchChain(EventDispatchChain tail) {
-        tail = AppointmentAlertManager.INSTANCE.buildEventDispatchChain(tail);
-        Scheduler app = currentApp;
-        if (null != app) {
-            if (null != app.mainController) {
-                return app.mainController.buildEventDispatchChain(tail);
-            }
-        }
-        return tail;
     }
 
     /**

@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -27,11 +28,16 @@ import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
+import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.view.event.ActivityType;
+import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CustomerEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  * Data access object for the {@code customer} database table.
@@ -347,7 +353,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        public String getDeleteDependencyMessage(CustomerDAO dao, Connection connection) throws SQLException {
+        protected String getDeleteDependencyMessage(CustomerDAO dao, Connection connection) throws SQLException {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
@@ -363,17 +369,28 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        public void save(CustomerDAO dao, Connection connection, boolean force) throws SQLException {
-            Address address = ICustomerDAO.assertValidCustomer(dao).getAddress();
-            if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
-                AddressDAO.FACTORY.save((AddressDAO) address, connection, force);
+        public <U extends ModelItemEvent<? extends FxRecordModel<CustomerDAO>, CustomerDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
+            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
+            if (!message.isEmpty()) {
+                event.setUnsuccessful("Cannot save address", message);
+                return;
             }
-            super.save(dao, connection, force);
+            Address address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
+            if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
+                AddressEvent addressEvent = new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                        (address.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                AddressDAO.FACTORY.save(addressEvent, connection, force);
+                ModelItemEvent.State state = addressEvent.getState();
+                if (!state.isSucceeded()) {
+                    event.setUnsuccessful(state.getSummaryTitle(), state.getDetailMessage());
+                    return;
+                }
+            }
+            super.save(event, connection, force);
         }
 
-        @Override
         @SuppressWarnings("incomplete-switch")
-        public String getSaveDbConflictMessage(CustomerDAO dao, Connection connection) throws SQLException {
+        String getSaveDbConflictMessage(CustomerDAO dao, Connection connection) throws SQLException {
             IAddressDAO address;
             switch (dao.getRowState()) {
                 case DELETED:
@@ -431,18 +448,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected CustomerEvent createInsertedEvent(Object source, CustomerDAO dataAccessObject) {
-            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_INSERTED_EVENT);
-        }
-
-        @Override
-        protected CustomerEvent createUpdatedEvent(Object source, CustomerDAO dataAccessObject) {
-            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_UPDATED_EVENT);
-        }
-
-        @Override
-        protected CustomerEvent createDeletedEvent(Object source, CustomerDAO dataAccessObject) {
-            return new CustomerEvent(source, dataAccessObject, CustomerEvent.CUSTOMER_DELETED_EVENT);
+        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<CustomerDAO>, CustomerDAO> sourceEvent, ActivityType activity) {
+            CustomerModel model = (CustomerModel) sourceEvent.getState().getModel();
+            if (null != model) {
+                Event.fireEvent(CustomerModel.FACTORY, new CustomerEvent(model, sourceEvent.getSource(), CustomerModel.FACTORY, activity));
+            } else {
+                Event.fireEvent(CustomerModel.FACTORY, new CustomerEvent(sourceEvent.getSource(), CustomerModel.FACTORY,
+                        sourceEvent.getDataAccessObject(), activity));
+            }
         }
 
     }

@@ -32,6 +32,7 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.ModelItemEvent;
 
 /**
@@ -97,7 +98,8 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onDeleteMenuItemAction(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDeleteItem(item);
+            onDeleteItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+                    ActivityType.DELETE_REQUEST));
         }
     }
 
@@ -105,18 +107,27 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onEditMenuItemAction(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onEditItem(item);
+            onEditItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+                    ActivityType.EDIT_REQUEST));
         }
     }
 
     @FXML
-    private void onItemActionRequest(ModelItemEvent<M, D> event) {
-        if (event.isDeleteRequest()) {
-            onDeleteItem(event.getModel());
-        } else {
-            onEditItem(event.getModel());
+    @SuppressWarnings("incomplete-switch")
+    private void onItemActionRequest(T event) {
+        if (event.isConsumed()) {
+            return;
         }
-        event.consume();
+        switch (event.getActivity()) {
+            case EDIT_REQUEST:
+                onEditItem(event);
+                event.consume();
+                break;
+            case DELETE_REQUEST:
+                onDeleteItem(event);
+                event.consume();
+                break;
+        }
     }
 
     @FXML
@@ -128,13 +139,15 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 case DELETE:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDeleteItem(item);
+                        onDeleteItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+                                ActivityType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onEditItem(item);
+                        onEditItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+                                ActivityType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -252,9 +265,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract void onNewItem();
 
-    protected abstract void onEditItem(M item);
+    protected abstract void onEditItem(T event);
 
-    protected abstract void onDeleteItem(M item);
+    protected abstract void onDeleteItem(T event);
 
     protected abstract EventType<T> getInsertedEventType();
 

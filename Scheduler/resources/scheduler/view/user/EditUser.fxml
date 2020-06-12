@@ -97,7 +97,7 @@
             </padding>
         </GridPane>
         <ComboBox fx:id="appointmentsFilterComboBox" maxWidth="1.7976931348623157E308" />
-        <TableView fx:id="appointmentsTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+        <TableView fx:id="appointmentsTableView" onKeyReleased="#onAppointmentsTableViewTableViewKeyReleased" prefHeight="50.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%title">
                     <cellValueFactory>
@@ -179,12 +179,12 @@
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#onCustomerEditMenuItemAction" text="%edit">
+                        <MenuItem mnemonicParsing="false" onAction="#onEditAppointmentMenuItemAction" text="%edit">
                             <accelerator>
                                 <KeyCodeCombination alt="UP" code="ENTER" control="UP" meta="UP" shift="UP" shortcut="UP" />
                             </accelerator>
                         </MenuItem>
-                        <MenuItem mnemonicParsing="false" onAction="#onCustomerDeleteMenuItemAction" text="%delete">
+                        <MenuItem mnemonicParsing="false" onAction="#onDeleteAppointmentMenuItemAction" text="%delete">
                             <accelerator>
                                 <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="UP" />
                             </accelerator>

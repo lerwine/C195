@@ -10,10 +10,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventDispatchChain;
-import javafx.event.EventHandler;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Menu;
@@ -23,12 +19,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import scheduler.Scheduler;
-import scheduler.dao.DataAccessObject;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.HelpContent;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;
@@ -44,7 +38,6 @@ import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
-import scheduler.view.event.ModelItemEvent;
 import scheduler.view.report.AppointmentTypesByMonth;
 import scheduler.view.report.AppointmentsByRegion;
 import scheduler.view.report.ConsultantSchedule;
@@ -67,7 +60,7 @@ import scheduler.view.user.ManageUsers;
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/view/MainView.fxml")
-public final class MainController implements EventTarget {
+public final class MainController {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainController.class.getName()), Level.FINER);
 
@@ -148,7 +141,7 @@ public final class MainController implements EventTarget {
 
     @FXML
     private void onAllAppointmentsMenuItemAction(ActionEvent event) {
-        ManageAppointments.loadIntoMainContent(AppointmentModel.getFactory().getAllItemsFilter());
+        ManageAppointments.loadIntoMainContent(AppointmentModel.FACTORY.getAllItemsFilter());
     }
 
     @FXML
@@ -168,12 +161,12 @@ public final class MainController implements EventTarget {
 
     @FXML
     private void onManageCustomersMenuItemAction(ActionEvent event) {
-        ManageCustomers.loadIntoMainContent(CustomerModel.getFactory().getDefaultFilter());
+        ManageCustomers.loadIntoMainContent(CustomerModel.FACTORY.getDefaultFilter());
     }
 
     @FXML
     private void onManageUsersMenuItemAction(ActionEvent event) {
-        ManageUsers.loadIntoMainContent(UserModel.getFactory().getDefaultFilter());
+        ManageUsers.loadIntoMainContent(UserModel.FACTORY.getDefaultFilter());
     }
 
     @FXML
@@ -273,12 +266,6 @@ public final class MainController implements EventTarget {
         }
     }
 
-    @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        tail = tail.append(eventHandlerManager);
-        return (null != contentView) ? contentView.buildEventDispatchChain(tail) : tail;
-    }
-
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {
         return helpContent.show((null == title || title.trim().isEmpty()) ? resources.getString(RESOURCEKEY_SCHEDULERHELP) : title, fxmlResourceName,
                 bundleBaseName);
@@ -314,34 +301,6 @@ public final class MainController implements EventTarget {
 
     public void hideHelp() {
         helpContent.hide();
-    }
-
-    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void addModelEventHandler(
-            EventType<T> type,
-            EventHandler<T> eventHandler
-    ) {
-        eventHandlerManager.addEventHandler(type, eventHandler);
-    }
-
-    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void addModelEventFilter(
-            EventType<T> type,
-            EventHandler<T> eventHandler
-    ) {
-        eventHandlerManager.addEventFilter(type, eventHandler);
-    }
-
-    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void removeModelEventHandler(
-            EventType<T> type,
-            EventHandler<T> eventHandler
-    ) {
-        eventHandlerManager.removeEventHandler(type, eventHandler);
-    }
-
-    public <T extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> void removeModelEventFilter(
-            EventType<T> type,
-            EventHandler<T> eventHandler
-    ) {
-        eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 
 }

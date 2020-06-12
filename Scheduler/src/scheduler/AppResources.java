@@ -20,7 +20,7 @@ import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
-// TODO: Test alert for scheduling overlapping appointments
+// PENDING: (TODO) Test alert for scheduling overlapping appointments
 /**
  * Gets data from resources intended to be used throughout the application. settings from the {@code /resources/scheduler/config.properties} file.
  *

@@ -25,8 +25,8 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.CountryEvent;
-import scheduler.view.event.ModelItemEvent;
 
 /**
  *
@@ -35,10 +35,6 @@ import scheduler.view.event.ModelItemEvent;
 public final class CountryModel extends FxRecordModel<CountryDAO> implements CountryItem<CountryDAO> {
 
     public static final Factory FACTORY = new Factory();
-
-    public static final Factory getFactory() {
-        return FACTORY;
-    }
 
     private final ObjectProperty<Locale> locale;
     private final ReadOnlyStringBindingProperty name;
@@ -141,6 +137,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
         // Singleton
         private Factory() {
+            super(CountryEvent.COUNTRY_MODEL_EVENT);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -156,6 +153,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
             return new CountryModel(dao);
         }
 
+        @Deprecated
         @Override
         public CountryDAO updateDAO(CountryModel item) {
             CountryDAO dataObject = item.dataObject();
@@ -163,6 +161,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
             return dataObject;
         }
 
+        @Deprecated
         @Override
         protected void updateItemProperties(CountryModel item, CountryDAO dao) {
             item.locale.set(dao.getLocale());
@@ -199,28 +198,8 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public CountryEvent createInsertEvent(CountryModel model, Object source, EventTarget target) {
-            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_INSERTING_EVENT);
-        }
-
-        @Override
-        public CountryEvent createUpdateEvent(CountryModel model, Object source, EventTarget target) {
-            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_UPDATING_EVENT);
-        }
-
-        @Override
-        public CountryEvent createDeleteEvent(CountryModel model, Object source, EventTarget target) {
-            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_DELETING_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<CountryModel, CountryDAO> createEditRequestEvent(CountryModel model, Object source, EventTarget target) {
-            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_EDIT_REQUEST_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<CountryModel, CountryDAO> createDeleteRequestEvent(CountryModel model, Object source, EventTarget target) {
-            return new CountryEvent(model, source, target, CountryEvent.COUNTRY_DELETE_REQUEST_EVENT);
+        public CountryEvent createModelItemEvent(CountryModel model, Object source, EventTarget target, ActivityType action) {
+            return new CountryEvent(model, source, target, action);
         }
 
     }

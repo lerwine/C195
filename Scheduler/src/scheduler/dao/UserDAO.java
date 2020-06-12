@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
@@ -24,10 +25,14 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
+import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.view.event.ActivityType;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.event.UserEvent;
 
 /**
@@ -325,13 +330,18 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        public void save(UserDAO dao, Connection connection, boolean force) throws SQLException {
-            super.save(IUserDAO.assertValidUser(dao), connection, force);
+        public <U extends ModelItemEvent<? extends FxRecordModel<UserDAO>, UserDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
+            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
+            if (!message.isEmpty()) {
+                event.setUnsuccessful("Cannot save address", message);
+                return;
+            }
+            IUserDAO.assertValidUser(event.getDataAccessObject());
+            super.save(event, connection, force);
         }
 
-        @Override
         @SuppressWarnings("incomplete-switch")
-        public String getSaveDbConflictMessage(UserDAO dao, Connection connection) throws SQLException {
+        String getSaveDbConflictMessage(UserDAO dao, Connection connection) throws SQLException {
             switch (dao.getRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Data access object already deleted");
@@ -382,7 +392,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        public String getDeleteDependencyMessage(UserDAO dao, Connection connection) throws SQLException {
+        protected String getDeleteDependencyMessage(UserDAO dao, Connection connection) throws SQLException {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
@@ -402,18 +412,14 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createInsertedEvent(Object source, UserDAO dataAccessObject) {
-            return new UserEvent(source, dataAccessObject, UserEvent.USER_INSERTED_EVENT);
-        }
-
-        @Override
-        protected UserEvent createUpdatedEvent(Object source, UserDAO dataAccessObject) {
-            return new UserEvent(source, dataAccessObject, UserEvent.USER_UPDATED_EVENT);
-        }
-
-        @Override
-        protected UserEvent createDeletedEvent(Object source, UserDAO dataAccessObject) {
-            return new UserEvent(source, dataAccessObject, UserEvent.USER_DELETED_EVENT);
+        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<UserDAO>, UserDAO> sourceEvent, ActivityType activity) {
+            UserModel model = (UserModel) sourceEvent.getState().getModel();
+            if (null != model) {
+                Event.fireEvent(UserModel.FACTORY, new UserEvent(model, sourceEvent.getSource(), UserModel.FACTORY, activity));
+            } else {
+                Event.fireEvent(UserModel.FACTORY, new UserEvent(sourceEvent.getSource(), UserModel.FACTORY,
+                        sourceEvent.getDataAccessObject(), activity));
+            }
         }
 
     }

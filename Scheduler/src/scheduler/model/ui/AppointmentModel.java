@@ -32,8 +32,8 @@ import scheduler.util.DB;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.AppointmentEvent;
-import scheduler.view.event.ModelItemEvent;
 
 /**
  * List item model for {@link AppointmentDAO} data access objects.
@@ -93,10 +93,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             return -1;
         }
         return x.compareTo(y);
-    }
-
-    public static final Factory getFactory() {
-        return FACTORY;
     }
 
     private final SimpleObjectProperty<CustomerItem<? extends ICustomerDAO>> customer;
@@ -594,6 +590,10 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> {
 
         private Factory() {
+            super(AppointmentEvent.APPOINTMENT_MODEL_EVENT);
+            if (null != FACTORY) {
+                throw new IllegalStateException();
+            }
         }
 
         @Override
@@ -616,6 +616,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             return AppointmentModelFilter.myCurrentAndFuture();
         }
 
+        @Deprecated
         @Override
         public AppointmentDAO updateDAO(AppointmentModel item) {
             AppointmentDAO dao = item.dataObject();
@@ -639,6 +640,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             return dao;
         }
 
+        @Deprecated
         @Override
         protected void updateItemProperties(AppointmentModel item, AppointmentDAO dao) {
             ICustomerDAO c = dao.getCustomer();
@@ -656,28 +658,8 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public AppointmentEvent createInsertEvent(AppointmentModel model, Object source, EventTarget target) {
-            return new AppointmentEvent(model, source, target, AppointmentEvent.APPOINTMENT_INSERTING_EVENT);
-        }
-
-        @Override
-        public AppointmentEvent createUpdateEvent(AppointmentModel model, Object source, EventTarget target) {
-            return new AppointmentEvent(model, source, target, AppointmentEvent.APPOINTMENT_UPDATING_EVENT);
-        }
-
-        @Override
-        public AppointmentEvent createDeleteEvent(AppointmentModel model, Object source, EventTarget target) {
-            return new AppointmentEvent(model, source, target, AppointmentEvent.APPOINTMENT_DELETING_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<AppointmentModel, AppointmentDAO> createEditRequestEvent(AppointmentModel model, Object source, EventTarget target) {
-            return new AppointmentEvent(model, source, target, AppointmentEvent.APPOINTMENT_EDIT_REQUEST_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<AppointmentModel, AppointmentDAO> createDeleteRequestEvent(AppointmentModel model, Object source, EventTarget target) {
-            return new AppointmentEvent(model, source, target, AppointmentEvent.APPOINTMENT_DELETE_REQUEST_EVENT);
+        public AppointmentEvent createModelItemEvent(AppointmentModel model, Object source, EventTarget target, ActivityType action) {
+            return new AppointmentEvent(model, source, target, action);
         }
 
     }

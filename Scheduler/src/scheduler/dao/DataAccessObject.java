@@ -3,6 +3,7 @@ package scheduler.dao;
 import com.sun.javafx.event.EventHandlerManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,21 +14,21 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
-import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
+import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -38,6 +39,7 @@ import scheduler.dao.schema.DbName;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
+import scheduler.model.DataObject;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
@@ -45,6 +47,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.view.MainController;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 
@@ -58,26 +61,10 @@ import scheduler.view.task.WaitBorderPane;
  * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link DbObject}s so the property is updated whenever a
+ * change occurs.
  */
 public abstract class DataAccessObject extends PropertyBindable implements DbRecord, EventTarget {
-
-    private static final LinkedList<EventTarget> DATA_OBJECT_EVENT_TARGETS = new LinkedList<>();
-
-    public static void addDataObjectEventTarget(EventTarget target) {
-        synchronized (DATA_OBJECT_EVENT_TARGETS) {
-            if (!DATA_OBJECT_EVENT_TARGETS.contains(target)) {
-                DATA_OBJECT_EVENT_TARGETS.add(target);
-            }
-        }
-    }
-
-    public static void removeDataObjectEventTarget(EventTarget target) {
-        synchronized (DATA_OBJECT_EVENT_TARGETS) {
-            if (DATA_OBJECT_EVENT_TARGETS.contains(target)) {
-                DATA_OBJECT_EVENT_TARGETS.remove(target);
-            }
-        }
-    }
 
     private final EventHandlerManager eventHandlerManager;
     private final OriginalValues originalValues;
@@ -240,16 +227,61 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
     }
 
+//    @Override
+//    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+//        return tail.append(eventHandlerManager);
+//    }
+    /**
+     * Registers a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     *
+     * @param <E> The type of {@link ModelItemEvent}.
+     * @param type The event type.
+     * @param eventHandler The event handler.
+     */
+    public <E extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+            void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        eventHandlerManager.addEventHandler(type, eventHandler);
+    }
+
+    /**
+     * Registers a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     *
+     * @param <E> The type of {@link ModelItemEvent}.
+     * @param type The event type.
+     * @param eventHandler The event handler.
+     */
+    public <E extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+            void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        eventHandlerManager.addEventFilter(type, eventHandler);
+    }
+
+    /**
+     * Unregisters a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     *
+     * @param <E> The type of {@link ModelItemEvent}.
+     * @param type The event type.
+     * @param eventHandler The event handler.
+     */
+    public <E extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+            void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        eventHandlerManager.removeEventHandler(type, eventHandler);
+    }
+
+    /**
+     * Unregisters a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     *
+     * @param <E> The type of {@link ModelItemEvent}.
+     * @param type The event type.
+     * @param eventHandler The event handler.
+     */
+    public <E extends ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+            void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        eventHandlerManager.removeEventFilter(type, eventHandler);
+    }
+
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        tail = Scheduler.buildDataObjectEventDispatchChain(tail.append(eventHandlerManager));
-        synchronized (DATA_OBJECT_EVENT_TARGETS) {
-            Iterator<EventTarget> iterator = DATA_OBJECT_EVENT_TARGETS.iterator();
-            while (iterator.hasNext()) {
-                tail = iterator.next().buildEventDispatchChain(tail);
-            }
-        }
-        return tail;
+        return tail.append(eventHandlerManager);
     }
 
     /**
@@ -303,61 +335,70 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
     }
 
+    public static class DataObjectCache<T extends DataObject> {
+
+        private final HashMap<Integer, WeakReference<T>> backingMap = new HashMap<>();
+
+        public synchronized T get(int key) {
+            if (backingMap.containsKey(key)) {
+                T result = backingMap.get(key).get();
+                if (null != result) {
+                    return result;
+                }
+                backingMap.remove(key);
+            }
+            return null;
+        }
+
+        public synchronized T get(int key, Supplier<T> orElse) {
+            T result;
+            if (backingMap.containsKey(key) && null != (result = backingMap.get(key).get())) {
+                return result;
+            }
+            if (null != (result = orElse.get())) {
+                backingMap.put(key, new WeakReference<>(result));
+            } else if (backingMap.containsKey(key)) {
+                backingMap.remove(key);
+            }
+            return result;
+        }
+
+        public synchronized void put(T item) {
+            switch (item.getRowState()) {
+                case MODIFIED:
+                case UNMODIFIED:
+                    int key = item.getPrimaryKey();
+                    if (backingMap.containsKey(key)) {
+                        T result = backingMap.get(key).get();
+                        if (null != result) {
+                            if (result == item) {
+                                return;
+                            }
+                            throw new IllegalStateException("One one instance may have the same primary key");
+                        }
+                    }
+                    backingMap.put(key, new WeakReference<>(item));
+                    break;
+                default:
+                    throw new IllegalStateException("Item cannot be new or deleted.");
+            }
+        }
+
+    }
+
     /**
      * Base factory class for {@link DataAccessObject} objects.
      *
      * @param <T> The type of {@link DataAccessObject} object supported.
      */
-    public static abstract class DaoFactory<T extends DataAccessObject> {
+    public static abstract class DaoFactory<T extends DataAccessObject> implements EventTarget {
 
         private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
+        private final EventHandlerManager eventHandlerManager;
+        private final DataObjectCache<T> dataObjectCache = new DataObjectCache<>();
 
-        /**
-         * Registers a {@link DataObjectEvent} handler in the {@code EventHandlerManager} for a {@link DataAccessObject}.
-         *
-         * @param <U> The type of {@link Event}.
-         * @param dao The source {@link DataAccessObject}.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        public <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void addEventHandler(T dao, EventType<U> type, EventHandler<U> eventHandler) {
-            ((DataAccessObject) dao).eventHandlerManager.addEventHandler(type, eventHandler);
-        }
-
-        /**
-         * Registers a {@link DataObjectEvent} filter in the {@code EventHandlerManager} for a {@link DataAccessObject}.
-         *
-         * @param <U> The type of {@link Event}.
-         * @param dao The source {@link DataAccessObject}.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        public <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void addEventFilter(T dao, EventType<U> type, EventHandler<U> eventHandler) {
-            ((DataAccessObject) dao).eventHandlerManager.addEventFilter(type, eventHandler);
-        }
-
-        /**
-         * Unregisters a {@link DataObjectEvent} handler in the {@code EventHandlerManager} for a {@link DataAccessObject}.
-         *
-         * @param <U> The type of {@link Event}.
-         * @param dao The source {@link DataAccessObject}.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        public <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void removeEventHandler(T dao, EventType<U> type, EventHandler<U> eventHandler) {
-            ((DataAccessObject) dao).eventHandlerManager.removeEventHandler(type, eventHandler);
-        }
-
-        /**
-         * Unregisters a {@link DataObjectEvent} filter in the {@code EventHandlerManager} for a {@link DataAccessObject}.
-         *
-         * @param <U> The type of {@link Event}.
-         * @param dao The source {@link DataAccessObject}.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        public <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void removeEventFilter(T dao, EventType<U> type, EventHandler<U> eventHandler) {
-            ((DataAccessObject) dao).eventHandlerManager.removeEventFilter(type, eventHandler);
+        protected DaoFactory() {
+            eventHandlerManager = new EventHandlerManager(this);
         }
 
         /**
@@ -490,33 +531,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         protected abstract void onCloneProperties(T fromDAO, T toDAO);
 
         /**
-         * Creates a {@link ModelItemEvent} for an inserted {@link DataAccessObject}.
-         *
-         * @param source The object which sent the {@code ModelItemEvent}.
-         * @param dataAccessObject The {@link DataAcessObject} that was inserted into the database.
-         * @return The new {@link ModelItemEvent}.
-         */
-        protected abstract ModelItemEvent<? extends FxRecordModel<T>, T> createInsertedEvent(Object source, T dataAccessObject);
-
-        /**
-         * Creates a {@link ModelItemEvent} for a saved {@link DataAccessObject}.
-         *
-         * @param source The object which sent the {@code ModelItemEvent}.
-         * @param dataAccessObject The {@link DataAcessObject} that was updated in the database.
-         * @return The new {@link ModelItemEvent}.
-         */
-        protected abstract ModelItemEvent<? extends FxRecordModel<T>, T> createUpdatedEvent(Object source, T dataAccessObject);
-
-        /**
-         * Creates a {@link ModelItemEvent} for a deleted {@link DataAccessObject}.
-         *
-         * @param source The object which sent the {@code ModelItemEvent}.
-         * @param dataAccessObject The {@link DataAcessObject} that was deleted from the database.
-         * @return The new {@link ModelItemEvent}.
-         */
-        protected abstract ModelItemEvent<? extends FxRecordModel<T>, T> createDeletedEvent(Object source, T dataAccessObject);
-
-        /**
          * Creates a new data access object from database query results.
          *
          * @param rs The {@link ResultSet} containing values from the database.
@@ -524,9 +538,38 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @throws SQLException if unable to read values from the {@link ResultSet}.
          */
         protected T fromResultSet(ResultSet rs) throws SQLException {
-            T item = createNew();
-            initializeFromResultSet(item, rs);
-            return item;
+            int key = rs.getInt(getPrimaryKeyColumn().toString());
+            T dao = dataObjectCache.get(key, () -> {
+                T t = createNew();
+                ((DataAccessObject) t).primaryKey = key;
+                return t;
+            });
+            DataAccessObject obj = (DataAccessObject) dao;
+
+            dao.beginChange();
+            DataRowState oldRowState = obj.rowState;
+            DataAccessObject dataAccessObject = (DataAccessObject) dao;
+            dataAccessObject.changing = true;
+            try {
+                Consumer<PropertyChangeSupport> consumer;
+                synchronized (dao) {
+                    obj.createDate = rs.getTimestamp(DbName.CREATE_DATE.toString());
+                    obj.createdBy = rs.getString(DbName.CREATED_BY.toString());
+                    obj.lastModifiedDate = rs.getTimestamp(DbName.LAST_UPDATE.toString());
+                    obj.lastModifiedBy = rs.getString(DbName.LAST_UPDATE_BY.toString());
+                    obj.rowState = DataRowState.UNMODIFIED;
+                    consumer = onInitializeFromResultSet(dao, rs);
+                }
+                if (null != consumer) {
+                    consumer.accept(obj.getPropertyChangeSupport());
+                }
+                dataAccessObject.acceptChanges();
+            } finally {
+                dao.endChange();
+                dataAccessObject.changing = false;
+                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
+            }
+            return dao;
         }
 
         /**
@@ -549,7 +592,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
          * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
-         * implementing classes to set fields directly while property change events are deferred. This value can be {@code null} if it is not
+         * implementing classes to put fields directly while property change events are deferred. This value can be {@code null} if it is not
          * applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
@@ -574,43 +617,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Initializes the properties of a {@link DataAccessObject} from a {@link ResultSet}. This method will call
-         * {@link #onInitializeFromResultSet(DataAccessObject, ResultSet)} for implementing classes to finish property initialization.
-         *
-         * @param dao The {@link DataAccessObject} to be initialized.
-         * @param rs The {@link ResultSet} to read from.
-         * @throws SQLException if unable to read from the {@link ResultSet}.
-         */
-        protected final void initializeFromResultSet(T dao, ResultSet rs) throws SQLException {
-            DataAccessObject obj = (DataAccessObject) dao;
-
-            dao.beginChange();
-            DataRowState oldRowState = obj.rowState;
-            DataAccessObject dataAccessObject = (DataAccessObject) dao;
-            dataAccessObject.changing = true;
-            try {
-                Consumer<PropertyChangeSupport> consumer;
-                synchronized (dao) {
-                    obj.primaryKey = rs.getInt(getPrimaryKeyColumn().toString());
-                    obj.createDate = rs.getTimestamp(DbName.CREATE_DATE.toString());
-                    obj.createdBy = rs.getString(DbName.CREATED_BY.toString());
-                    obj.lastModifiedDate = rs.getTimestamp(DbName.LAST_UPDATE.toString());
-                    obj.lastModifiedBy = rs.getString(DbName.LAST_UPDATE_BY.toString());
-                    obj.rowState = DataRowState.UNMODIFIED;
-                    consumer = onInitializeFromResultSet(dao, rs);
-                }
-                if (null != consumer) {
-                    consumer.accept(obj.getPropertyChangeSupport());
-                }
-                dataAccessObject.acceptChanges();
-            } finally {
-                dao.endChange();
-                dataAccessObject.changing = false;
-                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
-            }
-        }
-
-        /**
          * Gets the {@link Class} for the target {@link DataAccessObject} type.
          *
          * @return The {@link Class} for the target {@link DataAccessObject} type.
@@ -630,12 +636,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
          * database conflict errors ahead of time and to get a descriptive message.</p>
          *
-         * @param dao The {@link DataAccessObject} to be inserted or updated.
+         * @param <E> The type of {@link ModelItemEvent}.
+         * @param event The {@link ModelItemEvent} for the {@link DataAccessObject} to be inserted or updated.
          * @param connection The database connection to use.
          * @throws SQLException If unable to perform the database operation.
          */
-        public final void save(T dao, Connection connection) throws SQLException {
-            save(dao, connection, false);
+        public final <E extends ModelItemEvent<? extends FxRecordModel<T>, T>> void save(E event, Connection connection) throws SQLException {
+            save(event, connection, false);
         }
 
         /**
@@ -644,27 +651,30 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
          * database conflict errors ahead of time and to get a descriptive message.</p>
          *
-         * @param dao The {@link DataAccessObject} to be inserted or updated.
+         * @param <E> The type of {@link ModelItemEvent}.
+         * @param event The {@link ModelItemEvent} for the {@link DataAccessObject} to be inserted or updated.
          * @param connection The database connection to use.
          * @param force A {@code true} value will save changes to the database, even if {@link #rowState} is {@link DataRowState#UNMODIFIED}.
          * @throws SQLException If unable to perform the database operation.
          */
         @SuppressWarnings("fallthrough")
-        public void save(T dao, Connection connection, boolean force) throws SQLException {
-            DataAccessObject dataObj = (DataAccessObject) dao;
-            dao.beginChange();
+        public <E extends ModelItemEvent<? extends FxRecordModel<T>, T>> void save(E event, Connection connection, boolean force)
+                throws SQLException {
+            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
+            T dao = event.getDataAccessObject();
+            dataObj.beginChange();
             DataRowState oldRowState = dataObj.rowState;
-            ((DataAccessObject) dao).changing = true;
-            ModelItemEvent<? extends FxRecordModel<T>, T> event = null;
+            dataObj.changing = true;
+            ActivityType activity = ActivityType.NONE;
             try {
-                synchronized (dao) {
+                synchronized (dataObj) {
                     Iterator<DbColumn> iterator;
                     StringBuilder sb;
                     String sql;
                     int index;
                     Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
                     DbColumn[] columns;
-                    switch (((DataAccessObject) dao).rowState) {
+                    switch (dataObj.rowState) {
                         case NEW:
                             sb = new StringBuilder();
                             sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (");
@@ -741,7 +751,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                         throw new SQLException("No primary key returned");
                                     }
                                     dataObj.primaryKey = rs.getInt(1);
-                                    event = createInsertedEvent(this, dao);
+                                    dataObjectCache.put(dao);
+                                    activity = ActivityType.INSERTED;
                                     SQLWarning sqlWarning = connection.getWarnings();
                                     if (null != sqlWarning) {
                                         do {
@@ -815,7 +826,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                     }
                                     throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                                 }
-                                event = createUpdatedEvent(this, dao);
+                                activity = ActivityType.UPDATED;
                                 SQLWarning sqlWarning = connection.getWarnings();
                                 if (null != sqlWarning) {
                                     do {
@@ -831,15 +842,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     dataObj.rowState = DataRowState.UNMODIFIED;
                 }
             } finally {
-                dao.endChange();
-                ((DataAccessObject) dao).changing = false;
-                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
-                if (null != event) {
+                dataObj.endChange();
+                dataObj.changing = false;
+                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
+                if (activity != ActivityType.NONE) {
                     if (Platform.isFxApplicationThread()) {
-                        Event.fireEvent(dao, event);
+                        fireModelItemEvent(event, activity);
                     } else {
-                        ModelItemEvent<? extends FxRecordModel<T>, T> e = event;
-                        Platform.runLater(() -> Event.fireEvent(dao, e));
+                        ActivityType a = activity;
+                        Platform.runLater(() -> fireModelItemEvent(event, a));
                     }
                 }
             }
@@ -852,7 +863,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param dbColumn The {@link DbColumn} related to the value to apply.
          * @param ps The {@link PreparedStatement} to apply the value to.
          * @param index The index at which to apply the value.
-         * @throws java.sql.SQLException if not able to set the parameter value.
+         * @throws java.sql.SQLException if not able to put the parameter value.
          */
         protected abstract void applyColumnValue(T dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException;
 
@@ -918,31 +929,39 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * {@link #getDeleteDependencyMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
          * dependency errors ahead of time and to get a descriptive error message.</p>
          *
-         * @param dao The {@link DataAccessObject} to delete.
+         * @param <E> The type of {@link ModelItemEvent}.
+         * @param event The {@link ModelItemEvent} for the {@link DataAccessObject} to delete.
          * @param connection The database connection to use.
          * @throws SQLException If unable to perform the database operation.
          */
-        public void delete(T dao, Connection connection) throws SQLException {
-            Objects.requireNonNull(dao, "Data access object cannot be null");
+        public <E extends ModelItemEvent<? extends FxRecordModel<T>, T>> void delete(E event, Connection connection) throws SQLException {
+            Objects.requireNonNull(event, "Event object cannot be null");
             Objects.requireNonNull(connection, "Connection cannot be null");
-            DataAccessObject dataObj = (DataAccessObject) dao;
-            dao.beginChange();
+            String message = getDeleteDependencyMessage(event.getDataAccessObject(), connection);
+            if (!message.isEmpty()) {
+                event.setUnsuccessful("Cannot delete record", message);
+                return;
+            }
+            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
+            dataObj.beginChange();
             DataRowState oldRowState = dataObj.rowState;
-            ((DataAccessObject) dao).changing = true;
-            boolean success = false;
+            dataObj.changing = true;
+            @SuppressWarnings("rawtypes")
+            ModelItemEvent.State state = event.getState();
+            state.setSucceeded(false);
             try {
-                synchronized (dao) {
-                    if (dao.getRowState() == DataRowState.DELETED) {
-                        throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
+                synchronized (dataObj) {
+                    if (dataObj.rowState == DataRowState.DELETED) {
+                        throw new IllegalArgumentException(String.format("%s has been deleted", event.getDataAccessObject().getClass().getName()));
                     }
-                    if (dao.getRowState() == DataRowState.NEW) {
-                        throw new IllegalArgumentException(String.format("%s has not been inserted into the database", dao.getClass().getName()));
+                    if (dataObj.rowState == DataRowState.NEW) {
+                        throw new IllegalArgumentException(String.format("%s has not been inserted into the database", event.getDataAccessObject().getClass().getName()));
                     }
                     StringBuilder sb = new StringBuilder("DELETE FROM ");
                     sb.append(getDbTable().getDbName()).append(" WHERE ").append(getPrimaryKeyColumn().getDbName()).append("=?");
                     String sql = sb.toString();
                     try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                        ps.setInt(1, dao.getPrimaryKey());
+                        ps.setInt(1, dataObj.primaryKey);
                         LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                         if (ps.executeUpdate() < 1) {
                             SQLWarning sqlWarning = connection.getWarnings();
@@ -953,7 +972,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                             }
                             throw new SQLException("executeUpdate unexpectedly resulted in no database changes");
                         }
-                        success = true;
+                        state.setSucceeded(true);
                         SQLWarning sqlWarning = connection.getWarnings();
                         if (null != sqlWarning) {
                             do {
@@ -964,20 +983,20 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     dataObj.rowState = DataRowState.DELETED;
                 }
             } finally {
-                dao.endChange();
-                ((DataAccessObject) dao).changing = false;
-                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
-                if (success) {
-                    ModelItemEvent<? extends FxRecordModel<T>, T> event = createDeletedEvent(this, dao);
+                dataObj.endChange();
+                dataObj.changing = false;
+                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
+                if (state.isSucceeded()) {
                     if (Platform.isFxApplicationThread()) {
-                        Event.fireEvent(dao, event);
+                        fireModelItemEvent(event, ActivityType.DELETED);
                     } else {
-                        ModelItemEvent<? extends FxRecordModel<T>, T> e = event;
-                        Platform.runLater(() -> Event.fireEvent(dao, e));
+                        Platform.runLater(() -> fireModelItemEvent(event, ActivityType.DELETED));
                     }
                 }
             }
         }
+
+        protected abstract void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<T>, T> sourceEvent, ActivityType activity);
 
         /**
          * Checks to see if the current {@link DataAccessObject} can safely be deleted from the database.
@@ -988,18 +1007,19 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * be safely deleted.
          * @throws SQLException If unable to perform the database operation.
          */
-        public abstract String getDeleteDependencyMessage(T dao, Connection connection) throws SQLException;
-
-        /**
-         * Checks to see if any impending changes cause any database conflicts.
-         *
-         * @param dao The target {@link DataAccessObject}.
-         * @param connection The database connection to use.
-         * @return A user-friendly description of the reason that the changes to the {@link DataAccessObject} cannot be saved or a null or empty
-         * string if it can be safely deleted.
-         * @throws SQLException If unable to perform the database operation.
-         */
-        public abstract String getSaveDbConflictMessage(T dao, Connection connection) throws SQLException;
+        protected abstract String getDeleteDependencyMessage(T dao, Connection connection) throws SQLException;
+//
+//        /**
+//         * Checks to see if any impending changes cause any database conflicts.
+//         *
+//         * @param dao The target {@link DataAccessObject}.
+//         * @param connection The database connection to use.
+//         * @return A user-friendly description of the reason that the changes to the {@link DataAccessObject} cannot be saved or a null or empty
+//         * string if it can be safely deleted.
+//         * @throws SQLException If unable to perform the database operation.
+//         */
+//        @Deprecated
+//        public abstract String getSaveDbConflictMessage(T dao, Connection connection) throws SQLException;
 
         /**
          * Helper method that can be used to determine if a {@link DataAccessObject} object is supported by the current factory class.
@@ -1009,6 +1029,59 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          */
         public final boolean isAssignableFrom(DataAccessObject dao) {
             return null != dao && getDaoClass().isAssignableFrom(dao.getClass());
+        }
+
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            return tail.append(eventHandlerManager);
+        }
+
+        /**
+         * Registers a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
+         *
+         * @param <E> The type of {@link ModelItemEvent}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <E extends ModelItemEvent<? extends FxRecordModel<T>, T>> void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            eventHandlerManager.addEventHandler(type, eventHandler);
+        }
+
+        /**
+         * Registers a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
+         *
+         * @param <E> The type of {@link ModelItemEvent}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <E extends ModelItemEvent<? extends FxRecordModel<T>, T>> void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            eventHandlerManager.addEventFilter(type, eventHandler);
+        }
+
+        /**
+         * Unregisters a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
+         *
+         * @param <E> The type of {@link ModelItemEvent}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <E extends ModelItemEvent<? extends FxRecordModel<T>, T>> void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            eventHandlerManager.removeEventHandler(type, eventHandler);
+        }
+
+        /**
+         * Unregisters a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
+         *
+         * @param <E> The type of {@link ModelItemEvent}.
+         * @param type The event type.
+         * @param eventHandler The event handler.
+         */
+        public <E extends ModelItemEvent<? extends FxRecordModel<T>, T>> void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            eventHandlerManager.removeEventFilter(type, eventHandler);
         }
 
     }

@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.DaoFilter;
@@ -23,6 +24,8 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.ui.CountryModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
@@ -30,7 +33,9 @@ import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.CountryEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  * Data access object for the {@code country} database table.
@@ -194,7 +199,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        public String getDeleteDependencyMessage(CountryDAO dao, Connection connection) throws SQLException {
+        protected String getDeleteDependencyMessage(CountryDAO dao, Connection connection) throws SQLException {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
@@ -211,8 +216,14 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        public void save(CountryDAO dao, Connection connection, boolean force) throws SQLException {
-            super.save(ICountryDAO.assertValidCountry(dao), connection, force);
+        public <U extends ModelItemEvent<? extends FxRecordModel<CountryDAO>, CountryDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
+            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
+            if (!message.isEmpty()) {
+                event.setUnsuccessful("Cannot save address", message);
+                return;
+            }
+            ICountryDAO.assertValidCountry(event.getDataAccessObject());
+            super.save(event, connection, force);
         }
 
         @Override
@@ -247,9 +258,8 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return propertyChanges;
         }
 
-        @Override
         @SuppressWarnings("incomplete-switch")
-        public String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
+        String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
             switch (dao.getRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Data access object already deleted");
@@ -361,18 +371,14 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected CountryEvent createInsertedEvent(Object source, CountryDAO dataAccessObject) {
-            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_INSERTED_EVENT);
-        }
-
-        @Override
-        protected CountryEvent createUpdatedEvent(Object source, CountryDAO dataAccessObject) {
-            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_UPDATED_EVENT);
-        }
-
-        @Override
-        protected CountryEvent createDeletedEvent(Object source, CountryDAO dataAccessObject) {
-            return new CountryEvent(source, dataAccessObject, CountryEvent.COUNTRY_DELETED_EVENT);
+        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<CountryDAO>, CountryDAO> sourceEvent, ActivityType activity) {
+            CountryModel model = (CountryModel) sourceEvent.getState().getModel();
+            if (null != model) {
+                Event.fireEvent(CountryModel.FACTORY, new CountryEvent(model, sourceEvent.getSource(), CountryModel.FACTORY, activity));
+            } else {
+                Event.fireEvent(CountryModel.FACTORY, new CountryEvent(sourceEvent.getSource(), CountryModel.FACTORY,
+                        sourceEvent.getDataAccessObject(), activity));
+            }
         }
 
     }

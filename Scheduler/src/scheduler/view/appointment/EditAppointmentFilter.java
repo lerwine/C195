@@ -760,12 +760,12 @@ public final class EditAppointmentFilter extends BorderPane {
     }
 
     public void show() {
-        // TODO: Start InitializeTask if it hasn't already been run.
-        // TODO: Implement show();
+        // PENDING: (TODO) Start InitializeTask if it hasn't already been run.
+        // PENDING: (TODO) Implement show();
     }
 
     public void hide() {
-        // TODO: Implement hide();
+        // PENDING: (TODO) Implement hide();
     }
 
     private void importCustomers(List<CustomerDAO> result) {

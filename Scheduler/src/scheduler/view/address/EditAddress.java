@@ -15,13 +15,13 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -35,10 +35,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import static scheduler.Scheduler.getMainController;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
@@ -63,7 +61,6 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.view.EditItem;
@@ -73,7 +70,9 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.CustomerEvent;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -93,7 +92,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private static final Object TARGET_CITY_KEY = new Object();
 
     public static AddressModel editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {
-        AddressModel.Factory factory = AddressModel.getFactory();
+        AddressModel.Factory factory = AddressModel.FACTORY;
         EditAddress control = new EditAddress();
         if (null != city) {
             control.getProperties().put(TARGET_CITY_KEY, city);
@@ -190,12 +189,18 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
-        deleteCustomer(customersTableView.getSelectionModel().getSelectedItem());
+        CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+        }
     }
 
     @FXML
     private void onCustomerEditMenuItemAction(ActionEvent event) {
-        editCustomer(customersTableView.getSelectionModel().getSelectedItem());
+        CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+        }
     }
 
     @FXML
@@ -207,13 +212,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteCustomer(item);
+                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        editCustomer(item);
+                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -227,10 +232,28 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onItemActionRequest(CustomerEvent event) {
-        if (event.isDeleteRequest()) {
-            deleteCustomer(event.getModel());
-        } else {
-            editCustomer(event.getModel());
+        CustomerModel item;
+        if (event.isConsumed() || null == (item = event.getState().getModel())) {
+            return;
+        }
+        switch (event.getActivity()) {
+            case EDIT_REQUEST:
+                try {
+                    EditCustomer.edit(item, getScene().getWindow());
+                } catch (IOException ex) {
+                    LOG.log(Level.SEVERE, "Error opening child window", ex);
+                }
+                event.consume();
+                break;
+            case DELETE_REQUEST:
+                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                if (response.isPresent() && response.get() == ButtonType.YES) {
+                    waitBorderPane.startNow(new DeleteTask(event));
+                }
+                event.consume();
+                break;
         }
     }
 
@@ -334,48 +357,14 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
         validityBinding = addressValid.and(cityInvalid.not());
 
-        ParentWindowChangeListener.setWindowChangeListener(this, new ChangeListener<Window>() {
-            private boolean isListening = false;
-
-            @Override
-            public void changed(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
-                if (null != oldValue) {
-                    oldValue.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
-                }
-                if (null != newValue) {
-                    newValue.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
-                    onChange(true);
-                } else {
-                    onChange(false);
-                }
-            }
-
-            private void onWindowHidden(WindowEvent event) {
-                onChange(false);
-            }
-
-            private void onChange(boolean hasParent) {
-                if (hasParent) {
-                    if (!isListening) {
-                        getMainController().addModelEventHandler(CustomerEvent.CUSTOMER_INSERTED_EVENT, EditAddress.this::onCustomerAdded);
-                        getMainController().addModelEventHandler(CustomerEvent.CUSTOMER_UPDATED_EVENT, EditAddress.this::onCustomerUpdated);
-                        getMainController().addModelEventHandler(CustomerEvent.CUSTOMER_DELETED_EVENT, EditAddress.this::onCustomerDeleted);
-                        isListening = true;
-                    }
-                } else if (isListening) {
-                    getMainController().removeModelEventHandler(CustomerEvent.CUSTOMER_INSERTED_EVENT, EditAddress.this::onCustomerAdded);
-                    getMainController().removeModelEventHandler(CustomerEvent.CUSTOMER_UPDATED_EVENT, EditAddress.this::onCustomerUpdated);
-                    getMainController().removeModelEventHandler(CustomerEvent.CUSTOMER_DELETED_EVENT, EditAddress.this::onCustomerDeleted);
-                    isListening = false;
-                }
-            }
-
-        });
-
         address1TextField.setText(model.getAddress1());
         address2TextField.setText(model.getAddress2());
         postalCodeTextField.setText(model.getPostalCode());
         phoneTextField.setText(model.getPhone());
+
+        CustomerModel.FACTORY.addEventHandler(CustomerEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerAdded));
+        CustomerModel.FACTORY.addEventHandler(CustomerEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerUpdated));
+        CustomerModel.FACTORY.addEventHandler(CustomerEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerDeleted));
 
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
@@ -395,7 +384,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void initializeEditMode() {
-
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
     }
 
@@ -418,7 +406,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             int pk = dao.getPrimaryKey();
             CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                CustomerModel.getFactory().updateItem(m, dao);
+                CustomerModel.FACTORY.updateItem(m, dao);
                 if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
                     itemList.remove(m);
                 }
@@ -462,7 +450,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @Override
     public FxRecordModel.ModelFactory<AddressDAO, AddressModel> modelFactory() {
-        return AddressModel.getFactory();
+        return AddressModel.FACTORY;
     }
 
     @Override
@@ -535,7 +523,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void initializeCountriesAndCities(List<CountryDAO> countryDaoList, List<CityDAO> cityDaoList, CityItem<? extends ICityDAO> targetCity) {
-        CountryModel.Factory nf = CountryModel.getFactory();
+        CountryModel.Factory nf = CountryModel.FACTORY;
         CountryItem<? extends ICountryDAO> countryItem = (null == targetCity) ? null : targetCity.getCountry();
         if (null != countryDaoList && !countryDaoList.isEmpty()) {
             if (null != countryItem && countryItem instanceof CountryModel) {
@@ -551,7 +539,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 countryDaoList.forEach((t) -> countryOptions.add(nf.createNew(t)));
             }
         }
-        CityModel.Factory cf = CityModel.getFactory();
+        CityModel.Factory cf = CityModel.FACTORY;
         if (null != cityDaoList && !cityDaoList.isEmpty()) {
             if (null != targetCity && targetCity instanceof CityModel) {
                 int pk = targetCity.getPrimaryKey();
@@ -585,27 +573,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             }
         }
         onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
-    }
-
-    private void editCustomer(CustomerModel item) {
-        if (null != item) {
-            try {
-                EditCustomer.edit(item, getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
-            }
-        }
-    }
-
-    private void deleteCustomer(CustomerModel item) {
-        if (null != item) {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new DeleteTask(item, getScene().getWindow()));
-            }
-        }
     }
 
     private class GetCountryModelTask extends Task<CountryDAO> {
@@ -673,7 +640,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             initializeCountriesAndCities(result.getValue2(), result.getValue3(), model.getCity());
             List<CustomerDAO> customerDaoList = result.getValue1();
             if (null != customerDaoList && !customerDaoList.isEmpty()) {
-                CustomerModel.Factory factory = CustomerModel.getFactory();
+                CustomerModel.Factory factory = CustomerModel.FACTORY;
                 customerDaoList.forEach((t) -> {
                     itemList.add(factory.createNew(t));
                 });
@@ -733,40 +700,42 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     }
 
-    private class DeleteTask extends Task<String> {
+    private class DeleteTask extends Task<Void> {
 
-        private final CustomerModel customerModel;
-        private final Window parentWindow;
-        private final CustomerDAO dao;
+        private final CustomerEvent event;
 
-        DeleteTask(CustomerModel model, Window parentWindow) {
+        DeleteTask(CustomerEvent event) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.dataObject();
-            customerModel = model;
-            this.parentWindow = parentWindow;
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            this.event = event;
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
-            String message = getValue();
-            if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
-            } else if (dao.getRowState() == DataRowState.DELETED) {
-                CustomerModel.getFactory().updateItem(customerModel, dao);
+            ModelItemEvent.State state = event.getState();
+            if (!state.isSucceeded()) {
+                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
             }
         }
 
         @Override
-        protected String call() throws Exception {
+        protected void failed() {
+            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
+            super.failed();
+        }
+
+        @Override
+        protected void cancelled() {
+            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            super.cancelled();
+        }
+
+        @Override
+        protected Void call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = CustomerDAO.FACTORY.getDeleteDependencyMessage(dao, connector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                CustomerDAO.FACTORY.delete(dao, connector.getConnection());
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                CustomerDAO.FACTORY.delete(event, connector.getConnection());
             }
             return null;
         }

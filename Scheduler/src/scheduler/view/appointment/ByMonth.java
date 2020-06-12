@@ -105,7 +105,7 @@ public class ByMonth extends StackPane {
 
     private void loadAppointments(int year, int month) {
         LocalDate d = LocalDate.of(year, Month.of(month), 1);
-        AppointmentModel.getFactory().loadAsync(AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
+        AppointmentModel.FACTORY.loadAsync(AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
                 DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
             allAppointments.clear();
             allAppointments.addAll(t);

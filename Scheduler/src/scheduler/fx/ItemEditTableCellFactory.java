@@ -9,6 +9,7 @@ import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.ModelItemEvent;
 
 /**
@@ -33,8 +34,8 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
     }
 
     final void fireItemActionRequest(T item, ActionEvent fxEvent, boolean isDelete) {
-        onItemActionRequest((isDelete) ? getFactory().createDeleteRequestEvent(item, fxEvent.getSource(), item.dataObject())
-                : getFactory().createEditRequestEvent(item, fxEvent.getSource(), item.dataObject()));
+        onItemActionRequest((isDelete) ? getFactory().createModelItemEvent(item, fxEvent.getSource(), item.dataObject(), ActivityType.DELETE_REQUEST)
+                : getFactory().createModelItemEvent(item, fxEvent.getSource(), item.dataObject(), ActivityType.EDIT_REQUEST));
     }
 
     protected void onItemActionRequest(ModelItemEvent<T, ? extends DataAccessObject> event) {

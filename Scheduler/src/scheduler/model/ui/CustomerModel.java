@@ -22,8 +22,8 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.ModelItemEvent;
 
 /**
  *
@@ -32,10 +32,6 @@ import scheduler.view.event.ModelItemEvent;
 public final class CustomerModel extends FxRecordModel<CustomerDAO> implements CustomerItem<CustomerDAO> {
 
     public static final Factory FACTORY = new Factory();
-
-    public static final Factory getFactory() {
-        return FACTORY;
-    }
 
     private final NonNullableStringProperty name;
     private final SimpleObjectProperty<AddressItem<? extends IAddressDAO>> address;
@@ -262,6 +258,10 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> {
 
         private Factory() {
+            super(CustomerEvent.CUSTOMER_MODEL_EVENT);
+            if (null != FACTORY) {
+                throw new IllegalStateException();
+            }
         }
 
         @Override
@@ -284,6 +284,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             return CustomerModelFilter.active();
         }
 
+        @Deprecated
         @Override
         public CustomerDAO updateDAO(CustomerModel item) {
             CustomerDAO dao = item.dataObject();
@@ -309,6 +310,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
             return dao;
         }
 
+        @Deprecated
         @Override
         protected void updateItemProperties(CustomerModel item, CustomerDAO dao) {
             item.setName(dao.getName());
@@ -317,28 +319,8 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public CustomerEvent createInsertEvent(CustomerModel model, Object source, EventTarget target) {
-            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_INSERTING_EVENT);
-        }
-
-        @Override
-        public CustomerEvent createUpdateEvent(CustomerModel model, Object source, EventTarget target) {
-            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_UPDATING_EVENT);
-        }
-
-        @Override
-        public CustomerEvent createDeleteEvent(CustomerModel model, Object source, EventTarget target) {
-            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_DELETING_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<CustomerModel, CustomerDAO> createEditRequestEvent(CustomerModel model, Object source, EventTarget target) {
-            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_EDIT_REQUEST_EVENT);
-        }
-
-        @Override
-        public ModelItemEvent<CustomerModel, CustomerDAO> createDeleteRequestEvent(CustomerModel model, Object source, EventTarget target) {
-            return new CustomerEvent(model, source, target, CustomerEvent.CUSTOMER_DELETE_REQUEST_EVENT);
+        public CustomerEvent createModelItemEvent(CustomerModel model, Object source, EventTarget target, ActivityType action) {
+            return new CustomerEvent(model, source, target, action);
         }
 
     }

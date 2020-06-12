@@ -117,9 +117,9 @@ public class AppointmentAlert extends BorderPane {
             i = 2;
         }
         checkFrequency = i;
-        addEventFilter(AppointmentEvent.APPOINTMENT_INSERTED_EVENT, this::onAppointmentInserted);
-        addEventFilter(AppointmentEvent.APPOINTMENT_UPDATED_EVENT, this::onAppointmentUpdated);
-        addEventFilter(AppointmentEvent.APPOINTMENT_DELETED_EVENT, this::onAppointmentDeleted);
+        addEventFilter(AppointmentEvent.INSERTED_EVENT_TYPE, this::onAppointmentInserted);
+        addEventFilter(AppointmentEvent.UPDATED_EVENT_TYPE, this::onAppointmentUpdated);
+        addEventFilter(AppointmentEvent.DELETED_EVENT_TYPE, this::onAppointmentDeleted);
     }
 
     private synchronized void onAppointmentInserted(AppointmentEvent event) {
@@ -162,7 +162,7 @@ public class AppointmentAlert extends BorderPane {
         } else {
             item = (AppointmentModel) view.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL);
             if (!Objects.equals(item.dataObject(), dao)) {
-                AppointmentModel.getFactory().updateItem(item, dao);
+                AppointmentModel.FACTORY.updateItem(item, dao);
             }
         }
         if (start.compareTo(item.getEnd()) < 0) {

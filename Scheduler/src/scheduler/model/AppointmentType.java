@@ -19,7 +19,7 @@ public enum AppointmentType {
     /**
      * Phone call appointment.
      * <ul>
-     * <li>The string {@code "phone"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>The string value {@code "phone"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
      * <li>Phone number is stored in the {@link scheduler.dao.AppointmentDAO#location} field.</li>
      * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
      * </ul>
@@ -28,7 +28,7 @@ public enum AppointmentType {
     /**
      * Virtual online appointment.
      * <ul>
-     * <li>The string {@code "virtual"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>The string value {@code "virtual"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
      * <li>{@link scheduler.dao.AppointmentDAO#url} is required.</li>
      * <li>{@link scheduler.dao.AppointmentDAO#location} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
      * </ul>
@@ -37,17 +37,17 @@ public enum AppointmentType {
     /**
      * Appointment at address of customer.
      * <ul>
-     * <li>The string {@code "customer"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>The string value {@code "customer"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
      * <li>A copy of the customer's address is stored in the {@link scheduler.dao.AppointmentDAO#location} field.</li>
      * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
      * </ul>
      */
     CUSTOMER_SITE("customer", AppointmentLocationSource.CUSTOMER_ADDRESS, RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER),
     /**
-     * Appointment at a {@link scheduler.dao.AddressDAO.PredefinedElement}.
+     * Appointment at a {@link scheduler.model.CorporateAddress}.
      * <ul>
-     * <li>The string {@code "corporate"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
-     * <li>The value of {@link scheduler.dao.AddressDAO.PredefinedElement#key} is stored in the
+     * <li>The string value {@code "corporate"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>The value of the {@link scheduler.model.CorporateAddress#name} is stored in the
      * {@link scheduler.dao.AppointmentDAO#location} field.</li>
      * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
      * </ul>
@@ -56,7 +56,7 @@ public enum AppointmentType {
     /**
      * Appointment at a physical location.
      * <ul>
-     * <li>The string {@code "other"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
+     * <li>The string value {@code "other"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
      * <li>The {@link scheduler.dao.AppointmentDAO#location} and {@link scheduler.dao.AppointmentDAO#contact} fields are required.</li>
      * <li>{@link scheduler.dao.AppointmentDAO#url} isS optional.</li>
      * </ul>

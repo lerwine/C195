@@ -25,6 +25,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -410,7 +411,7 @@ public class ViewModalControl extends Control {
             for (ButtonActionHandler h : change) {
                 buttons.add(h.button);
                 handlers.add(h);
-                h.button.addEventHandler(ActionEvent.ACTION, h);
+                h.button.addEventHandler(ActionEvent.ACTION, new WeakEventHandler<>(h));
             }
         }
     }

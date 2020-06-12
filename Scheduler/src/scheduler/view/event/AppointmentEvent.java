@@ -1,10 +1,10 @@
 package scheduler.view.event;
 
+import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.FxRecordModel;
 
 /**
  * Event that is fired when a {@link AppointmentModel} is about to be saved or deleted.
@@ -15,45 +15,105 @@ public final class AppointmentEvent extends ModelItemEvent<AppointmentModel, App
 
     private static final long serialVersionUID = -1145658585716643269L;
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_MODEL_EVENT = new EventType<>(MODEL_ITEM_EVENT, "APPOINTMENT_MODEL_EVENT");
+    public static final String APPOINTMENT_MODEL_EVENT_NAME = "APPOINTMENT_MODEL_EVENT";
+    public static final String EDIT_REQUEST_EVENT_NAME = "APPOINTMENT_EDIT_REQUEST_EVENT";
+    public static final String DELETE_REQUEST_EVENT_NAME = "APPOINTMENT_DELETE_REQUEST_EVENT";
+    public static final String INSERTING_EVENT_NAME = "APPOINTMENT_INSERTING_EVENT";
+    public static final String INSERTED_EVENT_NAME = "APPOINTMENT_INSERTED_EVENT";
+    public static final String UPDATING_EVENT_NAME = "APPOINTMENT_UPDATING_EVENT";
+    public static final String UPDATED_EVENT_NAME = "APPOINTMENT_UPDATED_EVENT";
+    public static final String DELETING_EVENT_NAME = "APPOINTMENT_DELETING_EVENT";
+    public static final String DELETED_EVENT_NAME = "APPOINTMENT_DELETED_EVENT";
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_EDIT_REQUEST_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT,
-            "APPOINTMENT_EDIT_REQUEST_EVENT");
+    public static final EventType<AppointmentEvent> APPOINTMENT_MODEL_EVENT = new EventType<>(MODEL_ITEM_EVENT, APPOINTMENT_MODEL_EVENT_NAME);
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_DELETE_REQUEST_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT,
-            "APPOINTMENT_DELETE_REQUEST_EVENT");
+    public static final EventType<AppointmentEvent> EDIT_REQUEST_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, EDIT_REQUEST_EVENT_NAME);
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_INSERTING_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT,
-            "APPOINTMENT_INSERTING_EVENT");
+    public static final EventType<AppointmentEvent> DELETE_REQUEST_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, DELETE_REQUEST_EVENT_NAME);
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_INSERTED_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT,
-            "APPOINTMENT_INSERTED_EVENT");
+    public static final EventType<AppointmentEvent> INSERTING_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, INSERTING_EVENT_NAME);
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_UPDATING_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT,
-            "APPOINTMENT_UPDATING_EVENT");
+    public static final EventType<AppointmentEvent> INSERTED_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, INSERTED_EVENT_NAME);
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_UPDATED_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT, "APPOINTMENT_UPDATED_EVENT");
+    public static final EventType<AppointmentEvent> UPDATING_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, UPDATING_EVENT_NAME);
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_DELETING_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT,
-            "APPOINTMENT_DELETING_EVENT");
+    public static final EventType<AppointmentEvent> UPDATED_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, UPDATED_EVENT_NAME);
 
-    public static final EventType<AppointmentEvent> APPOINTMENT_DELETED_EVENT = new EventType<>(APPOINTMENT_MODEL_EVENT, "APPOINTMENT_DELETED_EVENT");
+    public static final EventType<AppointmentEvent> DELETING_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, DELETING_EVENT_NAME);
+
+    public static final EventType<AppointmentEvent> DELETED_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, DELETED_EVENT_NAME);
+
+    public static ActivityType toActionType(String eventName) {
+        if (null != eventName) {
+            switch (eventName) {
+                case EDIT_REQUEST_EVENT_NAME:
+                    return ActivityType.EDIT_REQUEST;
+                case DELETE_REQUEST_EVENT_NAME:
+                    return ActivityType.DELETE_REQUEST;
+                case INSERTING_EVENT_NAME:
+                    return ActivityType.INSERTING;
+                case INSERTED_EVENT_NAME:
+                    return ActivityType.INSERTED;
+                case UPDATING_EVENT_NAME:
+                    return ActivityType.UPDATING;
+                case UPDATED_EVENT_NAME:
+                    return ActivityType.UPDATED;
+                case DELETING_EVENT_NAME:
+                    return ActivityType.DELETING;
+                case DELETED_EVENT_NAME:
+                    return ActivityType.DELETED;
+            }
+        }
+        return ActivityType.NONE;
+    }
+
+    public static EventType<AppointmentEvent> toEventType(ActivityType action) {
+        if (null != action) {
+            switch (action) {
+                case EDIT_REQUEST:
+                    return EDIT_REQUEST_EVENT_TYPE;
+                case DELETE_REQUEST:
+                    return DELETE_REQUEST_EVENT_TYPE;
+                case INSERTING:
+                    return INSERTING_EVENT_TYPE;
+                case INSERTED:
+                    return INSERTED_EVENT_TYPE;
+                case UPDATING:
+                    return UPDATING_EVENT_TYPE;
+                case UPDATED:
+                    return UPDATED_EVENT_TYPE;
+                case DELETING:
+                    return DELETING_EVENT_TYPE;
+                case DELETED:
+                    return DELETED_EVENT_TYPE;
+            }
+        }
+        return null;
+    }
 
     private AppointmentEvent(AppointmentEvent copyFrom, Object source, EventTarget target) {
         super(copyFrom, source, target);
     }
 
-    public AppointmentEvent(AppointmentModel model, Object source, EventTarget target, EventType<AppointmentEvent> type) {
-        super(model, source, target, type);
+    public AppointmentEvent(AppointmentModel model, Object source, EventTarget target, ActivityType action, boolean confirmed) {
+        super(model, source, target, Objects.requireNonNull(toEventType(action)), action, confirmed);
     }
 
-    public AppointmentEvent(Object source, AppointmentDAO target, EventType<AppointmentEvent> type) {
-        super(source, target, type);
+    public AppointmentEvent(AppointmentModel model, Object source, EventTarget target, ActivityType action) {
+        super(model, source, target, Objects.requireNonNull(toEventType(action)), action, false);
+    }
+
+    public AppointmentEvent(Object source, EventTarget target, AppointmentDAO dao, ActivityType action, boolean confirmed) {
+        super(source, target, dao, Objects.requireNonNull(toEventType(action)), action, confirmed);
+    }
+
+    public AppointmentEvent(Object source, EventTarget target, AppointmentDAO dao, ActivityType action) {
+        super(source, target, dao, Objects.requireNonNull(toEventType(action)), action, false);
     }
 
     @Override
-    public FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
-        return AppointmentModel.getFactory();
+    public AppointmentModel.Factory getModelFactory() {
+        return AppointmentModel.FACTORY;
     }
 
     @Override
@@ -65,11 +125,6 @@ public final class AppointmentEvent extends ModelItemEvent<AppointmentModel, App
     @SuppressWarnings("unchecked")
     public EventType<AppointmentEvent> getEventType() {
         return (EventType<AppointmentEvent>) super.getEventType();
-    }
-
-    @Override
-    public boolean isDeleteRequest() {
-        return getEventType().getName().equals(APPOINTMENT_DELETE_REQUEST_EVENT.getName());
     }
 
 }

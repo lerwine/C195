@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.Event;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -27,11 +28,16 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
+import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.AddressEvent;
+import scheduler.view.event.CityEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  * Data access object for the {@code address} database table.
@@ -71,7 +77,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of address1
      *
      * @param value new value of address1
-     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
     public synchronized void setAddress1(String value) {
         String oldValue = address1;
@@ -88,7 +93,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of address2
      *
      * @param value new value of address2
-     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
     public synchronized void setAddress2(String value) {
         String oldValue = address2;
@@ -105,7 +109,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of city
      *
      * @param city new value of city
-     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
     public synchronized void setCity(ICityDAO city) {
         ICityDAO oldValue = this.city;
@@ -122,7 +125,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of postalCode
      *
      * @param value new value of postalCode
-     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
     public synchronized void setPostalCode(String value) {
         String oldValue = postalCode;
@@ -139,7 +141,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Set the value of phone
      *
      * @param value new value of phone
-     * @throws IllegalStateException if {@link #predefinedElement} is not null.
      */
     public synchronized void setPhone(String value) {
         String oldValue = phone;
@@ -221,7 +222,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      * Factory implementation for {@link AddressDAO} objects.
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
-
 //        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
@@ -285,12 +285,19 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        public void save(AddressDAO dao, Connection connection, boolean force) throws SQLException {
-            ICityDAO city = IAddressDAO.assertValidAddress(dao).city;
-            if (city instanceof CityDAO) {
-                CityDAO.FACTORY.save(((CityDAO) city), connection);
+        public <U extends ModelItemEvent<? extends FxRecordModel<AddressDAO>, AddressDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
+            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
+            if (!message.isEmpty()) {
+                event.setUnsuccessful("Cannot save address", message);
+                return;
             }
-            super.save(dao, connection, force);
+            ICityDAO city = IAddressDAO.assertValidAddress(event.getDataAccessObject()).city;
+            if (city instanceof CityDAO) {
+                CityEvent cityEvent = new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
+                        (city.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                CityDAO.FACTORY.save(cityEvent, connection, force);
+            }
+            super.save(event, connection, force);
         }
 
         @Override
@@ -359,7 +366,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        public String getDeleteDependencyMessage(AddressDAO dao, Connection connection) throws SQLException {
+        protected String getDeleteDependencyMessage(AddressDAO dao, Connection connection) throws SQLException {
             if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
                 return "";
             }
@@ -375,9 +382,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             }
         }
 
-        @Override
         @SuppressWarnings("incomplete-switch")
-        public String getSaveDbConflictMessage(AddressDAO dao, Connection connection) throws SQLException {
+        String getSaveDbConflictMessage(AddressDAO dao, Connection connection) throws SQLException {
             ICityDAO city;
             switch (dao.getRowState()) {
                 case DELETED:
@@ -490,18 +496,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected AddressEvent createInsertedEvent(Object source, AddressDAO dataAccessObject) {
-            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_INSERTED_EVENT);
-        }
-
-        @Override
-        protected AddressEvent createUpdatedEvent(Object source, AddressDAO dataAccessObject) {
-            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_UPDATED_EVENT);
-        }
-
-        @Override
-        protected AddressEvent createDeletedEvent(Object source, AddressDAO dataAccessObject) {
-            return new AddressEvent(source, dataAccessObject, AddressEvent.ADDRESS_DELETED_EVENT);
+        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<AddressDAO>, AddressDAO> sourceEvent, ActivityType activity) {
+            AddressModel model = (AddressModel) sourceEvent.getState().getModel();
+            if (null != model) {
+                Event.fireEvent(AddressModel.FACTORY, new AddressEvent(model, sourceEvent.getSource(), AddressModel.FACTORY, activity));
+            } else {
+                Event.fireEvent(AddressModel.FACTORY, new AddressEvent(sourceEvent.getSource(), AddressModel.FACTORY,
+                        sourceEvent.getDataAccessObject(), activity));
+            }
         }
 
     }

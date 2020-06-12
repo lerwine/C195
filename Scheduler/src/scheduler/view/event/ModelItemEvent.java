@@ -4,8 +4,8 @@ import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ModelHelper;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.DbConnector;
 
 /**
  * Base class for {@link FxRecordModel} save and delete events.
@@ -22,11 +22,28 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
             = new EventType<>(ANY, "MODEL_ITEM_EVENT");
 
     private final U dataAccessObject;
-    private T model;
-    private boolean handled;
+    private final ActivityType activity;
+    private final boolean confirmed;
     private ModelItemEvent<T, U> previousCopy;
     private ModelItemEvent<T, U> nextCopy;
+    private State state;
 
+    protected ModelItemEvent(ModelItemEvent<T, U> event, EventTarget target, EventType<? extends ModelItemEvent<T, U>> type,
+            ActivityType activity, boolean confirmed) {
+        super(event.getSource(), target, type);
+        state = new State(event.getState().getModel());
+        dataAccessObject = event.getDataAccessObject();
+        this.activity = activity;
+        this.confirmed = confirmed;
+    }
+    
+    /**
+     * Creates a copy of a {@code ModelItemEvent} with a new source and target.
+     *
+     * @param copyFrom The {@code ModelItemEvent} to copy.
+     * @param source The new source for the copied event.
+     * @param target The new target for the copied event.
+     */
     @SuppressWarnings("LeakingThisInConstructor")
     protected ModelItemEvent(ModelItemEvent<T, U> copyFrom, Object source, EventTarget target) {
         super(source, target, copyFrom.getEventType());
@@ -36,21 +53,59 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
             }
             copyFrom.nextCopy = this;
         }
-        this.dataAccessObject = copyFrom.dataAccessObject;
+        state = copyFrom.state;
+        dataAccessObject = copyFrom.dataAccessObject;
+        activity = copyFrom.activity;
+        confirmed = copyFrom.confirmed;
     }
 
-    protected ModelItemEvent(T model, Object source, EventTarget target, EventType<? extends ModelItemEvent<T, U>> type) {
+    /**
+     * Creates a new {@code ModelItemEvent} for a {@link FxRecordModel} object.
+     *
+     * @param model The affected {@link FxRecordModel}.
+     * @param source The event source which sent the event.
+     * @param target The event target to associate with the event.
+     * @param type The event type.
+     * @param activity The activity associated with the event.
+     * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
+     */
+    protected ModelItemEvent(T model, Object source, EventTarget target, EventType<? extends ModelItemEvent<T, U>> type, ActivityType activity,
+            boolean confirmed) {
         super((null == source) ? model : source, (null == target) ? model.dataObject() : target, type);
-        this.dataAccessObject = (this.model = model).dataObject();
-        this.handled = false;
+        state = new State(model);
+        dataAccessObject = model.dataObject();
+        this.activity = activity;
+        this.confirmed = confirmed;
     }
 
-    protected ModelItemEvent(Object source, U target, EventType<? extends ModelItemEvent<T, U>> type) {
-        super((null == source) ? target : source, target, type);
-        dataAccessObject = target;
-        this.handled = false;
+    /**
+     * Creates a new {@code ModelItemEvent} for a {@link DataAccessObject}.
+     *
+     * @param source The event source which sent the event.
+     * @param target The event target to associate with the event.
+     * @param dao The affected {@link DataAccessObject}.
+     * @param type The event type.
+     * @param activity The activity associated with the event.
+     * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
+     */
+    protected ModelItemEvent(Object source, EventTarget target, U dao, EventType<? extends ModelItemEvent<T, U>> type, ActivityType activity, boolean confirmed) {
+        super((null == source) ? dao : source, target, type);
+        state = new State(null);
+        dataAccessObject = dao;
+        this.activity = activity;
+        this.confirmed = confirmed;
     }
 
+    public State getState() {
+        return state;
+    }
+
+    public void setUnsuccessful(String title, String message) {
+        state.succeeded = false;
+        state.summaryTitle = (null == title || title.trim().isEmpty()) ? "" : title;
+        state.detailMessage = (null == message || message.trim().isEmpty()) ? "" : message;
+    }
+        
     /**
      * Gets the underlying {@link DataAccessObject} associated with the {@code ModelItemEvent}.
      *
@@ -60,61 +115,15 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
         return dataAccessObject;
     }
 
-    /**
-     * Gets the {@link FxRecordModel} for the {@code ModelItemEvent}.
-     *
-     * @return The {@link FxRecordModel} for the {@code ModelItemEvent}.
-     */
-    public T getModel() {
-        return (null != previousCopy) ? previousCopy.getModel() : model;
+    public ActivityType getActivity() {
+        return activity;
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
     }
 
     public abstract FxRecordModel.ModelFactory<U, T> getModelFactory();
-
-    /**
-     * Sets the {@link FxRecordModel} for the {@code ModelItemEvent}. This can only be set once, and may only be set if only the
-     * {@link DataAccessObject} was provided in the constructor.
-     *
-     * @param model The {@link FxRecordModel} for the {@code ModelItemEvent}.
-     * @throws IllegalStateException if the {@link #model} has already been set.
-     * @throws IllegalArgumentException if the {@link FxRecordModel#dataObject} of the {@code model} does not represent the same data record as the
-     * current {@link #dataAccessObject}.
-     */
-    public synchronized void setModel(T model) {
-        if (null != previousCopy) {
-            previousCopy.setModel(model);
-        } else {
-            if (null != this.model) {
-                throw new IllegalStateException();
-            }
-            if (!ModelHelper.areSameRecord(model.dataObject(), dataAccessObject)) {
-                throw new IllegalArgumentException();
-            }
-            this.model = model;
-        }
-    }
-
-    /**
-     * Gets a value that indicates whether the represented save or delete operation was handled.
-     *
-     * @return {@code true} if the represented save or delete operation was handled; otherwise {@code false}.
-     */
-    public boolean isHandled() {
-        return (null != previousCopy) ? previousCopy.isHandled() : handled;
-    }
-
-    /**
-     * Specifies whether the {@code ModelItemEvent} was already handled.
-     *
-     * @param value {@code true} to mark the {@code ModelItemEvent} as being handled; otherwise {@code false} to mark it as being un-handled.
-     */
-    public synchronized void setHandled(boolean value) {
-        if (null == previousCopy) {
-            handled = value;
-        } else {
-            previousCopy.setHandled(value);
-        }
-    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -122,6 +131,52 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
         return (EventType<? extends ModelItemEvent<T, U>>) super.getEventType();
     }
 
-    public abstract boolean isDeleteRequest();
+    public class State {
+        private T model;
+        private DbConnector dbConnector;
+        private String summaryTitle;
+        private String detailMessage;
+        private boolean succeeded;
 
+        private State(T model) {
+            this.model = model;
+            summaryTitle = "";
+            detailMessage = "";
+            succeeded = false;
+        }
+
+        public T getModel() {
+            return model;
+        }
+
+        public void setModel(T model) {
+            this.model = model;
+        }
+
+        public DbConnector getDbConnector() {
+            return dbConnector;
+        }
+
+        public void setDbConnector(DbConnector dbConnector) {
+            this.dbConnector = dbConnector;
+        }
+
+        public String getSummaryTitle() {
+            return summaryTitle;
+        }
+
+        public String getDetailMessage() {
+            return detailMessage;
+        }
+        
+        public boolean isSucceeded() {
+            return succeeded;
+        }
+
+        public void setSucceeded(boolean succeeded) {
+            this.succeeded = succeeded;
+        }
+
+
+    }
 }

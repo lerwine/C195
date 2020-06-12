@@ -14,11 +14,9 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
-import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.fx.MainListingControl;
 import scheduler.model.User;
@@ -30,6 +28,7 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.event.UserEvent;
 import static scheduler.view.user.ManageUsersResourceKeys.*;
 
@@ -122,7 +121,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @Override
     protected UserModel.Factory getModelFactory() {
-        return UserModel.getFactory();
+        return UserModel.FACTORY;
     }
 
     @Override
@@ -145,74 +144,75 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     }
 
     @Override
-    protected void onEditItem(UserModel item) {
+    protected void onEditItem(UserEvent event) {
         try {
-            EditUser.edit(item, getScene().getWindow());
+            EditUser.edit(event.getState().getModel(), getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
     @Override
-    protected void onDeleteItem(UserModel item) {
+    protected void onDeleteItem(UserEvent event) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DeleteTask(item, getScene().getWindow()));
+            MainController.startBusyTaskNow(new DeleteTask(event));
         }
     }
 
     @Override
     protected EventType<UserEvent> getInsertedEventType() {
-        return UserEvent.USER_INSERTED_EVENT;
+        return UserEvent.INSERTED_EVENT_TYPE;
     }
 
     @Override
     protected EventType<UserEvent> getUpdatedEventType() {
-        return UserEvent.USER_UPDATED_EVENT;
+        return UserEvent.UPDATED_EVENT_TYPE;
     }
 
     @Override
     protected EventType<UserEvent> getDeletedEventType() {
-        return UserEvent.USER_DELETED_EVENT;
+        return UserEvent.DELETED_EVENT_TYPE;
     }
 
-    private class DeleteTask extends Task<String> {
+    private class DeleteTask extends Task<Void> {
 
-        private final UserModel model;
-        private final Window parentWindow;
-        private final UserDAO dao;
+        private final UserEvent event;
 
-        DeleteTask(UserModel model, Window parentWindow) {
+        DeleteTask(UserEvent event) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.dataObject();
-            this.model = model;
-            this.parentWindow = parentWindow;
+            this.event = event;
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
-            String message = getValue();
-            if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            ModelItemEvent.State state = event.getState();
+            if (!state.isSucceeded()) {
+                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
             }
         }
 
         @Override
-        protected String call() throws Exception {
+        protected void cancelled() {
+            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            event.setUnsuccessful("Operation failed", "Operation encountered an unexpected error");
+            super.failed();
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = UserDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                UserDAO.FACTORY.delete(dao, connector.getConnection());
-                if (dao.getRowState() == DataRowState.DELETED) {
-                    UserModel.getFactory().updateItem(model, dao);
-                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                UserDAO.FACTORY.delete(event, connector.getConnection());
             }
             return null;
         }

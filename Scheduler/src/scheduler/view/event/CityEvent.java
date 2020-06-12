@@ -1,10 +1,10 @@
 package scheduler.view.event;
 
+import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.FxRecordModel;
 
 /**
  * Event that is fired when a {@link CityModel} is about to be saved or deleted.
@@ -14,40 +14,105 @@ import scheduler.model.ui.FxRecordModel;
 public final class CityEvent extends ModelItemEvent<CityModel, CityDAO> {
 
     private static final long serialVersionUID = 2299267381558318300L;
+    public static final String CITY_MODEL_EVENT_NAME = "CITY_MODEL_EVENT";
+    public static final String EDIT_REQUEST_EVENT_NAME = "CITY_EDIT_REQUEST_EVENT";
+    public static final String DELETE_REQUEST_EVENT_NAME = "CITY_DELETE_REQUEST_EVENT";
+    public static final String INSERTING_EVENT_NAME = "CITY_INSERTING_EVENT";
+    public static final String INSERTED_EVENT_NAME = "CITY_INSERTED_EVENT";
+    public static final String UPDATING_EVENT_NAME = "CITY_UPDATING_EVENT";
+    public static final String UPDATED_EVENT_NAME = "CITY_UPDATED_EVENT";
+    public static final String DELETING_EVENT_NAME = "CITY_DELETING_EVENT";
+    public static final String DELETED_EVENT_NAME = "CITY_DELETED_EVENT";
 
-    public static final EventType<CityEvent> CITY_MODEL_EVENT = new EventType<>(MODEL_ITEM_EVENT, "CITY_MODEL_EVENT");
+    public static final EventType<CityEvent> CITY_MODEL_EVENT = new EventType<>(MODEL_ITEM_EVENT, CITY_MODEL_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_EDIT_REQUEST_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_EDIT_REQUEST_EVENT");
+    public static final EventType<CityEvent> EDIT_REQUEST_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, EDIT_REQUEST_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_DELETE_REQUEST_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_DELETE_REQUEST_EVENT");
+    public static final EventType<CityEvent> DELETE_REQUEST_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, DELETE_REQUEST_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_INSERTING_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_INSERTING_EVENT");
+    public static final EventType<CityEvent> INSERTING_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, INSERTING_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_INSERTED_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_INSERTED_EVENT");
+    public static final EventType<CityEvent> INSERTED_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, INSERTED_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_UPDATING_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_UPDATING_EVENT");
+    public static final EventType<CityEvent> UPDATING_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, UPDATING_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_UPDATED_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_UPDATED_EVENT");
+    public static final EventType<CityEvent> UPDATED_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, UPDATED_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_DELETING_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_DELETING_EVENT");
+    public static final EventType<CityEvent> DELETING_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, DELETING_EVENT_NAME);
 
-    public static final EventType<CityEvent> CITY_DELETED_EVENT = new EventType<>(CITY_MODEL_EVENT, "CITY_DELETED_EVENT");
+    public static final EventType<CityEvent> DELETED_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, DELETED_EVENT_NAME);
+
+    public static ActivityType toActionType(String eventName) {
+        if (null != eventName) {
+            switch (eventName) {
+                case EDIT_REQUEST_EVENT_NAME:
+                    return ActivityType.EDIT_REQUEST;
+                case DELETE_REQUEST_EVENT_NAME:
+                    return ActivityType.DELETE_REQUEST;
+                case INSERTING_EVENT_NAME:
+                    return ActivityType.INSERTING;
+                case INSERTED_EVENT_NAME:
+                    return ActivityType.INSERTED;
+                case UPDATING_EVENT_NAME:
+                    return ActivityType.UPDATING;
+                case UPDATED_EVENT_NAME:
+                    return ActivityType.UPDATED;
+                case DELETING_EVENT_NAME:
+                    return ActivityType.DELETING;
+                case DELETED_EVENT_NAME:
+                    return ActivityType.DELETED;
+            }
+        }
+        return ActivityType.NONE;
+    }
+
+    public static EventType<CityEvent> toEventType(ActivityType action) {
+        if (null != action) {
+            switch (action) {
+                case EDIT_REQUEST:
+                    return EDIT_REQUEST_EVENT_TYPE;
+                case DELETE_REQUEST:
+                    return DELETE_REQUEST_EVENT_TYPE;
+                case INSERTING:
+                    return INSERTING_EVENT_TYPE;
+                case INSERTED:
+                    return INSERTED_EVENT_TYPE;
+                case UPDATING:
+                    return UPDATING_EVENT_TYPE;
+                case UPDATED:
+                    return UPDATED_EVENT_TYPE;
+                case DELETING:
+                    return DELETING_EVENT_TYPE;
+                case DELETED:
+                    return DELETED_EVENT_TYPE;
+            }
+        }
+        return null;
+    }
 
     private CityEvent(CityEvent copyFrom, Object source, EventTarget target) {
         super(copyFrom, source, target);
     }
 
-    public CityEvent(CityModel model, Object source, EventTarget target, EventType<CityEvent> type) {
-        super(model, source, target, type);
+    public CityEvent(CityModel model, Object source, EventTarget target, ActivityType action, boolean confirmed) {
+        super(model, source, target, Objects.requireNonNull(toEventType(action)), action, confirmed);
     }
 
-    public CityEvent(Object source, CityDAO target, EventType<CityEvent> type) {
-        super(source, target, type);
+    public CityEvent(CityModel model, Object source, EventTarget target, ActivityType action) {
+        super(model, source, target, Objects.requireNonNull(toEventType(action)), action, false);
+    }
+
+    public CityEvent(Object source, EventTarget target, CityDAO dao, ActivityType action, boolean confirmed) {
+        super(source, target, dao, Objects.requireNonNull(toEventType(action)), action, confirmed);
+    }
+
+    public CityEvent(Object source, EventTarget target, CityDAO dao, ActivityType action) {
+        super(source, target, dao, Objects.requireNonNull(toEventType(action)), action, false);
     }
 
     @Override
-    public FxRecordModel.ModelFactory<CityDAO, CityModel> getModelFactory() {
-        return CityModel.getFactory();
+    public CityModel.Factory getModelFactory() {
+        return CityModel.FACTORY;
     }
 
     @Override
@@ -59,11 +124,6 @@ public final class CityEvent extends ModelItemEvent<CityModel, CityDAO> {
     @SuppressWarnings("unchecked")
     public EventType<CityEvent> getEventType() {
         return (EventType<CityEvent>) super.getEventType();
-    }
-
-    @Override
-    public boolean isDeleteRequest() {
-        return getEventType().getName().equals(CITY_DELETE_REQUEST_EVENT.getName());
     }
 
 }

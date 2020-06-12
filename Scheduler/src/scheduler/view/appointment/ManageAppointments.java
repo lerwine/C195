@@ -29,12 +29,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
@@ -61,6 +59,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.event.AppointmentEvent;
+import scheduler.view.event.ModelItemEvent;
 import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
@@ -87,7 +86,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     public static ManageAppointments loadIntoMainContent() {
-        return loadIntoMainContent(AppointmentModel.getFactory().getDefaultFilter());
+        return loadIntoMainContent(AppointmentModel.FACTORY.getDefaultFilter());
     }
 
     @FXML // fx:id="titleTableColumn"
@@ -148,7 +147,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 //            filterState = result;
 //            AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
 //        }
-        // TODO: Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
+        // PENDING: (TODO) Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
     }
 
     @FXML
@@ -463,7 +462,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
-        return AppointmentModel.getFactory();
+        return AppointmentModel.FACTORY;
     }
 
     @Override
@@ -486,74 +485,75 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected void onEditItem(AppointmentModel item) {
+    protected void onEditItem(AppointmentEvent event) {
         try {
-            EditAppointment.edit(item, getScene().getWindow());
+            EditAppointment.edit(event.getState().getModel(), getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
     @Override
-    protected void onDeleteItem(AppointmentModel item) {
+    protected void onDeleteItem(AppointmentEvent event) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DeleteTask(item, getScene().getWindow()));
+            MainController.startBusyTaskNow(new DeleteTask(event));
         }
     }
 
     @Override
     protected EventType<AppointmentEvent> getInsertedEventType() {
-        return AppointmentEvent.APPOINTMENT_INSERTED_EVENT;
+        return AppointmentEvent.INSERTED_EVENT_TYPE;
     }
 
     @Override
     protected EventType<AppointmentEvent> getUpdatedEventType() {
-        return AppointmentEvent.APPOINTMENT_UPDATED_EVENT;
+        return AppointmentEvent.UPDATED_EVENT_TYPE;
     }
 
     @Override
     protected EventType<AppointmentEvent> getDeletedEventType() {
-        return AppointmentEvent.APPOINTMENT_DELETED_EVENT;
+        return AppointmentEvent.DELETED_EVENT_TYPE;
     }
 
-    private class DeleteTask extends Task<String> {
+    private class DeleteTask extends Task<Void> {
 
-        private final AppointmentModel model;
-        private final Window parentWindow;
-        private final AppointmentDAO dao;
+        private final AppointmentEvent event;
 
-        DeleteTask(AppointmentModel model, Window parentWindow) {
+        DeleteTask(AppointmentEvent event) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.dataObject();
-            this.model = model;
-            this.parentWindow = parentWindow;
+            this.event = event;
+        }
+
+        @Override
+        protected void cancelled() {
+            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            event.setUnsuccessful("Operation failed", "Operation encountered an unexpected error");
+            super.failed();
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
-            String message = getValue();
-            if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            ModelItemEvent.State state = event.getState();
+            if (!state.isSucceeded()) {
+                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
             }
         }
 
         @Override
-        protected String call() throws Exception {
+        protected Void call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = AppointmentDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                AppointmentDAO.FACTORY.delete(dao, connector.getConnection());
-                if (dao.getRowState() == DataRowState.DELETED) {
-                    AppointmentModel.getFactory().updateItem(model, dao);
-                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                AppointmentDAO.FACTORY.delete(event, connector.getConnection());
             }
             return null;
         }

@@ -13,6 +13,7 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.ModelItemEvent;
 
 /**
@@ -50,14 +51,14 @@ public class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObjec
     private void onEditButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            onItemActionRequest(factory.createEditRequestEvent(item, event.getSource(), item.dataObject()));
+            onItemActionRequest(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.EDIT_REQUEST));
         }
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            onItemActionRequest(factory.createDeleteRequestEvent(item, event.getSource(), item.dataObject()));
+            onItemActionRequest(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.DELETE_REQUEST));
         }
     }
 

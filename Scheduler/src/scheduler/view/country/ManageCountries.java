@@ -12,12 +12,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
@@ -32,6 +30,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.country.ManageCountriesResourceKeys.*;
 import scheduler.view.event.CountryEvent;
+import scheduler.view.event.ModelItemEvent;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
@@ -54,7 +53,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     }
 
     public static ManageCountries loadIntoMainContent() {
-        return loadIntoMainContent(CountryModel.getFactory().getAllItemsFilter());
+        return loadIntoMainContent(CountryModel.FACTORY.getAllItemsFilter());
     }
 
     @FXML // fx:id="helpBorderPane"
@@ -84,7 +83,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected CountryModel.Factory getModelFactory() {
-        return CountryModel.getFactory();
+        return CountryModel.FACTORY;
     }
 
     @Override
@@ -107,74 +106,75 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     }
 
     @Override
-    protected void onEditItem(CountryModel item) {
+    protected void onEditItem(CountryEvent event) {
         try {
-            EditCountry.edit(item, getScene().getWindow());
+            EditCountry.edit(event.getState().getModel(), getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
     @Override
-    protected void onDeleteItem(CountryModel item) {
+    protected void onDeleteItem(CountryEvent event) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DeleteTask(item, getScene().getWindow()));
+            MainController.startBusyTaskNow(new DeleteTask(event));
         }
     }
 
     @Override
     protected EventType<CountryEvent> getInsertedEventType() {
-        return CountryEvent.COUNTRY_INSERTED_EVENT;
+        return CountryEvent.INSERTED_EVENT_TYPE;
     }
 
     @Override
     protected EventType<CountryEvent> getUpdatedEventType() {
-        return CountryEvent.COUNTRY_UPDATED_EVENT;
+        return CountryEvent.UPDATED_EVENT_TYPE;
     }
 
     @Override
     protected EventType<CountryEvent> getDeletedEventType() {
-        return CountryEvent.COUNTRY_DELETED_EVENT;
+        return CountryEvent.DELETED_EVENT_TYPE;
     }
 
     private class DeleteTask extends Task<String> {
 
-        private final CountryModel model;
-        private final Window parentWindow;
-        private final CountryDAO dao;
+        private final CountryEvent event;
 
-        DeleteTask(CountryModel model, Window parentWindow) {
+        DeleteTask(CountryEvent event) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            dao = model.dataObject();
-            this.model = model;
-            this.parentWindow = parentWindow;
+            this.event = event;
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
-            String message = getValue();
-            if (null != message && !message.trim().isEmpty()) {
-                AlertHelper.showWarningAlert(parentWindow, LOG, AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+            ModelItemEvent.State state = event.getState();
+            if (!state.isSucceeded()) {
+                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
             }
         }
 
         @Override
+        protected void cancelled() {
+            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            event.setUnsuccessful("Operation failed", "Operation encountered an unexpected error");
+            super.failed();
+        }
+
+        @Override
         protected String call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = CountryDAO.FACTORY.getDeleteDependencyMessage(model.dataObject(), connector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                CountryDAO.FACTORY.delete(dao, connector.getConnection());
-                if (dao.getRowState() == DataRowState.DELETED) {
-                    CountryModel.getFactory().updateItem(model, dao);
-                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                CountryDAO.FACTORY.delete(event, connector.getConnection());
             }
             return null;
         }

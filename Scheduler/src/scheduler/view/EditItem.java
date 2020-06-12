@@ -42,6 +42,7 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.event.ActivityType;
 import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 
@@ -191,9 +192,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     void onDeleteButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ModelItemEvent<U, T> deleteEvent = factory.createDeleteEvent(model, event.getSource(), editorRegion);
+        ModelItemEvent<U, T> deleteEvent = factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.DELETING);
         editorRegion.fireEvent(deleteEvent);
-        if (!deleteEvent.isHandled()) {
+        if (!deleteEvent.isConsumed()) {
             Stage stage = (Stage) getScene().getWindow();
             AlertHelper.showWarningAlert(stage, LOG,
                     resources.getString(RESOURCEKEY_CONFIRMDELETE),
@@ -209,10 +210,12 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     void onSaveButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ModelItemEvent<U, T> updateEvent = (model.isNewRow()) ? factory.createInsertEvent(model, event.getSource(), editorRegion)
-                : factory.createUpdateEvent(model, event.getSource(), editorRegion);
+        // FIXME: Need to find a good way to ensure the model is updated after DAO is updated.. Perhaps passing event instead of DAO
+        ModelItemEvent<U, T> updateEvent = (model.isNewRow())
+                ? factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.INSERTING)
+                : factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.UPDATING);
         editorRegion.fireEvent(updateEvent);
-        if (!updateEvent.isHandled()) {
+        if (!updateEvent.isConsumed()) {
             editorRegion.updateModel();
             factory.updateDAO(model);
             waitBorderPane.startNow(new SaveTask(updateEvent));
@@ -330,84 +333,64 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     }
 
-    private class SaveTask extends Task<String> {
+    private class SaveTask extends Task<Void> {
 
-        private final ModelItemEvent<U, T> updateEvent;
-        private final T dataAccessobject;
+        private final ModelItemEvent<U, T> event;
         private final DaoFactory<T> daoFactory;
         private final boolean closeOnSuccess;
-        private final boolean isNew;
 
-        SaveTask(ModelItemEvent<U, T> updateEvent) {
-            isNew = (dataAccessobject = (this.updateEvent = updateEvent).getDataAccessObject()).getRowState() == DataRowState.NEW;
-            closeOnSuccess = dataAccessobject.isExisting() || !keepOpen;
+        SaveTask(ModelItemEvent<U, T> event) {
+            this.event = event;
+            closeOnSuccess = event.getActivity() != ActivityType.INSERTING || !keepOpen;
             updateTitle(resources.getString(RESOURCEKEY_SAVINGCHANGES));
             daoFactory = editorRegion.modelFactory().getDaoFactory();
         }
 
         @Override
         protected void succeeded() {
-            String message = getValue();
-            if (null == message) {
-                editorRegion.modelFactory().updateItem(model, dataAccessobject);
+            super.succeeded();
+            ModelItemEvent.State state = event.getState();
+            if (state.isSucceeded()) {
                 if (closeOnSuccess) {
                     getScene().getWindow().hide();
-                } else {
-                    onEditMode();
-                    if (isNew) {
-                        editorRegion.onNewModelSaved();
-                    }
                 }
             } else {
-                AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVEFAILURE), message);
-                dataAccessobject.rejectChanges();
-                editorRegion.modelFactory().updateItem(model, dataAccessobject);
+                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
             }
-            super.succeeded();
-        }
-
-        @Override
-        protected void cancelled() {
-            dataAccessobject.rejectChanges();
-            editorRegion.modelFactory().updateItem(model, dataAccessobject);
-            super.cancelled();
         }
 
         @Override
         protected void failed() {
-            dataAccessobject.rejectChanges();
-            editorRegion.modelFactory().updateItem(model, dataAccessobject);
+            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
             super.failed();
         }
 
         @Override
-        protected String call() throws Exception {
+        protected void cancelled() {
+            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            super.cancelled();
+        }
+
+        @Override
+        protected Void call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
 
             try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = daoFactory.getSaveDbConflictMessage(dataAccessobject, dbConnector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                daoFactory.save(dataAccessobject, dbConnector.getConnection());
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                daoFactory.save(event, dbConnector.getConnection());
             }
 
             return null;
         }
     }
 
-    private class DeleteTask extends Task<String> {
+    private class DeleteTask extends Task<Void> {
 
-        private final ModelItemEvent<U, T> deleteEvent;
-        private final T dataAccessobject;
+        private final ModelItemEvent<U, T> event;
         private final DaoFactory<T> daoFactory;
 
-        DeleteTask(ModelItemEvent<U, T> deleteEvent) {
-            dataAccessobject = (this.deleteEvent = deleteEvent).getDataAccessObject();
+        DeleteTask(ModelItemEvent<U, T> event) {
+            this.event = event;
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
             daoFactory = editorRegion.modelFactory().getDaoFactory();
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
@@ -415,30 +398,22 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         protected void succeeded() {
-            String message = getValue();
-            if (null == message) {
-                editorRegion.modelFactory().updateItem(model, dataAccessobject);
+            ModelItemEvent.State state = event.getState();
+            if (state.isSucceeded()) {
                 getScene().getWindow().hide();
             } else {
-                AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETEFAILURE), message);
+                AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
             }
             super.succeeded();
         }
 
         @Override
-        protected String call() throws Exception {
+        protected Void call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
 
             try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CHECKINGDEPENDENCIES));
-                String message = daoFactory.getDeleteDependencyMessage(dataAccessobject, dbConnector.getConnection());
-                if (null != message && !message.trim().isEmpty()) {
-                    return message;
-                }
-
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_COMPLETINGOPERATION));
-                daoFactory.delete(dataAccessobject, dbConnector.getConnection());
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                daoFactory.delete(event, dbConnector.getConnection());
             }
 
             return null;
