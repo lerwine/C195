@@ -22,12 +22,15 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.event.WeakEventHandler;
 import javafx.util.Pair;
+import scheduler.AppResourceKeys;
+import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
@@ -35,6 +38,7 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
+import scheduler.util.DbConnector;
 import scheduler.view.ModelFilter;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.ModelItemEvent;
@@ -263,18 +267,18 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 
-    public static abstract class ModelFactory<T extends DataAccessObject, U extends FxRecordModel<T>> implements EventTarget {
+    public static abstract class ModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelItemEvent<M, D>> implements EventTarget {
 
         private final EventHandlerManager eventHandlerManager;
 
-        protected ModelFactory(EventType<? extends ModelItemEvent<U, T>> anyEventType) {
+        protected ModelFactory(EventType<E> anyEventType) {
             eventHandlerManager = new EventHandlerManager(this);
             eventHandlerManager.addEventHandler(anyEventType, this::handleModelEvent);
         }
 
-        private void handleModelEvent(ModelItemEvent<U, T> event) {
+        private void handleModelEvent(E event) {
             if (!event.isConsumed()) {
-                U model = event.getState().getModel();
+                M model = event.getModel();
                 if (null != model) {
                     Event.fireEvent(model, event);
                 } else {
@@ -283,9 +287,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             }
         }
 
-        public abstract DataAccessObject.DaoFactory<T> getDaoFactory();
+        public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();
 
-        public abstract U createNew(T dao);
+        public abstract M createNew(D dao);
 
         /**
          * Applies changes made in the {@link FxRecordModel} to the underlying {@link DataAccessObject}.
@@ -296,7 +300,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#delete
          */
         @Deprecated
-        public abstract T updateDAO(U item);
+        public abstract D updateDAO(M item);
 
         /**
          *
@@ -304,11 +308,11 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateItemProperties
          */
         @Deprecated
-        protected abstract void updateItemProperties(U item, T dao);
+        protected abstract void updateItemProperties(M item, D dao);
 
-        public abstract ModelFilter<T, U, ? extends DaoFilter<T>> getAllItemsFilter();
+        public abstract ModelFilter<D, M, ? extends DaoFilter<D>> getAllItemsFilter();
 
-        public abstract ModelFilter<T, U, ? extends DaoFilter<T>> getDefaultFilter();
+        public abstract ModelFilter<D, M, ? extends DaoFilter<D>> getDefaultFilter();
 
         /**
          * Updates the {@link FxRecordModel} with changes from a {@link DataAccessObject}.
@@ -319,8 +323,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateItemProperties
          */
         @Deprecated
-        public final void updateItem(U item, T updatedDao) {
-            T currentDao = item.dataObject();
+        public final void updateItem(M item, D updatedDao) {
+            D currentDao = item.dataObject();
             if (Objects.requireNonNull(updatedDao) == currentDao) {
                 updateItemProperties(item, currentDao);
                 return;
@@ -334,13 +338,13 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             updateItemProperties(item, currentDao);
         }
 
-        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
+        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess,
                 Consumer<Throwable> onFail) {
-            DataAccessObject.DaoFactory<T> factory = getDaoFactory();
+            DataAccessObject.DaoFactory<D, E> factory = getDaoFactory();
             factory.loadAsync(waitBorderPane, filter, (t) -> {
-                ArrayList<U> newItems = new ArrayList<>();
+                ArrayList<M> newItems = new ArrayList<>();
                 t.forEach((u) -> {
-                    Optional<U> existing = target.stream().filter((s) -> s.dataObject().equals(u)).findFirst();
+                    Optional<M> existing = target.stream().filter((s) -> s.dataObject().equals(u)).findFirst();
                     if (existing.isPresent()) {
                         updateItem(existing.get(), u);
                         newItems.add(existing.get());
@@ -363,17 +367,17 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             }, onFail);
         }
 
-        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess) {
+        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess) {
             loadAsync(waitBorderPane, filter, target, onSuccess, null);
         }
 
-        public final void loadAsync(DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess,
+        public final void loadAsync(DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess,
                 Consumer<Throwable> onFail) {
-            DataAccessObject.DaoFactory<T> factory = getDaoFactory();
+            DataAccessObject.DaoFactory<D, E> factory = getDaoFactory();
             factory.loadAsync(filter, (t) -> {
-                ArrayList<U> newItems = new ArrayList<>();
+                ArrayList<M> newItems = new ArrayList<>();
                 t.forEach((u) -> {
-                    Optional<U> existing = target.stream().filter((s) -> s.dataObject().equals(u)).findFirst();
+                    Optional<M> existing = target.stream().filter((s) -> s.dataObject().equals(u)).findFirst();
                     if (existing.isPresent()) {
                         updateItem(existing.get(), u);
                         newItems.add(existing.get());
@@ -396,14 +400,14 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             }, onFail);
         }
 
-        public final void loadAsync(DaoFilter<T> filter, ObservableList<U> target, Consumer<ObservableList<U>> onSuccess) {
+        public final void loadAsync(DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess) {
             loadAsync(filter, target, onSuccess, null);
         }
 
-        public final Optional<U> find(Iterator<U> source, T dao) {
+        public final Optional<M> find(Iterator<M> source, D dao) {
             if (null != source) {
                 while (source.hasNext()) {
-                    U m = source.next();
+                    M m = source.next();
                     if (null != m && ModelHelper.areSameRecord(m.dataObject(), dao)) {
                         return Optional.of(m);
                     }
@@ -412,21 +416,21 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public final Optional<U> find(Iterable<U> source, T dao) {
+        public final Optional<M> find(Iterable<M> source, D dao) {
             if (null != source) {
                 return find(source.iterator(), dao);
             }
             return Optional.empty();
         }
 
-        public final Optional<U> find(Stream<U> source, T dao) {
+        public final Optional<M> find(Stream<M> source, D dao) {
             if (null != source) {
                 return find(source.iterator(), dao);
             }
             return Optional.empty();
         }
 
-        public abstract <E extends ModelItemEvent<U, T>> E createModelItemEvent(U model, Object source, EventTarget target, ActivityType action);
+        public abstract E createModelItemEvent(M model, Object source, EventTarget target, ActivityType action);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
@@ -437,11 +441,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * Registers a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
-         * @param <S> The type of {@link ModelItemEvent}.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <S extends ModelItemEvent<U, T>> void addEventHandler(EventType<S> type, WeakEventHandler<S> eventHandler) {
+        public final void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -449,11 +452,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * Registers a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
-         * @param <S> The type of {@link ModelItemEvent}.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <S extends ModelItemEvent<U, T>> void addEventFilter(EventType<S> type, WeakEventHandler<S> eventHandler) {
+        public final void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.addEventFilter(type, eventHandler);
         }
 
@@ -461,11 +463,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * Unregisters a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
-         * @param <S> The type of {@link ModelItemEvent}.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <S extends ModelItemEvent<U, T>> void removeEventHandler(EventType<S> type, WeakEventHandler<S> eventHandler) {
+        public final void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -473,11 +474,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * Unregisters a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
-         * @param <S> The type of {@link ModelItemEvent}.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <S extends ModelItemEvent<U, T>> void removeEventFilter(EventType<S> type, WeakEventHandler<S> eventHandler) {
+        public final void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.removeEventFilter(type, eventHandler);
         }
 
@@ -487,6 +487,38 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     public interface PropertyValueExporter<T extends FxRecordModel<? extends DataAccessObject>> {
 
         Pair<String, String> toIdentity(T model, int index, Iterable<String> exportData);
+    }
+
+    public static class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelItemEvent<M, D>> extends Task<E> {
+
+        private final E event;
+
+        DeleteTask(E event, String title) {
+            updateTitle(title);
+            this.event = event;
+        }
+
+        @Override
+        protected void cancelled() {
+            event.setCanceled();
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
+            super.failed();
+        }
+
+        @Override
+        protected E call() throws Exception {
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector connector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                event.getModelFactory().getDaoFactory().delete(event, connector.getConnection());
+            }
+            return null;
+        }
     }
 
 }

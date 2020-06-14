@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.DaoFilter;
@@ -25,7 +24,6 @@ import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
@@ -35,7 +33,7 @@ import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.CountryEvent;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code country} database table.
@@ -140,7 +138,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     /**
      * Factory implementation for {@link CountryDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO, CountryEvent> {
 
 //        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -199,72 +197,25 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected String getDeleteDependencyMessage(CountryDAO dao, Connection connection) throws SQLException {
-            if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
-                return "";
-            }
-            int count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
-            switch (count) {
-                case 0:
-                    return "";
-                case 1:
-                    return ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY);
-                default:
-                    return ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY,
-                            count);
-            }
-        }
-
-        @Override
-        public <U extends ModelItemEvent<? extends FxRecordModel<CountryDAO>, CountryDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
-            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
-            if (!message.isEmpty()) {
-                event.setUnsuccessful("Cannot save address", message);
-                return;
-            }
-            ICountryDAO.assertValidCountry(event.getDataAccessObject());
-            super.save(event, connection, force);
-        }
-
-        @Override
-        protected void onCloneProperties(CountryDAO fromDAO, CountryDAO toDAO) {
-            String oldName = toDAO.name;
-            Locale oldLocale = toDAO.locale;
-            toDAO.name = fromDAO.name;
-            toDAO.locale = fromDAO.locale;
-            toDAO.originalValues.name = fromDAO.originalValues.name;
-            toDAO.originalValues.locale = fromDAO.originalValues.locale;
-            toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
-            toDAO.firePropertyChange(PROP_LOCALE, oldLocale, toDAO.locale);
-        }
-
-        @Override
-        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CountryDAO dao, ResultSet rs) throws SQLException {
-            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
-                private final String oldName = dao.name;
-                Locale oldLocale = dao.locale;
-
-                @Override
-                public void accept(PropertyChangeSupport t) {
-                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
-                    t.firePropertyChange(PROP_LOCALE, oldLocale, dao.locale);
-                }
-            };
-
-            String s = rs.getString(DbColumn.COUNTRY_NAME.toString());
-            dao.locale = Locale.forLanguageTag(s);
-            dao.name = CountryProperties.getCountryAndLanguageDisplayText(dao.locale);
-
-            return propertyChanges;
-        }
-
         @SuppressWarnings("incomplete-switch")
-        String getSaveDbConflictMessage(CountryDAO dao, Connection connection) throws SQLException {
+        public CountryEvent save(CountryEvent event, Connection connection, boolean force) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            CountryDAO dao = ICountryDAO.assertValidCountry(event.getDataAccessObject());
             switch (dao.getRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Data access object already deleted");
                 case UNMODIFIED:
-                    return "";
+                    if (!force) {
+                        event.setSucceeded();
+                        return event;
+                    }
+                    break;
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())
@@ -305,10 +256,79 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             }
 
             if (count > 0) {
-                return ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE);
+                event.setInvalid("Name in use",
+                        ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                return event;
             }
 
-            return "";
+            return super.save(event, connection, force);
+        }
+
+        @Override
+        public CountryEvent delete(CountryEvent event, Connection connection) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            CountryDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case NEW:
+                    throw new IllegalStateException("Data access object was never saved");
+                case DELETED:
+                    event.setSucceeded();
+                    return event;
+            }
+
+            CountryEvent resultEvent = event;
+            int count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
+            switch (count) {
+                case 0:
+                    resultEvent = super.delete(event, connection);
+                    break;
+                case 1:
+                    event.setInvalid("Country in use", ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                    break;
+                default:
+                    event.setInvalid("Country in use", ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+                    break;
+            }
+
+            return resultEvent;
+        }
+
+        @Override
+        protected void onCloneProperties(CountryDAO fromDAO, CountryDAO toDAO) {
+            String oldName = toDAO.name;
+            Locale oldLocale = toDAO.locale;
+            toDAO.name = fromDAO.name;
+            toDAO.locale = fromDAO.locale;
+            toDAO.originalValues.name = fromDAO.originalValues.name;
+            toDAO.originalValues.locale = fromDAO.originalValues.locale;
+            toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
+            toDAO.firePropertyChange(PROP_LOCALE, oldLocale, toDAO.locale);
+        }
+
+        @Override
+        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CountryDAO dao, ResultSet rs) throws SQLException {
+            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
+                private final String oldName = dao.name;
+                Locale oldLocale = dao.locale;
+
+                @Override
+                public void accept(PropertyChangeSupport t) {
+                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
+                    t.firePropertyChange(PROP_LOCALE, oldLocale, dao.locale);
+                }
+            };
+
+            String s = rs.getString(DbColumn.COUNTRY_NAME.toString());
+            dao.locale = Locale.forLanguageTag(s);
+            dao.name = CountryProperties.getCountryAndLanguageDisplayText(dao.locale);
+
+            return propertyChanges;
         }
 
         public ArrayList<CountryDAO> getAllCountries(Connection connection) throws SQLException {
@@ -371,14 +391,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<CountryDAO>, CountryDAO> sourceEvent, ActivityType activity) {
-            CountryModel model = (CountryModel) sourceEvent.getState().getModel();
+        protected CountryEvent createModelItemEvent(CountryEvent sourceEvent, ActivityType activity) {
+            CountryModel model = (CountryModel) sourceEvent.getModel();
             if (null != model) {
-                Event.fireEvent(CountryModel.FACTORY, new CountryEvent(model, sourceEvent.getSource(), CountryModel.FACTORY, activity));
-            } else {
-                Event.fireEvent(CountryModel.FACTORY, new CountryEvent(sourceEvent.getSource(), CountryModel.FACTORY,
-                        sourceEvent.getDataAccessObject(), activity));
+                return new CountryEvent(model, sourceEvent.getSource(), this, activity);
             }
+            return new CountryEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
         }
 
     }

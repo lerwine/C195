@@ -163,7 +163,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<UserDAO, UserModel> {
+    public final static class Factory extends FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> {
 
         // Singleton
         private Factory() {
@@ -174,7 +174,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public DaoFactory<UserDAO> getDaoFactory() {
+        public DaoFactory<UserDAO, UserEvent> getDaoFactory() {
             return UserDAO.FACTORY;
         }
 

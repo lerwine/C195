@@ -175,7 +175,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     /**
      * FX model for {@link scheduler.model.Address} objects.
-     * 
+     *
      * @param dao The backing {@link AddressDAO} object.
      */
     public AddressModel(AddressDAO dao) {
@@ -199,7 +199,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                         .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
                         .and(Bindings.selectBoolean(city, PROP_VALID)).and(Bindings.select(city, DataObject.PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
-    
+
     @Override
     public String getAddress1() {
         return address1.get();
@@ -389,7 +389,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel> {
+    public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> {
 
         // Singleton
         private Factory() {
@@ -398,16 +398,16 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 throw new IllegalStateException();
             }
         }
-        
+
         private void handleUpdateAddressFilter(AddressEvent event) {
-            AddressModel model = event.getState().getModel();
+            AddressModel model = event.getModel();
             if (null != model) {
                 Event.fireEvent(model, event);
             }
         }
 
         @Override
-        public DaoFactory<AddressDAO> getDaoFactory() {
+        public DaoFactory<AddressDAO, AddressEvent> getDaoFactory() {
             return AddressDAO.FACTORY;
         }
 

@@ -587,7 +587,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> {
+    public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
             super(AppointmentEvent.APPOINTMENT_MODEL_EVENT);
@@ -597,7 +597,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DaoFactory<AppointmentDAO> getDaoFactory() {
+        public DaoFactory<AppointmentDAO, AppointmentEvent> getDaoFactory() {
             return AppointmentDAO.FACTORY;
         }
 

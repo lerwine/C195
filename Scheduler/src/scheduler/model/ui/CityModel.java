@@ -185,7 +185,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<CityDAO, CityModel> {
+    public final static class Factory extends FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> {
 
         // Singleton
         private Factory() {
@@ -196,7 +196,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public DaoFactory<CityDAO> getDaoFactory() {
+        public DaoFactory<CityDAO, CityEvent> getDaoFactory() {
             return CityDAO.FACTORY;
         }
 

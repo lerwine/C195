@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import scheduler.AppointmentAlertManager;
 import scheduler.dao.filter.AppointmentFilter;
@@ -32,7 +31,6 @@ import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.ToStringPropertyBuilder;
@@ -40,7 +38,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.AppointmentEvent;
 import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.event.UserEvent;
 
 /**
@@ -352,7 +350,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     /**
      * Factory implementation for {@link AppointmentDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO, AppointmentEvent> {
 
 //        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -728,27 +726,44 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected String getDeleteDependencyMessage(AppointmentDAO dao, Connection connection) throws SQLException {
-            // No database dependencies
-            return "";
-        }
-
-        @Override
-        public <U extends ModelItemEvent<? extends FxRecordModel<AppointmentDAO>, AppointmentDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
-            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
-            if (!message.isEmpty()) {
-                event.setUnsuccessful("Cannot save address", message);
-                return;
+        @SuppressWarnings("incomplete-switch")
+        public AppointmentEvent save(AppointmentEvent event, Connection connection, boolean force) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
             }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            AppointmentDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Data access object already deleted");
+                case UNMODIFIED:
+                    if (!force) {
+                        event.setSucceeded();
+                        return event;
+                    }
+                    break;
+            }
+
             ICustomerDAO customer = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject()).getCustomer();
             if (customer instanceof CustomerDAO) {
                 CustomerEvent customerEvent = new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
                         (customer.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
                 CustomerDAO.FACTORY.save(customerEvent, connection, force);
-                ModelItemEvent.State state = customerEvent.getState();
-                if (!state.isSucceeded()) {
-                    event.setUnsuccessful(state.getSummaryTitle(), state.getDetailMessage());
-                    return;
+                switch (customerEvent.getStatus()) {
+                    case SUCCEEDED:
+                        break;
+                    case FAULTED:
+                        event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
+                        return event;
+                    case INVALID:
+                        event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
+                        return event;
+                    default:
+                        event.setCanceled();
+                        return event;
                 }
             }
             IUserDAO user = event.getDataAccessObject().getUser();
@@ -756,13 +771,45 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 UserEvent userEvent = new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
                         (customer.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
                 UserDAO.FACTORY.save(userEvent, connection, force);
-                ModelItemEvent.State state = userEvent.getState();
-                if (!state.isSucceeded()) {
-                    event.setUnsuccessful(state.getSummaryTitle(), state.getDetailMessage());
-                    return;
+                switch (userEvent.getStatus()) {
+                    case SUCCEEDED:
+                        break;
+                    case FAULTED:
+                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
+                        return event;
+                    case INVALID:
+                        event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
+                        return event;
+                    default:
+                        event.setCanceled();
+                        return event;
                 }
             }
-            super.save(event, connection, force);
+            return super.save(event, connection, force);
+        }
+
+        @Override
+        public AppointmentEvent delete(AppointmentEvent event, Connection connection) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            AppointmentEvent resultEvent = event;
+            AppointmentDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case NEW:
+                    throw new IllegalStateException("Data access object was never saved");
+                case DELETED:
+                    event.setSucceeded();
+                    break;
+                default:
+                    resultEvent = super.delete(event, connection);
+                    break;
+            }
+            return resultEvent;
         }
 
         @Override
@@ -809,29 +856,18 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             toDAO.firePropertyChange(PROP_END, oldEnd, toDAO.end);
         }
 
-        @SuppressWarnings("incomplete-switch")
-        String getSaveDbConflictMessage(AppointmentDAO dao, Connection connection) throws SQLException {
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalStateException("Data access object already deleted");
-            }
-            // Nothing needs to be unique.
-            return "";
-        }
-
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             return AppointmentAlertManager.INSTANCE.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
         @Override
-        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<AppointmentDAO>, AppointmentDAO> sourceEvent, ActivityType activity) {
-            AppointmentModel model = (AppointmentModel) sourceEvent.getState().getModel();
+        protected AppointmentEvent createModelItemEvent(AppointmentEvent sourceEvent, ActivityType activity) {
+            AppointmentModel model = (AppointmentModel) sourceEvent.getModel();
             if (null != model) {
-                Event.fireEvent(AppointmentModel.FACTORY, new AppointmentEvent(model, sourceEvent.getSource(), AppointmentModel.FACTORY, activity));
-            } else {
-                Event.fireEvent(AppointmentModel.FACTORY, new AppointmentEvent(sourceEvent.getSource(), AppointmentModel.FACTORY,
-                        sourceEvent.getDataAccessObject(), activity));
+                return new AppointmentEvent(model, sourceEvent.getSource(), this, activity);
             }
+            return new AppointmentEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
         }
 
     }

@@ -59,7 +59,6 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 import scheduler.view.event.AppointmentEvent;
-import scheduler.view.event.ModelItemEvent;
 import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
@@ -461,7 +460,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
+    protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 
@@ -487,7 +486,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @Override
     protected void onEditItem(AppointmentEvent event) {
         try {
-            EditAppointment.edit(event.getState().getModel(), getScene().getWindow());
+            EditAppointment.edit(event.getModel(), getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -529,22 +528,27 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
         @Override
         protected void cancelled() {
-            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            event.setCanceled();
             super.cancelled();
         }
 
         @Override
         protected void failed() {
-            event.setUnsuccessful("Operation failed", "Operation encountered an unexpected error");
+            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
             super.failed();
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
-            ModelItemEvent.State state = event.getState();
-            if (!state.isSucceeded()) {
-                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
+            switch (event.getStatus()) {
+                case CANCELED:
+                case EVALUATING:
+                case SUCCEEDED:
+                    break;
+                default:
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    break;
             }
         }
 

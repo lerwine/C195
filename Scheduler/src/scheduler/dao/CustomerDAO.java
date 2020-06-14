@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -29,7 +28,6 @@ import scheduler.model.CustomerRecord;
 import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
@@ -37,7 +35,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code customer} database table.
@@ -178,7 +176,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     /**
      * Factory implementation for {@link CustomerDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> {
 
 //        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -353,54 +351,24 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected String getDeleteDependencyMessage(CustomerDAO dao, Connection connection) throws SQLException {
-            if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
-                return "";
+        public CustomerEvent save(CustomerEvent event, Connection connection, boolean force) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
             }
-            int count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
-            switch (count) {
-                case 0:
-                    return "";
-                case 1:
-                    return "Customer is referenced by one appointment.";
-                default:
-                    return String.format("Customer is referenced by %d other appointments", count);
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
             }
-        }
-
-        @Override
-        public <U extends ModelItemEvent<? extends FxRecordModel<CustomerDAO>, CustomerDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
-            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
-            if (!message.isEmpty()) {
-                event.setUnsuccessful("Cannot save address", message);
-                return;
-            }
-            Address address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
-            if (address instanceof AddressDAO && (force || address.getRowState() != DataRowState.UNMODIFIED)) {
-                AddressEvent addressEvent = new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                        (address.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
-                AddressDAO.FACTORY.save(addressEvent, connection, force);
-                ModelItemEvent.State state = addressEvent.getState();
-                if (!state.isSucceeded()) {
-                    event.setUnsuccessful(state.getSummaryTitle(), state.getDetailMessage());
-                    return;
-                }
-            }
-            super.save(event, connection, force);
-        }
-
-        @SuppressWarnings("incomplete-switch")
-        String getSaveDbConflictMessage(CustomerDAO dao, Connection connection) throws SQLException {
-            IAddressDAO address;
+            CustomerDAO dao = event.getDataAccessObject();
             switch (dao.getRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Data access object already deleted");
                 case UNMODIFIED:
-                    address = dao.getAddress();
-                    if (address instanceof AddressDAO) {
-                        return AddressDAO.FACTORY.getSaveDbConflictMessage((AddressDAO) address, connection);
+                    if (!force) {
+                        event.setSucceeded();
+                        return event;
                     }
-                    return "";
+                    break;
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
@@ -438,24 +406,75 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 }
             }
             if (count > 0) {
-                return "Another customer has the same name";
+                event.setInvalid("Customer name already in use", "Another customer has the same name");
+                return event;
             }
-            address = dao.getAddress();
+
+            IAddressDAO address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
+
             if (address instanceof AddressDAO) {
-                return AddressDAO.FACTORY.getSaveDbConflictMessage((AddressDAO) address, connection);
+                AddressEvent addressEvent = new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                        (address.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                AddressDAO.FACTORY.save(addressEvent, connection, force);
+                switch (addressEvent.getStatus()) {
+                    case SUCCEEDED:
+                        break;
+                    case FAULTED:
+                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
+                        return event;
+                    case INVALID:
+                        event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
+                        return event;
+                    default:
+                        event.setCanceled();
+                        return event;
+                }
             }
-            return "";
+            return super.save(event, connection, force);
         }
 
         @Override
-        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<CustomerDAO>, CustomerDAO> sourceEvent, ActivityType activity) {
-            CustomerModel model = (CustomerModel) sourceEvent.getState().getModel();
-            if (null != model) {
-                Event.fireEvent(CustomerModel.FACTORY, new CustomerEvent(model, sourceEvent.getSource(), CustomerModel.FACTORY, activity));
-            } else {
-                Event.fireEvent(CustomerModel.FACTORY, new CustomerEvent(sourceEvent.getSource(), CustomerModel.FACTORY,
-                        sourceEvent.getDataAccessObject(), activity));
+        public CustomerEvent delete(CustomerEvent event, Connection connection) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
             }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            CustomerDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case NEW:
+                    throw new IllegalStateException("Data access object was never saved");
+                case DELETED:
+                    event.setSucceeded();
+                    return event;
+            }
+
+            CustomerEvent resultEvent = event;
+            int count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
+            switch (count) {
+                case 0:
+                    resultEvent = super.delete(event, connection);
+                    break;
+                case 1:
+                    event.setInvalid("Customer in use", "Customer is referenced by one appointment.");
+                    break;
+                default:
+                    event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
+                    break;
+            }
+
+            return resultEvent;
+        }
+
+        @Override
+        protected CustomerEvent createModelItemEvent(CustomerEvent sourceEvent, ActivityType activity) {
+            CustomerModel model = (CustomerModel) sourceEvent.getModel();
+            if (null != model) {
+                return new CustomerEvent(model, sourceEvent.getSource(), this, activity);
+            }
+            return new CustomerEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
         }
 
     }

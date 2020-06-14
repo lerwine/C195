@@ -28,7 +28,6 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.event.ModelItemEvent;
 import scheduler.view.event.UserEvent;
 import static scheduler.view.user.ManageUsersResourceKeys.*;
 
@@ -146,7 +145,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     @Override
     protected void onEditItem(UserEvent event) {
         try {
-            EditUser.edit(event.getState().getModel(), getScene().getWindow());
+            EditUser.edit(event.getModel(), getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -187,24 +186,29 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
         }
 
         @Override
-        protected void succeeded() {
-            super.succeeded();
-            ModelItemEvent.State state = event.getState();
-            if (!state.isSucceeded()) {
-                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
-            }
-        }
-
-        @Override
         protected void cancelled() {
-            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            event.setCanceled();
             super.cancelled();
         }
 
         @Override
         protected void failed() {
-            event.setUnsuccessful("Operation failed", "Operation encountered an unexpected error");
+            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
             super.failed();
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            switch (event.getStatus()) {
+                case CANCELED:
+                case EVALUATING:
+                case SUCCEEDED:
+                    break;
+                default:
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    break;
+            }
         }
 
         @Override

@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
@@ -25,14 +24,13 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.event.ActivityType;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.event.UserEvent;
 
 /**
@@ -176,7 +174,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
     /**
      * Factory implementation for {@link UserDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO, UserEvent> {
 
 //        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -330,23 +328,25 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        public <U extends ModelItemEvent<? extends FxRecordModel<UserDAO>, UserDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
-            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
-            if (!message.isEmpty()) {
-                event.setUnsuccessful("Cannot save address", message);
-                return;
-            }
-            IUserDAO.assertValidUser(event.getDataAccessObject());
-            super.save(event, connection, force);
-        }
-
         @SuppressWarnings("incomplete-switch")
-        String getSaveDbConflictMessage(UserDAO dao, Connection connection) throws SQLException {
+        public UserEvent save(UserEvent event, Connection connection, boolean force) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            UserDAO dao = event.getDataAccessObject();
             switch (dao.getRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Data access object already deleted");
                 case UNMODIFIED:
-                    return "";
+                    if (!force) {
+                        event.setSucceeded();
+                        return event;
+                    }
+                    break;
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
@@ -386,40 +386,58 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 }
             }
             if (count > 0) {
-                return "Another user has the same name";
+                event.setInvalid("User name already in use", "Another user has the same name");
+                return event;
             }
-            return "";
+            return super.save(event, connection, force);
         }
 
         @Override
-        protected String getDeleteDependencyMessage(UserDAO dao, Connection connection) throws SQLException {
-            if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
-                return "";
+        public UserEvent delete(UserEvent event, Connection connection) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            UserDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case NEW:
+                    throw new IllegalStateException("Data access object was never saved");
+                case DELETED:
+                    event.setSucceeded();
+                    return event;
             }
 
-            if (dao.getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey()) {
-                return "Cannot delete the currently signed on user.";
+            if (dao == Scheduler.getCurrentUser()) {
+                throw new UnsupportedOperationException("Cannot delete the current user");
             }
+
+            UserEvent resultEvent = event;
             int count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
             switch (count) {
                 case 0:
-                    return "";
+                    resultEvent = super.delete(event, connection);
+                    break;
                 case 1:
-                    return "User is referenced by one appointment.";
+                    event.setInvalid("User in use", "User is referenced by one appointment.");
+                    break;
                 default:
-                    return String.format("User is referenced by %d other appointments", count);
+                    event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
+                    break;
             }
+
+            return resultEvent;
         }
 
         @Override
-        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<UserDAO>, UserDAO> sourceEvent, ActivityType activity) {
-            UserModel model = (UserModel) sourceEvent.getState().getModel();
+        protected UserEvent createModelItemEvent(UserEvent sourceEvent, ActivityType activity) {
+            UserModel model = (UserModel) sourceEvent.getModel();
             if (null != model) {
-                Event.fireEvent(UserModel.FACTORY, new UserEvent(model, sourceEvent.getSource(), UserModel.FACTORY, activity));
-            } else {
-                Event.fireEvent(UserModel.FACTORY, new UserEvent(sourceEvent.getSource(), UserModel.FACTORY,
-                        sourceEvent.getDataAccessObject(), activity));
+                return new UserEvent(model, sourceEvent.getSource(), this, activity);
             }
+            return new UserEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
         }
 
     }

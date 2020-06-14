@@ -1,42 +1,46 @@
 package scheduler.view.event;
 
+import java.util.Objects;
 import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.util.DbConnector;
 
 /**
  * Base class for {@link FxRecordModel} save and delete events.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The {@link FxRecordModel} type.
- * @param <U> The {@link DataAccessObject} type.
+ * @param <M> The {@link FxRecordModel} type.
+ * @param <D> The {@link DataAccessObject} type.
  */
-public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataAccessObject> extends Event {
+public abstract class ModelItemEvent<M extends FxRecordModel<D>, D extends DataAccessObject> extends Event {
 
     private static final long serialVersionUID = -6832461936768738020L;
 
     public static final EventType<ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> MODEL_ITEM_EVENT
             = new EventType<>(ANY, "MODEL_ITEM_EVENT");
 
-    private final U dataAccessObject;
+    private final D dataAccessObject;
     private final ActivityType activity;
-    private final boolean confirmed;
-    private ModelItemEvent<T, U> previousCopy;
-    private ModelItemEvent<T, U> nextCopy;
-    private State state;
+    private final State state;
 
-    protected ModelItemEvent(ModelItemEvent<T, U> event, EventTarget target, EventType<? extends ModelItemEvent<T, U>> type,
-            ActivityType activity, boolean confirmed) {
-        super(event.getSource(), target, type);
-        state = new State(event.getState().getModel());
-        dataAccessObject = event.getDataAccessObject();
+    /**
+     * Creates a copy of an event with a new target, {@link EventType} and {@link ActivityType}.
+     *
+     * @param copyFrom The {@code ModelItemEvent} to copy.
+     * @param target The new target for the copied event.
+     * @param type The new event type for the copied event.
+     * @param activity The new {@link ActivityType} for the copied event.
+     */
+    protected ModelItemEvent(ModelItemEvent<M, D> copyFrom, EventTarget target, EventType<? extends ModelItemEvent<M, D>> type,
+            ActivityType activity) {
+        super(copyFrom.getSource(), target, type);
+        state = new State(copyFrom.state.model);
+        dataAccessObject = copyFrom.getDataAccessObject();
         this.activity = activity;
-        this.confirmed = confirmed;
     }
-    
+
     /**
      * Creates a copy of a {@code ModelItemEvent} with a new source and target.
      *
@@ -44,19 +48,11 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
      * @param source The new source for the copied event.
      * @param target The new target for the copied event.
      */
-    @SuppressWarnings("LeakingThisInConstructor")
-    protected ModelItemEvent(ModelItemEvent<T, U> copyFrom, Object source, EventTarget target) {
+    protected ModelItemEvent(ModelItemEvent<M, D> copyFrom, Object source, EventTarget target) {
         super(source, target, copyFrom.getEventType());
-        synchronized (copyFrom) {
-            if (null != (nextCopy = (previousCopy = copyFrom).nextCopy)) {
-                nextCopy.previousCopy = this;
-            }
-            copyFrom.nextCopy = this;
-        }
         state = copyFrom.state;
         dataAccessObject = copyFrom.dataAccessObject;
         activity = copyFrom.activity;
-        confirmed = copyFrom.confirmed;
     }
 
     /**
@@ -69,13 +65,12 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
      * @param activity The activity associated with the event.
      * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
      */
-    protected ModelItemEvent(T model, Object source, EventTarget target, EventType<? extends ModelItemEvent<T, U>> type, ActivityType activity,
+    protected ModelItemEvent(M model, Object source, EventTarget target, EventType<? extends ModelItemEvent<M, D>> type, ActivityType activity,
             boolean confirmed) {
         super((null == source) ? model : source, (null == target) ? model.dataObject() : target, type);
         state = new State(model);
         dataAccessObject = model.dataObject();
         this.activity = activity;
-        this.confirmed = confirmed;
     }
 
     /**
@@ -88,30 +83,19 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
      * @param activity The activity associated with the event.
      * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
      */
-    protected ModelItemEvent(Object source, EventTarget target, U dao, EventType<? extends ModelItemEvent<T, U>> type, ActivityType activity, boolean confirmed) {
+    protected ModelItemEvent(Object source, EventTarget target, D dao, EventType<? extends ModelItemEvent<M, D>> type, ActivityType activity, boolean confirmed) {
         super((null == source) ? dao : source, target, type);
         state = new State(null);
         dataAccessObject = dao;
         this.activity = activity;
-        this.confirmed = confirmed;
     }
 
-    public State getState() {
-        return state;
-    }
-
-    public void setUnsuccessful(String title, String message) {
-        state.succeeded = false;
-        state.summaryTitle = (null == title || title.trim().isEmpty()) ? "" : title;
-        state.detailMessage = (null == message || message.trim().isEmpty()) ? "" : message;
-    }
-        
     /**
      * Gets the underlying {@link DataAccessObject} associated with the {@code ModelItemEvent}.
      *
      * @return The underlying {@link DataAccessObject} associated with the {@code ModelItemEvent}.
      */
-    public U getDataAccessObject() {
+    public D getDataAccessObject() {
         return dataAccessObject;
     }
 
@@ -119,64 +103,92 @@ public abstract class ModelItemEvent<T extends FxRecordModel<U>, U extends DataA
         return activity;
     }
 
-    public boolean isConfirmed() {
-        return confirmed;
+    public M getModel() {
+        return state.model;
     }
 
-    public abstract FxRecordModel.ModelFactory<U, T> getModelFactory();
+    public void setModel(M model) {
+        state.setModel(model);
+    }
+
+//    public DbConnector getDbConnector() {
+//        return state.dbConnector;
+//    }
+//
+//    public void setDbConnector(DbConnector dbConnector) {
+//        state.setDbConnector(dbConnector);
+//    }
+    public String getSummaryTitle() {
+        return state.summaryTitle;
+    }
+
+    public String getDetailMessage() {
+        return state.detailMessage;
+    }
+
+    public EventEvaluationStatus getStatus() {
+        return state.status;
+    }
+
+    public void setSucceeded() {
+        state.setStatus(EventEvaluationStatus.SUCCEEDED, null, null);
+    }
+
+    public void setCanceled() {
+        state.setStatus(EventEvaluationStatus.CANCELED, null, null);
+    }
+
+    public void setFaulted(String title, String message) {
+        state.setStatus(EventEvaluationStatus.FAULTED, title, message);
+    }
+
+    public void setInvalid(String title, String message) {
+        state.setStatus(EventEvaluationStatus.INVALID, title, message);
+    }
+
+    public abstract <E extends ModelItemEvent<M, D>> FxRecordModel.ModelFactory<D, M, E> getModelFactory();
 
     @Override
     @SuppressWarnings("unchecked")
-    public EventType<? extends ModelItemEvent<T, U>> getEventType() {
-        return (EventType<? extends ModelItemEvent<T, U>>) super.getEventType();
+    public EventType<? extends ModelItemEvent<M, D>> getEventType() {
+        return (EventType<? extends ModelItemEvent<M, D>>) super.getEventType();
     }
 
-    public class State {
-        private T model;
-        private DbConnector dbConnector;
+    private class State {
+
+        private M model;
+//        private DbConnector dbConnector;
         private String summaryTitle;
         private String detailMessage;
-        private boolean succeeded;
+        private EventEvaluationStatus status;
 
-        private State(T model) {
+        private State(M model) {
             this.model = model;
             summaryTitle = "";
             detailMessage = "";
-            succeeded = false;
+            status = EventEvaluationStatus.EVALUATING;
         }
 
-        public T getModel() {
-            return model;
-        }
-
-        public void setModel(T model) {
+        public synchronized void setModel(M model) {
+            if (null != model) {
+                throw new IllegalStateException();
+            }
+            if (model.dataObject() != dataAccessObject) {
+                throw new IllegalArgumentException();
+            }
             this.model = model;
         }
 
-        public DbConnector getDbConnector() {
-            return dbConnector;
+//        public synchronized void setDbConnector(DbConnector dbConnector) {
+//            this.dbConnector = dbConnector;
+//        }
+        public synchronized void setStatus(EventEvaluationStatus status, String title, String message) {
+            if (status == EventEvaluationStatus.EVALUATING) {
+                this.status = Objects.requireNonNull(status);
+                summaryTitle = (null == title || title.trim().isEmpty()) ? "" : title;
+                detailMessage = (null == message || message.trim().isEmpty()) ? "" : message;
+            }
         }
-
-        public void setDbConnector(DbConnector dbConnector) {
-            this.dbConnector = dbConnector;
-        }
-
-        public String getSummaryTitle() {
-            return summaryTitle;
-        }
-
-        public String getDetailMessage() {
-            return detailMessage;
-        }
-        
-        public boolean isSucceeded() {
-            return succeeded;
-        }
-
-        public void setSucceeded(boolean succeeded) {
-            this.succeeded = succeeded;
-        }
-
 
     }
 }

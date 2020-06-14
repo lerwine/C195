@@ -23,11 +23,11 @@ import scheduler.view.event.ModelItemEvent;
  */
 public class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>> extends TableCell<T, T> {
 
-    private final FxRecordModel.ModelFactory<? extends DataAccessObject, T> factory;
+    private final FxRecordModel.ModelFactory<? extends DataAccessObject, T, ? extends ModelItemEvent<T, ? extends DataAccessObject>> factory;
     private final HBox graphic;
     private final ObjectProperty<EventHandler<ModelItemEvent<T, ? extends DataAccessObject>>> onItemEdit = new SimpleObjectProperty<>();
 
-    public ItemEditTableCell(FxRecordModel.ModelFactory<? extends DataAccessObject, T> factory) {
+    public ItemEditTableCell(FxRecordModel.ModelFactory<? extends DataAccessObject, T, ? extends ModelItemEvent<T, ? extends DataAccessObject>> factory) {
         this.factory = factory;
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));
         graphic.setSpacing(8);

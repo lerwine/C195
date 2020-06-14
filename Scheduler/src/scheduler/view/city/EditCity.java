@@ -68,7 +68,7 @@ import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.AddressEvent;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.CityEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -81,7 +81,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel> {
+public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel, CityEvent> {
 
     private static final Object TARGET_COUNTRY_KEY = new Object();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
@@ -226,7 +226,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML
     void onItemActionRequest(AddressEvent event) {
         AddressModel item;
-        if (event.isConsumed() || null == (item = event.getState().getModel())) {
+        if (event.isConsumed() || null == (item = event.getModel())) {
             return;
         }
         switch (event.getActivity()) {
@@ -444,7 +444,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @Override
-    public FxRecordModel.ModelFactory<CityDAO, CityModel> modelFactory() {
+    public FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
         return CityModel.FACTORY;
     }
 
@@ -594,24 +594,29 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
 
         @Override
-        protected void succeeded() {
-            super.succeeded();
-            ModelItemEvent.State state = event.getState();
-            if (!state.isSucceeded()) {
-                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
-            }
+        protected void cancelled() {
+            event.setCanceled();
+            super.cancelled();
         }
 
         @Override
         protected void failed() {
-            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
+            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
             super.failed();
         }
 
         @Override
-        protected void cancelled() {
-            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
-            super.cancelled();
+        protected void succeeded() {
+            super.succeeded();
+            switch (event.getStatus()) {
+                case CANCELED:
+                case EVALUATING:
+                case SUCCEEDED:
+                    break;
+                default:
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    break;
+            }
         }
 
         @Override

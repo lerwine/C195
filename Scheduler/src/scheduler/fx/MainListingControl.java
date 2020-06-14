@@ -40,10 +40,10 @@ import scheduler.view.event.ModelItemEvent;
  *
  * @param <D> Data access object type wrapped by the model.
  * @param <M> The FX model type.
- * @param <T> The data object event type.
+ * @param <E> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, T extends ModelItemEvent<M, D>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelItemEvent<M, D>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
@@ -114,7 +114,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(T event) {
+    private void onItemActionRequest(E event) {
         if (event.isConsumed()) {
             return;
         }
@@ -205,7 +205,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            FxRecordModel.ModelFactory<D, M> factory = getModelFactory();
+            FxRecordModel.ModelFactory<D, M, ? extends ModelItemEvent<M, D>> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -214,7 +214,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         return new LoadItemsTask(filter);
     }
 
-    protected void onInsertedEvent(T event) {
+    protected void onInsertedEvent(E event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
@@ -226,11 +226,11 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         }
     }
 
-    protected void onUpdatedEvent(T event) {
+    protected void onUpdatedEvent(E event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         D dao = event.getDataAccessObject();
         // XXX: Check to see if we need to get/update model
-        FxRecordModel.ModelFactory<D, M> mf = getModelFactory();
+        FxRecordModel.ModelFactory<D, M, ? extends ModelItemEvent<M, D>> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
@@ -246,7 +246,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         }
     }
 
-    protected void onDeletedEvent(T event) {
+    protected void onDeletedEvent(E event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (!items.isEmpty()) {
             D dao = event.getDataAccessObject();
@@ -257,7 +257,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract Comparator<? super D> getComparator();
 
-    protected abstract FxRecordModel.ModelFactory<D, M> getModelFactory();
+    protected abstract FxRecordModel.ModelFactory<D, M, E> getModelFactory();
 
     protected abstract String getLoadingTitle();
 
@@ -265,15 +265,15 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract void onNewItem();
 
-    protected abstract void onEditItem(T event);
+    protected abstract void onEditItem(E event);
 
-    protected abstract void onDeleteItem(T event);
+    protected abstract void onDeleteItem(E event);
 
-    protected abstract EventType<T> getInsertedEventType();
+    protected abstract EventType<E> getInsertedEventType();
 
-    protected abstract EventType<T> getUpdatedEventType();
+    protected abstract EventType<E> getUpdatedEventType();
 
-    protected abstract EventType<T> getDeletedEventType();
+    protected abstract EventType<E> getDeletedEventType();
 
     protected class LoadItemsTask extends Task<List<D>> {
 

@@ -52,6 +52,6 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
         return itemEditTableCell;
     }
 
-    protected abstract FxRecordModel.ModelFactory<? extends DataAccessObject, T> getFactory();
+    protected abstract FxRecordModel.ModelFactory<? extends DataAccessObject, T, ? extends ModelItemEvent<T, ? extends DataAccessObject>> getFactory();
 
 }

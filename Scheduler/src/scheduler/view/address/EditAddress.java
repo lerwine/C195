@@ -71,6 +71,7 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.event.ActivityType;
+import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CustomerEvent;
 import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
@@ -85,7 +86,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
-public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel> {
+public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel, AddressEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINER);
 
@@ -233,7 +234,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     @FXML
     private void onItemActionRequest(CustomerEvent event) {
         CustomerModel item;
-        if (event.isConsumed() || null == (item = event.getState().getModel())) {
+        if (event.isConsumed() || null == (item = event.getModel())) {
             return;
         }
         switch (event.getActivity()) {
@@ -449,7 +450,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public FxRecordModel.ModelFactory<AddressDAO, AddressModel> modelFactory() {
+    public FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
         return AddressModel.FACTORY;
     }
 
@@ -708,27 +709,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             this.event = event;
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            ModelItemEvent.State state = event.getState();
-            if (!state.isSucceeded()) {
-                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
-            }
-        }
-
-        @Override
-        protected void failed() {
-            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
-            super.cancelled();
         }
 
         @Override

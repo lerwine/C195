@@ -62,7 +62,7 @@ import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.AppointmentEvent;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.UserEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
@@ -76,7 +76,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel> {
+public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel, UserEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 
@@ -192,7 +192,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     @FXML
     private void onItemActionRequest(AppointmentEvent event) {
         AppointmentModel item;
-        if (event.isConsumed() || null == (item = event.getState().getModel())) {
+        if (event.isConsumed() || null == (item = event.getModel())) {
             return;
         }
         switch (event.getActivity()) {
@@ -403,7 +403,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @Override
-    public FxRecordModel.ModelFactory<UserDAO, UserModel> modelFactory() {
+    public FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
         return UserModel.FACTORY;
     }
 
@@ -452,24 +452,29 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
 
         @Override
-        protected void succeeded() {
-            super.succeeded();
-            ModelItemEvent.State state = event.getState();
-            if (!state.isSucceeded()) {
-                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
-            }
+        protected void cancelled() {
+            event.setCanceled();
+            super.cancelled();
         }
 
         @Override
         protected void failed() {
-            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
+            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
             super.failed();
         }
 
         @Override
-        protected void cancelled() {
-            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
-            super.cancelled();
+        protected void succeeded() {
+            super.succeeded();
+            switch (event.getStatus()) {
+                case CANCELED:
+                case EVALUATING:
+                case SUCCEEDED:
+                    break;
+                default:
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    break;
+            }
         }
 
         @Override

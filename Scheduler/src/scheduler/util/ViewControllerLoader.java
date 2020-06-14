@@ -23,7 +23,6 @@ public class ViewControllerLoader {
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINER);
 
     // private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
-
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
             ResourceBundle resourceBundle) throws IOException {
         String path = AppResources.getFXMLResourceName(controllerClass);
@@ -83,7 +82,7 @@ public class ViewControllerLoader {
         return loadView(controller, view, ResourceBundleHelper.getBundle(controller.getClass()));
     }
 
-    public static <T extends Node> void initializeCustomControl(T customControl, ResourceBundle resources) throws IOException {
+    public static final <T extends Node> void initializeCustomControl(T customControl, ResourceBundle resources) throws IOException {
         @SuppressWarnings("unchecked")
         Class<T> c = (Class<T>) customControl.getClass();
         String path = AppResources.getFXMLResourceName(c);
@@ -104,7 +103,7 @@ public class ViewControllerLoader {
      * @param customControl The custom control to be initialized.
      * @throws IOException If unable to load the FXML.
      */
-    public static <T extends Node> void initializeCustomControl(T customControl) throws IOException {
+    public static final <T extends Node> void initializeCustomControl(T customControl) throws IOException {
         initializeCustomControl(customControl, null);
     }
 

@@ -13,7 +13,6 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.ZoneIdMappings.fromZoneId;
@@ -33,7 +32,6 @@ import scheduler.model.Country;
 import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
@@ -47,7 +45,7 @@ import scheduler.view.country.EditCountryResourceKeys;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.CityEvent;
 import scheduler.view.event.CountryEvent;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code city} database table.
@@ -172,7 +170,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     /**
      * Factory implementation for {@link CityDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO, CityEvent> {
 
 //        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -237,99 +235,25 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected String getDeleteDependencyMessage(CityDAO dao, Connection connection) throws SQLException {
-            if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
-                return "";
-            }
-            int count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
-            switch (count) {
-                case 0:
-                    return "";
-                case 1:
-                    return ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE);
-                default:
-                    return ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count);
-            }
-        }
-
-        @Override
-        public <U extends ModelItemEvent<? extends FxRecordModel<CityDAO>, CityDAO>> void save(U event, Connection connection, boolean force)
-                throws SQLException {
-            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
-            if (!message.isEmpty()) {
-                event.setUnsuccessful("Cannot save address", message);
-                return;
-            }
-            ICountryDAO country = ICityDAO.assertValidCity(event.getDataAccessObject()).country;
-            if (country instanceof CountryDAO) {
-                CountryEvent countryEvent = new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                        (country.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
-                CountryDAO.FACTORY.save(countryEvent, connection, force);
-                ModelItemEvent.State state = countryEvent.getState();
-                if (!state.isSucceeded()) {
-                    event.setUnsuccessful(state.getSummaryTitle(), state.getDetailMessage());
-                    return;
-                }
-            }
-            super.save(event, connection, force);
-        }
-
-        @Override
-        protected void onCloneProperties(CityDAO fromDAO, CityDAO toDAO) {
-            String oldName = toDAO.name;
-            ICountryDAO oldCountry = toDAO.country;
-            TimeZone oldZoneId = toDAO.timeZone;
-            toDAO.name = fromDAO.name;
-            toDAO.country = fromDAO.country;
-            toDAO.timeZone = fromDAO.timeZone;
-            toDAO.originalValues.name = fromDAO.originalValues.name;
-            toDAO.originalValues.country = fromDAO.originalValues.country;
-            toDAO.originalValues.timeZone = fromDAO.originalValues.timeZone;
-            toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
-            toDAO.firePropertyChange(PROP_TIMEZONE, oldZoneId, toDAO.timeZone);
-            toDAO.firePropertyChange(PROP_COUNTRY, oldCountry, toDAO.country);
-        }
-
-        @Override
-        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CityDAO dao, ResultSet rs) throws SQLException {
-            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
-                private final String oldName = dao.name;
-                TimeZone oldZoneId = dao.timeZone;
-                private final Country oldCountry = dao.country;
-
-                @Override
-                public void accept(PropertyChangeSupport t) {
-                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
-                    t.firePropertyChange(PROP_TIMEZONE, oldZoneId, dao.timeZone);
-                    t.firePropertyChange(PROP_COUNTRY, oldCountry, dao.country);
-                }
-            };
-
-            String s = rs.getString(DbColumn.CITY_NAME.toString());
-            int i = s.lastIndexOf(";");
-            if (i < 0) {
-                dao.name = s;
-                dao.timeZone = null;
-            } else {
-                dao.name = s.substring(0, i).trim();
-                dao.timeZone = TimeZone.getTimeZone(ZoneId.of(toZoneId(s.substring(i + 1).trim())));
-            }
-            dao.country = CountryDAO.FACTORY.fromJoinedResultSet(rs);
-            return propertyChanges;
-        }
-
         @SuppressWarnings("incomplete-switch")
-        String getSaveDbConflictMessage(CityDAO dao, Connection connection) throws SQLException {
-            ICountryDAO country;
+        public CityEvent save(CityEvent event, Connection connection, boolean force) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            CityDAO dao = event.getDataAccessObject();
             switch (dao.getRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Data access object already deleted");
                 case UNMODIFIED:
-                    country = dao.getCountry();
-                    if (country instanceof CountryDAO) {
-                        return CountryDAO.FACTORY.getSaveDbConflictMessage((CountryDAO) country, connection);
+                    if (!force) {
+                        event.setSucceeded();
+                        return event;
                     }
-                    return "";
+                    break;
             }
 
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
@@ -417,16 +341,109 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                     }
                 }
                 if (count > 0) {
-                    return ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE);
+                    event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                    return event;
                 }
             }
 
-            country = dao.getCountry();
+            ICountryDAO country = ICityDAO.assertValidCity(event.getDataAccessObject()).country;
             if (country instanceof CountryDAO) {
-                return CountryDAO.FACTORY.getSaveDbConflictMessage((CountryDAO) country, connection);
+                CountryEvent countryEvent = new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                        (country.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                CountryDAO.FACTORY.save(countryEvent, connection, force);
+                switch (countryEvent.getStatus()) {
+                    case SUCCEEDED:
+                        break;
+                    case FAULTED:
+                        event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
+                        return event;
+                    case INVALID:
+                        event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
+                        return event;
+                    default:
+                        event.setCanceled();
+                        return event;
+                }
+            }
+            return super.save(event, connection, force);
+        }
+
+        @Override
+        public CityEvent delete(CityEvent event, Connection connection) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            CityDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case NEW:
+                    throw new IllegalStateException("Data access object was never saved");
+                case DELETED:
+                    event.setSucceeded();
+                    return event;
             }
 
-            return "";
+            CityEvent resultEvent = event;
+            int count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
+            switch (count) {
+                case 0:
+                    resultEvent = super.delete(event, connection);
+                    break;
+                case 1:
+                    event.setInvalid("City in use", ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
+                    break;
+                default:
+                    event.setInvalid("City in use", ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
+                    break;
+            }
+            return resultEvent;
+        }
+
+        @Override
+        protected void onCloneProperties(CityDAO fromDAO, CityDAO toDAO) {
+            String oldName = toDAO.name;
+            ICountryDAO oldCountry = toDAO.country;
+            TimeZone oldZoneId = toDAO.timeZone;
+            toDAO.name = fromDAO.name;
+            toDAO.country = fromDAO.country;
+            toDAO.timeZone = fromDAO.timeZone;
+            toDAO.originalValues.name = fromDAO.originalValues.name;
+            toDAO.originalValues.country = fromDAO.originalValues.country;
+            toDAO.originalValues.timeZone = fromDAO.originalValues.timeZone;
+            toDAO.firePropertyChange(PROP_NAME, oldName, toDAO.name);
+            toDAO.firePropertyChange(PROP_TIMEZONE, oldZoneId, toDAO.timeZone);
+            toDAO.firePropertyChange(PROP_COUNTRY, oldCountry, toDAO.country);
+        }
+
+        @Override
+        protected Consumer<PropertyChangeSupport> onInitializeFromResultSet(CityDAO dao, ResultSet rs) throws SQLException {
+            Consumer<PropertyChangeSupport> propertyChanges = new Consumer<PropertyChangeSupport>() {
+                private final String oldName = dao.name;
+                TimeZone oldZoneId = dao.timeZone;
+                private final Country oldCountry = dao.country;
+
+                @Override
+                public void accept(PropertyChangeSupport t) {
+                    t.firePropertyChange(PROP_NAME, oldName, dao.name);
+                    t.firePropertyChange(PROP_TIMEZONE, oldZoneId, dao.timeZone);
+                    t.firePropertyChange(PROP_COUNTRY, oldCountry, dao.country);
+                }
+            };
+
+            String s = rs.getString(DbColumn.CITY_NAME.toString());
+            int i = s.lastIndexOf(";");
+            if (i < 0) {
+                dao.name = s;
+                dao.timeZone = null;
+            } else {
+                dao.name = s.substring(0, i).trim();
+                dao.timeZone = TimeZone.getTimeZone(ZoneId.of(toZoneId(s.substring(i + 1).trim())));
+            }
+            dao.country = CountryDAO.FACTORY.fromJoinedResultSet(rs);
+            return propertyChanges;
         }
 
         public ArrayList<CityDAO> getByCountry(Connection connection, int countryId) throws SQLException {
@@ -508,14 +525,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<CityDAO>, CityDAO> sourceEvent, ActivityType activity) {
-            CityModel model = (CityModel) sourceEvent.getState().getModel();
+        protected CityEvent createModelItemEvent(CityEvent sourceEvent, ActivityType activity) {
+            CityModel model = (CityModel) sourceEvent.getModel();
             if (null != model) {
-                Event.fireEvent(CityModel.FACTORY, new CityEvent(model, sourceEvent.getSource(), CityModel.FACTORY, activity));
-            } else {
-                Event.fireEvent(CityModel.FACTORY, new CityEvent(sourceEvent.getSource(), CityModel.FACTORY,
-                        sourceEvent.getDataAccessObject(), activity));
+                return new CityEvent(model, sourceEvent.getSource(), this, activity);
             }
+            return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
         }
 
     }

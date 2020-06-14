@@ -65,7 +65,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelItemEvent<U, T>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
@@ -82,9 +82,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelItemEvent<U, T>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
-        EditItem<T, U, S> result = new EditItem<>(editorRegion, model, keepOpen);
+        EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
         try {
             AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
@@ -111,7 +111,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelItemEvent<U, T>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -191,8 +191,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     void onDeleteButtonAction(ActionEvent event) {
-        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
-        ModelItemEvent<U, T> deleteEvent = factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.DELETING);
+        FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
+        E deleteEvent = factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.DELETING);
         editorRegion.fireEvent(deleteEvent);
         if (!deleteEvent.isConsumed()) {
             Stage stage = (Stage) getScene().getWindow();
@@ -209,9 +209,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     void onSaveButtonAction(ActionEvent event) {
-        FxRecordModel.ModelFactory<T, U> factory = editorRegion.modelFactory();
+        FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
         // FIXME: Need to find a good way to ensure the model is updated after DAO is updated.. Perhaps passing event instead of DAO
-        ModelItemEvent<U, T> updateEvent = (model.isNewRow())
+        E updateEvent = (model.isNewRow())
                 ? factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.INSERTING)
                 : factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.UPDATING);
         editorRegion.fireEvent(updateEvent);
@@ -285,14 +285,14 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
      * @param <U> The {@link FxRecordModel} type.
      */
-    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>> {
+    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends ModelItemEvent<U, T>> {
 
         /**
          * Gets the factory object for managing the current {@link FxRecordModel}.
          *
          * @return The factory object for managing the current {@link FxRecordModel}.
          */
-        FxRecordModel.ModelFactory<T, U> modelFactory();
+        FxRecordModel.ModelFactory<T, U, E> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.
@@ -335,11 +335,11 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     private class SaveTask extends Task<Void> {
 
-        private final ModelItemEvent<U, T> event;
-        private final DaoFactory<T> daoFactory;
+        private final E event;
+        private final DaoFactory<T, E> daoFactory;
         private final boolean closeOnSuccess;
 
-        SaveTask(ModelItemEvent<U, T> event) {
+        SaveTask(E event) {
             this.event = event;
             closeOnSuccess = event.getActivity() != ActivityType.INSERTING || !keepOpen;
             updateTitle(resources.getString(RESOURCEKEY_SAVINGCHANGES));
@@ -348,26 +348,31 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         protected void succeeded() {
-            super.succeeded();
-            ModelItemEvent.State state = event.getState();
-            if (state.isSucceeded()) {
-                if (closeOnSuccess) {
-                    getScene().getWindow().hide();
-                }
-            } else {
-                AlertHelper.showWarningAlert(getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
+            switch (event.getStatus()) {
+                case CANCELED:
+                case EVALUATING:
+                    break;
+                case SUCCEEDED:
+                    if (closeOnSuccess) {
+                        getScene().getWindow().hide();
+                    }
+                    break;
+                default:
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    break;
             }
+            super.succeeded();
         }
 
         @Override
         protected void failed() {
-            event.setUnsuccessful("Operation failed", "Delete operation encountered an unexpected error");
+            event.setFaulted("Operation failed", "Delete operation encountered an unexpected error");
             super.failed();
         }
 
         @Override
         protected void cancelled() {
-            event.setUnsuccessful("Operation canceled", "Delete operation was canceled");
+            event.setCanceled();
             super.cancelled();
         }
 
@@ -386,10 +391,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     private class DeleteTask extends Task<Void> {
 
-        private final ModelItemEvent<U, T> event;
-        private final DaoFactory<T> daoFactory;
+        private final E event;
+        private final DaoFactory<T, E> daoFactory;
 
-        DeleteTask(ModelItemEvent<U, T> event) {
+        DeleteTask(E event) {
             this.event = event;
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
             daoFactory = editorRegion.modelFactory().getDaoFactory();
@@ -398,11 +403,16 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         protected void succeeded() {
-            ModelItemEvent.State state = event.getState();
-            if (state.isSucceeded()) {
-                getScene().getWindow().hide();
-            } else {
-                AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG, state.getSummaryTitle(), state.getDetailMessage());
+            switch (event.getStatus()) {
+                case CANCELED:
+                case EVALUATING:
+                    break;
+                case SUCCEEDED:
+                    getScene().getWindow().hide();
+                    break;
+                default:
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    break;
             }
             super.succeeded();
         }

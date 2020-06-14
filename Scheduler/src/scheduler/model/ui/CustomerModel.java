@@ -255,7 +255,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel> {
+    public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
 
         private Factory() {
             super(CustomerEvent.CUSTOMER_MODEL_EVENT);
@@ -265,7 +265,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public DaoFactory<CustomerDAO> getDaoFactory() {
+        public DaoFactory<CustomerDAO, CustomerEvent> getDaoFactory() {
             return CustomerDAO.FACTORY;
         }
 

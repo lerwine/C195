@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.Event;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -29,7 +28,6 @@ import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
@@ -37,7 +35,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CityEvent;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code address} database table.
@@ -221,8 +219,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     /**
      * Factory implementation for {@link AddressDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO, AddressEvent> {
 //        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+
         private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
@@ -285,19 +284,111 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        public <U extends ModelItemEvent<? extends FxRecordModel<AddressDAO>, AddressDAO>> void save(U event, Connection connection, boolean force) throws SQLException {
-            String message = getSaveDbConflictMessage(event.getDataAccessObject(), connection);
-            if (!message.isEmpty()) {
-                event.setUnsuccessful("Cannot save address", message);
-                return;
+        public AddressEvent save(AddressEvent event, Connection connection, boolean force) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
             }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            AddressDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Data access object already deleted");
+                case UNMODIFIED:
+                    if (!force) {
+                        event.setSucceeded();
+                        return event;
+                    }
+                    break;
+            }
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
+                    .append(") FROM ").append(DbTable.ADDRESS.getDbName())
+                    .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
+            if (dao.address1.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS1.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.ADDRESS1.getDbName()).append(")=?");
+            }
+            if (dao.address2.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS2.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.ADDRESS2.getDbName()).append(")=?");
+            }
+            if (dao.postalCode.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=?");
+            }
+            if (dao.phone.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.PHONE.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.PHONE.getDbName()).append(")=?");
+            }
+            if (dao.getRowState() != DataRowState.NEW) {
+                sb.append(" AND ").append(DbColumn.ADDRESS_ID.getDbName()).append("<>?");
+            }
+            String sql = sb.toString();
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, ModelHelper.getPrimaryKey(dao.getCity()));
+                int index = 2;
+                if (!dao.address1.isEmpty()) {
+                    ps.setString(index++, dao.address1.toLowerCase());
+                }
+                if (!dao.address2.isEmpty()) {
+                    ps.setString(index++, dao.address2.toLowerCase());
+                }
+                if (!dao.postalCode.isEmpty()) {
+                    ps.setString(index++, dao.postalCode.toLowerCase());
+                }
+                if (!dao.phone.isEmpty()) {
+                    ps.setString(index++, dao.phone.toLowerCase());
+                }
+                if (dao.getRowState() != DataRowState.NEW) {
+                    ps.setInt(index, dao.getPrimaryKey());
+                }
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                }
+            }
+            if (count > 0) {
+                event.setInvalid("Address already exusts", "Another matching address exists");
+                return event;
+            }
+
             ICityDAO city = IAddressDAO.assertValidAddress(event.getDataAccessObject()).city;
             if (city instanceof CityDAO) {
                 CityEvent cityEvent = new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
                         (city.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
                 CityDAO.FACTORY.save(cityEvent, connection, force);
+                switch (cityEvent.getStatus()) {
+                    case SUCCEEDED:
+                        break;
+                    case FAULTED:
+                        event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
+                        return event;
+                    case INVALID:
+                        event.setInvalid(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
+                        return event;
+                    default:
+                        event.setCanceled();
+                        return event;
+                }
             }
-            super.save(event, connection, force);
+            return super.save(event, connection, force);
         }
 
         @Override
@@ -366,105 +457,38 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected String getDeleteDependencyMessage(AddressDAO dao, Connection connection) throws SQLException {
-            if (null == dao || !DataRowState.existsInDb(dao.getRowState())) {
-                return "";
+        public AddressEvent delete(AddressEvent event, Connection connection) throws SQLException {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            if (event.isConsumed()) {
+                event.setCanceled();
+                return event;
+            }
+            AddressDAO dao = event.getDataAccessObject();
+            switch (dao.getRowState()) {
+                case NEW:
+                    throw new IllegalStateException("Data access object was never saved");
+                case DELETED:
+                    event.setSucceeded();
+                    return event;
             }
 
+            AddressEvent resultEvent = event;
             int count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
             switch (count) {
                 case 0:
-                    return "";
+                    resultEvent = super.delete(event, connection);
+                    break;
                 case 1:
-                    return "Address is referenced by one customer.";
+                    event.setInvalid("Address in use", "Address is referenced by one customer.");
+                    break;
                 default:
-                    return String.format("Address is referenced by %d other customers", count);
-            }
-        }
-
-        @SuppressWarnings("incomplete-switch")
-        String getSaveDbConflictMessage(AddressDAO dao, Connection connection) throws SQLException {
-            ICityDAO city;
-            switch (dao.getRowState()) {
-                case DELETED:
-                    throw new IllegalStateException("Data access object already deleted");
-                case UNMODIFIED:
-                    city = dao.getCity();
-                    if (city instanceof CityDAO) {
-                        return CityDAO.FACTORY.getSaveDbConflictMessage((CityDAO) city, connection);
-                    }
-                    return "";
+                    event.setInvalid("Address in use", String.format("Address is referenced by %d other customers", count));
+                    break;
             }
 
-            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
-                    .append(") FROM ").append(DbTable.ADDRESS.getDbName())
-                    .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
-            if (dao.address1.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS1.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.ADDRESS1.getDbName()).append(")=?");
-            }
-            if (dao.address2.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS2.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.ADDRESS2.getDbName()).append(")=?");
-            }
-            if (dao.postalCode.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=?");
-            }
-            if (dao.phone.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.PHONE.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.PHONE.getDbName()).append(")=?");
-            }
-            if (dao.getRowState() != DataRowState.NEW) {
-                sb.append(" AND ").append(DbColumn.ADDRESS_ID.getDbName()).append("<>?");
-            }
-            String sql = sb.toString();
-            int count;
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, ModelHelper.getPrimaryKey(dao.getCity()));
-                int index = 2;
-                if (!dao.address1.isEmpty()) {
-                    ps.setString(index++, dao.address1.toLowerCase());
-                }
-                if (!dao.address2.isEmpty()) {
-                    ps.setString(index++, dao.address2.toLowerCase());
-                }
-                if (!dao.postalCode.isEmpty()) {
-                    ps.setString(index++, dao.postalCode.toLowerCase());
-                }
-                if (!dao.phone.isEmpty()) {
-                    ps.setString(index++, dao.phone.toLowerCase());
-                }
-                if (dao.getRowState() != DataRowState.NEW) {
-                    ps.setInt(index, dao.getPrimaryKey());
-                }
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            }
-            if (count > 0) {
-                return "Another matching address exists";
-            }
-            city = dao.getCity();
-            if (city instanceof CityDAO) {
-                return CityDAO.FACTORY.getSaveDbConflictMessage((CityDAO) city, connection);
-            }
-            return "";
+            return resultEvent;
         }
 
         int countByCity(int primaryKey, Connection connection) throws SQLException {
@@ -496,14 +520,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected void fireModelItemEvent(ModelItemEvent<? extends FxRecordModel<AddressDAO>, AddressDAO> sourceEvent, ActivityType activity) {
-            AddressModel model = (AddressModel) sourceEvent.getState().getModel();
+        protected AddressEvent createModelItemEvent(AddressEvent sourceEvent, ActivityType activity) {
+            AddressModel model = (AddressModel) sourceEvent.getModel();
             if (null != model) {
-                Event.fireEvent(AddressModel.FACTORY, new AddressEvent(model, sourceEvent.getSource(), AddressModel.FACTORY, activity));
-            } else {
-                Event.fireEvent(AddressModel.FACTORY, new AddressEvent(sourceEvent.getSource(), AddressModel.FACTORY,
-                        sourceEvent.getDataAccessObject(), activity));
+                return new AddressEvent(model, sourceEvent.getSource(), this, activity);
             }
+            return new AddressEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
         }
 
     }
