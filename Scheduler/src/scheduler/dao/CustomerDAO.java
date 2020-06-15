@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.EventDispatchChain;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -25,7 +26,6 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
-import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.InternalException;
@@ -46,6 +46,7 @@ import scheduler.view.event.EventEvaluationStatus;
 public final class CustomerDAO extends DataAccessObject implements ICustomerDAO, CustomerRecord<Timestamp> {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -133,6 +134,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         firePropertyChange(PROP_NAME, oldName, name);
         firePropertyChange(PROP_ADDRESS, oldAddress, address);
         firePropertyChange(PROP_ACTIVE, oldActive, active);
+    }
+
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
     @Override
@@ -351,6 +358,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public CustomerEvent save(CustomerEvent event, Connection connection, boolean force) throws SQLException {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -434,6 +442,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public CustomerEvent delete(CustomerEvent event, Connection connection) throws SQLException {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -470,11 +479,17 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         protected CustomerEvent createModelItemEvent(CustomerEvent sourceEvent, ActivityType activity) {
-            CustomerModel model = (CustomerModel) sourceEvent.getModel();
+            CustomerModel model = sourceEvent.getModel();
             if (null != model) {
                 return new CustomerEvent(model, sourceEvent.getSource(), this, activity);
             }
             return new CustomerEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+        }
+
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            LOG.fine(() -> String.format("Adding %s to dispatch chain", CustomerModel.FACTORY.getClass().getName()));
+            return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

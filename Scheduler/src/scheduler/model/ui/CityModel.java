@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventTarget;
+import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -258,8 +259,13 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public CityEvent createModelItemEvent(CityModel model, Object source, EventTarget target, ActivityType action) {
-            return new CityEvent(model, source, target, action);
+        public CityEvent createModelItemEvent(CityModel model, Object source, EventTarget target, ActivityType activity) {
+            return new CityEvent(model, source, target, activity);
+        }
+
+        @Override
+        public EventType<CityEvent> toEventType(ActivityType activity) {
+            return CityEvent.toEventType(activity);
         }
 
     }

@@ -73,7 +73,6 @@ import scheduler.view.customer.EditCustomer;
 import scheduler.view.event.ActivityType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.ModelItemEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -232,6 +231,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CustomerEvent event) {
         CustomerModel item;
         if (event.isConsumed() || null == (item = event.getModel())) {
@@ -407,7 +407,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             int pk = dao.getPrimaryKey();
             CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                CustomerModel.FACTORY.updateItem(m, dao);
                 if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
                     itemList.remove(m);
                 }
@@ -606,7 +605,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private class EditDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {
 
         private final AddressDAO dao;
+        // TODO: See if this should be used or removed
         private final Optional<Integer> countryPk;
+        // TODO: See if this should be used or removed
         private final Optional<Integer> cityPk;
 
         private EditDataLoadTask() {

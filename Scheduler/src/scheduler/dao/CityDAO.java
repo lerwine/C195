@@ -13,6 +13,7 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.EventDispatchChain;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.ZoneIdMappings.fromZoneId;
@@ -29,7 +30,6 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.model.City;
 import scheduler.model.Country;
-import static scheduler.model.DataObject.PROP_PRIMARYKEY;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
 import scheduler.util.DB;
@@ -56,6 +56,7 @@ import scheduler.view.event.EventEvaluationStatus;
 public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -127,6 +128,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         firePropertyChange(PROP_NAME, oldName, name);
         firePropertyChange(PROP_COUNTRY, oldCountry, country);
         firePropertyChange(PROP_TIMEZONE, oldTimeZone, timeZone);
+    }
+
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
     @Override
@@ -369,6 +376,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public CityEvent delete(CityEvent event, Connection connection) throws SQLException {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -526,11 +534,17 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected CityEvent createModelItemEvent(CityEvent sourceEvent, ActivityType activity) {
-            CityModel model = (CityModel) sourceEvent.getModel();
+            CityModel model = sourceEvent.getModel();
             if (null != model) {
                 return new CityEvent(model, sourceEvent.getSource(), this, activity);
             }
             return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+        }
+
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            LOG.fine(() -> String.format("Adding %s to dispatch chain", CityModel.FACTORY.getClass().getName()));
+            return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

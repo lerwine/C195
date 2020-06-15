@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventTarget;
+import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
@@ -319,8 +320,13 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public CustomerEvent createModelItemEvent(CustomerModel model, Object source, EventTarget target, ActivityType action) {
-            return new CustomerEvent(model, source, target, action);
+        public CustomerEvent createModelItemEvent(CustomerModel model, Object source, EventTarget target, ActivityType activity) {
+            return new CustomerEvent(model, source, target, activity);
+        }
+
+        @Override
+        public EventType<CustomerEvent> toEventType(ActivityType activity) {
+            return CustomerEvent.toEventType(activity);
         }
 
     }

@@ -155,7 +155,7 @@ public class ToStringPropertyBuilder {
         return addNumber(property.getName(), property.getValue());
     }
 
-    public <T extends Enum> ToStringPropertyBuilder addEnum(String propertyName, T value) {
+    public <T extends Enum<T>> ToStringPropertyBuilder addEnum(String propertyName, T value) {
         if (null == value) {
             return addNull(propertyName);
         }
@@ -163,13 +163,13 @@ public class ToStringPropertyBuilder {
         return this;
     }
 
-    public <T extends Enum> ToStringPropertyBuilder addEnum(String propertyName, Optional<T> value) {
+    public <T extends Enum<T>> ToStringPropertyBuilder addEnum(String propertyName, Optional<T> value) {
         return addOptional(propertyName, value, (t)
                 -> new SimplePropertyData(propertyName, String.format("%s#%s", t.getClass().getSimpleName(), t.name()))
         );
     }
 
-    public <T extends Enum> ToStringPropertyBuilder addEnum(ReadOnlyProperty<T> property) {
+    public <T extends Enum<T>> ToStringPropertyBuilder addEnum(ReadOnlyProperty<T> property) {
         if (null == property) {
             return this;
         }
@@ -216,9 +216,6 @@ public class ToStringPropertyBuilder {
     }
 
     public ToStringPropertyBuilder addTimestamp(ReadOnlyProperty<Timestamp> property) {
-        if (null == property) {
-            return this;
-        }
         if (null == property) {
             return this;
         }

@@ -9,6 +9,8 @@ import scheduler.model.ui.FxRecordModel;
 
 /**
  * Base class for {@link FxRecordModel} save and delete events.
+ * <h2>Event Types</h2>
+ * <h3>{@link ActivityType#EDIT_REQUEST}</h3>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <M> The {@link FxRecordModel} type.
@@ -170,7 +172,7 @@ public abstract class ModelItemEvent<M extends FxRecordModel<D>, D extends DataA
         }
 
         public synchronized void setModel(M model) {
-            if (null != model) {
+            if (null != this.model) {
                 throw new IllegalStateException();
             }
             if (model.dataObject() != dataAccessObject) {

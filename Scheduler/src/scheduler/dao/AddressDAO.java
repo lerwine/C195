@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.EventDispatchChain;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -46,6 +47,7 @@ import scheduler.view.event.EventEvaluationStatus;
 public final class AddressDAO extends DataAccessObject implements AddressDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
 
     private String address1;
     private String address2;
@@ -175,6 +177,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+    }
+
+    @Override
     public int hashCode() {
         if (this.getRowState() != DataRowState.NEW) {
             return this.getPrimaryKey();
@@ -284,6 +292,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public AddressEvent save(AddressEvent event, Connection connection, boolean force) throws SQLException {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -457,6 +466,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public AddressEvent delete(AddressEvent event, Connection connection) throws SQLException {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -521,11 +531,17 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected AddressEvent createModelItemEvent(AddressEvent sourceEvent, ActivityType activity) {
-            AddressModel model = (AddressModel) sourceEvent.getModel();
+            AddressModel model = sourceEvent.getModel();
             if (null != model) {
                 return new AddressEvent(model, sourceEvent.getSource(), this, activity);
             }
             return new AddressEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+        }
+
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            LOG.fine(() -> String.format("Adding %s to dispatch chain", AddressModel.FACTORY.getClass().getName()));
+            return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

@@ -42,7 +42,7 @@ public final class CountryEvent extends ModelItemEvent<CountryModel, CountryDAO>
 
     public static final EventType<CountryEvent> DELETED_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT, DELETED_EVENT_NAME);
 
-    public static ActivityType toActionType(String eventName) {
+    public static ActivityType toActivityType(String eventName) {
         if (null != eventName) {
             switch (eventName) {
                 case EDIT_REQUEST_EVENT_NAME:
@@ -66,6 +66,7 @@ public final class CountryEvent extends ModelItemEvent<CountryModel, CountryDAO>
         return ActivityType.NONE;
     }
 
+    @SuppressWarnings("incomplete-switch")
     public static EventType<CountryEvent> toEventType(ActivityType action) {
         if (null != action) {
             switch (action) {
@@ -111,6 +112,7 @@ public final class CountryEvent extends ModelItemEvent<CountryModel, CountryDAO>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public CountryModel.Factory getModelFactory() {
         return CountryModel.FACTORY;
     }

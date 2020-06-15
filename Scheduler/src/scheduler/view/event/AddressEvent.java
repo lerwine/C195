@@ -42,7 +42,7 @@ public final class AddressEvent extends ModelItemEvent<AddressModel, AddressDAO>
 
     public static final EventType<AddressEvent> DELETED_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DELETED_EVENT_NAME);
 
-    public static ActivityType toActionType(String eventName) {
+    public static ActivityType toActivityType(String eventName) {
         if (null != eventName) {
             switch (eventName) {
                 case EDIT_REQUEST_EVENT_NAME:
@@ -66,6 +66,7 @@ public final class AddressEvent extends ModelItemEvent<AddressModel, AddressDAO>
         return ActivityType.NONE;
     }
 
+    @SuppressWarnings("incomplete-switch")
     public static EventType<AddressEvent> toEventType(ActivityType action) {
         if (null != action) {
             switch (action) {
@@ -111,6 +112,7 @@ public final class AddressEvent extends ModelItemEvent<AddressModel, AddressDAO>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public AddressModel.Factory getModelFactory() {
         return AddressModel.FACTORY;
     }

@@ -234,13 +234,15 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
-            if (m.isPresent()) {
-                if (null != f && !f.getDaoFilter().test(dao)) {
-                    items.remove(m.get());
-                    return;
+            if (null != f) {
+                if (m.isPresent()) {
+                    if (!f.getDaoFilter().test(dao)) {
+                        items.remove(m.get());
+                    }
+                } else if (f.getDaoFilter().test(dao)) {
+                    getItems().add(mf.createNew(dao));
                 }
-                mf.updateItem(m.get(), dao);
-            } else if (null != f && f.getDaoFilter().test(dao)) {
+            } else {
                 getItems().add(mf.createNew(dao));
             }
         }
@@ -250,7 +252,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (!items.isEmpty()) {
             D dao = event.getDataAccessObject();
-            // XXX: Check to see if we need to get/update model
             getModelFactory().find(items, dao).ifPresent((t) -> items.remove(t));
         }
     }

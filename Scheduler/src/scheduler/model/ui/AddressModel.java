@@ -9,8 +9,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
 import javafx.event.EventTarget;
+import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -391,18 +391,13 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> {
 
+//        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
+
         // Singleton
         private Factory() {
             super(AddressEvent.ADDRESS_MODEL_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
-            }
-        }
-
-        private void handleUpdateAddressFilter(AddressEvent event) {
-            AddressModel model = event.getModel();
-            if (null != model) {
-                Event.fireEvent(model, event);
             }
         }
 
@@ -480,8 +475,13 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public AddressEvent createModelItemEvent(AddressModel model, Object source, EventTarget target, ActivityType action) {
-            return new AddressEvent(model, source, target, action);
+        public AddressEvent createModelItemEvent(AddressModel model, Object source, EventTarget target, ActivityType activity) {
+            return new AddressEvent(model, source, target, activity);
+        }
+
+        @Override
+        public EventType<AddressEvent> toEventType(ActivityType activity) {
+            return AddressEvent.toEventType(activity);
         }
 
     }

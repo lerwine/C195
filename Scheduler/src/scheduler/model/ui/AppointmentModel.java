@@ -11,6 +11,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventTarget;
+import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
@@ -658,8 +659,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public AppointmentEvent createModelItemEvent(AppointmentModel model, Object source, EventTarget target, ActivityType action) {
-            return new AppointmentEvent(model, source, target, action);
+        public AppointmentEvent createModelItemEvent(AppointmentModel model, Object source, EventTarget target, ActivityType activity) {
+            return new AppointmentEvent(model, source, target, activity);
+        }
+
+        @Override
+        public EventType<AppointmentEvent> toEventType(ActivityType activity) {
+            return AppointmentEvent.toEventType(activity);
         }
 
     }

@@ -105,6 +105,7 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
             return true;
         }
         if (null != obj && obj instanceof UserItem) {
+            @SuppressWarnings("unchecked")
             final UserItem<? extends UserDAO> other = (UserItem<? extends UserDAO>) obj;
             if (getRowState() == DataRowState.NEW) {
                 return other.getRowState() == DataRowState.NEW && userName.isEqualTo(other.userNameProperty()).get()
@@ -122,7 +123,7 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
 
     @Override
     public ToStringPropertyBuilder toStringBuilder() {
-         return ToStringPropertyBuilder.create(this)
+        return ToStringPropertyBuilder.create(this)
                 .addNumber(primaryKeyProperty())
                 .addString(userName)
                 .addEnum(status);

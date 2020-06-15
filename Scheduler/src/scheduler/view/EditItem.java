@@ -217,7 +217,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         editorRegion.fireEvent(updateEvent);
         if (!updateEvent.isConsumed()) {
             editorRegion.updateModel();
-            factory.updateDAO(model);
             waitBorderPane.startNow(new SaveTask(updateEvent));
         }
     }
@@ -326,6 +325,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         /**
          * This gets called to re-initialize the controller for edit mode after a new model has been inserted into the database
+         * 
          */
         void onNewModelSaved();
 

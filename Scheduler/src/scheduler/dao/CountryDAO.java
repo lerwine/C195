@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.EventDispatchChain;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.DaoFilter;
@@ -44,6 +45,7 @@ import scheduler.view.event.EventEvaluationStatus;
 public final class CountryDAO extends DataAccessObject implements CountryDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final Logger LOG = Logger.getLogger(CountryDAO.class.getName());
 
     private final OriginalValues originalValues;
     private String name;
@@ -102,6 +104,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
+    }
+
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
     @Override
@@ -265,6 +273,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public CountryEvent delete(CountryEvent event, Connection connection) throws SQLException {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -392,11 +401,17 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent createModelItemEvent(CountryEvent sourceEvent, ActivityType activity) {
-            CountryModel model = (CountryModel) sourceEvent.getModel();
+            CountryModel model = sourceEvent.getModel();
             if (null != model) {
                 return new CountryEvent(model, sourceEvent.getSource(), this, activity);
             }
             return new CountryEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+        }
+
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            LOG.fine(() -> String.format("Adding %s to dispatch chain", CountryModel.FACTORY.getClass().getName()));
+            return CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

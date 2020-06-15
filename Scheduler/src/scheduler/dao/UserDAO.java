@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.event.EventDispatchChain;
 import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
@@ -44,6 +45,7 @@ import scheduler.view.event.UserEvent;
 public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final Logger LOG = Logger.getLogger(UserDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -131,6 +133,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         firePropertyChange(PROP_USERNAME, oldUserName, userName);
         firePropertyChange(PROP_PASSWORD, oldPassword, password);
         firePropertyChange(PROP_STATUS, oldStatus, status);
+    }
+
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
     @Override
@@ -393,6 +401,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         public UserEvent delete(UserEvent event, Connection connection) throws SQLException {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -433,11 +442,17 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent createModelItemEvent(UserEvent sourceEvent, ActivityType activity) {
-            UserModel model = (UserModel) sourceEvent.getModel();
+            UserModel model = sourceEvent.getModel();
             if (null != model) {
                 return new UserEvent(model, sourceEvent.getSource(), this, activity);
             }
             return new UserEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+        }
+
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            LOG.fine(() -> String.format("Adding %s to dispatch chain", UserModel.FACTORY.getClass().getName()));
+            return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

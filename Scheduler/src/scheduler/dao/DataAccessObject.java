@@ -404,7 +404,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Loads items from the database.
+         * Loads items from the database. {@link #save(scheduler.view.event.ModelItemEvent, java.sql.Connection, boolean)}
          *
          * @param connection An opened database connection.
          * @param filter The {@link DaoFilter} that is used to build the WHERE clause of the SQL query.
@@ -640,8 +640,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param event The {@link ModelItemEvent} for the {@link DataAccessObject} to be inserted or updated.
          * @param connection The database connection to use.
-         * @return The result event, which will be the new event that was fired, if the save operation was successful; otherwise, the original
-         * event object is returned.
+         * @return The result event, which will be the new event that was fired, if the save operation was successful; otherwise, the original event
+         * object is returned.
          * @throws SQLException If unable to perform the database operation.
          */
         public final E save(E event, Connection connection) throws SQLException {
@@ -650,15 +650,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         /**
          * Saves a {@link DataAccessObject} to the database.
-         * <p>
-         * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
-         * database conflict errors ahead of time and to get a descriptive message.</p>
          *
          * @param event The {@link ModelItemEvent} for the {@link DataAccessObject} to be inserted or updated.
          * @param connection The database connection to use.
          * @param force A {@code true} value will save changes to the database, even if {@link #rowState} is {@link DataRowState#UNMODIFIED}.
-         * @return The result event, which will be the new event that was fired, if the save operation was successful; otherwise, the original
-         * event object is returned.
+         * @return The result event, which will be the new event that was fired, if the save operation was successful; otherwise, the original event
+         * object is returned.
          * @throws SQLException If unable to perform the database operation.
          */
         @SuppressWarnings("fallthrough")
@@ -855,9 +852,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             event.setSucceeded();
             E resultEvent = createModelItemEvent(event, activity);
             if (Platform.isFxApplicationThread()) {
-                Event.fireEvent(this, resultEvent);
+                LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
+                Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
             } else {
-                Platform.runLater(() -> Event.fireEvent(this, resultEvent));
+                Platform.runLater(() -> {
+                    LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
+                    Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
+                });
             }
             return resultEvent;
         }
@@ -937,8 +938,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param event The {@link ModelItemEvent} for the {@link DataAccessObject} to delete.
          * @param connection The database connection to use.
-         * @return The result event, which will be the new event that was fired, if the delete operation was successful; otherwise, the original
-         * event object is returned.
+         * @return The result event, which will be the new event that was fired, if the delete operation was successful; otherwise, the original event
+         * object is returned.
          * @throws SQLException If unable to perform the database operation.
          */
         public E delete(E event, Connection connection) throws SQLException {
@@ -986,9 +987,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             event.setSucceeded();
             E resultEvent = createModelItemEvent(event, ActivityType.DELETED);
             if (Platform.isFxApplicationThread()) {
-                Event.fireEvent(this, resultEvent);
+                LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
+                Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
             } else {
-                Platform.runLater(() -> Event.fireEvent(this, resultEvent));
+                Platform.runLater(() -> {
+                    LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
+                    Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
+                });
             }
             return resultEvent;
         }

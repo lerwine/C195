@@ -224,6 +224,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     void onItemActionRequest(AddressEvent event) {
         AddressModel item;
         if (event.isConsumed() || null == (item = event.getModel())) {
@@ -417,7 +418,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             int pk = dao.getPrimaryKey();
             AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                AddressModel.FACTORY.updateItem(m, dao);
                 if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
                     addressItemList.remove(m);
                 }

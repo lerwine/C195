@@ -162,6 +162,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CityEvent event) {
         CityModel item;
         if (event.isConsumed() || (null == (item = event.getModel()))) {

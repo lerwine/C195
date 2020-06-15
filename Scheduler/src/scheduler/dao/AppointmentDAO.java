@@ -50,6 +50,7 @@ import scheduler.view.event.UserEvent;
 public final class AppointmentDAO extends DataAccessObject implements AppointmentDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -292,6 +293,12 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         firePropertyChange(PROP_URL, oldUrl, url);
         firePropertyChange(PROP_START, oldStart, start);
         firePropertyChange(PROP_END, oldEnd, end);
+    }
+
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.fine(() -> String.format("Adding %s and %s to dispatch chain", AppointmentAlertManager.INSTANCE.getClass().getName(), FACTORY.getClass().getName()));
+        return AppointmentAlertManager.INSTANCE.buildEventDispatchChain(FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail)));
     }
 
     @Override
@@ -857,17 +864,18 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            return AppointmentAlertManager.INSTANCE.buildEventDispatchChain(super.buildEventDispatchChain(tail));
-        }
-
-        @Override
         protected AppointmentEvent createModelItemEvent(AppointmentEvent sourceEvent, ActivityType activity) {
-            AppointmentModel model = (AppointmentModel) sourceEvent.getModel();
+            AppointmentModel model = sourceEvent.getModel();
             if (null != model) {
                 return new AppointmentEvent(model, sourceEvent.getSource(), this, activity);
             }
             return new AppointmentEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+        }
+
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            LOG.fine(() -> String.format("Adding %s to dispatch chain", AppointmentModel.FACTORY.getClass().getName()));
+            return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

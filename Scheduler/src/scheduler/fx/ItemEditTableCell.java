@@ -20,52 +20,56 @@ import scheduler.view.event.ModelItemEvent;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
+ * @param <E> The event type.
  */
-public class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>> extends TableCell<T, T> {
+public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelItemEvent<T, ? extends DataAccessObject>>
+        extends TableCell<T, T> {
 
-    private final FxRecordModel.ModelFactory<? extends DataAccessObject, T, ? extends ModelItemEvent<T, ? extends DataAccessObject>> factory;
+    private final FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory;
     private final HBox graphic;
-    private final ObjectProperty<EventHandler<ModelItemEvent<T, ? extends DataAccessObject>>> onItemEdit = new SimpleObjectProperty<>();
+    private final ObjectProperty<EventHandler<E>> onItemActionRequest;
 
-    public ItemEditTableCell(FxRecordModel.ModelFactory<? extends DataAccessObject, T, ? extends ModelItemEvent<T, ? extends DataAccessObject>> factory) {
+    public ItemEditTableCell(FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory) {
+        onItemActionRequest = new SimpleObjectProperty<>();
         this.factory = factory;
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));
         graphic.setSpacing(8);
         graphic.setMaxHeight(USE_PREF_SIZE);
         graphic.setPadding(new Insets(0, 0, 0, 4));
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        onItemActionRequest.addListener((observable, oldValue, newValue) -> {
+            if (null != oldValue) {
+                removeEventHandler(factory.toEventType(ActivityType.EDIT_REQUEST), oldValue);
+            }
+            if (null != newValue) {
+                addEventHandler(factory.toEventType(ActivityType.EDIT_REQUEST), newValue);
+            }
+        });
     }
 
-    public EventHandler<ModelItemEvent<T, ? extends DataAccessObject>> getOnItemEdit() {
-        return onItemEdit.get();
+    public EventHandler<E> getOnItemActionRequest() {
+        return onItemActionRequest.get();
     }
 
-    public void setOnItemEdit(EventHandler<ModelItemEvent<T, ? extends DataAccessObject>> value) {
-        onItemEdit.set(value);
+    public void setOnItemActionRequest(EventHandler<E> value) {
+        onItemActionRequest.set(value);
     }
 
-    public ObjectProperty<EventHandler<ModelItemEvent<T, ? extends DataAccessObject>>> onItemEditProperty() {
-        return onItemEdit;
+    public ObjectProperty<EventHandler<E>> onItemActionRequestProperty() {
+        return onItemActionRequest;
     }
 
     private void onEditButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            onItemActionRequest(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.EDIT_REQUEST));
+            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.EDIT_REQUEST));
         }
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            onItemActionRequest(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.DELETE_REQUEST));
-        }
-    }
-
-    protected void onItemActionRequest(ModelItemEvent<T, ? extends DataAccessObject> event) {
-        EventHandler<ModelItemEvent<T, ? extends DataAccessObject>> listener = onItemEdit.get();
-        if (null != listener) {
-            listener.handle(event);
+            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.DELETE_REQUEST));
         }
     }
 

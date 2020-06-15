@@ -42,7 +42,7 @@ public final class CustomerEvent extends ModelItemEvent<CustomerModel, CustomerD
 
     public static final EventType<CustomerEvent> DELETED_EVENT_TYPE = new EventType<>(CUSTOMER_MODEL_EVENT, DELETED_EVENT_NAME);
 
-    public static ActivityType toActionType(String eventName) {
+    public static ActivityType toActivityType(String eventName) {
         if (null != eventName) {
             switch (eventName) {
                 case EDIT_REQUEST_EVENT_NAME:
@@ -66,6 +66,7 @@ public final class CustomerEvent extends ModelItemEvent<CustomerModel, CustomerD
         return ActivityType.NONE;
     }
 
+    @SuppressWarnings("incomplete-switch")
     public static EventType<CustomerEvent> toEventType(ActivityType action) {
         if (null != action) {
             switch (action) {
@@ -111,6 +112,7 @@ public final class CustomerEvent extends ModelItemEvent<CustomerModel, CustomerD
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public CustomerModel.Factory getModelFactory() {
         return CustomerModel.FACTORY;
     }

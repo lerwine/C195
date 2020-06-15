@@ -42,7 +42,7 @@ public final class CityEvent extends ModelItemEvent<CityModel, CityDAO> {
 
     public static final EventType<CityEvent> DELETED_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT, DELETED_EVENT_NAME);
 
-    public static ActivityType toActionType(String eventName) {
+    public static ActivityType toActivityType(String eventName) {
         if (null != eventName) {
             switch (eventName) {
                 case EDIT_REQUEST_EVENT_NAME:
@@ -66,6 +66,7 @@ public final class CityEvent extends ModelItemEvent<CityModel, CityDAO> {
         return ActivityType.NONE;
     }
 
+    @SuppressWarnings("incomplete-switch")
     public static EventType<CityEvent> toEventType(ActivityType action) {
         if (null != action) {
             switch (action) {
@@ -111,6 +112,7 @@ public final class CityEvent extends ModelItemEvent<CityModel, CityDAO> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public CityModel.Factory getModelFactory() {
         return CityModel.FACTORY;
     }

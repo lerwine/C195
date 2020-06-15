@@ -8,6 +8,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventTarget;
+import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -18,7 +19,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
-import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -198,8 +198,13 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public CountryEvent createModelItemEvent(CountryModel model, Object source, EventTarget target, ActivityType action) {
-            return new CountryEvent(model, source, target, action);
+        public CountryEvent createModelItemEvent(CountryModel model, Object source, EventTarget target, ActivityType activity) {
+            return new CountryEvent(model, source, target, activity);
+        }
+
+        @Override
+        public EventType<CountryEvent> toEventType(ActivityType activity) {
+            return CountryEvent.toEventType(activity);
         }
 
     }

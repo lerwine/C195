@@ -43,7 +43,7 @@ public final class AppointmentEvent extends ModelItemEvent<AppointmentModel, App
 
     public static final EventType<AppointmentEvent> DELETED_EVENT_TYPE = new EventType<>(APPOINTMENT_MODEL_EVENT, DELETED_EVENT_NAME);
 
-    public static ActivityType toActionType(String eventName) {
+    public static ActivityType toActivityType(String eventName) {
         if (null != eventName) {
             switch (eventName) {
                 case EDIT_REQUEST_EVENT_NAME:
@@ -67,6 +67,7 @@ public final class AppointmentEvent extends ModelItemEvent<AppointmentModel, App
         return ActivityType.NONE;
     }
 
+    @SuppressWarnings("incomplete-switch")
     public static EventType<AppointmentEvent> toEventType(ActivityType action) {
         if (null != action) {
             switch (action) {
@@ -112,6 +113,7 @@ public final class AppointmentEvent extends ModelItemEvent<AppointmentModel, App
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public AppointmentModel.Factory getModelFactory() {
         return AppointmentModel.FACTORY;
     }

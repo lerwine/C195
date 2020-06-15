@@ -190,6 +190,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(AppointmentEvent event) {
         AppointmentModel item;
         if (event.isConsumed() || null == (item = event.getModel())) {
@@ -352,7 +353,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             int pk = dao.getPrimaryKey();
             AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                AppointmentModel.FACTORY.updateItem(m, dao);
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
                     userAppointments.remove(m);
                 }

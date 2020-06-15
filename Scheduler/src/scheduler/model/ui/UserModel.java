@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventTarget;
+import javafx.event.EventType;
 import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
@@ -219,8 +220,13 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public UserEvent createModelItemEvent(UserModel model, Object source, EventTarget target, ActivityType action) {
-            return new UserEvent(model, source, target, action);
+        public UserEvent createModelItemEvent(UserModel model, Object source, EventTarget target, ActivityType activity) {
+            return new UserEvent(model, source, target, activity);
+        }
+
+        @Override
+        public EventType<UserEvent> toEventType(ActivityType activity) {
+            return UserEvent.toEventType(activity);
         }
 
     }

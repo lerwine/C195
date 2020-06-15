@@ -96,7 +96,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
      * Initializes a new ModelBase object.
      *
      * @param dao The {@link DataAccessObject} to be used for data access operations.
-     * @todo Add listeners for {@link #dataObject} changes in case a another object that represents the same record is modified.
      * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link FxDbModel} objects so the property is updated
      * whenever a change occurs.
      */
@@ -220,7 +219,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return dataObject.buildEventDispatchChain(tail.append(eventHandlerManager));
+        return tail.append(eventHandlerManager);
     }
 
     /**
@@ -281,8 +280,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
                 M model = event.getModel();
                 if (null != model) {
                     Event.fireEvent(model, event);
-                } else {
-                    Event.fireEvent(event.getDataAccessObject(), event);
                 }
             }
         }
@@ -430,7 +427,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract E createModelItemEvent(M model, Object source, EventTarget target, ActivityType action);
+        public abstract E createModelItemEvent(M model, Object source, EventTarget target, ActivityType activity);
+
+        public abstract EventType<E> toEventType(ActivityType activity);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
@@ -483,12 +482,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
     }
 
-    @FunctionalInterface
-    public interface PropertyValueExporter<T extends FxRecordModel<? extends DataAccessObject>> {
-
-        Pair<String, String> toIdentity(T model, int index, Iterable<String> exportData);
-    }
-
     public static class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelItemEvent<M, D>> extends Task<E> {
 
         private final E event;
@@ -519,6 +512,12 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             }
             return null;
         }
+    }
+
+    @FunctionalInterface
+    public interface PropertyValueExporter<T extends FxRecordModel<? extends DataAccessObject>> {
+
+        Pair<String, String> toIdentity(T model, int index, Iterable<String> exportData);
     }
 
 }

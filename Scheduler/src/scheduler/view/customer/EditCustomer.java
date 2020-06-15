@@ -260,6 +260,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(AppointmentEvent event) {
         AppointmentModel item;
         if (event.isConsumed() || null == (item = event.getModel())) {
@@ -519,7 +520,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             int pk = dao.getPrimaryKey();
             AppointmentModel m = customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                AppointmentModel.FACTORY.updateItem(m, dao);
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
                     customerAppointments.remove(m);
                 }
@@ -862,6 +862,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     }
 
+    // See if this class should be moved or deleted
     private class AddressCustomerLoadTask extends Task<Integer> {
 
         private final IAddressDAO address;

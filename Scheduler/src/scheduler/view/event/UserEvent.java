@@ -42,7 +42,7 @@ public class UserEvent extends ModelItemEvent<UserModel, UserDAO> {
 
     public static final EventType<UserEvent> DELETED_EVENT_TYPE = new EventType<>(USER_MODEL_EVENT, DELETED_EVENT_NAME);
 
-    public static ActivityType toActionType(String eventName) {
+    public static ActivityType toActivityType(String eventName) {
         if (null != eventName) {
             switch (eventName) {
                 case EDIT_REQUEST_EVENT_NAME:
@@ -66,6 +66,7 @@ public class UserEvent extends ModelItemEvent<UserModel, UserDAO> {
         return ActivityType.NONE;
     }
 
+    @SuppressWarnings("incomplete-switch")
     public static EventType<UserEvent> toEventType(ActivityType action) {
         if (null != action) {
             switch (action) {
@@ -111,6 +112,7 @@ public class UserEvent extends ModelItemEvent<UserModel, UserDAO> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public UserModel.Factory getModelFactory() {
         return UserModel.FACTORY;
     }
