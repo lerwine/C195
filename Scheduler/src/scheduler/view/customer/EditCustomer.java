@@ -79,7 +79,7 @@ import scheduler.view.appointment.EditAppointment;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AppointmentEvent;
 import scheduler.view.event.CustomerEvent;
 import scheduler.view.task.WaitBorderPane;
@@ -230,13 +230,13 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 case DELETE:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -247,7 +247,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
         }
     }
 
@@ -255,7 +255,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private void onEditAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
         }
     }
 
@@ -266,7 +266,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         if (event.isConsumed() || null == (item = event.getModel())) {
             return;
         }
-        switch (event.getActivity()) {
+        switch (event.getOperation()) {
             case EDIT_REQUEST:
                 try {
                     EditAppointment.edit(item, getScene().getWindow());

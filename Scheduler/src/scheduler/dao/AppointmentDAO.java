@@ -35,7 +35,7 @@ import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AppointmentEvent;
 import scheduler.view.event.CustomerEvent;
 import scheduler.view.event.EventEvaluationStatus;
@@ -757,7 +757,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             ICustomerDAO customer = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject()).getCustomer();
             if (customer instanceof CustomerDAO) {
                 CustomerEvent customerEvent = new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
-                        (customer.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
                 CustomerDAO.FACTORY.save(customerEvent, connection, force);
                 switch (customerEvent.getStatus()) {
                     case SUCCEEDED:
@@ -776,7 +776,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             IUserDAO user = event.getDataAccessObject().getUser();
             if (user instanceof UserDAO) {
                 UserEvent userEvent = new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
-                        (customer.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
                 UserDAO.FACTORY.save(userEvent, connection, force);
                 switch (userEvent.getStatus()) {
                     case SUCCEEDED:
@@ -864,7 +864,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected AppointmentEvent createModelItemEvent(AppointmentEvent sourceEvent, ActivityType activity) {
+        protected AppointmentEvent createModelItemEvent(AppointmentEvent sourceEvent, DbOperationType activity) {
             AppointmentModel model = sourceEvent.getModel();
             if (null != model) {
                 return new AppointmentEvent(model, sourceEvent.getSource(), this, activity);

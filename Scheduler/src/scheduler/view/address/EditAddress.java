@@ -70,7 +70,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CustomerEvent;
 import scheduler.view.task.WaitBorderPane;
@@ -191,7 +191,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
         }
     }
 
@@ -199,7 +199,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onCustomerEditMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
         }
     }
 
@@ -212,13 +212,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -237,7 +237,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         if (event.isConsumed() || null == (item = event.getModel())) {
             return;
         }
-        switch (event.getActivity()) {
+        switch (event.getOperation()) {
             case EDIT_REQUEST:
                 try {
                     EditCustomer.edit(item, getScene().getWindow());

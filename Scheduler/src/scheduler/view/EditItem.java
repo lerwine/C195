@@ -42,8 +42,8 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.event.ActivityType;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.DbOperationType;
+import scheduler.view.event.DbOperationEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -65,7 +65,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelItemEvent<U, T>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends DbOperationEvent<U, T>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
@@ -82,7 +82,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelItemEvent<U, T>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends DbOperationEvent<U, T>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
@@ -111,7 +111,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelItemEvent<U, T>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends DbOperationEvent<U, T>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -192,7 +192,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     void onDeleteButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
-        E deleteEvent = factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.DELETING);
+        E deleteEvent = factory.createModelItemEvent(model, event.getSource(), editorRegion, DbOperationType.DELETING);
         editorRegion.fireEvent(deleteEvent);
         if (!deleteEvent.isConsumed()) {
             Stage stage = (Stage) getScene().getWindow();
@@ -212,8 +212,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
         // FIXME: Need to find a good way to ensure the model is updated after DAO is updated.. Perhaps passing event instead of DAO
         E updateEvent = (model.isNewRow())
-                ? factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.INSERTING)
-                : factory.createModelItemEvent(model, event.getSource(), editorRegion, ActivityType.UPDATING);
+                ? factory.createModelItemEvent(model, event.getSource(), editorRegion, DbOperationType.INSERTING)
+                : factory.createModelItemEvent(model, event.getSource(), editorRegion, DbOperationType.UPDATING);
         editorRegion.fireEvent(updateEvent);
         if (!updateEvent.isConsumed()) {
             editorRegion.updateModel();
@@ -284,7 +284,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
      * @param <U> The {@link FxRecordModel} type.
      */
-    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends ModelItemEvent<U, T>> {
+    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends DbOperationEvent<U, T>> {
 
         /**
          * Gets the factory object for managing the current {@link FxRecordModel}.
@@ -341,7 +341,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         SaveTask(E event) {
             this.event = event;
-            closeOnSuccess = event.getActivity() != ActivityType.INSERTING || !keepOpen;
+            closeOnSuccess = event.getOperation() != DbOperationType.INSERTING || !keepOpen;
             updateTitle(resources.getString(RESOURCEKEY_SAVINGCHANGES));
             daoFactory = editorRegion.modelFactory().getDaoFactory();
         }

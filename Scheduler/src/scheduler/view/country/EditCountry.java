@@ -52,7 +52,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import static scheduler.view.country.EditCountryResourceKeys.*;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.CityEvent;
 import scheduler.view.event.CountryEvent;
 import scheduler.view.task.WaitBorderPane;
@@ -132,13 +132,13 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 case DELETE:
                     item = citiesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+                        onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = citiesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+                        onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -149,7 +149,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void onCityDeleteMenuItemAction(ActionEvent event) {
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+            onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
         }
     }
 
@@ -157,7 +157,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void onCityEditMenuItemAction(ActionEvent event) {
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CityEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+            onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
         }
     }
 
@@ -168,7 +168,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         if (event.isConsumed() || (null == (item = event.getModel()))) {
             return;
         }
-        switch (event.getActivity()) {
+        switch (event.getOperation()) {
             case EDIT_REQUEST:
                 try {
                     EditCity.edit(item, getScene().getWindow());

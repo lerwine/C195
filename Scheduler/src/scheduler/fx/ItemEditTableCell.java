@@ -13,8 +13,8 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;
-import scheduler.view.event.ActivityType;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.DbOperationType;
+import scheduler.view.event.DbOperationEvent;
 
 /**
  *
@@ -22,7 +22,7 @@ import scheduler.view.event.ModelItemEvent;
  * @param <T> The target item type.
  * @param <E> The event type.
  */
-public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelItemEvent<T, ? extends DataAccessObject>>
+public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>, E extends DbOperationEvent<T, ? extends DataAccessObject>>
         extends TableCell<T, T> {
 
     private final FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory;
@@ -39,10 +39,10 @@ public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAcces
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
             if (null != oldValue) {
-                removeEventHandler(factory.toEventType(ActivityType.EDIT_REQUEST), oldValue);
+                removeEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), oldValue);
             }
             if (null != newValue) {
-                addEventHandler(factory.toEventType(ActivityType.EDIT_REQUEST), newValue);
+                addEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), newValue);
             }
         });
     }
@@ -62,14 +62,14 @@ public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAcces
     private void onEditButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.EDIT_REQUEST));
+            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), DbOperationType.EDIT_REQUEST));
         }
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), ActivityType.DELETE_REQUEST));
+            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), DbOperationType.DELETE_REQUEST));
         }
     }
 

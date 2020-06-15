@@ -10,37 +10,39 @@ import scheduler.model.ui.FxRecordModel;
 /**
  * Base class for {@link FxRecordModel} save and delete events.
  * <h2>Event Types</h2>
- * <h3>{@link ActivityType#EDIT_REQUEST}</h3>
+ * <h3>{@link DbOperationType#EDIT_REQUEST}</h3>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <M> The {@link FxRecordModel} type.
  * @param <D> The {@link DataAccessObject} type.
  */
-public abstract class ModelItemEvent<M extends FxRecordModel<D>, D extends DataAccessObject> extends Event {
+public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends DataAccessObject> extends Event {
 
     private static final long serialVersionUID = -6832461936768738020L;
 
-    public static final EventType<ModelItemEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> MODEL_ITEM_EVENT
-            = new EventType<>(ANY, "MODEL_ITEM_EVENT");
+    /**
+     * Base {@link EventType} for all {@code DbOperationEvent}s.
+     */
+    public static final EventType<DbOperationEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> DB_OPERATION
+            = new EventType<>(ANY, "SCHEDULER_DB_OPERATION");
 
     private final D dataAccessObject;
-    private final ActivityType activity;
+    private final DbOperationType operation;
     private final State state;
 
     /**
-     * Creates a copy of an event with a new target, {@link EventType} and {@link ActivityType}.
+     * Creates a copy of an event with a new target, {@link EventType} and {@link DbOperationType}.
      *
      * @param copyFrom The {@code ModelItemEvent} to copy.
      * @param target The new target for the copied event.
      * @param type The new event type for the copied event.
-     * @param activity The new {@link ActivityType} for the copied event.
+     * @param operation The new {@link DbOperationType} for the copied event.
      */
-    protected ModelItemEvent(ModelItemEvent<M, D> copyFrom, EventTarget target, EventType<? extends ModelItemEvent<M, D>> type,
-            ActivityType activity) {
+    protected DbOperationEvent(DbOperationEvent<M, D> copyFrom, EventTarget target, EventType<? extends DbOperationEvent<M, D>> type, DbOperationType operation) {
         super(copyFrom.getSource(), target, type);
         state = new State(copyFrom.state.model);
         dataAccessObject = copyFrom.getDataAccessObject();
-        this.activity = activity;
+        this.operation = operation;
     }
 
     /**
@@ -50,11 +52,11 @@ public abstract class ModelItemEvent<M extends FxRecordModel<D>, D extends DataA
      * @param source The new source for the copied event.
      * @param target The new target for the copied event.
      */
-    protected ModelItemEvent(ModelItemEvent<M, D> copyFrom, Object source, EventTarget target) {
+    protected DbOperationEvent(DbOperationEvent<M, D> copyFrom, Object source, EventTarget target) {
         super(source, target, copyFrom.getEventType());
         state = copyFrom.state;
         dataAccessObject = copyFrom.dataAccessObject;
-        activity = copyFrom.activity;
+        operation = copyFrom.operation;
     }
 
     /**
@@ -64,15 +66,14 @@ public abstract class ModelItemEvent<M extends FxRecordModel<D>, D extends DataA
      * @param source The event source which sent the event.
      * @param target The event target to associate with the event.
      * @param type The event type.
-     * @param activity The activity associated with the event.
+     * @param operation The {@link DbOperationType} associated with the event.
      * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
      */
-    protected ModelItemEvent(M model, Object source, EventTarget target, EventType<? extends ModelItemEvent<M, D>> type, ActivityType activity,
-            boolean confirmed) {
+    protected DbOperationEvent(M model, Object source, EventTarget target, EventType<? extends DbOperationEvent<M, D>> type, DbOperationType operation, boolean confirmed) {
         super((null == source) ? model : source, (null == target) ? model.dataObject() : target, type);
         state = new State(model);
         dataAccessObject = model.dataObject();
-        this.activity = activity;
+        this.operation = operation;
     }
 
     /**
@@ -82,27 +83,27 @@ public abstract class ModelItemEvent<M extends FxRecordModel<D>, D extends DataA
      * @param target The event target to associate with the event.
      * @param dao The affected {@link DataAccessObject}.
      * @param type The event type.
-     * @param activity The activity associated with the event.
+     * @param operation The {@link DbOperationType} associated with the event.
      * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
      */
-    protected ModelItemEvent(Object source, EventTarget target, D dao, EventType<? extends ModelItemEvent<M, D>> type, ActivityType activity, boolean confirmed) {
+    protected DbOperationEvent(Object source, EventTarget target, D dao, EventType<? extends DbOperationEvent<M, D>> type, DbOperationType operation, boolean confirmed) {
         super((null == source) ? dao : source, target, type);
         state = new State(null);
         dataAccessObject = dao;
-        this.activity = activity;
+        this.operation = operation;
     }
 
     /**
-     * Gets the underlying {@link DataAccessObject} associated with the {@code ModelItemEvent}.
+     * Gets the underlying {@link DataAccessObject} associated with the {@code DbOperationEvent}.
      *
-     * @return The underlying {@link DataAccessObject} associated with the {@code ModelItemEvent}.
+     * @return The underlying {@link DataAccessObject} associated with the {@code DbOperationEvent}.
      */
     public D getDataAccessObject() {
         return dataAccessObject;
     }
 
-    public ActivityType getActivity() {
-        return activity;
+    public DbOperationType getOperation() {
+        return operation;
     }
 
     public M getModel() {
@@ -148,12 +149,12 @@ public abstract class ModelItemEvent<M extends FxRecordModel<D>, D extends DataA
         state.setStatus(EventEvaluationStatus.INVALID, title, message);
     }
 
-    public abstract <E extends ModelItemEvent<M, D>> FxRecordModel.ModelFactory<D, M, E> getModelFactory();
+    public abstract <E extends DbOperationEvent<M, D>> FxRecordModel.ModelFactory<D, M, E> getModelFactory();
 
     @Override
     @SuppressWarnings("unchecked")
-    public EventType<? extends ModelItemEvent<M, D>> getEventType() {
-        return (EventType<? extends ModelItemEvent<M, D>>) super.getEventType();
+    public EventType<? extends DbOperationEvent<M, D>> getEventType() {
+        return (EventType<? extends DbOperationEvent<M, D>>) super.getEventType();
     }
 
     private class State {

@@ -33,7 +33,7 @@ import scheduler.util.DB;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AppointmentEvent;
 
 /**
@@ -591,7 +591,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
-            super(AppointmentEvent.APPOINTMENT_MODEL_EVENT);
+            super(AppointmentEvent.APPOINTMENT_MODEL_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -659,12 +659,12 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public AppointmentEvent createModelItemEvent(AppointmentModel model, Object source, EventTarget target, ActivityType activity) {
+        public AppointmentEvent createModelItemEvent(AppointmentModel model, Object source, EventTarget target, DbOperationType activity) {
             return new AppointmentEvent(model, source, target, activity);
         }
 
         @Override
-        public EventType<AppointmentEvent> toEventType(ActivityType activity) {
+        public EventType<AppointmentEvent> toEventType(DbOperationType activity) {
             return AppointmentEvent.toEventType(activity);
         }
 

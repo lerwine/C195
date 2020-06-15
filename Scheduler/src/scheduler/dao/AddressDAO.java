@@ -33,7 +33,7 @@ import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CityEvent;
 import scheduler.view.event.EventEvaluationStatus;
@@ -381,7 +381,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             ICityDAO city = IAddressDAO.assertValidAddress(event.getDataAccessObject()).city;
             if (city instanceof CityDAO) {
                 CityEvent cityEvent = new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                        (city.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                        (city.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
                 CityDAO.FACTORY.save(cityEvent, connection, force);
                 switch (cityEvent.getStatus()) {
                     case SUCCEEDED:
@@ -530,7 +530,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected AddressEvent createModelItemEvent(AddressEvent sourceEvent, ActivityType activity) {
+        protected AddressEvent createModelItemEvent(AddressEvent sourceEvent, DbOperationType activity) {
             AddressModel model = sourceEvent.getModel();
             if (null != model) {
                 return new AddressEvent(model, sourceEvent.getSource(), this, activity);

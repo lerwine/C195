@@ -20,7 +20,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.PwHash;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.UserEvent;
 import scheduler.view.user.UserModelFilter;
 
@@ -168,7 +168,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         // Singleton
         private Factory() {
-            super(UserEvent.USER_MODEL_EVENT);
+            super(UserEvent.USER_MODEL_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -220,12 +220,12 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public UserEvent createModelItemEvent(UserModel model, Object source, EventTarget target, ActivityType activity) {
+        public UserEvent createModelItemEvent(UserModel model, Object source, EventTarget target, DbOperationType activity) {
             return new UserEvent(model, source, target, activity);
         }
 
         @Override
-        public EventType<UserEvent> toEventType(ActivityType activity) {
+        public EventType<UserEvent> toEventType(DbOperationType activity) {
             return UserEvent.toEventType(activity);
         }
 

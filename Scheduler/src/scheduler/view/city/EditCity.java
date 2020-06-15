@@ -66,7 +66,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CityEvent;
 import scheduler.view.task.WaitBorderPane;
@@ -178,7 +178,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     void onAddressDeleteMenuItemAction(ActionEvent event) {
         AddressModel item = addressesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new AddressEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+            onItemActionRequest(new AddressEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
         }
     }
 
@@ -186,7 +186,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     void onAddressEditMenuItemAction(ActionEvent event) {
         AddressModel item = addressesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new AddressEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+            onItemActionRequest(new AddressEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
         }
     }
 
@@ -199,13 +199,13 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 case DELETE:
                     item = addressesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new AddressEvent(item, event.getSource(), this, ActivityType.DELETE_REQUEST));
+                        onItemActionRequest(new AddressEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = addressesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new AddressEvent(item, event.getSource(), this, ActivityType.EDIT_REQUEST));
+                        onItemActionRequest(new AddressEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -230,7 +230,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         if (event.isConsumed() || null == (item = event.getModel())) {
             return;
         }
-        switch (event.getActivity()) {
+        switch (event.getOperation()) {
             case EDIT_REQUEST:
                 try {
                     EditAddress.edit(item, getScene().getWindow());

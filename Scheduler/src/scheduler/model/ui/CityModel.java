@@ -29,7 +29,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.CityEvent;
 
 /**
@@ -190,7 +190,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         // Singleton
         private Factory() {
-            super(CityEvent.CITY_MODEL_EVENT);
+            super(CityEvent.CITY_MODEL_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -259,12 +259,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public CityEvent createModelItemEvent(CityModel model, Object source, EventTarget target, ActivityType activity) {
+        public CityEvent createModelItemEvent(CityModel model, Object source, EventTarget target, DbOperationType activity) {
             return new CityEvent(model, source, target, activity);
         }
 
         @Override
-        public EventType<CityEvent> toEventType(ActivityType activity) {
+        public EventType<CityEvent> toEventType(DbOperationType activity) {
             return CityEvent.toEventType(activity);
         }
 

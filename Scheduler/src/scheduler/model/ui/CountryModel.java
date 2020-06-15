@@ -25,7 +25,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.CountryEvent;
 
 /**
@@ -137,7 +137,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
         // Singleton
         private Factory() {
-            super(CountryEvent.COUNTRY_MODEL_EVENT);
+            super(CountryEvent.COUNTRY_MODEL_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -198,12 +198,12 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public CountryEvent createModelItemEvent(CountryModel model, Object source, EventTarget target, ActivityType activity) {
+        public CountryEvent createModelItemEvent(CountryModel model, Object source, EventTarget target, DbOperationType activity) {
             return new CountryEvent(model, source, target, activity);
         }
 
         @Override
-        public EventType<CountryEvent> toEventType(ActivityType activity) {
+        public EventType<CountryEvent> toEventType(DbOperationType activity) {
             return CountryEvent.toEventType(activity);
         }
 

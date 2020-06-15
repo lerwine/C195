@@ -32,7 +32,7 @@ import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.CountryEvent;
 import scheduler.view.event.EventEvaluationStatus;
 
@@ -400,7 +400,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected CountryEvent createModelItemEvent(CountryEvent sourceEvent, ActivityType activity) {
+        protected CountryEvent createModelItemEvent(CountryEvent sourceEvent, DbOperationType activity) {
             CountryModel model = sourceEvent.getModel();
             if (null != model) {
                 return new CountryEvent(model, sourceEvent.getSource(), this, activity);

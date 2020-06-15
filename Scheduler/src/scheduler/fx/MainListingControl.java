@@ -32,8 +32,8 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.ActivityType;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.DbOperationType;
+import scheduler.view.event.DbOperationEvent;
 
 /**
  * Base class for item list management.
@@ -43,7 +43,7 @@ import scheduler.view.event.ModelItemEvent;
  * @param <E> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelItemEvent<M, D>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
@@ -99,7 +99,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             onDeleteItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
-                    ActivityType.DELETE_REQUEST));
+                    DbOperationType.DELETE_REQUEST));
         }
     }
 
@@ -108,7 +108,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             onEditItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
-                    ActivityType.EDIT_REQUEST));
+                    DbOperationType.EDIT_REQUEST));
         }
     }
 
@@ -118,7 +118,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         if (event.isConsumed()) {
             return;
         }
-        switch (event.getActivity()) {
+        switch (event.getOperation()) {
             case EDIT_REQUEST:
                 onEditItem(event);
                 event.consume();
@@ -140,14 +140,14 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
                         onDeleteItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
-                                ActivityType.DELETE_REQUEST));
+                                DbOperationType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
                         onEditItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
-                                ActivityType.EDIT_REQUEST));
+                                DbOperationType.EDIT_REQUEST));
                     }
                     break;
             }
@@ -205,7 +205,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            FxRecordModel.ModelFactory<D, M, ? extends ModelItemEvent<M, D>> factory = getModelFactory();
+            FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -230,7 +230,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         D dao = event.getDataAccessObject();
         // XXX: Check to see if we need to get/update model
-        FxRecordModel.ModelFactory<D, M, ? extends ModelItemEvent<M, D>> mf = getModelFactory();
+        FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();

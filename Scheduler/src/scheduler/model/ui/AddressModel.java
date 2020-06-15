@@ -35,7 +35,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AddressEvent;
 
 /**
@@ -475,12 +475,12 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public AddressEvent createModelItemEvent(AddressModel model, Object source, EventTarget target, ActivityType activity) {
+        public AddressEvent createModelItemEvent(AddressModel model, Object source, EventTarget target, DbOperationType activity) {
             return new AddressEvent(model, source, target, activity);
         }
 
         @Override
-        public EventType<AddressEvent> toEventType(ActivityType activity) {
+        public EventType<AddressEvent> toEventType(DbOperationType activity) {
             return AddressEvent.toEventType(activity);
         }
 

@@ -23,7 +23,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.CustomerEvent;
 
 /**
@@ -259,7 +259,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
 
         private Factory() {
-            super(CustomerEvent.CUSTOMER_MODEL_EVENT);
+            super(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -320,12 +320,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public CustomerEvent createModelItemEvent(CustomerModel model, Object source, EventTarget target, ActivityType activity) {
+        public CustomerEvent createModelItemEvent(CustomerModel model, Object source, EventTarget target, DbOperationType activity) {
             return new CustomerEvent(model, source, target, activity);
         }
 
         @Override
-        public EventType<CustomerEvent> toEventType(ActivityType activity) {
+        public EventType<CustomerEvent> toEventType(DbOperationType activity) {
             return CustomerEvent.toEventType(activity);
         }
 

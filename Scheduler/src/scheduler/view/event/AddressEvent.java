@@ -11,65 +11,92 @@ import scheduler.model.ui.AddressModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AddressEvent extends ModelItemEvent<AddressModel, AddressDAO> {
+public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDAO> {
 
     private static final long serialVersionUID = 8261622802802373344L;
-    public static final String ADDRESS_MODEL_EVENT_NAME = "ADDRESS_MODEL_EVENT";
-    public static final String EDIT_REQUEST_EVENT_NAME = "ADDRESS_EDIT_REQUEST_EVENT";
-    public static final String DELETE_REQUEST_EVENT_NAME = "ADDRESS_DELETE_REQUEST_EVENT";
-    public static final String INSERTING_EVENT_NAME = "ADDRESS_INSERTING_EVENT";
-    public static final String INSERTED_EVENT_NAME = "ADDRESS_INSERTED_EVENT";
-    public static final String UPDATING_EVENT_NAME = "ADDRESS_UPDATING_EVENT";
-    public static final String UPDATED_EVENT_NAME = "ADDRESS_UPDATED_EVENT";
-    public static final String DELETING_EVENT_NAME = "ADDRESS_DELETING_EVENT";
-    public static final String DELETED_EVENT_NAME = "ADDRESS_DELETED_EVENT";
+    public static final String ADDRESS_MODEL_EVENT_NAME = "SCHEDULER_ADDRESS_DB_OPERATION";
+    public static final String EDIT_REQUEST_EVENT_NAME = "SCHEDULER_ADDRESS_EDIT_REQUEST";
+    public static final String DELETE_REQUEST_EVENT_NAME = "SCHEDULER_ADDRESS_DELETE_REQUEST";
+    public static final String INSERTING_EVENT_NAME = "SCHEDULER_ADDRESS_INSERTING";
+    public static final String INSERTED_EVENT_NAME = "SCHEDULER_ADDRESS_INSERTED";
+    public static final String UPDATING_EVENT_NAME = "SCHEDULER_ADDRESS_UPDATING";
+    public static final String UPDATED_EVENT_NAME = "SCHEDULER_ADDRESS_UPDATED";
+    public static final String DELETING_EVENT_NAME = "SCHEDULER_ADDRESS_DELETING";
+    public static final String DELETED_EVENT_NAME = "SCHEDULER_ADDRESS_DELETED";
 
-    public static final EventType<AddressEvent> ADDRESS_MODEL_EVENT_TYPE = new EventType<>(MODEL_ITEM_EVENT, ADDRESS_MODEL_EVENT_NAME);
+    /**
+     * Base {@link EventType} for all {@code AddressEvent}s.
+     */
+    public static final EventType<AddressEvent> ADDRESS_MODEL_EVENT_TYPE = new EventType<>(DB_OPERATION, ADDRESS_MODEL_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#EDIT_REQUEST} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> EDIT_REQUEST_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, EDIT_REQUEST_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#DELETE_REQUEST} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> DELETE_REQUEST_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DELETE_REQUEST_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#INSERTING} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> INSERTING_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, INSERTING_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#INSERTED} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> INSERTED_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, INSERTED_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#UPDATING} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> UPDATING_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, UPDATING_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#UPDATED} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> UPDATED_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, UPDATED_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#DELETING} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> DELETING_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DELETING_EVENT_NAME);
 
+    /**
+     * {@link EventType} for {@link DbOperationType#DELETED} {@code AddressEvent}s.
+     */
     public static final EventType<AddressEvent> DELETED_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DELETED_EVENT_NAME);
 
-    public static ActivityType toActivityType(String eventName) {
+    public static DbOperationType toDbOperationType(String eventName) {
         if (null != eventName) {
             switch (eventName) {
                 case EDIT_REQUEST_EVENT_NAME:
-                    return ActivityType.EDIT_REQUEST;
+                    return DbOperationType.EDIT_REQUEST;
                 case DELETE_REQUEST_EVENT_NAME:
-                    return ActivityType.DELETE_REQUEST;
+                    return DbOperationType.DELETE_REQUEST;
                 case INSERTING_EVENT_NAME:
-                    return ActivityType.INSERTING;
+                    return DbOperationType.INSERTING;
                 case INSERTED_EVENT_NAME:
-                    return ActivityType.INSERTED;
+                    return DbOperationType.INSERTED;
                 case UPDATING_EVENT_NAME:
-                    return ActivityType.UPDATING;
+                    return DbOperationType.UPDATING;
                 case UPDATED_EVENT_NAME:
-                    return ActivityType.UPDATED;
+                    return DbOperationType.UPDATED;
                 case DELETING_EVENT_NAME:
-                    return ActivityType.DELETING;
+                    return DbOperationType.DELETING;
                 case DELETED_EVENT_NAME:
-                    return ActivityType.DELETED;
+                    return DbOperationType.DELETED;
             }
         }
-        return ActivityType.NONE;
+        return DbOperationType.NONE;
     }
 
     @SuppressWarnings("incomplete-switch")
-    public static EventType<AddressEvent> toEventType(ActivityType action) {
-        if (null != action) {
-            switch (action) {
+    public static EventType<AddressEvent> toEventType(DbOperationType operation) {
+        if (null != operation) {
+            switch (operation) {
                 case EDIT_REQUEST:
                     return EDIT_REQUEST_EVENT_TYPE;
                 case DELETE_REQUEST:
@@ -88,27 +115,27 @@ public final class AddressEvent extends ModelItemEvent<AddressModel, AddressDAO>
                     return DELETED_EVENT_TYPE;
             }
         }
-        return null;
+        return ADDRESS_MODEL_EVENT_TYPE;
     }
 
     private AddressEvent(AddressEvent copyFrom, Object source, EventTarget target) {
         super(copyFrom, source, target);
     }
 
-    public AddressEvent(AddressModel model, Object source, EventTarget target, ActivityType action, boolean confirmed) {
-        super(model, source, target, Objects.requireNonNull(toEventType(action)), action, confirmed);
+    public AddressEvent(AddressModel model, Object source, EventTarget target, DbOperationType operation, boolean confirmed) {
+        super(model, source, target, Objects.requireNonNull(toEventType(operation)), operation, confirmed);
     }
 
-    public AddressEvent(AddressModel model, Object source, EventTarget target, ActivityType action) {
-        super(model, source, target, Objects.requireNonNull(toEventType(action)), action, false);
+    public AddressEvent(AddressModel model, Object source, EventTarget target, DbOperationType operation) {
+        super(model, source, target, Objects.requireNonNull(toEventType(operation)), operation, false);
     }
 
-    public AddressEvent(Object source, EventTarget target, AddressDAO dao, ActivityType action, boolean confirmed) {
-        super(source, target, dao, Objects.requireNonNull(toEventType(action)), action, confirmed);
+    public AddressEvent(Object source, EventTarget target, AddressDAO dao, DbOperationType operation, boolean confirmed) {
+        super(source, target, dao, Objects.requireNonNull(toEventType(operation)), operation, confirmed);
     }
 
-    public AddressEvent(Object source, EventTarget target, AddressDAO dao, ActivityType action) {
-        super(source, target, dao, Objects.requireNonNull(toEventType(action)), action, false);
+    public AddressEvent(Object source, EventTarget target, AddressDAO dao, DbOperationType operation) {
+        super(source, target, dao, Objects.requireNonNull(toEventType(operation)), operation, false);
     }
 
     @Override

@@ -40,8 +40,8 @@ import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.ActivityType;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.DbOperationType;
+import scheduler.view.event.DbOperationEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -223,50 +223,50 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     }
 
     /**
-     * Registers a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
-     * @param <U> The type of {@link ModelItemEvent}.
+     * @param <U> The type of {@link DbOperationEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public final <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void addEventHandler(EventType<U> type, WeakEventHandler<U> eventHandler) {
+    public final <U extends DbOperationEvent<? extends FxRecordModel<T>, T>> void addEventHandler(EventType<U> type, WeakEventHandler<U> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
     /**
-     * Registers a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
-     * @param <U> The type of {@link ModelItemEvent}.
+     * @param <U> The type of {@link DbOperationEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public final <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void addEventFilter(EventType<U> type, WeakEventHandler<U> eventHandler) {
+    public final <U extends DbOperationEvent<? extends FxRecordModel<T>, T>> void addEventFilter(EventType<U> type, WeakEventHandler<U> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
     /**
-     * Unregisters a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
-     * @param <U> The type of {@link ModelItemEvent}.
+     * @param <U> The type of {@link DbOperationEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public final <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void removeEventHandler(EventType<U> type, WeakEventHandler<U> eventHandler) {
+    public final <U extends DbOperationEvent<? extends FxRecordModel<T>, T>> void removeEventHandler(EventType<U> type, WeakEventHandler<U> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
     /**
-     * Unregisters a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
-     * @param <U> The type of {@link ModelItemEvent}.
+     * @param <U> The type of {@link DbOperationEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public final <U extends ModelItemEvent<? extends FxRecordModel<T>, T>> void removeEventFilter(EventType<U> type, WeakEventHandler<U> eventHandler) {
+    public final <U extends DbOperationEvent<? extends FxRecordModel<T>, T>> void removeEventFilter(EventType<U> type, WeakEventHandler<U> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 
-    public static abstract class ModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelItemEvent<M, D>> implements EventTarget {
+    public static abstract class ModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> implements EventTarget {
 
         private final EventHandlerManager eventHandlerManager;
 
@@ -427,9 +427,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract E createModelItemEvent(M model, Object source, EventTarget target, ActivityType activity);
+        public abstract E createModelItemEvent(M model, Object source, EventTarget target, DbOperationType activity);
 
-        public abstract EventType<E> toEventType(ActivityType activity);
+        public abstract EventType<E> toEventType(DbOperationType activity);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
@@ -437,7 +437,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Registers a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -448,7 +448,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Registers a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -459,7 +459,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Unregisters a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -470,7 +470,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Unregisters a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -482,7 +482,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
     }
 
-    public static class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelItemEvent<M, D>> extends Task<E> {
+    public static class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends Task<E> {
 
         private final E event;
 

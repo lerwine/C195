@@ -32,7 +32,7 @@ import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CustomerEvent;
 import scheduler.view.event.EventEvaluationStatus;
@@ -422,7 +422,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
             if (address instanceof AddressDAO) {
                 AddressEvent addressEvent = new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                        (address.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                        (address.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
                 AddressDAO.FACTORY.save(addressEvent, connection, force);
                 switch (addressEvent.getStatus()) {
                     case SUCCEEDED:
@@ -478,7 +478,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected CustomerEvent createModelItemEvent(CustomerEvent sourceEvent, ActivityType activity) {
+        protected CustomerEvent createModelItemEvent(CustomerEvent sourceEvent, DbOperationType activity) {
             CustomerModel model = sourceEvent.getModel();
             if (null != model) {
                 return new CustomerEvent(model, sourceEvent.getSource(), this, activity);

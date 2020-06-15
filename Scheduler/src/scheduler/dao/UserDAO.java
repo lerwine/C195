@@ -30,7 +30,7 @@ import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.event.UserEvent;
 
@@ -441,7 +441,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createModelItemEvent(UserEvent sourceEvent, ActivityType activity) {
+        protected UserEvent createModelItemEvent(UserEvent sourceEvent, DbOperationType activity) {
             UserModel model = sourceEvent.getModel();
             if (null != model) {
                 return new UserEvent(model, sourceEvent.getSource(), this, activity);

@@ -42,7 +42,7 @@ import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.EditCountryResourceKeys;
-import scheduler.view.event.ActivityType;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.event.CityEvent;
 import scheduler.view.event.CountryEvent;
 import scheduler.view.event.EventEvaluationStatus;
@@ -356,7 +356,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             ICountryDAO country = ICityDAO.assertValidCity(event.getDataAccessObject()).country;
             if (country instanceof CountryDAO) {
                 CountryEvent countryEvent = new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                        (country.getRowState() == DataRowState.NEW) ? ActivityType.INSERTING : ActivityType.UPDATING);
+                        (country.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
                 CountryDAO.FACTORY.save(countryEvent, connection, force);
                 switch (countryEvent.getStatus()) {
                     case SUCCEEDED:
@@ -533,7 +533,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected CityEvent createModelItemEvent(CityEvent sourceEvent, ActivityType activity) {
+        protected CityEvent createModelItemEvent(CityEvent sourceEvent, DbOperationType activity) {
             CityModel model = sourceEvent.getModel();
             if (null != model) {
                 return new CityEvent(model, sourceEvent.getSource(), this, activity);

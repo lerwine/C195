@@ -13,15 +13,15 @@ import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.view.event.ActivityType;
-import scheduler.view.event.ModelItemEvent;
+import scheduler.view.event.DbOperationType;
+import scheduler.view.event.DbOperationEvent;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
  */
-public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelItemEvent<T, ? extends DataAccessObject>>
+public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends DataAccessObject>, E extends DbOperationEvent<T, ? extends DataAccessObject>>
         implements Callback<TableColumn<T, T>, TableCell<T, T>>, EventTarget {
 
     private final EventHandlerManager eventHandlerManager;
@@ -33,10 +33,10 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
             FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory = getFactory();
             if (null != oldValue) {
-                eventHandlerManager.removeEventHandler(factory.toEventType(ActivityType.EDIT_REQUEST), oldValue);
+                eventHandlerManager.removeEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), oldValue);
             }
             if (null != newValue) {
-                eventHandlerManager.addEventHandler(factory.toEventType(ActivityType.EDIT_REQUEST), newValue);
+                eventHandlerManager.addEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), newValue);
             }
         });
     }
@@ -75,7 +75,7 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
     }
 
     /**
-     * Registers a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+     * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
      * {@code DaoFactory}.
      *
      * @param type The event type.
@@ -86,7 +86,7 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
     }
 
     /**
-     * Registers a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+     * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
      * {@code DaoFactory}.
      *
      * @param type The event type.
@@ -97,7 +97,7 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
     }
 
     /**
-     * Unregisters a {@link ModelItemEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+     * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
      * {@code DaoFactory}.
      *
      * @param type The event type.
@@ -108,7 +108,7 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
     }
 
     /**
-     * Unregisters a {@link ModelItemEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+     * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
      * {@code DaoFactory}.
      *
      * @param type The event type.
