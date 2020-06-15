@@ -259,13 +259,13 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public CityEvent createModelItemEvent(CityModel model, Object source, EventTarget target, DbOperationType activity) {
-            return new CityEvent(model, source, target, activity);
+        public CityEvent createDbOperationEvent(CityModel model, Object source, EventTarget target, DbOperationType operation) {
+            return new CityEvent(model, source, target, operation);
         }
 
         @Override
-        public EventType<CityEvent> toEventType(DbOperationType activity) {
-            return CityEvent.toEventType(activity);
+        public EventType<CityEvent> toEventType(DbOperationType operation) {
+            return CityEvent.toEventType(operation);
         }
 
     }

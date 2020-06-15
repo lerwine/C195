@@ -62,14 +62,14 @@ public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAcces
     private void onEditButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), DbOperationType.EDIT_REQUEST));
+            fireEvent(factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.EDIT_REQUEST));
         }
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            fireEvent(factory.createModelItemEvent(item, event.getSource(), item.dataObject(), DbOperationType.DELETE_REQUEST));
+            fireEvent(factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.DELETE_REQUEST));
         }
     }
 

@@ -72,6 +72,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.event.AppointmentEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -224,8 +225,22 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
+        addEventHandler(AppointmentEvent.INSERTING_EVENT_TYPE, this::onAppointmentUpdating);
+        addEventHandler(AppointmentEvent.UPDATING_EVENT_TYPE, this::onAppointmentUpdating);
+        addEventHandler(AppointmentEvent.INSERTED_EVENT_TYPE, this::onAppointmentInserted);
     }
 
+    private void onAppointmentUpdating(AppointmentEvent event) {
+        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+            return;
+        }
+        throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
+    }
+    
+    private void onAppointmentInserted(AppointmentEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) Implement scheduler.view.appointment.EditAppointment#onAppointmentInserted
+    }
+    
     @FXML
     private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
         editingUserOptions = false;
@@ -582,16 +597,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @Override
     public FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
         return AppointmentModel.FACTORY;
-    }
-
-    @Override
-    public void onNewModelSaved() {
-        throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) Implement scheduler.view.appointment.EditAppointment#applyEditMode
-    }
-
-    @Override
-    public void updateModel() {
-        throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) scheduler.view.appointment.EditAppointment#updateModel
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

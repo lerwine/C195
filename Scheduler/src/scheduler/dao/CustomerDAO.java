@@ -359,7 +359,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public CustomerEvent save(CustomerEvent event, Connection connection, boolean force) throws SQLException {
+        public CustomerEvent save(CustomerEvent event, Connection connection, boolean force) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -412,6 +412,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                         } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
             }
             if (count > 0) {
                 event.setInvalid("Customer name already in use", "Another customer has the same name");
@@ -421,14 +425,13 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             IAddressDAO address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
 
             if (address instanceof AddressDAO) {
-                AddressEvent addressEvent = new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                        (address.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
-                AddressDAO.FACTORY.save(addressEvent, connection, force);
+                AddressEvent addressEvent = AddressDAO.FACTORY.save(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                        (address.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
                 switch (addressEvent.getStatus()) {
                     case SUCCEEDED:
                         break;
                     case FAULTED:
-                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
+                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
                         return event;
                     case INVALID:
                         event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
@@ -443,7 +446,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public CustomerEvent delete(CustomerEvent event, Connection connection) throws SQLException {
+        public CustomerEvent delete(CustomerEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -461,7 +464,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             }
 
             CustomerEvent resultEvent = event;
-            int count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
+            int count;
+            try {
+                count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
             switch (count) {
                 case 0:
                     resultEvent = super.delete(event, connection);
@@ -478,12 +488,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected CustomerEvent createModelItemEvent(CustomerEvent sourceEvent, DbOperationType activity) {
+        protected CustomerEvent createDbOperationEvent(CustomerEvent sourceEvent, DbOperationType operation) {
             CustomerModel model = sourceEvent.getModel();
             if (null != model) {
-                return new CustomerEvent(model, sourceEvent.getSource(), this, activity);
+                return new CustomerEvent(model, sourceEvent.getSource(), this, operation);
             }
-            return new CustomerEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+            return new CustomerEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
         }
 
         @Override

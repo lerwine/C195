@@ -73,6 +73,7 @@ import scheduler.view.customer.EditCustomer;
 import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CustomerEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -185,8 +186,30 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
+        addEventHandler(AddressEvent.INSERTING_EVENT_TYPE, this::onAddressUpdating);
+        addEventHandler(AddressEvent.UPDATING_EVENT_TYPE, this::onAddressUpdating);
+        addEventHandler(AddressEvent.INSERTED_EVENT_TYPE, this::onAddressInserted);
     }
 
+    private void onAddressUpdating(AddressEvent event) {
+        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+            return;
+        }
+        model.setAddress1(normalizedAddress1.get());
+        model.setAddress2(normalizedAddress2.get());
+        model.setCity(selectedCity.get());
+        model.setPostalCode(normalizedPostalCode.get());
+        model.setPhone(normalizedPhone.get());
+    }
+    
+    private void onAddressInserted(AddressEvent event) {
+        editingCity.set(false);
+        restoreNode(customersHeadingLabel);
+        restoreNode(customersTableView);
+        restoreNode(newCustomerButtonBar);
+        initializeEditMode();
+    }
+    
     @FXML
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
@@ -483,24 +506,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         return windowTitle.getReadOnlyProperty();
     }
 
-    @Override
-    public void onNewModelSaved() {
-        editingCity.set(false);
-        restoreNode(customersHeadingLabel);
-        restoreNode(customersTableView);
-        restoreNode(newCustomerButtonBar);
-        initializeEditMode();
-    }
-
-    @Override
-    public void updateModel() {
-        model.setAddress1(normalizedAddress1.get());
-        model.setAddress2(normalizedAddress2.get());
-        model.setCity(selectedCity.get());
-        model.setPostalCode(normalizedPostalCode.get());
-        model.setPhone(normalizedPhone.get());
-    }
-
     private void updateValidation() {
         modified.set(changedBinding.get());
         valid.set(validityBinding.get());
@@ -702,7 +707,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<CustomerEvent> {
 
         private final CustomerEvent event;
 
@@ -713,12 +718,38 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected void cancelled() {
+            event.setCanceled();
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
+            super.failed();
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            CustomerEvent e = getValue();
+            switch (e.getStatus()) {
+                case CANCELED:
+                case EVALUATING:
+                case SUCCEEDED:
+                    break;
+                default:
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
+                    break;
+            }
+        }
+
+        @Override
+        protected CustomerEvent call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CustomerDAO.FACTORY.delete(event, connector.getConnection());
+                return CustomerDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
     }
 

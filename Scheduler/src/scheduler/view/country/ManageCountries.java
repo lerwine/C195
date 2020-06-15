@@ -138,7 +138,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
         return CountryEvent.DELETED_EVENT_TYPE;
     }
 
-    private class DeleteTask extends Task<String> {
+    private class DeleteTask extends Task<CountryEvent> {
 
         private final CountryEvent event;
 
@@ -162,25 +162,25 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
         @Override
         protected void succeeded() {
             super.succeeded();
-            switch (event.getStatus()) {
+            CountryEvent e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                 case SUCCEEDED:
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
         }
 
         @Override
-        protected String call() throws Exception {
+        protected CountryEvent call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CountryDAO.FACTORY.delete(event, connector.getConnection());
+                return CountryDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
     }
 

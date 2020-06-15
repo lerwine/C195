@@ -69,6 +69,7 @@ import scheduler.view.country.EditCountry;
 import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AddressEvent;
 import scheduler.view.event.CityEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -163,8 +164,26 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         timeZoneOptionList = FXCollections.observableArrayList();
         timeZoneOptionList.addAll(allTimeZones);
         addressItemList = FXCollections.observableArrayList();
+        addEventHandler(CityEvent.INSERTING_EVENT_TYPE, this::onCityUpdating);
+        addEventHandler(CityEvent.UPDATING_EVENT_TYPE, this::onCityUpdating);
+        addEventHandler(CityEvent.INSERTED_EVENT_TYPE, this::onCityInserted);
     }
 
+    private void onCityUpdating(CityEvent event) {
+        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+            return;
+        }
+        model.setName(normalizedName.get());
+        model.setCountry(selectedCountry.get());
+        model.setTimeZone(selectedTimeZone.get());
+    }
+    
+    private void onCityInserted(CityEvent event) {
+        restoreNode(addressesLabel);
+        restoreNode(addressesTableView);
+        restoreNode(addCityButtonBar);
+    }
+    
     @FXML
     void onAddAddressButtonAction(ActionEvent event) {
         try {
@@ -437,13 +456,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @Override
-    public void onNewModelSaved() {
-        restoreNode(addressesLabel);
-        restoreNode(addressesTableView);
-        restoreNode(addCityButtonBar);
-    }
-
-    @Override
     public FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
         return CityModel.FACTORY;
     }
@@ -476,13 +488,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @Override
     public ReadOnlyStringProperty windowTitleProperty() {
         return windowTitle.getReadOnlyProperty();
-    }
-
-    @Override
-    public void updateModel() {
-        model.setName(normalizedName.get());
-        model.setCountry(selectedCountry.get());
-        model.setTimeZone(selectedTimeZone.get());
     }
 
     private void loadCountries(List<CountryDAO> result, CountryItem<? extends ICountryDAO> country) {
@@ -583,7 +588,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<AddressEvent> {
 
         private final AddressEvent event;
 
@@ -608,24 +613,24 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         @Override
         protected void succeeded() {
             super.succeeded();
-            switch (event.getStatus()) {
+            AddressEvent e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                 case SUCCEEDED:
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected AddressEvent call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                AddressDAO.FACTORY.delete(event, connector.getConnection());
+                return AddressDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
     }
 

@@ -42,17 +42,16 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.event.DbOperationType;
 import scheduler.view.event.DbOperationEvent;
+import scheduler.view.event.DbOperationType;
 import scheduler.view.task.WaitBorderPane;
 
 /**
  * The parent FXML custom control for editing {@link FxRecordModel} items in a new modal window.
  * <p>
- * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
- * values for the {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and
- * {@link FxRecordModel#getLastModifiedDate()} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child
- * {@link EditItem.ModelEditor} custom control.</p>
+ * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the values for the
+ * {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and {@link FxRecordModel#getLastModifiedDate()}
+ * properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child {@link EditItem.ModelEditor} custom control.</p>
  * <p>
  * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method.</p>
  * <p>
@@ -62,6 +61,7 @@ import scheduler.view.task.WaitBorderPane;
  * @param <T> The type of data access object that the model represents.
  * @param <U> The type of model being edited.
  * @param <S> The content node.
+ * @param <E> The {@link DbOperationEvent} type.
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
@@ -75,6 +75,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @param <T> The type of data access object.
      * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditor} control for editing the model properties.
+     * @param <E> The {@link DbOperationEvent} type.
      * @param parentWindow The parent window
      * @param editorRegion
      * @param model
@@ -104,6 +105,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @param <T> The type of data access object.
      * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditor} control for editing the model properties.
+     * @param <E> The {@link DbOperationEvent} type.
      * @param parentWindow The parent window
      * @param editorType
      * @param model
@@ -192,7 +194,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     void onDeleteButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
-        E deleteEvent = factory.createModelItemEvent(model, event.getSource(), editorRegion, DbOperationType.DELETING);
+        E deleteEvent = factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.DELETING);
         editorRegion.fireEvent(deleteEvent);
         if (!deleteEvent.isConsumed()) {
             Stage stage = (Stage) getScene().getWindow();
@@ -212,11 +214,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
         // FIXME: Need to find a good way to ensure the model is updated after DAO is updated.. Perhaps passing event instead of DAO
         E updateEvent = (model.isNewRow())
-                ? factory.createModelItemEvent(model, event.getSource(), editorRegion, DbOperationType.INSERTING)
-                : factory.createModelItemEvent(model, event.getSource(), editorRegion, DbOperationType.UPDATING);
+                ? factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.INSERTING)
+                : factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.UPDATING);
         editorRegion.fireEvent(updateEvent);
         if (!updateEvent.isConsumed()) {
-            editorRegion.updateModel();
             waitBorderPane.startNow(new SaveTask(updateEvent));
         }
     }
@@ -278,11 +279,11 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     /**
      * Base class for editing specific {@link FxRecordModel} items. Derived controls are intended to be instantiated through the
-     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent
-     * {@code EditItem} control.
+     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent {@code EditItem} control.
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
      * @param <U> The {@link FxRecordModel} type.
+     * @param <E> The {@link DbOperationEvent} type.
      */
     public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends DbOperationEvent<U, T>> {
 
@@ -301,11 +302,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         String getWindowTitle();
 
         /**
-         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()}
-         * of the parent {@link Stage}.
+         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent {@link Stage}.
          *
-         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the
-         * {@link Stage#titleProperty()} of the parent {@link Stage}.
+         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent
+         * {@link Stage}.
          */
         ReadOnlyStringProperty windowTitleProperty();
 
@@ -314,8 +314,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         /**
          * The inverse value of this property is bound to the {@link Button#disableProperty()} of the {@link EditItem#saveChangesButton}.
          *
-         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled,
-         * otherwise {@code true} if it is to be enabled.
+         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled, otherwise {@code true} if it
+         * is to be enabled.
          */
         ReadOnlyBooleanProperty validProperty();
 
@@ -323,17 +323,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         ReadOnlyBooleanProperty modifiedProperty();
 
-        /**
-         * This gets called to re-initialize the controller for edit mode after a new model has been inserted into the database
-         * 
-         */
-        void onNewModelSaved();
-
-        void updateModel();
-
     }
 
-    private class SaveTask extends Task<Void> {
+    private class SaveTask extends Task<E> {
 
         private final E event;
         private final DaoFactory<T, E> daoFactory;
@@ -348,17 +340,20 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         protected void succeeded() {
-            switch (event.getStatus()) {
+            E e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                     break;
                 case SUCCEEDED:
                     if (closeOnSuccess) {
                         getScene().getWindow().hide();
+                    } else {
+                        editorRegion.fireEvent(e);
                     }
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
             super.succeeded();
@@ -377,19 +372,17 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected E call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
 
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                daoFactory.save(event, dbConnector.getConnection());
+                return daoFactory.save(event, dbConnector.getConnection());
             }
-
-            return null;
         }
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<E> {
 
         private final E event;
         private final DaoFactory<T, E> daoFactory;
@@ -403,7 +396,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         protected void succeeded() {
-            switch (event.getStatus()) {
+            E e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                     break;
@@ -411,22 +405,19 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                     getScene().getWindow().hide();
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
             super.succeeded();
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected E call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                daoFactory.delete(event, dbConnector.getConnection());
+                return daoFactory.delete(event, dbConnector.getConnection());
             }
-
-            return null;
         }
     }
 

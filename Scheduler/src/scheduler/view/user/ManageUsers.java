@@ -176,7 +176,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
         return UserEvent.DELETED_EVENT_TYPE;
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<UserEvent> {
 
         private final UserEvent event;
 
@@ -200,25 +200,25 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
         @Override
         protected void succeeded() {
             super.succeeded();
-            switch (event.getStatus()) {
+            UserEvent e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                 case SUCCEEDED:
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected UserEvent call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                UserDAO.FACTORY.delete(event, connector.getConnection());
+                return UserDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
     }
 

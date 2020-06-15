@@ -37,6 +37,7 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
+import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.view.ModelFilter;
@@ -272,10 +273,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         protected ModelFactory(EventType<E> anyEventType) {
             eventHandlerManager = new EventHandlerManager(this);
-            eventHandlerManager.addEventHandler(anyEventType, this::handleModelEvent);
+            eventHandlerManager.addEventHandler(anyEventType, this::handleDbOperationEvent);
         }
 
-        private void handleModelEvent(E event) {
+        private void handleDbOperationEvent(E event) {
             if (!event.isConsumed()) {
                 M model = event.getModel();
                 if (null != model) {
@@ -427,9 +428,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract E createModelItemEvent(M model, Object source, EventTarget target, DbOperationType activity);
+        public abstract E createDbOperationEvent(M model, Object source, EventTarget target, DbOperationType operation);
 
-        public abstract EventType<E> toEventType(DbOperationType activity);
+        public abstract EventType<E> toEventType(DbOperationType operation);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
@@ -480,38 +481,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             eventHandlerManager.removeEventFilter(type, eventHandler);
         }
 
-    }
-
-    public static class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends Task<E> {
-
-        private final E event;
-
-        DeleteTask(E event, String title) {
-            updateTitle(title);
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected E call() throws Exception {
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                event.getModelFactory().getDaoFactory().delete(event, connector.getConnection());
-            }
-            return null;
-        }
     }
 
     @FunctionalInterface

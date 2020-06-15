@@ -517,7 +517,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         return AppointmentEvent.DELETED_EVENT_TYPE;
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<AppointmentEvent> {
 
         private final AppointmentEvent event;
 
@@ -541,25 +541,25 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         @Override
         protected void succeeded() {
             super.succeeded();
+            AppointmentEvent e = getValue();
             switch (event.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                 case SUCCEEDED:
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected AppointmentEvent call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                AppointmentDAO.FACTORY.delete(event, connector.getConnection());
+                return AppointmentDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
     }
 

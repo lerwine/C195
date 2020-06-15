@@ -220,13 +220,13 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public UserEvent createModelItemEvent(UserModel model, Object source, EventTarget target, DbOperationType activity) {
-            return new UserEvent(model, source, target, activity);
+        public UserEvent createDbOperationEvent(UserModel model, Object source, EventTarget target, DbOperationType operation) {
+            return new UserEvent(model, source, target, operation);
         }
 
         @Override
-        public EventType<UserEvent> toEventType(DbOperationType activity) {
-            return UserEvent.toEventType(activity);
+        public EventType<UserEvent> toEventType(DbOperationType operation) {
+            return UserEvent.toEventType(operation);
         }
 
     }

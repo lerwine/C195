@@ -198,13 +198,13 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public CountryEvent createModelItemEvent(CountryModel model, Object source, EventTarget target, DbOperationType activity) {
-            return new CountryEvent(model, source, target, activity);
+        public CountryEvent createDbOperationEvent(CountryModel model, Object source, EventTarget target, DbOperationType operation) {
+            return new CountryEvent(model, source, target, operation);
         }
 
         @Override
-        public EventType<CountryEvent> toEventType(DbOperationType activity) {
-            return CountryEvent.toEventType(activity);
+        public EventType<CountryEvent> toEventType(DbOperationType operation) {
+            return CountryEvent.toEventType(operation);
         }
 
     }

@@ -475,13 +475,13 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public AddressEvent createModelItemEvent(AddressModel model, Object source, EventTarget target, DbOperationType activity) {
-            return new AddressEvent(model, source, target, activity);
+        public AddressEvent createDbOperationEvent(AddressModel model, Object source, EventTarget target, DbOperationType operation) {
+            return new AddressEvent(model, source, target, operation);
         }
 
         @Override
-        public EventType<AddressEvent> toEventType(DbOperationType activity) {
-            return AddressEvent.toEventType(activity);
+        public EventType<AddressEvent> toEventType(DbOperationType operation) {
+            return AddressEvent.toEventType(operation);
         }
 
     }

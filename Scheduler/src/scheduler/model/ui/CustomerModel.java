@@ -320,13 +320,13 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public CustomerEvent createModelItemEvent(CustomerModel model, Object source, EventTarget target, DbOperationType activity) {
-            return new CustomerEvent(model, source, target, activity);
+        public CustomerEvent createDbOperationEvent(CustomerModel model, Object source, EventTarget target, DbOperationType operation) {
+            return new CustomerEvent(model, source, target, operation);
         }
 
         @Override
-        public EventType<CustomerEvent> toEventType(DbOperationType activity) {
-            return CustomerEvent.toEventType(activity);
+        public EventType<CustomerEvent> toEventType(DbOperationType operation) {
+            return CustomerEvent.toEventType(operation);
         }
 
     }

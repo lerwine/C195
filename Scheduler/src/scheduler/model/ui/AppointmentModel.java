@@ -659,13 +659,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public AppointmentEvent createModelItemEvent(AppointmentModel model, Object source, EventTarget target, DbOperationType activity) {
-            return new AppointmentEvent(model, source, target, activity);
+        public AppointmentEvent createDbOperationEvent(AppointmentModel model, Object source, EventTarget target, DbOperationType operation) {
+            return new AppointmentEvent(model, source, target, operation);
         }
 
         @Override
-        public EventType<AppointmentEvent> toEventType(DbOperationType activity) {
-            return AppointmentEvent.toEventType(activity);
+        public EventType<AppointmentEvent> toEventType(DbOperationType operation) {
+            return AppointmentEvent.toEventType(operation);
         }
 
     }

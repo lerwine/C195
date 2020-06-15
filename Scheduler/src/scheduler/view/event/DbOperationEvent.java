@@ -9,8 +9,6 @@ import scheduler.model.ui.FxRecordModel;
 
 /**
  * Base class for {@link FxRecordModel} save and delete events.
- * <h2>Event Types</h2>
- * <h3>{@link DbOperationType#EDIT_REQUEST}</h3>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <M> The {@link FxRecordModel} type.
@@ -129,24 +127,32 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         return state.detailMessage;
     }
 
+    public Throwable getFault() {
+        return state.fault;
+    }
+
     public EventEvaluationStatus getStatus() {
         return state.status;
     }
 
     public void setSucceeded() {
-        state.setStatus(EventEvaluationStatus.SUCCEEDED, null, null);
+        state.setStatus(EventEvaluationStatus.SUCCEEDED, null, null, null);
     }
 
     public void setCanceled() {
-        state.setStatus(EventEvaluationStatus.CANCELED, null, null);
+        state.setStatus(EventEvaluationStatus.CANCELED, null, null, null);
+    }
+
+    public void setFaulted(String title, String message, Throwable ex) {
+        state.setStatus(EventEvaluationStatus.FAULTED, title, message, ex);
     }
 
     public void setFaulted(String title, String message) {
-        state.setStatus(EventEvaluationStatus.FAULTED, title, message);
+        setFaulted(title, message, null);
     }
 
     public void setInvalid(String title, String message) {
-        state.setStatus(EventEvaluationStatus.INVALID, title, message);
+        state.setStatus(EventEvaluationStatus.INVALID, title, message, null);
     }
 
     public abstract <E extends DbOperationEvent<M, D>> FxRecordModel.ModelFactory<D, M, E> getModelFactory();
@@ -164,12 +170,14 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         private String summaryTitle;
         private String detailMessage;
         private EventEvaluationStatus status;
+        private Throwable fault;
 
         private State(M model) {
             this.model = model;
             summaryTitle = "";
             detailMessage = "";
             status = EventEvaluationStatus.EVALUATING;
+            fault = null;
         }
 
         public synchronized void setModel(M model) {
@@ -185,8 +193,9 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
 //        public synchronized void setDbConnector(DbConnector dbConnector) {
 //            this.dbConnector = dbConnector;
 //        }
-        public synchronized void setStatus(EventEvaluationStatus status, String title, String message) {
+        public synchronized void setStatus(EventEvaluationStatus status, String title, String message, Throwable ex) {
             if (status == EventEvaluationStatus.EVALUATING) {
+                fault = ex;
                 this.status = Objects.requireNonNull(status);
                 summaryTitle = (null == title || title.trim().isEmpty()) ? "" : title;
                 detailMessage = (null == message || message.trim().isEmpty()) ? "" : message;

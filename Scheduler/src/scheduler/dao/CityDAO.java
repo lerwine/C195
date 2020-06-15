@@ -243,7 +243,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public CityEvent save(CityEvent event, Connection connection, boolean force) throws SQLException {
+        public CityEvent save(CityEvent event, Connection connection, boolean force) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -304,6 +304,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                         } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
             }
 
             if (count > 0) {
@@ -346,6 +350,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                             } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                         }
                     }
+                } catch (SQLException ex) {
+                    event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
+                    LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                    return event;
                 }
                 if (count > 0) {
                     event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
@@ -355,14 +363,13 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
             ICountryDAO country = ICityDAO.assertValidCity(event.getDataAccessObject()).country;
             if (country instanceof CountryDAO) {
-                CountryEvent countryEvent = new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                        (country.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
-                CountryDAO.FACTORY.save(countryEvent, connection, force);
+                CountryEvent countryEvent = CountryDAO.FACTORY.save(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                        (country.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
                 switch (countryEvent.getStatus()) {
                     case SUCCEEDED:
                         break;
                     case FAULTED:
-                        event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
+                        event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
                         return event;
                     case INVALID:
                         event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
@@ -377,7 +384,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public CityEvent delete(CityEvent event, Connection connection) throws SQLException {
+        public CityEvent delete(CityEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -395,7 +402,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             }
 
             CityEvent resultEvent = event;
-            int count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
+            int count;
+            try {
+                count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
             switch (count) {
                 case 0:
                     resultEvent = super.delete(event, connection);
@@ -533,12 +547,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected CityEvent createModelItemEvent(CityEvent sourceEvent, DbOperationType activity) {
+        protected CityEvent createDbOperationEvent(CityEvent sourceEvent, DbOperationType operation) {
             CityModel model = sourceEvent.getModel();
             if (null != model) {
-                return new CityEvent(model, sourceEvent.getSource(), this, activity);
+                return new CityEvent(model, sourceEvent.getSource(), this, operation);
             }
-            return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+            return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
         }
 
         @Override

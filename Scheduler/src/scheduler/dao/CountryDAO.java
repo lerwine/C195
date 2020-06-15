@@ -206,7 +206,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public CountryEvent save(CountryEvent event, Connection connection, boolean force) throws SQLException {
+        public CountryEvent save(CountryEvent event, Connection connection, boolean force) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -261,11 +261,14 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                         } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking country naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
             }
 
             if (count > 0) {
-                event.setInvalid("Name in use",
-                        ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                event.setInvalid("Name in use", ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
                 return event;
             }
 
@@ -274,7 +277,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public CountryEvent delete(CountryEvent event, Connection connection) throws SQLException {
+        public CountryEvent delete(CountryEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -292,7 +295,14 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             }
 
             CountryEvent resultEvent = event;
-            int count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
+            int count;
+            try {
+                count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
             switch (count) {
                 case 0:
                     resultEvent = super.delete(event, connection);
@@ -400,12 +410,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected CountryEvent createModelItemEvent(CountryEvent sourceEvent, DbOperationType activity) {
+        protected CountryEvent createDbOperationEvent(CountryEvent sourceEvent, DbOperationType operation) {
             CountryModel model = sourceEvent.getModel();
             if (null != model) {
-                return new CountryEvent(model, sourceEvent.getSource(), this, activity);
+                return new CountryEvent(model, sourceEvent.getSource(), this, operation);
             }
-            return new CountryEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+            return new CountryEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
         }
 
         @Override

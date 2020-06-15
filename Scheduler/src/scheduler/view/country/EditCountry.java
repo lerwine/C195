@@ -55,6 +55,7 @@ import static scheduler.view.country.EditCountryResourceKeys.*;
 import scheduler.view.event.DbOperationType;
 import scheduler.view.event.CityEvent;
 import scheduler.view.event.CountryEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -121,8 +122,24 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
+        addEventHandler(CountryEvent.INSERTING_EVENT_TYPE, this::onCountryUpdating);
+        addEventHandler(CountryEvent.UPDATING_EVENT_TYPE, this::onCountryUpdating);
+        addEventHandler(CountryEvent.INSERTED_EVENT_TYPE, this::onCountryInserted);
     }
 
+    private void onCountryUpdating(CountryEvent event) {
+        if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
+            model.setLocale(selectedLocale.get());
+        }
+    }
+    
+    private void onCountryInserted(CountryEvent event) {
+        restoreNode(citiesLabel);
+        restoreNode(citiesTableView);
+        restoreNode(newButtonBar);
+        initializeEditMode();
+    }
+    
     @SuppressWarnings("incomplete-switch")
     @FXML
     private void onCitiesTableViewKeyReleased(KeyEvent event) {
@@ -251,14 +268,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         CityModel.FACTORY.addEventHandler(CityEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onCityDeleted));
     }
 
-    @Override
-    public void onNewModelSaved() {
-        restoreNode(citiesLabel);
-        restoreNode(citiesTableView);
-        restoreNode(newButtonBar);
-        initializeEditMode();
-    }
-
     private void onCityAdded(CityEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         CityModel m = event.getModel();
@@ -340,11 +349,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         return CountryModel.FACTORY;
     }
 
-    @Override
-    public void updateModel() {
-        model.setLocale(selectedLocale.get());
-    }
-
     private class ItemsLoadTask extends Task<List<CityDAO>> {
 
         private final int pk;
@@ -378,7 +382,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<CityEvent> {
 
         private final CityEvent event;
 
@@ -403,24 +407,24 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         @Override
         protected void succeeded() {
             super.succeeded();
-            switch (event.getStatus()) {
+            CityEvent e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                 case SUCCEEDED:
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected CityEvent call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CityDAO.FACTORY.delete(event, connector.getConnection());
+                return CityDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
 
     }

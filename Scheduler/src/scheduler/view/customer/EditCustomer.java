@@ -82,6 +82,7 @@ import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AppointmentEvent;
 import scheduler.view.event.CustomerEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -210,8 +211,38 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
+        addEventHandler(CustomerEvent.INSERTING_EVENT_TYPE, this::onCustomerUpdating);
+        addEventHandler(CustomerEvent.UPDATING_EVENT_TYPE, this::onCustomerUpdating);
+        addEventHandler(CustomerEvent.INSERTED_EVENT_TYPE, this::onCustomerInserted);
     }
 
+    private void onCustomerUpdating(CustomerEvent event) {
+        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+            return;
+        }
+        model.setName(nameTextField.getText().trim());
+        if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
+            AddressModel addr = selectedAddress.get();
+            addr.setAddress1(normalizedAddress1.get());
+            addr.setAddress2(normalizedAddress2.get());
+            addr.setCity(selectedCity.get());
+            addr.setPostalCode(normalizedPostalCode.get());
+            addr.setPhone(normalizedPhone.get());
+            model.setAddress(selectedAddress.get());
+        }
+        model.setActive(activeTrueRadioButton.isSelected());
+    }
+    
+    private void onCustomerInserted(CustomerEvent event) {
+        restoreNode(appointmentFilterComboBox);
+        restoreNode(appointmentsTableView);
+        restoreNode(addAppointmentButtonBar);
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+        initializeEditMode();
+        appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
+        updateValidation();
+    }
+    
     @FXML
     private void onAddAppointmentButtonAction(ActionEvent event) {
         try {
@@ -597,32 +628,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         return CustomerModel.FACTORY;
     }
 
-    @Override
-    public void onNewModelSaved() {
-        restoreNode(appointmentFilterComboBox);
-        restoreNode(appointmentsTableView);
-        restoreNode(addAppointmentButtonBar);
-        windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-        initializeEditMode();
-        appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
-        updateValidation();
-    }
-
-    @Override
-    public void updateModel() {
-        model.setName(nameTextField.getText().trim());
-        if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
-            AddressModel addr = selectedAddress.get();
-            addr.setAddress1(normalizedAddress1.get());
-            addr.setAddress2(normalizedAddress2.get());
-            addr.setCity(selectedCity.get());
-            addr.setPostalCode(normalizedPostalCode.get());
-            addr.setPhone(normalizedPhone.get());
-            model.setAddress(selectedAddress.get());
-        }
-        model.setActive(activeTrueRadioButton.isSelected());
-    }
-
     private void loadData(int sameAddr, Tuple<AddressDAO, List<CityDAO>> addressAndCities, List<CountryDAO> countries) {
         addressCustomerCount.set(sameAddr);
         AddressItem<? extends IAddressDAO> addrItem = model.getAddress();
@@ -884,7 +889,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<AppointmentEvent> {
 
         private final AppointmentEvent event;
 
@@ -909,24 +914,24 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         @Override
         protected void succeeded() {
             super.succeeded();
-            switch (event.getStatus()) {
+            AppointmentEvent e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                 case SUCCEEDED:
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected AppointmentEvent call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                AppointmentDAO.FACTORY.delete(event, connector.getConnection());
+                return AppointmentDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
     }
 

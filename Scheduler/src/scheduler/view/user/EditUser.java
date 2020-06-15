@@ -62,6 +62,7 @@ import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
 import scheduler.view.event.DbOperationType;
 import scheduler.view.event.AppointmentEvent;
+import scheduler.view.event.EventEvaluationStatus;
 import scheduler.view.event.UserEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
@@ -149,8 +150,31 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
+        addEventHandler(UserEvent.INSERTING_EVENT_TYPE, this::onUserUpdating);
+        addEventHandler(UserEvent.UPDATING_EVENT_TYPE, this::onUserUpdating);
+        addEventHandler(UserEvent.INSERTED_EVENT_TYPE, this::onUserInserted);
     }
 
+    private void onUserUpdating(UserEvent event) {
+        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+            return;
+        }
+        model.setUserName(userNameTextField.getText());
+        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
+        if (changePasswordCheckBox.isSelected()) {
+            PwHash pw = new PwHash(passwordField.getText(), true);
+            model.setPassword(pw.getEncodedHash());
+        }
+    }
+    
+    private void onUserInserted(UserEvent event) {
+        changePasswordCheckBox.setDisable(false);
+        changePasswordCheckBox.setSelected(false);
+        restoreNode(appointmentsFilterComboBox);
+        restoreNode(appointmentsTableView);
+        initEditMode();
+    }
+    
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
@@ -407,25 +431,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         return UserModel.FACTORY;
     }
 
-    @Override
-    public void onNewModelSaved() {
-        changePasswordCheckBox.setDisable(false);
-        changePasswordCheckBox.setSelected(false);
-        restoreNode(appointmentsFilterComboBox);
-        restoreNode(appointmentsTableView);
-        initEditMode();
-    }
-
-    @Override
-    public void updateModel() {
-        model.setUserName(userNameTextField.getText());
-        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
-        if (changePasswordCheckBox.isSelected()) {
-            PwHash pw = new PwHash(passwordField.getText(), true);
-            model.setPassword(pw.getEncodedHash());
-        }
-    }
-
     private void loadUsers(List<UserDAO> users) {
         if (null != users && !users.isEmpty()) {
             if (model.isNewRow()) {
@@ -441,7 +446,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
     }
 
-    private class DeleteTask extends Task<Void> {
+    private class DeleteTask extends Task<AppointmentEvent> {
 
         private final AppointmentEvent event;
 
@@ -466,24 +471,24 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         @Override
         protected void succeeded() {
             super.succeeded();
-            switch (event.getStatus()) {
+            AppointmentEvent e = getValue();
+            switch (e.getStatus()) {
                 case CANCELED:
                 case EVALUATING:
                 case SUCCEEDED:
                     break;
                 default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, event.getSummaryTitle(), event.getDetailMessage());
+                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
                     break;
             }
         }
 
         @Override
-        protected Void call() throws Exception {
+        protected AppointmentEvent call() throws Exception {
             try (DbConnector connector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                AppointmentDAO.FACTORY.delete(event, connector.getConnection());
+                return AppointmentDAO.FACTORY.delete(event, connector.getConnection());
             }
-            return null;
         }
     }
 

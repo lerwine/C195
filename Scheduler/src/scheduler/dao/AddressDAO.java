@@ -293,7 +293,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public AddressEvent save(AddressEvent event, Connection connection, boolean force) throws SQLException {
+        public AddressEvent save(AddressEvent event, Connection connection, boolean force) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -372,6 +372,10 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                         } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking address conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
             }
             if (count > 0) {
                 event.setInvalid("Address already exusts", "Another matching address exists");
@@ -380,14 +384,13 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
             ICityDAO city = IAddressDAO.assertValidAddress(event.getDataAccessObject()).city;
             if (city instanceof CityDAO) {
-                CityEvent cityEvent = new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                        (city.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
-                CityDAO.FACTORY.save(cityEvent, connection, force);
+                CityEvent cityEvent = CityDAO.FACTORY.save(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
+                        (city.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
                 switch (cityEvent.getStatus()) {
                     case SUCCEEDED:
                         break;
                     case FAULTED:
-                        event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
+                        event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage(), cityEvent.getFault());
                         return event;
                     case INVALID:
                         event.setInvalid(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
@@ -467,7 +470,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public AddressEvent delete(AddressEvent event, Connection connection) throws SQLException {
+        public AddressEvent delete(AddressEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -485,7 +488,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             }
 
             AddressEvent resultEvent = event;
-            int count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
+            int count;
+            try {
+                count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
             switch (count) {
                 case 0:
                     resultEvent = super.delete(event, connection);
@@ -530,12 +540,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected AddressEvent createModelItemEvent(AddressEvent sourceEvent, DbOperationType activity) {
+        protected AddressEvent createDbOperationEvent(AddressEvent sourceEvent, DbOperationType operation) {
             AddressModel model = sourceEvent.getModel();
             if (null != model) {
-                return new AddressEvent(model, sourceEvent.getSource(), this, activity);
+                return new AddressEvent(model, sourceEvent.getSource(), this, operation);
             }
-            return new AddressEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+            return new AddressEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
         }
 
         @Override

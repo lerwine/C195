@@ -337,7 +337,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public UserEvent save(UserEvent event, Connection connection, boolean force) throws SQLException {
+        public UserEvent save(UserEvent event, Connection connection, boolean force) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -392,6 +392,10 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                         } while (null != (sqlWarning = sqlWarning.getNextWarning()));
                     }
                 }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
             }
             if (count > 0) {
                 event.setInvalid("User name already in use", "Another user has the same name");
@@ -402,7 +406,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public UserEvent delete(UserEvent event, Connection connection) throws SQLException {
+        public UserEvent delete(UserEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -424,7 +428,14 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             }
 
             UserEvent resultEvent = event;
-            int count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
+            int count;
+            try {
+                count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
             switch (count) {
                 case 0:
                     resultEvent = super.delete(event, connection);
@@ -441,12 +452,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createModelItemEvent(UserEvent sourceEvent, DbOperationType activity) {
+        protected UserEvent createDbOperationEvent(UserEvent sourceEvent, DbOperationType operation) {
             UserModel model = sourceEvent.getModel();
             if (null != model) {
-                return new UserEvent(model, sourceEvent.getSource(), this, activity);
+                return new UserEvent(model, sourceEvent.getSource(), this, operation);
             }
-            return new UserEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+            return new UserEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
         }
 
         @Override

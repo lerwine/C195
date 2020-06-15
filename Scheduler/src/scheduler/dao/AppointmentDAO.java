@@ -734,7 +734,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        public AppointmentEvent save(AppointmentEvent event, Connection connection, boolean force) throws SQLException {
+        public AppointmentEvent save(AppointmentEvent event, Connection connection, boolean force) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -756,14 +756,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
             ICustomerDAO customer = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject()).getCustomer();
             if (customer instanceof CustomerDAO) {
-                CustomerEvent customerEvent = new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
-                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
-                CustomerDAO.FACTORY.save(customerEvent, connection, force);
+                CustomerEvent customerEvent = CustomerDAO.FACTORY.save(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
+                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
                 switch (customerEvent.getStatus()) {
                     case SUCCEEDED:
                         break;
                     case FAULTED:
-                        event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
+                        event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
                         return event;
                     case INVALID:
                         event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
@@ -775,14 +774,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             }
             IUserDAO user = event.getDataAccessObject().getUser();
             if (user instanceof UserDAO) {
-                UserEvent userEvent = new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
-                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING);
-                UserDAO.FACTORY.save(userEvent, connection, force);
+                UserEvent userEvent = UserDAO.FACTORY.save(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
+                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
                 switch (userEvent.getStatus()) {
                     case SUCCEEDED:
                         break;
                     case FAULTED:
-                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
+                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
                         return event;
                     case INVALID:
                         event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
@@ -796,7 +794,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        public AppointmentEvent delete(AppointmentEvent event, Connection connection) throws SQLException {
+        public AppointmentEvent delete(AppointmentEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -864,12 +862,12 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected AppointmentEvent createModelItemEvent(AppointmentEvent sourceEvent, DbOperationType activity) {
+        protected AppointmentEvent createDbOperationEvent(AppointmentEvent sourceEvent, DbOperationType operation) {
             AppointmentModel model = sourceEvent.getModel();
             if (null != model) {
-                return new AppointmentEvent(model, sourceEvent.getSource(), this, activity);
+                return new AppointmentEvent(model, sourceEvent.getSource(), this, operation);
             }
-            return new AppointmentEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), activity);
+            return new AppointmentEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
         }
 
         @Override

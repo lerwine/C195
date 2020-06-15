@@ -98,7 +98,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onDeleteMenuItemAction(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDeleteItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+            onDeleteItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
                     DbOperationType.DELETE_REQUEST));
         }
     }
@@ -107,7 +107,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onEditMenuItemAction(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onEditItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+            onEditItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
                     DbOperationType.EDIT_REQUEST));
         }
     }
@@ -139,14 +139,14 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 case DELETE:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDeleteItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+                        onDeleteItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
                                 DbOperationType.DELETE_REQUEST));
                     }
                     break;
                 case ENTER:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onEditItem(getModelFactory().createModelItemEvent(item, event.getSource(), event.getTarget(),
+                        onEditItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
                                 DbOperationType.EDIT_REQUEST));
                     }
                     break;
