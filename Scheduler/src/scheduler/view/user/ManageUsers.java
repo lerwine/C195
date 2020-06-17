@@ -28,7 +28,7 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.event.UserEvent;
+import events.UserEvent;
 import static scheduler.view.user.ManageUsersResourceKeys.*;
 
 /**

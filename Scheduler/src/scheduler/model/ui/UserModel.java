@@ -11,7 +11,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
@@ -20,8 +19,8 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.PwHash;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.UserEvent;
+import events.DbOperationType;
+import events.UserEvent;
 import scheduler.view.user.UserModelFilter;
 
 /**
@@ -175,7 +174,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public DaoFactory<UserDAO, UserEvent> getDaoFactory() {
+        public UserDAO.FactoryImpl getDaoFactory() {
             return UserDAO.FACTORY;
         }
 

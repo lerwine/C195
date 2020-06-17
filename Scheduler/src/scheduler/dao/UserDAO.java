@@ -30,9 +30,9 @@ import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.EventEvaluationStatus;
-import scheduler.view.event.UserEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
+import events.UserEvent;
 
 /**
  * Data access object for the {@code user} database table.

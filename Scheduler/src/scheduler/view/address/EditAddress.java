@@ -70,10 +70,10 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.AddressEvent;
-import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.EventEvaluationStatus;
+import events.DbOperationType;
+import events.AddressEvent;
+import events.CustomerEvent;
+import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 

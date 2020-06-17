@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -139,7 +139,6 @@ public class UserEvent extends DbOperationEvent<UserModel, UserDAO> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public UserModel.Factory getModelFactory() {
         return UserModel.FACTORY;
     }

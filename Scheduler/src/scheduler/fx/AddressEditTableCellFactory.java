@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 import scheduler.model.ui.AddressModel;
-import scheduler.view.event.AddressEvent;
+import events.AddressEvent;
 
 public class AddressEditTableCellFactory extends ItemEditTableCellFactory<AddressModel, AddressEvent> {
 

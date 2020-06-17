@@ -29,7 +29,7 @@ import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.country.ManageCountriesResourceKeys.*;
-import scheduler.view.event.CountryEvent;
+import events.CountryEvent;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.

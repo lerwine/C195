@@ -30,7 +30,7 @@ import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.customer.ManageCustomersResourceKeys.*;
-import scheduler.view.event.CustomerEvent;
+import events.CustomerEvent;
 
 /**
  * FXML Controller class for viewing a list of {@link CustomerModel} items.

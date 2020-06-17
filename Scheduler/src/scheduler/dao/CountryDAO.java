@@ -32,9 +32,9 @@ import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.*;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.CountryEvent;
-import scheduler.view.event.EventEvaluationStatus;
+import events.DbOperationType;
+import events.CountryEvent;
+import events.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code country} database table.

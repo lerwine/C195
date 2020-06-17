@@ -16,7 +16,6 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
@@ -33,8 +32,8 @@ import scheduler.util.DB;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.AppointmentEvent;
+import events.AppointmentEvent;
+import events.DbOperationType;
 
 /**
  * List item model for {@link AppointmentDAO} data access objects.
@@ -598,7 +597,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DaoFactory<AppointmentDAO, AppointmentEvent> getDaoFactory() {
+        public AppointmentDAO.FactoryImpl getDaoFactory() {
             return AppointmentDAO.FACTORY;
         }
 

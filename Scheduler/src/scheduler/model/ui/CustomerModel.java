@@ -13,7 +13,6 @@ import javafx.beans.property.StringProperty;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.model.AddressProperties;
@@ -23,8 +22,8 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.CustomerEvent;
+import events.CustomerEvent;
+import events.DbOperationType;
 
 /**
  *
@@ -266,7 +265,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public DaoFactory<CustomerDAO, CustomerEvent> getDaoFactory() {
+        public CustomerDAO.FactoryImpl getDaoFactory() {
             return CustomerDAO.FACTORY;
         }
 

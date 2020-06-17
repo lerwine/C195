@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 import scheduler.model.ui.CountryModel;
-import scheduler.view.event.CountryEvent;
+import events.CountryEvent;
 
 public class CountryEditTableCellFactory extends ItemEditTableCellFactory<CountryModel, CountryEvent> {
 

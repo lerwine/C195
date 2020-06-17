@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -140,7 +140,6 @@ public final class AppointmentEvent extends DbOperationEvent<AppointmentModel, A
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public AppointmentModel.Factory getModelFactory() {
         return AppointmentModel.FACTORY;
     }

@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 /**
  *

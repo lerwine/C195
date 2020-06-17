@@ -42,10 +42,10 @@ import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.EditCountryResourceKeys;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.CityEvent;
-import scheduler.view.event.CountryEvent;
-import scheduler.view.event.EventEvaluationStatus;
+import events.DbOperationType;
+import events.CityEvent;
+import events.CountryEvent;
+import events.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code city} database table.

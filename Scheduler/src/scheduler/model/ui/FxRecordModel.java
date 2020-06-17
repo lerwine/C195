@@ -36,8 +36,8 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.DbOperationEvent;
+import events.DbOperationType;
+import events.DbOperationEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -280,8 +280,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             }
         }
 
-        public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();
-
+        public abstract <T extends DataAccessObject.DaoFactory<D, E>> T getDaoFactory();
+ 
         public abstract M createNew(D dao);
 
         /**
@@ -289,7 +289,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          *
          * @param item The model item.
          * @return The {@link DataAccessObject} with changes applied.
-         * @deprecated Use {@link #handle(scheduler.view.event.ModelItemEvent)}.
+         * @deprecated Use {@link #handle(scheduler.events.ModelItemEvent)}.
          * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#delete
          */
         @Deprecated
@@ -297,7 +297,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         /**
          *
-         * @deprecated Use {@link #handle(scheduler.view.event.ModelItemEvent)}.
+         * @deprecated Use {@link #handle(scheduler.events.ModelItemEvent)}.
          * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateItemProperties
          */
         @Deprecated
@@ -312,7 +312,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          *
          * @param item The {@link FxRecordModel} to be updated.
          * @param updatedDao The source {@link DataAccessObject}.
-         * @deprecated Use {@link #handle(scheduler.view.event.ModelItemEvent)}.
+         * @deprecated Use {@link #handle(scheduler.events.ModelItemEvent)}.
          * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateItemProperties
          */
         @Deprecated

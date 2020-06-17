@@ -42,8 +42,8 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.event.DbOperationEvent;
-import scheduler.view.event.DbOperationType;
+import events.DbOperationEvent;
+import events.DbOperationType;
 import scheduler.view.task.WaitBorderPane;
 
 /**

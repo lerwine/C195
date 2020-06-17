@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 import scheduler.model.ui.UserModel;
-import scheduler.view.event.UserEvent;
+import events.UserEvent;
 
 public class UserEditTableCellFactory extends ItemEditTableCellFactory<UserModel, UserEvent> {
 

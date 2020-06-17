@@ -32,8 +32,8 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.DbOperationEvent;
+import events.DbOperationType;
+import events.DbOperationEvent;
 
 /**
  * Base class for item list management.

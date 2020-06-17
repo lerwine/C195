@@ -32,10 +32,10 @@ import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.AddressEvent;
-import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.EventEvaluationStatus;
+import events.DbOperationType;
+import events.AddressEvent;
+import events.CustomerEvent;
+import events.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code customer} database table.

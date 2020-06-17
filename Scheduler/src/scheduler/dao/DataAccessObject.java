@@ -48,9 +48,9 @@ import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.view.MainController;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.DbOperationEvent;
-import scheduler.view.event.EventEvaluationStatus;
+import events.DbOperationType;
+import events.DbOperationEvent;
+import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -403,7 +403,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Loads items from the database. {@link #save(scheduler.view.event.ModelItemEvent, java.sql.Connection, boolean)}
+         * Loads items from the database. {@link #save(scheduler.events.ModelItemEvent, java.sql.Connection, boolean)}
          *
          * @param connection An opened database connection.
          * @param filter The {@link DaoFilter} that is used to build the WHERE clause of the SQL query.
@@ -1123,7 +1123,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         protected DaoTask(E event) {
             this.inpuEvent = event;
-            daoFactory = event.<E>getModelFactory().getDaoFactory();
+            daoFactory = event.<FxRecordModel.ModelFactory<D, M, E>>getModelFactory().<DaoFactory<D, E>>getDaoFactory();
         }
 
         public E getInpuEvent() {

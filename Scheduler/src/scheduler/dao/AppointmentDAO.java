@@ -35,11 +35,11 @@ import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.AppointmentEvent;
-import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.EventEvaluationStatus;
-import scheduler.view.event.UserEvent;
+import events.DbOperationType;
+import events.AppointmentEvent;
+import events.CustomerEvent;
+import events.EventEvaluationStatus;
+import events.UserEvent;
 
 /**
  * Data access object for the {@code appointment} database table.

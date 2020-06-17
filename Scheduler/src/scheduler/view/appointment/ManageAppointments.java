@@ -58,7 +58,7 @@ import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
-import scheduler.view.event.AppointmentEvent;
+import events.AppointmentEvent;
 import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;

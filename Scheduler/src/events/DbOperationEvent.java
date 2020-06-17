@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 import java.util.Objects;
 import javafx.event.Event;
@@ -155,7 +155,7 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         state.setStatus(EventEvaluationStatus.INVALID, title, message, null);
     }
 
-    public abstract <E extends DbOperationEvent<M, D>> FxRecordModel.ModelFactory<D, M, E> getModelFactory();
+    public abstract <T extends FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>>> T getModelFactory();
 
     @Override
     @SuppressWarnings("unchecked")

@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -139,7 +139,6 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public AddressModel.Factory getModelFactory() {
         return AddressModel.FACTORY;
     }

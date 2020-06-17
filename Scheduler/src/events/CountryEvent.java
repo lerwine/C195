@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -139,7 +139,6 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public CountryModel.Factory getModelFactory() {
         return CountryModel.FACTORY;
     }

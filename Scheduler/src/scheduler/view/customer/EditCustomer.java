@@ -79,10 +79,10 @@ import scheduler.view.appointment.EditAppointment;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.AppointmentEvent;
-import scheduler.view.event.CustomerEvent;
-import scheduler.view.event.EventEvaluationStatus;
+import events.DbOperationType;
+import events.AppointmentEvent;
+import events.CustomerEvent;
+import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 

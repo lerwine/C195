@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -139,7 +139,6 @@ public final class CustomerEvent extends DbOperationEvent<CustomerModel, Custome
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public CustomerModel.Factory getModelFactory() {
         return CustomerModel.FACTORY;
     }

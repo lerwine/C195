@@ -13,8 +13,8 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.DbOperationEvent;
+import events.DbOperationType;
+import events.DbOperationEvent;
 
 /**
  *

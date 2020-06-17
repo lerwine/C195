@@ -71,8 +71,8 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.event.AppointmentEvent;
-import scheduler.view.event.EventEvaluationStatus;
+import events.AppointmentEvent;
+import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 

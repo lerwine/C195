@@ -1,4 +1,4 @@
-package scheduler.view.event;
+package events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -139,7 +139,6 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public CityModel.Factory getModelFactory() {
         return CityModel.FACTORY;
     }

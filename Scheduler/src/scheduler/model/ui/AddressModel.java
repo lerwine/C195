@@ -16,7 +16,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
@@ -35,8 +34,8 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.AddressEvent;
+import events.AddressEvent;
+import events.DbOperationType;
 
 /**
  *
@@ -392,7 +391,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> {
 
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
-
         // Singleton
         private Factory() {
             super(AddressEvent.ADDRESS_MODEL_EVENT_TYPE);
@@ -402,7 +400,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public DaoFactory<AddressDAO, AddressEvent> getDaoFactory() {
+        public AddressDAO.FactoryImpl getDaoFactory() {
             return AddressDAO.FACTORY;
         }
 

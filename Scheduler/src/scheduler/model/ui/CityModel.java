@@ -16,7 +16,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
-import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
@@ -29,8 +28,8 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import scheduler.view.event.DbOperationType;
-import scheduler.view.event.CityEvent;
+import events.CityEvent;
+import events.DbOperationType;
 
 /**
  *
@@ -197,7 +196,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public DaoFactory<CityDAO, CityEvent> getDaoFactory() {
+        public CityDAO.FactoryImpl getDaoFactory() {
             return CityDAO.FACTORY;
         }
 
