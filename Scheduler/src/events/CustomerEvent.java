@@ -5,6 +5,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
 import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.FxRecordModel;
 
 /**
  * Event that is fired when a {@link CustomerModel} is about to be saved or deleted.
@@ -139,7 +140,7 @@ public final class CustomerEvent extends DbOperationEvent<CustomerModel, Custome
     }
 
     @Override
-    public CustomerModel.Factory getModelFactory() {
+    public FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, ? extends DbOperationEvent<CustomerModel, CustomerDAO>> getModelFactory() {
         return CustomerModel.FACTORY;
     }
 

@@ -1,5 +1,8 @@
 package scheduler.dao;
 
+import events.DbOperationType;
+import events.EventEvaluationStatus;
+import events.UserEvent;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,12 +30,10 @@ import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.UserModel;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
-import events.UserEvent;
 
 /**
  * Data access object for the {@code user} database table.
@@ -184,11 +185,133 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO, UserEvent> {
 
-//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        UserEvent insert(UserEvent event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            String sql = "SELECT COUNT(" + DbColumn.USER_ID.getDbName() + ") FROM " + DbTable.USER.getDbName()
+                    + " WHERE LOWER(" + DbColumn.USER_NAME.getDbName() + ")=?";
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
+                ps.setString(1, dao.getUserName());
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
+            if (count > 0) {
+                event.setInvalid("User name already in use", "Another user has the same name");
+                return event;
+            }
+
+            return super.insert(event, connection);
+        }
+
+        @Override
+        UserEvent update(UserEvent event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            String sql = "SELECT COUNT(" + DbColumn.USER_ID.getDbName() + ") FROM " + DbTable.USER.getDbName()
+                    + " WHERE LOWER(" + DbColumn.USER_NAME.getDbName() + ")=?" + " AND " + DbColumn.USER_ID.getDbName() + "<>?";
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
+                ps.setString(1, dao.getUserName());
+                ps.setInt(2, dao.getPrimaryKey());
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
+            if (count > 0) {
+                event.setInvalid("User name already in use", "Another user has the same name");
+                return event;
+            }
+
+            return super.update(event, connection);
+        }
+
+        @Override
+        protected UserEvent delete(UserEvent event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            UserDAO dao = event.getDataAccessObject();
+
+            if (dao == Scheduler.getCurrentUser()) {
+                event.setInvalid("Self-delete", "Cannot delete the current user");
+                return event;
+            }
+
+            int count;
+            try {
+                count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
+            switch (count) {
+                case 0:
+                    return super.delete(event, connection);
+                case 1:
+                    event.setInvalid("User in use", "User is referenced by one appointment.");
+                    break;
+                default:
+                    event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
+                    break;
+            }
+            return event;
         }
 
         @Override
@@ -333,122 +456,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         public Class<? extends UserDAO> getDaoClass() {
             return UserDAO.class;
-        }
-
-        @Override
-        @SuppressWarnings("incomplete-switch")
-        public UserEvent save(UserEvent event, Connection connection, boolean force) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            if (event.isConsumed()) {
-                event.setCanceled();
-                return event;
-            }
-            UserDAO dao = event.getDataAccessObject();
-            switch (dao.getRowState()) {
-                case DELETED:
-                    throw new IllegalStateException("Data access object already deleted");
-                case UNMODIFIED:
-                    if (!force) {
-                        event.setSucceeded();
-                        return event;
-                    }
-                    break;
-            }
-
-            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
-                    .append(") FROM ").append(DbTable.USER.getDbName())
-                    .append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?");
-
-            if (dao.getRowState() != DataRowState.NEW) {
-                sb.append(" AND ").append(DbColumn.USER_ID.getDbName()).append("<>?");
-            }
-            String sql = sb.toString();
-
-            int count;
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, dao.getUserName());
-                if (dao.getRowState() != DataRowState.NEW) {
-                    ps.setInt(1, dao.getPrimaryKey());
-                }
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
-            }
-            if (count > 0) {
-                event.setInvalid("User name already in use", "Another user has the same name");
-                return event;
-            }
-            return super.save(event, connection, force);
-        }
-
-        @Override
-        @SuppressWarnings("incomplete-switch")
-        public UserEvent delete(UserEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            if (event.isConsumed()) {
-                event.setCanceled();
-                return event;
-            }
-            UserDAO dao = event.getDataAccessObject();
-            switch (dao.getRowState()) {
-                case NEW:
-                    throw new IllegalStateException("Data access object was never saved");
-                case DELETED:
-                    event.setSucceeded();
-                    return event;
-            }
-
-            if (dao == Scheduler.getCurrentUser()) {
-                throw new UnsupportedOperationException("Cannot delete the current user");
-            }
-
-            UserEvent resultEvent = event;
-            int count;
-            try {
-                count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
-            }
-            switch (count) {
-                case 0:
-                    resultEvent = super.delete(event, connection);
-                    break;
-                case 1:
-                    event.setInvalid("User in use", "User is referenced by one appointment.");
-                    break;
-                default:
-                    event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
-                    break;
-            }
-
-            return resultEvent;
         }
 
         @Override

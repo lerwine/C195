@@ -1,5 +1,9 @@
 package scheduler.view.customer;
 
+import events.AppointmentEvent;
+import events.CustomerEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -45,6 +49,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
@@ -79,10 +84,6 @@ import scheduler.view.appointment.EditAppointment;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
-import events.DbOperationType;
-import events.AppointmentEvent;
-import events.CustomerEvent;
-import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -232,7 +233,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         }
         model.setActive(activeTrueRadioButton.isSelected());
     }
-    
+
     private void onCustomerInserted(CustomerEvent event) {
         restoreNode(appointmentFilterComboBox);
         restoreNode(appointmentsTableView);
@@ -242,7 +243,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
         updateValidation();
     }
-    
+
     @FXML
     private void onAddAppointmentButtonAction(ActionEvent event) {
         try {
@@ -311,7 +312,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
                 if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DeleteTask(event));
+                    waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(event));
                 }
                 event.consume();
                 break;
@@ -887,56 +888,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             }
         }
 
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<AppointmentEvent> {
-
-        private final AppointmentEvent event;
-
-        DeleteTask(AppointmentEvent event) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            AppointmentEvent e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                case SUCCEEDED:
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-        }
-
-        @Override
-        protected AppointmentEvent call() throws Exception {
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return AppointmentDAO.FACTORY.delete(event, connector.getConnection());
-            }
-        }
     }
 
 }

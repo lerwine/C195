@@ -1,6 +1,8 @@
 package scheduler.model.ui;
 
 import com.sun.javafx.event.EventHandlerManager;
+import events.DbOperationEvent;
+import events.DbOperationType;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,8 +38,6 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
 import scheduler.view.ModelFilter;
-import events.DbOperationType;
-import events.DbOperationEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -280,8 +280,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             }
         }
 
-        public abstract <T extends DataAccessObject.DaoFactory<D, E>> T getDaoFactory();
- 
+        public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();
+
         public abstract M createNew(D dao);
 
         /**
@@ -290,7 +290,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @param item The model item.
          * @return The {@link DataAccessObject} with changes applied.
          * @deprecated Use {@link #handle(scheduler.events.ModelItemEvent)}.
-         * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#delete
+         * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateDAO
          */
         @Deprecated
         public abstract D updateDAO(M item);

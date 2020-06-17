@@ -1,5 +1,7 @@
 package scheduler.view;
 
+import events.DbOperationEvent;
+import events.DbOperationType;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -42,16 +44,15 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import events.DbOperationEvent;
-import events.DbOperationType;
 import scheduler.view.task.WaitBorderPane;
 
 /**
  * The parent FXML custom control for editing {@link FxRecordModel} items in a new modal window.
  * <p>
- * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the values for the
- * {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and {@link FxRecordModel#getLastModifiedDate()}
- * properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child {@link EditItem.ModelEditor} custom control.</p>
+ * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
+ * values for the {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and
+ * {@link FxRecordModel#getLastModifiedDate()} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child
+ * {@link EditItem.ModelEditor} custom control.</p>
  * <p>
  * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method.</p>
  * <p>
@@ -203,7 +204,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                     resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
                     .ifPresent((t) -> {
                         if (t == ButtonType.YES) {
-                            waitBorderPane.startNow(new DeleteTask(deleteEvent));
+                            waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(deleteEvent));
                         }
                     });
         }
@@ -279,7 +280,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     /**
      * Base class for editing specific {@link FxRecordModel} items. Derived controls are intended to be instantiated through the
-     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent {@code EditItem} control.
+     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent
+     * {@code EditItem} control.
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
      * @param <U> The {@link FxRecordModel} type.
@@ -302,10 +304,11 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         String getWindowTitle();
 
         /**
-         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent {@link Stage}.
+         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()}
+         * of the parent {@link Stage}.
          *
-         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent
-         * {@link Stage}.
+         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the
+         * {@link Stage#titleProperty()} of the parent {@link Stage}.
          */
         ReadOnlyStringProperty windowTitleProperty();
 
@@ -314,8 +317,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         /**
          * The inverse value of this property is bound to the {@link Button#disableProperty()} of the {@link EditItem#saveChangesButton}.
          *
-         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled, otherwise {@code true} if it
-         * is to be enabled.
+         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled,
+         * otherwise {@code true} if it is to be enabled.
          */
         ReadOnlyBooleanProperty validProperty();
 
@@ -325,6 +328,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     }
 
+    // FIXME: Need to deprecate EdiItem.SaveTask or inherit from DataAccessObject.SaveTask
     private class SaveTask extends Task<E> {
 
         private final E event;
@@ -377,50 +381,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return daoFactory.save(event, dbConnector.getConnection());
-            }
-        }
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<E> {
-
-        private final E event;
-        private final DaoFactory<T, E> daoFactory;
-
-        DeleteTask(E event) {
-            this.event = event;
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
-            daoFactory = editorRegion.modelFactory().getDaoFactory();
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-        }
-
-        @Override
-        protected void succeeded() {
-            E e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                    break;
-                case SUCCEEDED:
-                    getScene().getWindow().hide();
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-            super.succeeded();
-        }
-
-        @Override
-        protected E call() throws Exception {
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return daoFactory.delete(event, dbConnector.getConnection());
+//                return daoFactory.save(event, dbConnector.getConnection());
+                throw new UnsupportedOperationException();
             }
         }
     }

@@ -1,5 +1,7 @@
 package scheduler.model.ui;
 
+import events.CityEvent;
+import events.DbOperationType;
 import java.util.Objects;
 import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
@@ -16,6 +18,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
@@ -28,8 +31,6 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import events.CityEvent;
-import events.DbOperationType;
 
 /**
  *
@@ -196,7 +197,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public CityDAO.FactoryImpl getDaoFactory() {
+        public DataAccessObject.DaoFactory<CityDAO, CityEvent> getDaoFactory() {
             return CityDAO.FACTORY;
         }
 

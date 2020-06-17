@@ -1,5 +1,7 @@
 package scheduler.model.ui;
 
+import events.AddressEvent;
+import events.DbOperationType;
 import java.util.Objects;
 import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
@@ -16,6 +18,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
@@ -34,8 +37,6 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import events.AddressEvent;
-import events.DbOperationType;
 
 /**
  *
@@ -400,7 +401,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public AddressDAO.FactoryImpl getDaoFactory() {
+        public DataAccessObject.DaoFactory<AddressDAO, AddressEvent> getDaoFactory() {
             return AddressDAO.FACTORY;
         }
 

@@ -5,6 +5,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.FxRecordModel;
 
 /**
  * Event that is fired when a {@link AddressModel} is about to be saved or deleted.
@@ -139,7 +140,7 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
     }
 
     @Override
-    public AddressModel.Factory getModelFactory() {
+    public FxRecordModel.ModelFactory<AddressDAO, AddressModel, ? extends DbOperationEvent<AddressModel, AddressDAO>> getModelFactory() {
         return AddressModel.FACTORY;
     }
 

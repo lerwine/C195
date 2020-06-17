@@ -1,5 +1,9 @@
 package scheduler.view.city;
 
+import events.AddressEvent;
+import events.CityEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +45,7 @@ import scheduler.ZoneIdMappings;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.fx.TimeZoneListCellFactory;
@@ -66,10 +71,6 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
-import events.DbOperationType;
-import events.AddressEvent;
-import events.CityEvent;
-import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -177,13 +178,13 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         model.setCountry(selectedCountry.get());
         model.setTimeZone(selectedTimeZone.get());
     }
-    
+
     private void onCityInserted(CityEvent event) {
         restoreNode(addressesLabel);
         restoreNode(addressesTableView);
         restoreNode(addCityButtonBar);
     }
-    
+
     @FXML
     void onAddAddressButtonAction(ActionEvent event) {
         try {
@@ -263,7 +264,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
                 if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DeleteTask(event));
+                    waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(event));
                 }
                 event.consume();
                 break;
@@ -586,56 +587,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             }
         }
 
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<AddressEvent> {
-
-        private final AddressEvent event;
-
-        DeleteTask(AddressEvent event) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            AddressEvent e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                case SUCCEEDED:
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-        }
-
-        @Override
-        protected AddressEvent call() throws Exception {
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return AddressDAO.FACTORY.delete(event, connector.getConnection());
-            }
-        }
     }
 
 }

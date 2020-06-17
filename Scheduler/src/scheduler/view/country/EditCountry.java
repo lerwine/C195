@@ -56,6 +56,7 @@ import events.DbOperationType;
 import events.CityEvent;
 import events.CountryEvent;
 import events.EventEvaluationStatus;
+import scheduler.dao.DataAccessObject;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -199,7 +200,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
                 if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DeleteTask(event));
+                    waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(event));
                 }
                 event.consume();
                 break;
@@ -377,57 +378,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CityDAO.FactoryImpl cf = CityDAO.FACTORY;
                 return cf.load(dbConnector.getConnection(), cf.getByCountryFilter(pk));
-            }
-        }
-
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<CityEvent> {
-
-        private final CityEvent event;
-
-        DeleteTask(CityEvent event) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            CityEvent e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                case SUCCEEDED:
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-        }
-
-        @Override
-        protected CityEvent call() throws Exception {
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return CityDAO.FACTORY.delete(event, connector.getConnection());
             }
         }
 

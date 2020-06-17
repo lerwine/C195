@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import events.AppointmentEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,7 +17,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -33,6 +33,7 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
@@ -50,7 +51,6 @@ import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import scheduler.util.AlertHelper;
-import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
@@ -58,7 +58,6 @@ import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
-import events.AppointmentEvent;
 import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
@@ -498,7 +497,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DeleteTask(event));
+            MainController.startBusyTaskNow(new DataAccessObject.DeleteTask<>(event));
         }
     }
 
@@ -515,56 +514,6 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @Override
     protected EventType<AppointmentEvent> getDeletedEventType() {
         return AppointmentEvent.DELETED_EVENT_TYPE;
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<AppointmentEvent> {
-
-        private final AppointmentEvent event;
-
-        DeleteTask(AppointmentEvent event) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            AppointmentEvent e = getValue();
-            switch (event.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                case SUCCEEDED:
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-        }
-
-        @Override
-        protected AppointmentEvent call() throws Exception {
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return AppointmentDAO.FACTORY.delete(event, connector.getConnection());
-            }
-        }
     }
 
 }

@@ -5,6 +5,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
 import scheduler.model.ui.CityModel;
+import scheduler.model.ui.FxRecordModel;
 
 /**
  * Event that is fired when a {@link CityModel} is about to be saved or deleted.
@@ -139,7 +140,7 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
     }
 
     @Override
-    public CityModel.Factory getModelFactory() {
+    public FxRecordModel.ModelFactory<CityDAO, CityModel, ? extends DbOperationEvent<CityModel, CityDAO>> getModelFactory() {
         return CityModel.FACTORY;
     }
 

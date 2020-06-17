@@ -1,6 +1,9 @@
 package scheduler.dao;
 
 import com.sun.javafx.event.EventHandlerManager;
+import events.DbOperationEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.lang.ref.WeakReference;
@@ -41,6 +44,7 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.DataObject;
+import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
@@ -48,21 +52,20 @@ import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
 import scheduler.util.PropertyBindable;
 import scheduler.view.MainController;
-import events.DbOperationType;
-import events.DbOperationEvent;
-import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 
 /**
  * Data access object that represents all columns from a data row.
  * <p>
- * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each class must also have an
- * associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static {@code getFactory()} method.</p>
+ * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each
+ * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
+ * {@code getFactory()} method.</p>
  * <p>
  * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link DbObject}s so the property is updated whenever a change occurs.
+ * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link DbObject}s so the property is updated whenever a
+ * change occurs.
  */
 public abstract class DataAccessObject extends PropertyBindable implements DbRecord, EventTarget {
 
@@ -177,8 +180,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
      *
      * @param propertyName The name of the target property.
-     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
-     * to leave {@link #rowState} unchanged.
+     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to
+     * {@link DataRowState#MODIFIED}; otherwise, {@code false} to leave {@link #rowState} unchanged.
      */
     protected boolean propertyChangeModifiesState(String propertyName) {
         switch (propertyName) {
@@ -402,6 +405,214 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             eventHandlerManager = new EventHandlerManager(this);
         }
 
+        E insert(E event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
+            StringBuilder sb = new StringBuilder();
+            sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (");
+            DbColumn[] columns = SchemaHelper.getTableColumns(getDbTable(),
+                    (t) -> t.getUsageCategory() != ColumnCategory.PRIMARY_KEY).toArray(DbColumn[]::new);
+            Iterator<DbColumn> iterator = Arrays.stream(columns).iterator();
+            sb.append(iterator.next().getDbName());
+            int index = 1;
+            while (iterator.hasNext()) {
+                index++;
+                sb.append(", ").append(iterator.next().getDbName());
+            }
+            sb.append(") VALUES (?");
+            for (int i = 1; i < index; i++) {
+                sb.append(", ?");
+            }
+            sb.append(")");
+            String sql = sb.toString();
+            T dao = event.getDataAccessObject();
+            DataAccessObject dataObj = (DataAccessObject) dao;
+            try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                index = 1;
+                iterator = Arrays.stream(columns).iterator();
+                do {
+                    DbColumn column = iterator.next();
+                    try {
+                        LOG.fine(String.format("Setting value for %s at index %d", column.getDbName(), index));
+                        if (column.getUsageCategory() == ColumnCategory.AUDIT) {
+                            switch (column.getDbName()) {
+                                case CREATE_DATE:
+                                    dataObj.createDate = timeStamp;
+                                    ps.setTimestamp(index++, dataObj.createDate);
+                                    break;
+                                case CREATED_BY:
+                                    dataObj.createdBy = Scheduler.getCurrentUser().getUserName();
+                                    ps.setString(index++, dataObj.createdBy);
+                                    break;
+                                case LAST_UPDATE:
+                                    dataObj.lastModifiedDate = timeStamp;
+                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
+                                    break;
+                                case LAST_UPDATE_BY:
+                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
+                                    ps.setString(index++, dataObj.lastModifiedBy);
+                                    break;
+                                default:
+                                    SQLWarning sqlWarning = connection.getWarnings();
+                                    if (null != sqlWarning) {
+                                        do {
+                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                    }
+                                    throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
+                            }
+                        } else {
+                            applyColumnValue(dao, column, ps, index++);
+                        }
+                    } catch (SQLException ex) {
+                        event.setFaulted("Unexpected Error", String.format("Error setting value for column %s", column.getDbName()), ex);
+                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                        return event;
+                    }
+                } while (iterator.hasNext());
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                if (ps.executeUpdate() < 1) {
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                    event.setFaulted("No change", "executeUpdate unexpectedly resulted in no database changes");
+                    return event;
+                }
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (!rs.next()) {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        throw new SQLException("No primary key returned");
+                    }
+                    dataObj.primaryKey = rs.getInt(1);
+                    dataObjectCache.put(dao);
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                } catch (SQLException ex) {
+                    event.setFaulted("Unexpected Error", "Error getting new primary key value", ex);
+                    LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                    return event;
+                }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected Error", "Error executing DML statement", ex);
+                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
+                return event;
+            }
+            event.setSucceeded();
+            E resultEvent = createDbOperationEvent(event, DbOperationType.INSERTED);
+            resultEvent.setSucceeded();
+            return resultEvent;
+        }
+
+        @SuppressWarnings("fallthrough")
+        E update(E event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            T dao = event.getDataAccessObject();
+            DataAccessObject dataObj = (DataAccessObject) dao;
+            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
+            StringBuilder sb = new StringBuilder();
+            sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
+            DbColumn[] columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
+            Iterator<DbColumn> iterator = Arrays.stream(columns).iterator();
+            DbName dbName = iterator.next().getDbName();
+            int colNum = 0;
+            LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
+            sb.append(dbName).append("=?");
+            while (iterator.hasNext()) {
+                dbName = iterator.next().getDbName();
+                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                sb.append(", ").append(dbName).append("=?");
+            }
+            dbName = getPrimaryKeyColumn().getDbName();
+            LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+            sb.append(" WHERE ").append(dbName).append("=?");
+            String sql = sb.toString();
+            try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
+                iterator = Arrays.stream(columns).iterator();
+                int index = 1;
+                do {
+                    DbColumn column = iterator.next();
+                    try {
+                        LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
+                        if (column.getUsageCategory() == ColumnCategory.AUDIT) {
+                            switch (column.getDbName()) {
+                                case LAST_UPDATE:
+                                    dataObj.lastModifiedDate = timeStamp;
+                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
+                                    break;
+                                case LAST_UPDATE_BY:
+                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
+                                    ps.setString(index++, dataObj.lastModifiedBy);
+                                    break;
+                                default:
+                                    SQLWarning sqlWarning = connection.getWarnings();
+                                    if (null != sqlWarning) {
+                                        do {
+                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                                    }
+                                    throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
+                            }
+                        } else {
+                            applyColumnValue(dao, column, ps, index++);
+                        }
+                    } catch (SQLException ex) {
+                        event.setFaulted("Unexpected Error", String.format("Error setting value for column %s", column.getDbName()), ex);
+                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                        return event;
+                    }
+                } while (iterator.hasNext());
+                try {
+                    LOG.fine(String.format("Setting value primary key at index %d", index));
+                    ps.setInt(index, dataObj.primaryKey);
+                } catch (SQLException ex) {
+                    event.setFaulted("Unexpected Error", "Error setting value for primary key column", ex);
+                    LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                    return event;
+                }
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                if (ps.executeUpdate() < 1) {
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                    event.setFaulted("No change", "executeUpdate unexpectedly resulted in no database changes");
+                    return event;
+                }
+                SQLWarning sqlWarning = connection.getWarnings();
+                if (null != sqlWarning) {
+                    do {
+                        LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                    } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected Error", "Error executing DML statement", ex);
+                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
+                return event;
+            }
+            event.setSucceeded();
+            E resultEvent = createDbOperationEvent(event, DbOperationType.UPDATED);
+            resultEvent.setSucceeded();
+            return resultEvent;
+        }
+
         /**
          * Loads items from the database. {@link #save(scheduler.events.ModelItemEvent, java.sql.Connection, boolean)}
          *
@@ -592,8 +803,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
-         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow implementing classes to put fields
-         * directly while property change events are deferred. This value can be {@code null} if it is not applicable.
+         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
+         * implementing classes to put fields directly while property change events are deferred. This value can be {@code null} if it is not
+         * applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
         protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(T dao, ResultSet rs) throws SQLException;
@@ -631,273 +843,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         public abstract DmlSelectQueryBuilder createDmlSelectQueryBuilder();
 
         /**
-         * Saves a {@link DataAccessObject} to the database if there are changes.
-         * <p>
-         * {@link #getSaveDbConflictMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for database conflict errors ahead of
-         * time and to get a descriptive message.</p>
-         *
-         * @param event The {@link DbOperationEvent} for the {@link DataAccessObject} to be inserted or updated.
-         * @param connection The database connection to use.
-         * @return The result event, which will be the new event that was fired, if the save operation was successful; otherwise, the original event object is returned.
-         * @throws SQLException If unable to perform the database operation.
-         * @todo Make private - use {@link SaveTask}, instead.
-         */
-        public final E save(E event, Connection connection) throws SQLException {
-            return save(event, connection, false);
-        }
-
-        /**
-         * Saves a {@link DataAccessObject} to the database.
-         *
-         * @param event The {@link DbOperationEvent} for the {@link DataAccessObject} to be inserted or updated.
-         * @param connection The database connection to use.
-         * @param force A {@code true} value will save changes to the database, even if {@link #rowState} is {@link DataRowState#UNMODIFIED}.
-         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed; otherwise, the original {@code event}
-         * object is returned, which will reflect the status and may indicate success if the {@link DataAccessObject} had no changes to save and {@code force} was false.
-         * @todo Make private - use {@link SaveTask}, instead.
-         */
-        @SuppressWarnings("fallthrough")
-        public E save(E event, Connection connection, boolean force) {
-            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
-            T dao = event.getDataAccessObject();
-            dataObj.beginChange();
-            DataRowState oldRowState = dataObj.rowState;
-            dataObj.changing = true;
-            DbOperationType operation;
-            try {
-                synchronized (dataObj) {
-                    Iterator<DbColumn> iterator;
-                    StringBuilder sb;
-                    String sql;
-                    int index;
-                    Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
-                    DbColumn[] columns;
-                    switch (dataObj.rowState) {
-                        case NEW:
-                            sb = new StringBuilder();
-                            sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (");
-                            columns = SchemaHelper.getTableColumns(getDbTable(),
-                                    (t) -> t.getUsageCategory() != ColumnCategory.PRIMARY_KEY).toArray(DbColumn[]::new);
-                            iterator = Arrays.stream(columns).iterator();
-                            sb.append(iterator.next().getDbName());
-                            index = 1;
-                            while (iterator.hasNext()) {
-                                index++;
-                                sb.append(", ").append(iterator.next().getDbName());
-                            }
-                            sb.append(") VALUES (?");
-                            for (int i = 1; i < index; i++) {
-                                sb.append(", ?");
-                            }
-                            sb.append(")");
-                            sql = sb.toString();
-                            try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                                index = 1;
-                                iterator = Arrays.stream(columns).iterator();
-                                do {
-                                    DbColumn column = iterator.next();
-                                    try {
-                                        LOG.fine(String.format("Setting value for %s at index %d", column.getDbName(), index));
-                                        if (column.getUsageCategory() == ColumnCategory.AUDIT) {
-                                            switch (column.getDbName()) {
-                                                case CREATE_DATE:
-                                                    dataObj.createDate = timeStamp;
-                                                    ps.setTimestamp(index++, dataObj.createDate);
-                                                    break;
-                                                case CREATED_BY:
-                                                    dataObj.createdBy = Scheduler.getCurrentUser().getUserName();
-                                                    ps.setString(index++, dataObj.createdBy);
-                                                    break;
-                                                case LAST_UPDATE:
-                                                    dataObj.lastModifiedDate = timeStamp;
-                                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
-                                                    break;
-                                                case LAST_UPDATE_BY:
-                                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
-                                                    ps.setString(index++, dataObj.lastModifiedBy);
-                                                    break;
-                                                default:
-                                                    SQLWarning sqlWarning = connection.getWarnings();
-                                                    if (null != sqlWarning) {
-                                                        do {
-                                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                                    }
-                                                    throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
-                                            }
-                                        } else {
-                                            applyColumnValue(dao, column, ps, index++);
-                                        }
-                                    } catch (SQLException ex) {
-                                        event.setFaulted("Unexpected Error", String.format("Error setting value for column %s", column.getDbName()), ex);
-                                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                                    }
-                                } while (event.getStatus() == EventEvaluationStatus.EVALUATING && iterator.hasNext());
-                                if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
-                                    LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                                    if (ps.executeUpdate() < 1) {
-                                        SQLWarning sqlWarning = connection.getWarnings();
-                                        if (null != sqlWarning) {
-                                            do {
-                                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                        }
-                                        event.setFaulted("No change", "executeUpdate unexpectedly resulted in no database changes");
-                                    }
-                                    if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
-                                        try (ResultSet rs = ps.getGeneratedKeys()) {
-                                            if (!rs.next()) {
-                                                SQLWarning sqlWarning = connection.getWarnings();
-                                                if (null != sqlWarning) {
-                                                    do {
-                                                        LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                                    } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                                }
-                                                throw new SQLException("No primary key returned");
-                                            }
-                                            dataObj.primaryKey = rs.getInt(1);
-                                            dataObjectCache.put(dao);
-                                            SQLWarning sqlWarning = connection.getWarnings();
-                                            if (null != sqlWarning) {
-                                                do {
-                                                    LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                                } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                            }
-                                        } catch (SQLException ex) {
-                                            event.setFaulted("Unexpected Error", "Error getting new primary key value", ex);
-                                            LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                                        }
-                                    }
-                                }
-                            } catch (SQLException ex) {
-                                event.setFaulted("Unexpected Error", "Error executing DML statement", ex);
-                                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
-                            }
-                            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                                return event;
-                            }
-                            operation = DbOperationType.INSERTED;
-                            break;
-                        case UNMODIFIED:
-                            if (!force) {
-                                event.setSucceeded();
-                                return event;
-                            }
-                        // falling through to the next case on purpose
-                        case MODIFIED:
-                            sb = new StringBuilder();
-                            sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
-                            columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
-                            iterator = Arrays.stream(columns).iterator();
-                            DbName dbName = iterator.next().getDbName();
-                            int colNum = 0;
-                            LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
-                            sb.append(dbName).append("=?");
-                            while (iterator.hasNext()) {
-                                dbName = iterator.next().getDbName();
-                                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
-                                sb.append(", ").append(dbName).append("=?");
-                            }
-                            dbName = getPrimaryKeyColumn().getDbName();
-                            LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
-                            sb.append(" WHERE ").append(dbName).append("=?");
-                            sql = sb.toString();
-                            try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
-                                iterator = Arrays.stream(columns).iterator();
-                                index = 1;
-                                do {
-                                    DbColumn column = iterator.next();
-                                    try {
-                                        LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
-                                        if (column.getUsageCategory() == ColumnCategory.AUDIT) {
-                                            switch (column.getDbName()) {
-                                                case LAST_UPDATE:
-                                                    dataObj.lastModifiedDate = timeStamp;
-                                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
-                                                    break;
-                                                case LAST_UPDATE_BY:
-                                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
-                                                    ps.setString(index++, dataObj.lastModifiedBy);
-                                                    break;
-                                                default:
-                                                    SQLWarning sqlWarning = connection.getWarnings();
-                                                    if (null != sqlWarning) {
-                                                        do {
-                                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                                    }
-                                                    throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
-                                            }
-                                        } else {
-                                            applyColumnValue(dao, column, ps, index++);
-                                        }
-                                    } catch (SQLException ex) {
-                                        event.setFaulted("Unexpected Error", String.format("Error setting value for column %s", column.getDbName()), ex);
-                                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                                    }
-                                } while (iterator.hasNext());
-                                try {
-                                    LOG.fine(String.format("Setting value primary key at index %d", index));
-                                    ps.setInt(index, dataObj.primaryKey);
-                                } catch (SQLException ex) {
-                                    event.setFaulted("Unexpected Error", "Error setting value for primary key column", ex);
-                                    LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                                }
-                                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                                if (ps.executeUpdate() < 1) {
-                                    SQLWarning sqlWarning = connection.getWarnings();
-                                    if (null != sqlWarning) {
-                                        do {
-                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                    }
-                                    event.setFaulted("No change", "executeUpdate unexpectedly resulted in no database changes");
-                                }
-                                if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
-                                    SQLWarning sqlWarning = connection.getWarnings();
-                                    if (null != sqlWarning) {
-                                        do {
-                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                    }
-                                }
-                            } catch (SQLException ex) {
-                                event.setFaulted("Unexpected Error", "Error executing DML statement", ex);
-                                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
-                            }
-                            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                                return event;
-                            }
-                            operation = DbOperationType.UPDATED;
-                            break;
-                        default:
-                            event.setFaulted("Item already deleted", String.format("%s item has already been deleted.", getDbTable()));
-                            return event;
-                    }
-                    dataObj.acceptChanges();
-                    dataObj.rowState = DataRowState.UNMODIFIED;
-                }
-            } finally {
-                dataObj.endChange();
-                dataObj.changing = false;
-                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
-            }
-            event.setSucceeded();
-            E resultEvent = createDbOperationEvent(event, operation);
-            resultEvent.setSucceeded();
-            if (Platform.isFxApplicationThread()) {
-                LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
-                Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
-            } else {
-                Platform.runLater(() -> {
-                    LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
-                    Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
-                });
-            }
-            return resultEvent;
-        }
-
-        /**
          * Sets the parameter value at the specified index from the value associated with the given {@link DbColumn}.
          *
          * @param dao The {@link DataAccessObject} to retrieve the value from.
@@ -911,7 +856,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Indicates whether {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables.
          *
-         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise, {@code false}.
+         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise,
+         * {@code false}.
          */
         public abstract boolean isCompoundSelect();
 
@@ -966,16 +912,16 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Deletes the corresponding {@link DataAccessObject} from the database.
          * <p>
-         * {@link #getDeleteDependencyMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for dependency errors ahead of time
-         * and to get a descriptive error message.</p>
+         * {@link #getDeleteDependencyMessage(DataAccessObject, Connection)} should be called before this method is invoked in order to check for
+         * dependency errors ahead of time and to get a descriptive error message.</p>
          *
          * @param event The {@link DbOperationEvent} for the {@link DataAccessObject} to delete.
          * @param connection The database connection to use.
-         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed; otherwise, the original {@code event}
-         * object is returned, which will reflect the status.
+         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed;
+         * otherwise, the original {@code event} object is returned, which will reflect the status.
          * @todo Make private.
          */
-        public E delete(E event, Connection connection) {
+        protected E delete(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -1060,7 +1006,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1070,7 +1017,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1080,7 +1028,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1090,7 +1039,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1121,9 +1071,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         private final E inpuEvent;
         private final DaoFactory<D, E> daoFactory;
 
+        @SuppressWarnings("unchecked")
         protected DaoTask(E event) {
             this.inpuEvent = event;
-            daoFactory = event.<FxRecordModel.ModelFactory<D, M, E>>getModelFactory().<DaoFactory<D, E>>getDaoFactory();
+            daoFactory = (DaoFactory<D, E>) event.getModelFactory().getDaoFactory();
         }
 
         public E getInpuEvent() {
@@ -1201,11 +1152,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     public static class SaveTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends DaoTask<D, M, E> {
 
+        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
+        private DataRowState oldRowState;
+
         public SaveTask(E event) {
             super(event);
             switch (event.getOperation()) {
                 case INSERTING:
                 case UPDATING:
+                    oldRowState = event.getDataAccessObject().getRowState();
                     break;
                 default:
                     throw new IllegalArgumentException();
@@ -1214,8 +1169,54 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         @Override
+        protected void succeeded() {
+            E resultEvent = getValue();
+            if (resultEvent.getStatus() == EventEvaluationStatus.SUCCEEDED) {
+                DataAccessObject dataObj = (DataAccessObject) resultEvent.getDataAccessObject();
+                dataObj.acceptChanges();
+                dataObj.rowState = DataRowState.UNMODIFIED;
+                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
+                LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
+                Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
+            }
+            super.succeeded();
+        }
+
+        @Override
         protected E call(E event, Connection connection) throws Exception {
-            return getDaoFactory().save(event, connection);
+            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
+            dataObj.beginChange();
+            oldRowState = dataObj.rowState;
+            dataObj.changing = true;
+            E resultEvent;
+            try {
+                synchronized (dataObj) {
+                    if (event.getOperation() == DbOperationType.INSERTING) {
+                        if (dataObj.getRowState() != DataRowState.NEW) {
+                            throw new IllegalStateException("Invalid row state");
+                        }
+                        resultEvent = getDaoFactory().insert(event, connection);
+                    } else {
+                        switch (dataObj.getRowState()) {
+                            case MODIFIED:
+                            case UNMODIFIED:
+                                break;
+                            default:
+                                throw new IllegalStateException("Invalid row state");
+                        }
+                        resultEvent = getDaoFactory().update(event, connection);
+                    }
+                }
+            } finally {
+                dataObj.endChange();
+                dataObj.changing = false;
+            }
+            if (resultEvent.getStatus() == EventEvaluationStatus.SUCCEEDED) {
+                dataObj.acceptChanges();
+                dataObj.rowState = DataRowState.UNMODIFIED;
+                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
+            }
+            return resultEvent;
         }
 
         @Override
@@ -1231,11 +1232,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * {@link Task} for deleting a {@link DataAccessObject} from the database.
-     * This will fire a {@link DbOperationEvent} on the target {@link DataAccessObject} after successful deletion. The
-     * {@link DbOperationEvent#operation operation} property will be set to {@link DbOperationType#DELETED} and it will be fired
-     * in the FX application thread.
-     * 
+     * {@link Task} for deleting a {@link DataAccessObject} from the database. This will fire a {@link DbOperationEvent} on the target
+     * {@link DataAccessObject} after successful deletion. The {@link DbOperationEvent#operation operation} property will be set to
+     * {@link DbOperationType#DELETED} and it will be fired in the FX application thread.
+     *
      * @param <D> The type of {@link DataAccessObject} to be deleted.
      * @param <M> The type of {@link FxRecordModel} that corresponds to the {@link DataAccessObject} type.
      * @param <E> The type of {@link DbOperationEvent} that contains the {@link DataAccessObject} to be deleted.
@@ -1244,7 +1244,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         /**
          * Creates a new {@code DeleteTask} object.
-         * 
+         *
          * @param event A {@link DbOperationEvent} that refers to the {@link DataAccessObject} to be deleted.
          * @throws IllegalArgumentException if {@link DbOperationEvent#operation} is not set to {@link DbOperationType#DELETING}.
          */

@@ -6,6 +6,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.LogHelper;
 
 /**
  * Base class for {@link FxRecordModel} save and delete events.
@@ -155,12 +156,32 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         state.setStatus(EventEvaluationStatus.INVALID, title, message, null);
     }
 
-    public abstract <T extends FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>>> T getModelFactory();
+    public abstract FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>> getModelFactory();
 
     @Override
     @SuppressWarnings("unchecked")
     public EventType<? extends DbOperationEvent<M, D>> getEventType() {
         return (EventType<? extends DbOperationEvent<M, D>>) super.getEventType();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Event[").append(getEventType().getName())
+                .append("] { operation=").append(operation.name())
+                .append("; status=").append(state.status.name());
+        String s = state.summaryTitle;
+        if (!s.isEmpty()) {
+            sb.append("; summaryTitle=").append(LogHelper.toLogText(s));
+        }
+        s = state.detailMessage;
+        if (!s.isEmpty()) {
+            sb.append("; detailMessage=").append(LogHelper.toLogText(s));
+        }
+        Throwable e = state.fault;
+        if (null != e) {
+            sb.append("; detailMessage=").append(e);
+        }
+        return sb.append(" }").toString();
     }
 
     private class State {

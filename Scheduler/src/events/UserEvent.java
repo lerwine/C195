@@ -4,6 +4,7 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.UserDAO;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 
 /**
@@ -139,7 +140,7 @@ public class UserEvent extends DbOperationEvent<UserModel, UserDAO> {
     }
 
     @Override
-    public UserModel.Factory getModelFactory() {
+    public FxRecordModel.ModelFactory<UserDAO, UserModel, ? extends DbOperationEvent<UserModel, UserDAO>> getModelFactory() {
         return UserModel.FACTORY;
     }
 

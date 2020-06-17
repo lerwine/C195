@@ -1,5 +1,7 @@
 package scheduler.model.ui;
 
+import events.CustomerEvent;
+import events.DbOperationType;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -13,6 +15,7 @@ import javafx.beans.property.StringProperty;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.model.AddressProperties;
@@ -22,8 +25,6 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
-import events.CustomerEvent;
-import events.DbOperationType;
 
 /**
  *
@@ -265,8 +266,8 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public CustomerDAO.FactoryImpl getDaoFactory() {
-            return CustomerDAO.FACTORY;
+        public DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> getDaoFactory() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CustomerModel.Factory#getDaoFactory
         }
 
         @Override

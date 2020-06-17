@@ -1,5 +1,7 @@
 package scheduler.model.ui;
 
+import events.AppointmentEvent;
+import events.DbOperationType;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
@@ -16,6 +18,7 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
@@ -32,8 +35,6 @@ import scheduler.util.DB;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
-import events.AppointmentEvent;
-import events.DbOperationType;
 
 /**
  * List item model for {@link AppointmentDAO} data access objects.
@@ -597,7 +598,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public AppointmentDAO.FactoryImpl getDaoFactory() {
+        public DataAccessObject.DaoFactory<AppointmentDAO, AppointmentEvent> getDaoFactory() {
             return AppointmentDAO.FACTORY;
         }
 

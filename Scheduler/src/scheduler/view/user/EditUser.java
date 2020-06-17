@@ -1,5 +1,9 @@
 package scheduler.view.user;
 
+import events.AppointmentEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
+import events.UserEvent;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +44,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
@@ -60,10 +65,6 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.customer.EditCustomerResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS;
-import events.DbOperationType;
-import events.AppointmentEvent;
-import events.EventEvaluationStatus;
-import events.UserEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 import static scheduler.view.user.EditUserResourceKeys.*;
@@ -166,7 +167,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             model.setPassword(pw.getEncodedHash());
         }
     }
-    
+
     private void onUserInserted(UserEvent event) {
         changePasswordCheckBox.setDisable(false);
         changePasswordCheckBox.setSelected(false);
@@ -174,7 +175,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         restoreNode(appointmentsTableView);
         initEditMode();
     }
-    
+
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
@@ -234,7 +235,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
                 if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DeleteTask(event));
+                    waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(event));
                 }
                 event.consume();
                 break;
@@ -442,56 +443,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                         unavailableUserNames.add(t.getUserName().toLowerCase());
                     }
                 });
-            }
-        }
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<AppointmentEvent> {
-
-        private final AppointmentEvent event;
-
-        DeleteTask(AppointmentEvent event) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            AppointmentEvent e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                case SUCCEEDED:
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-        }
-
-        @Override
-        protected AppointmentEvent call() throws Exception {
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return AppointmentDAO.FACTORY.delete(event, connector.getConnection());
             }
         }
     }

@@ -1,5 +1,9 @@
 package scheduler.dao;
 
+import events.AddressEvent;
+import events.CustomerEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -29,13 +33,10 @@ import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import events.DbOperationType;
-import events.AddressEvent;
-import events.CustomerEvent;
-import events.EventEvaluationStatus;
 
 /**
  * Data access object for the {@code customer} database table.
@@ -185,11 +186,186 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> {
 
-//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        CustomerEvent insert(CustomerEvent event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            String sql = "SELECT COUNT(" + DbColumn.CUSTOMER_ID.getDbName() + ") FROM " + DbTable.CUSTOMER.getDbName()
+                    + " WHERE LOWER(" + DbColumn.CUSTOMER_NAME.getDbName() + ")=?";
+            CustomerDAO dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, dao.getName());
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
+            if (count > 0) {
+                event.setInvalid("Customer name already in use", "Another customer has the same name");
+                return event;
+            }
+
+            IAddressDAO address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
+
+            if (address instanceof AddressDAO) {
+                AddressEvent addressEvent;
+                switch (address.getRowState()) {
+                    case NEW:
+                        addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                DbOperationType.INSERTING), connection);
+                        break;
+                    case MODIFIED:
+                        return super.insert(event, connection);
+                    default:
+                        addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                DbOperationType.UPDATING), connection);
+                }
+                switch (addressEvent.getStatus()) {
+                    case SUCCEEDED:
+                        break;
+                    case FAULTED:
+                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
+                        return event;
+                    case INVALID:
+                        event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
+                        return event;
+                    default:
+                        event.setCanceled();
+                        return event;
+                }
+            }
+            return super.insert(event, connection);
+        }
+
+        @Override
+        CustomerEvent update(CustomerEvent event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            CustomerDAO dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
+            String sql = "SELECT COUNT(" + DbColumn.CUSTOMER_ID.getDbName() + ") FROM " + DbTable.CUSTOMER.getDbName()
+                    + " WHERE LOWER(" + DbColumn.CUSTOMER_NAME.getDbName() + ")=?" + " AND " + DbColumn.CUSTOMER_ID.getDbName() + "<>?";
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, dao.getName());
+                ps.setInt(2, dao.getPrimaryKey());
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        SQLWarning sqlWarning = connection.getWarnings();
+                        if (null != sqlWarning) {
+                            do {
+                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        }
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    SQLWarning sqlWarning = connection.getWarnings();
+                    if (null != sqlWarning) {
+                        do {
+                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
+                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    }
+                }
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
+            if (count > 0) {
+                event.setInvalid("Customer name already in use", "Another customer has the same name");
+                return event;
+            }
+
+            IAddressDAO address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
+
+            if (address instanceof AddressDAO) {
+                AddressEvent addressEvent;
+                switch (address.getRowState()) {
+                    case NEW:
+                        addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                DbOperationType.INSERTING), connection);
+                        break;
+                    case MODIFIED:
+                        return super.insert(event, connection);
+                    default:
+                        addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                DbOperationType.UPDATING), connection);
+                }
+                switch (addressEvent.getStatus()) {
+                    case SUCCEEDED:
+                        break;
+                    case FAULTED:
+                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
+                        return event;
+                    case INVALID:
+                        event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
+                        return event;
+                    default:
+                        event.setCanceled();
+                        return event;
+                }
+            }
+            return super.update(event, connection);
+        }
+
+        @Override
+        protected CustomerEvent delete(CustomerEvent event, Connection connection) {
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return event;
+            }
+            CustomerDAO dao = event.getDataAccessObject();
+
+            int count;
+            try {
+                count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
+            } catch (SQLException ex) {
+                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                return event;
+            }
+            switch (count) {
+                case 0:
+                    return super.delete(event, connection);
+                case 1:
+                    event.setInvalid("Customer in use", "Customer is referenced by one appointment.");
+                    break;
+                default:
+                    event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
+                    break;
+            }
+            return event;
         }
 
         @Override
@@ -355,136 +531,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         public Class<? extends CustomerDAO> getDaoClass() {
             return CustomerDAO.class;
-        }
-
-        @Override
-        @SuppressWarnings("incomplete-switch")
-        public CustomerEvent save(CustomerEvent event, Connection connection, boolean force) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            if (event.isConsumed()) {
-                event.setCanceled();
-                return event;
-            }
-            CustomerDAO dao = event.getDataAccessObject();
-            switch (dao.getRowState()) {
-                case DELETED:
-                    throw new IllegalStateException("Data access object already deleted");
-                case UNMODIFIED:
-                    if (!force) {
-                        event.setSucceeded();
-                        return event;
-                    }
-                    break;
-            }
-
-            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
-                    .append(") FROM ").append(DbTable.CUSTOMER.getDbName())
-                    .append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME.getDbName()).append(")=?");
-            if (dao.getRowState() != DataRowState.NEW) {
-                sb.append(" AND ").append(DbColumn.CUSTOMER_ID.getDbName()).append("<>?");
-            }
-            String sql = sb.toString();
-            int count;
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, dao.getName());
-                if (dao.getRowState() != DataRowState.NEW) {
-                    ps.setInt(1, dao.getPrimaryKey());
-                }
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
-            }
-            if (count > 0) {
-                event.setInvalid("Customer name already in use", "Another customer has the same name");
-                return event;
-            }
-
-            IAddressDAO address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
-
-            if (address instanceof AddressDAO) {
-                AddressEvent addressEvent = AddressDAO.FACTORY.save(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                        (address.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
-                switch (addressEvent.getStatus()) {
-                    case SUCCEEDED:
-                        break;
-                    case FAULTED:
-                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
-                        return event;
-                    case INVALID:
-                        event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
-                        return event;
-                    default:
-                        event.setCanceled();
-                        return event;
-                }
-            }
-            return super.save(event, connection, force);
-        }
-
-        @Override
-        @SuppressWarnings("incomplete-switch")
-        public CustomerEvent delete(CustomerEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            if (event.isConsumed()) {
-                event.setCanceled();
-                return event;
-            }
-            CustomerDAO dao = event.getDataAccessObject();
-            switch (dao.getRowState()) {
-                case NEW:
-                    throw new IllegalStateException("Data access object was never saved");
-                case DELETED:
-                    event.setSucceeded();
-                    return event;
-            }
-
-            CustomerEvent resultEvent = event;
-            int count;
-            try {
-                count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
-            }
-            switch (count) {
-                case 0:
-                    resultEvent = super.delete(event, connection);
-                    break;
-                case 1:
-                    event.setInvalid("Customer in use", "Customer is referenced by one appointment.");
-                    break;
-                default:
-                    event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
-                    break;
-            }
-
-            return resultEvent;
         }
 
         @Override

@@ -19,7 +19,7 @@ import javafx.application.Platform;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PropertyBindable implements IPropertyBindable {
+public abstract class PropertyBindable implements IPropertyBindable {
 
     private static final Logger LOG = Logger.getLogger(PropertyBindable.class.getName());
 
@@ -110,6 +110,15 @@ public class PropertyBindable implements IPropertyBindable {
      */
     protected void endChange() {
         propertyChangeSupport.endChange();
+    }
+
+    public abstract class ChangeTrackingState implements AutoCloseable {
+
+        @Override
+        public void close() throws Exception {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.util.ChangeTrackable.ChangeTrackingState#close
+        }
+
     }
 
     private class PropertyChangeSupportImpl extends PropertyChangeSupport {

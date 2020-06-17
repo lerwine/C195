@@ -1,5 +1,9 @@
 package scheduler.view.address;
 
+import events.AddressEvent;
+import events.CustomerEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +45,7 @@ import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
@@ -70,10 +75,6 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
-import events.DbOperationType;
-import events.AddressEvent;
-import events.CustomerEvent;
-import events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -201,7 +202,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         model.setPostalCode(normalizedPostalCode.get());
         model.setPhone(normalizedPhone.get());
     }
-    
+
     private void onAddressInserted(AddressEvent event) {
         editingCity.set(false);
         restoreNode(customersHeadingLabel);
@@ -209,7 +210,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         restoreNode(newCustomerButtonBar);
         initializeEditMode();
     }
-    
+
     @FXML
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
@@ -274,7 +275,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
                 if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DeleteTask(event));
+                    waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(event));
                 }
                 event.consume();
                 break;
@@ -705,56 +706,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             }
         }
 
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<CustomerEvent> {
-
-        private final CustomerEvent event;
-
-        DeleteTask(CustomerEvent event) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            CustomerEvent e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                case SUCCEEDED:
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-        }
-
-        @Override
-        protected CustomerEvent call() throws Exception {
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return CustomerDAO.FACTORY.delete(event, connector.getConnection());
-            }
-        }
     }
 
 }

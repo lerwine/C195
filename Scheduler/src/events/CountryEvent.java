@@ -5,6 +5,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
 import scheduler.model.ui.CountryModel;
+import scheduler.model.ui.FxRecordModel;
 
 /**
  * Event that is fired when a {@link CountryModel} is about to be saved or deleted.
@@ -139,7 +140,7 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
     }
 
     @Override
-    public CountryModel.Factory getModelFactory() {
+    public FxRecordModel.ModelFactory<CountryDAO, CountryModel, ? extends DbOperationEvent<CountryModel, CountryDAO>> getModelFactory() {
         return CountryModel.FACTORY;
     }
 

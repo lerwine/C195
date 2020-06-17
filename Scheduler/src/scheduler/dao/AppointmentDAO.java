@@ -1,5 +1,10 @@
 package scheduler.dao;
 
+import events.AppointmentEvent;
+import events.CustomerEvent;
+import events.DbOperationType;
+import events.EventEvaluationStatus;
+import events.UserEvent;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -33,13 +38,9 @@ import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import events.DbOperationType;
-import events.AppointmentEvent;
-import events.CustomerEvent;
-import events.EventEvaluationStatus;
-import events.UserEvent;
 
 /**
  * Data access object for the {@code appointment} database table.
@@ -359,8 +360,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO, AppointmentEvent> {
 
-//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
-        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
@@ -733,88 +734,88 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        @SuppressWarnings("incomplete-switch")
-        public AppointmentEvent save(AppointmentEvent event, Connection connection, boolean force) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        AppointmentEvent insert(AppointmentEvent event, Connection connection) {
+            if (onSave(event, connection)) {
+                return super.update(event, connection);
             }
-            if (event.isConsumed()) {
-                event.setCanceled();
-                return event;
-            }
-            AppointmentDAO dao = event.getDataAccessObject();
-            switch (dao.getRowState()) {
-                case DELETED:
-                    throw new IllegalStateException("Data access object already deleted");
-                case UNMODIFIED:
-                    if (!force) {
-                        event.setSucceeded();
-                        return event;
-                    }
-                    break;
-            }
-
-            ICustomerDAO customer = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject()).getCustomer();
-            if (customer instanceof CustomerDAO) {
-                CustomerEvent customerEvent = CustomerDAO.FACTORY.save(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
-                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
-                switch (customerEvent.getStatus()) {
-                    case SUCCEEDED:
-                        break;
-                    case FAULTED:
-                        event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
-                        return event;
-                    case INVALID:
-                        event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
-                        return event;
-                    default:
-                        event.setCanceled();
-                        return event;
-                }
-            }
-            IUserDAO user = event.getDataAccessObject().getUser();
-            if (user instanceof UserDAO) {
-                UserEvent userEvent = UserDAO.FACTORY.save(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
-                        (customer.getRowState() == DataRowState.NEW) ? DbOperationType.INSERTING : DbOperationType.UPDATING), connection, force);
-                switch (userEvent.getStatus()) {
-                    case SUCCEEDED:
-                        break;
-                    case FAULTED:
-                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
-                        return event;
-                    case INVALID:
-                        event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
-                        return event;
-                    default:
-                        event.setCanceled();
-                        return event;
-                }
-            }
-            return super.save(event, connection, force);
+            return event;
         }
 
         @Override
-        public AppointmentEvent delete(AppointmentEvent event, Connection connection) {
+        AppointmentEvent update(AppointmentEvent event, Connection connection) {
+            if (onSave(event, connection)) {
+                return super.update(event, connection);
+            }
+            return event;
+        }
+
+        private boolean onSave(AppointmentEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+                return false;
             }
-            if (event.isConsumed()) {
-                event.setCanceled();
-                return event;
+            AppointmentDAO dao = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject());
+            ICustomerDAO customer = dao.getCustomer();
+            if (customer instanceof CustomerDAO) {
+                CustomerEvent customerEvent;
+                switch (customer.getRowState()) {
+                    case NEW:
+                        customerEvent = CustomerDAO.FACTORY.insert(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
+                                DbOperationType.INSERTING), connection);
+                        break;
+                    case MODIFIED:
+                        customerEvent = null;
+                        break;
+                    default:
+                        customerEvent = CustomerDAO.FACTORY.update(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
+                                DbOperationType.UPDATING), connection);
+                }
+                if (null != customerEvent) {
+                    switch (customerEvent.getStatus()) {
+                        case SUCCEEDED:
+                            break;
+                        case FAULTED:
+                            event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
+                            return false;
+                        case INVALID:
+                            event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
+                            return false;
+                        default:
+                            event.setCanceled();
+                            return false;
+                    }
+                }
             }
-            AppointmentEvent resultEvent = event;
-            AppointmentDAO dao = event.getDataAccessObject();
-            switch (dao.getRowState()) {
-                case NEW:
-                    throw new IllegalStateException("Data access object was never saved");
-                case DELETED:
-                    event.setSucceeded();
-                    break;
-                default:
-                    resultEvent = super.delete(event, connection);
-                    break;
+            IUserDAO user = dao.getUser();
+            if (user instanceof UserDAO) {
+                UserEvent userEvent;
+                switch (user.getRowState()) {
+                    case NEW:
+                        userEvent = UserDAO.FACTORY.insert(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
+                                DbOperationType.INSERTING), connection);
+                        break;
+                    case MODIFIED:
+                        return true;
+                    default:
+                        userEvent = UserDAO.FACTORY.update(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
+                                DbOperationType.UPDATING), connection);
+                }
+                switch (userEvent.getStatus()) {
+                    case SUCCEEDED:
+                        return true;
+                    case FAULTED:
+                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
+                        break;
+                    case INVALID:
+                        event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
+                        break;
+                    default:
+                        event.setCanceled();
+                        break;
+                }
+            } else {
+                return true;
             }
-            return resultEvent;
+            return false;
         }
 
         @Override

@@ -5,6 +5,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.FxRecordModel;
 
 /**
  * Event that is fired when a {@link AppointmentModel} is about to be saved or deleted.
@@ -140,7 +141,7 @@ public final class AppointmentEvent extends DbOperationEvent<AppointmentModel, A
     }
 
     @Override
-    public AppointmentModel.Factory getModelFactory() {
+    public FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, ? extends DbOperationEvent<AppointmentModel, AppointmentDAO>> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 

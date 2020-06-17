@@ -1,5 +1,7 @@
 package scheduler.model.ui;
 
+import events.CountryEvent;
+import events.DbOperationType;
 import java.util.Locale;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
@@ -14,6 +16,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.Country;
@@ -24,8 +27,6 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
-import events.CountryEvent;
-import events.DbOperationType;
 
 /**
  *
@@ -143,7 +144,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public CountryDAO.FactoryImpl getDaoFactory() {
+        public DataAccessObject.DaoFactory<CountryDAO, CountryEvent> getDaoFactory() {
             return CountryDAO.FACTORY;
         }
 

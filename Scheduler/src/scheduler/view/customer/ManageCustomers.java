@@ -1,11 +1,11 @@
 package scheduler.view.customer;
 
+import events.CustomerEvent;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -18,11 +18,11 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.AlertHelper;
-import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -30,7 +30,6 @@ import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.customer.ManageCustomersResourceKeys.*;
-import events.CustomerEvent;
 
 /**
  * FXML Controller class for viewing a list of {@link CustomerModel} items.
@@ -160,7 +159,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DeleteTask(event));
+            MainController.startBusyTaskNow(new DataAccessObject.DeleteTask<>(event));
         }
     }
 
@@ -177,56 +176,6 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     @Override
     protected EventType<CustomerEvent> getDeletedEventType() {
         return CustomerEvent.DELETED_EVENT_TYPE;
-    }
-
-    /**
-     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
-     */
-    @Deprecated
-    private class DeleteTask extends Task<CustomerEvent> {
-
-        private final CustomerEvent event;
-
-        DeleteTask(CustomerEvent event) {
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
-            this.event = event;
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void succeeded() {
-            super.succeeded();
-            CustomerEvent e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                case SUCCEEDED:
-                    break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
-                    break;
-            }
-        }
-
-        @Override
-        protected CustomerEvent call() throws Exception {
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            try (DbConnector connector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return CustomerDAO.FACTORY.delete(event, connector.getConnection());
-            }
-        }
     }
 
 }
