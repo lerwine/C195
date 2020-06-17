@@ -382,6 +382,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         }
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<E> {
 
         private final E event;

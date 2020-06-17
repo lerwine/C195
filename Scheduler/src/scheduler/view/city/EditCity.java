@@ -588,6 +588,10 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<AddressEvent> {
 
         private final AddressEvent event;

@@ -22,24 +22,19 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.event.WeakEventHandler;
 import javafx.util.Pair;
-import scheduler.AppResourceKeys;
-import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
-import scheduler.util.AlertHelper;
 import scheduler.util.DB;
-import scheduler.util.DbConnector;
 import scheduler.view.ModelFilter;
 import scheduler.view.event.DbOperationType;
 import scheduler.view.event.DbOperationEvent;
@@ -51,7 +46,7 @@ import scheduler.view.task.WaitBorderPane;
  * <dt>{@link FxRecordModel.ModelFactory}</dt><dd>Base factory class for {@link FxDbModel} objects.</dd>
  * <dt>{@link scheduler.dao.DataAccessObject}</dt><dd>Base class for corresponding data access objects.</dd>
  * </dl>
- * Entity-specific extensions:
+ * Entity-specific implementations:
  * <ul>
  * <li>{@link scheduler.model.ui.AddressModel}</li>
  * <li>{@link scheduler.model.ui.CustomerModel}</li>

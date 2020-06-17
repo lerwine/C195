@@ -138,6 +138,10 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
         return CountryEvent.DELETED_EVENT_TYPE;
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<CountryEvent> {
 
         private final CountryEvent event;

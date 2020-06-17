@@ -179,6 +179,10 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
         return CustomerEvent.DELETED_EVENT_TYPE;
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<CustomerEvent> {
 
         private final CustomerEvent event;

@@ -973,7 +973,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param connection The database connection to use.
          * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed; otherwise, the original {@code event}
          * object is returned, which will reflect the status.
-         * @todo Make private - use {@link DeleteTask}, instead.
+         * @todo Make private.
          */
         public E delete(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
@@ -1230,8 +1230,24 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     }
 
+    /**
+     * {@link Task} for deleting a {@link DataAccessObject} from the database.
+     * This will fire a {@link DbOperationEvent} on the target {@link DataAccessObject} after successful deletion. The
+     * {@link DbOperationEvent#operation operation} property will be set to {@link DbOperationType#DELETED} and it will be fired
+     * in the FX application thread.
+     * 
+     * @param <D> The type of {@link DataAccessObject} to be deleted.
+     * @param <M> The type of {@link FxRecordModel} that corresponds to the {@link DataAccessObject} type.
+     * @param <E> The type of {@link DbOperationEvent} that contains the {@link DataAccessObject} to be deleted.
+     */
     public static class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends DaoTask<D, M, E> {
 
+        /**
+         * Creates a new {@code DeleteTask} object.
+         * 
+         * @param event A {@link DbOperationEvent} that refers to the {@link DataAccessObject} to be deleted.
+         * @throws IllegalArgumentException if {@link DbOperationEvent#operation} is not set to {@link DbOperationType#DELETING}.
+         */
         public DeleteTask(E event) {
             super(event);
             if (event.getOperation() != DbOperationType.DELETING) {

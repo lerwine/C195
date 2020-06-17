@@ -446,6 +446,10 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<AppointmentEvent> {
 
         private final AppointmentEvent event;

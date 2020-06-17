@@ -176,6 +176,10 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
         return UserEvent.DELETED_EVENT_TYPE;
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<UserEvent> {
 
         private final UserEvent event;

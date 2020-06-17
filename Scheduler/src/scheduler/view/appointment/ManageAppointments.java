@@ -517,6 +517,10 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         return AppointmentEvent.DELETED_EVENT_TYPE;
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<AppointmentEvent> {
 
         private final AppointmentEvent event;

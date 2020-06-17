@@ -382,6 +382,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<CityEvent> {
 
         private final CityEvent event;

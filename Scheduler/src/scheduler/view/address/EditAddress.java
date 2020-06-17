@@ -707,6 +707,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     }
 
+    /**
+     * @todo use implementation of {@link scheduler.dao.DataAccessObject.DeleteTask}
+     */
+    @Deprecated
     private class DeleteTask extends Task<CustomerEvent> {
 
         private final CustomerEvent event;
