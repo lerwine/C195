@@ -1,9 +1,9 @@
 package scheduler.dao;
 
-import events.CityEvent;
-import events.CountryEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.CityEvent;
+import scheduler.events.CountryEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -238,12 +238,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 CountryEvent countryEvent;
                 switch (country.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
                                 DbOperationType.INSERTING), connection);
                         break;
                     case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
+                        // FIXME: Need to create event including model, if possible
                         countryEvent = CountryDAO.FACTORY.update(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
                                 DbOperationType.UPDATING), connection);
                 }
@@ -318,12 +320,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 CountryEvent countryEvent;
                 switch (country.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
                                 DbOperationType.INSERTING), connection);
                         break;
                     case MODIFIED:
                         return super.insert(event, connection);
                     default:
+                        // FIXME: Need to create event including model, if possible
                         countryEvent = CountryDAO.FACTORY.update(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
                                 DbOperationType.UPDATING), connection);
                 }

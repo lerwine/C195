@@ -1,7 +1,7 @@
 package scheduler.model.ui;
 
-import events.DbOperationType;
-import events.UserEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.UserEvent;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;

@@ -1,7 +1,7 @@
 package scheduler.view;
 
-import events.DbOperationEvent;
-import events.DbOperationType;
+import scheduler.events.DbOperationEvent;
+import scheduler.events.DbOperationType;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -12,7 +12,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -26,15 +25,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import scheduler.AppResourceKeys;
-import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.DataAccessObject.DaoFactory;
 import scheduler.dao.DataRowState;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
-import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -328,63 +323,30 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     }
 
-    // FIXME: Need to deprecate EdiItem.SaveTask or inherit from DataAccessObject.SaveTask
-    private class SaveTask extends Task<E> {
-
-        private final E event;
-        private final DaoFactory<T, E> daoFactory;
-        private final boolean closeOnSuccess;
+    private class SaveTask extends DataAccessObject.SaveTask<T, U, E> {
 
         SaveTask(E event) {
-            this.event = event;
-            closeOnSuccess = event.getOperation() != DbOperationType.INSERTING || !keepOpen;
-            updateTitle(resources.getString(RESOURCEKEY_SAVINGCHANGES));
-            daoFactory = editorRegion.modelFactory().getDaoFactory();
+            super(event);
         }
 
         @Override
-        protected void succeeded() {
-            E e = getValue();
-            switch (e.getStatus()) {
-                case CANCELED:
-                case EVALUATING:
-                    break;
-                case SUCCEEDED:
-                    if (closeOnSuccess) {
-                        getScene().getWindow().hide();
-                    } else {
+        @SuppressWarnings("incomplete-switch")
+        protected void onCompleted(E e) {
+            switch (e.getOperation()) {
+                case INSERTED:
+                    if (keepOpen) {
                         editorRegion.fireEvent(e);
+                    } else {
+                        getScene().getWindow().hide();
                     }
                     break;
-                default:
-                    AlertHelper.showWarningAlert(getScene().getWindow(), LOG, e.getSummaryTitle(), e.getDetailMessage());
+                case UPDATED:
+                    getScene().getWindow().hide();
                     break;
             }
-            super.succeeded();
+            super.onCompleted(e);
         }
 
-        @Override
-        protected void failed() {
-            event.setFaulted("Operation failed", "Delete operation encountered an unexpected error");
-            super.failed();
-        }
-
-        @Override
-        protected void cancelled() {
-            event.setCanceled();
-            super.cancelled();
-        }
-
-        @Override
-        protected E call() throws Exception {
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-
-            try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-//                return daoFactory.save(event, dbConnector.getConnection());
-                throw new UnsupportedOperationException();
-            }
-        }
     }
 
 }

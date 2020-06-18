@@ -1,6 +1,6 @@
 package scheduler.view.appointment;
 
-import events.AppointmentEvent;
+import scheduler.events.AppointmentEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

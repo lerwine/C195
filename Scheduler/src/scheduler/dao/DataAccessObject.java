@@ -1,9 +1,9 @@
 package scheduler.dao;
 
 import com.sun.javafx.event.EventHandlerManager;
-import events.DbOperationEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.DbOperationEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.lang.ref.WeakReference;
@@ -44,7 +44,6 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.model.DataObject;
-import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
@@ -517,7 +516,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return resultEvent;
         }
 
-        @SuppressWarnings("fallthrough")
         E update(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -1220,6 +1218,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         @Override
+        @SuppressWarnings("incomplete-switch")
         protected void onCompleted(E e) {
             switch (e.getOperation()) {
                 case INSERTED:

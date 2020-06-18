@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 import scheduler.model.ui.CityModel;
-import events.CityEvent;
+import scheduler.events.CityEvent;
 
 public class CityEditTableCellFactory extends ItemEditTableCellFactory<CityModel, CityEvent> {
 

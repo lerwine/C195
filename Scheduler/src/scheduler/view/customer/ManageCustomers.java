@@ -1,6 +1,6 @@
 package scheduler.view.customer;
 
-import events.CustomerEvent;
+import scheduler.events.CustomerEvent;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;

@@ -1,9 +1,9 @@
 package scheduler.view.customer;
 
-import events.AppointmentEvent;
-import events.CustomerEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;

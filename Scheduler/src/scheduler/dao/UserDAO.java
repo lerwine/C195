@@ -1,8 +1,8 @@
 package scheduler.dao;
 
-import events.DbOperationType;
-import events.EventEvaluationStatus;
-import events.UserEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
+import scheduler.events.UserEvent;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

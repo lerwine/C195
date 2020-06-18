@@ -1,7 +1,7 @@
 package scheduler.fx;
 
 import scheduler.model.ui.CustomerModel;
-import events.CustomerEvent;
+import scheduler.events.CustomerEvent;
 
 public class CustomerEditTableCellFactory extends ItemEditTableCellFactory<CustomerModel, CustomerEvent> {
 

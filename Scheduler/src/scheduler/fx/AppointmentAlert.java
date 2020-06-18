@@ -59,7 +59,7 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import events.AppointmentEvent;
+import scheduler.events.AppointmentEvent;
 
 /**
  * FXML Controller class

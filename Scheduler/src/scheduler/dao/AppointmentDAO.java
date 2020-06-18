@@ -1,10 +1,10 @@
 package scheduler.dao;
 
-import events.AppointmentEvent;
-import events.CustomerEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
-import events.UserEvent;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
+import scheduler.events.UserEvent;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -759,6 +759,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 CustomerEvent customerEvent;
                 switch (customer.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         customerEvent = CustomerDAO.FACTORY.insert(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
                                 DbOperationType.INSERTING), connection);
                         break;
@@ -766,6 +767,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                         customerEvent = null;
                         break;
                     default:
+                        // FIXME: Need to create event including model, if possible
                         customerEvent = CustomerDAO.FACTORY.update(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
                                 DbOperationType.UPDATING), connection);
                 }
@@ -790,12 +792,14 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 UserEvent userEvent;
                 switch (user.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         userEvent = UserDAO.FACTORY.insert(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
                                 DbOperationType.INSERTING), connection);
                         break;
                     case MODIFIED:
                         return true;
                     default:
+                        // FIXME: Need to create event including model, if possible
                         userEvent = UserDAO.FACTORY.update(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
                                 DbOperationType.UPDATING), connection);
                 }

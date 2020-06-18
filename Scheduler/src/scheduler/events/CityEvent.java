@@ -1,4 +1,4 @@
-package events;
+package scheduler.events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -123,6 +123,10 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
         super(copyFrom, source, target);
     }
 
+    private CityEvent(CityEvent copyFrom, EventTarget target, DbOperationType operation) {
+        super(copyFrom, target, Objects.requireNonNull(toEventType(operation)), operation);
+    }
+
     public CityEvent(CityModel model, Object source, EventTarget target, DbOperationType operation, boolean confirmed) {
         super(model, source, target, Objects.requireNonNull(toEventType(operation)), operation, confirmed);
     }
@@ -153,6 +157,11 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
     @SuppressWarnings("unchecked")
     public EventType<CityEvent> getEventType() {
         return (EventType<CityEvent>) super.getEventType();
+    }
+
+    @Override
+    public CityEvent DbOperationType(DbOperationType operation) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.CityEvent#DbOperationType
     }
 
 }

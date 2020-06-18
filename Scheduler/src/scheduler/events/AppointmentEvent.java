@@ -1,4 +1,4 @@
-package events;
+package scheduler.events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -124,6 +124,10 @@ public final class AppointmentEvent extends DbOperationEvent<AppointmentModel, A
         super(copyFrom, source, target);
     }
 
+    private AppointmentEvent(AppointmentEvent copyFrom, EventTarget target, DbOperationType operation) {
+        super(copyFrom, target, Objects.requireNonNull(toEventType(operation)), operation);
+    }
+
     public AppointmentEvent(AppointmentModel model, Object source, EventTarget target, DbOperationType operation, boolean confirmed) {
         super(model, source, target, Objects.requireNonNull(toEventType(operation)), operation, confirmed);
     }
@@ -154,6 +158,11 @@ public final class AppointmentEvent extends DbOperationEvent<AppointmentModel, A
     @SuppressWarnings("unchecked")
     public EventType<AppointmentEvent> getEventType() {
         return (EventType<AppointmentEvent>) super.getEventType();
+    }
+
+    @Override
+    public AppointmentEvent DbOperationType(DbOperationType operation) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.AppointmentEvent#DbOperationType
     }
 
 }

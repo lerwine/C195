@@ -1,8 +1,8 @@
 package scheduler.dao;
 
-import events.CountryEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.CountryEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -1,7 +1,7 @@
 package scheduler.model.ui;
 
-import events.AddressEvent;
-import events.DbOperationType;
+import scheduler.events.AddressEvent;
+import scheduler.events.DbOperationType;
 import java.util.Objects;
 import java.util.TimeZone;
 import javafx.beans.binding.Bindings;

@@ -1,15 +1,16 @@
-package events;
+package scheduler.events;
 
 import java.util.Objects;
 import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.DataRowState;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.LogHelper;
 
 /**
- * Base class for {@link FxRecordModel} save and delete events.
+ * Base class for {@link FxRecordModel} save and delete scheduler.events.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <M> The {@link FxRecordModel} type.
@@ -25,23 +26,61 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
     public static final EventType<DbOperationEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>> DB_OPERATION
             = new EventType<>(ANY, "SCHEDULER_DB_OPERATION");
 
+    private static void assertOperationMatchesRowState(DataRowState rowState, DbOperationType operation) {
+        switch (rowState) {
+            case NEW:
+                if (operation != DbOperationType.INSERTING) {
+                    throw new IllegalArgumentException();
+                }
+                break;
+            case MODIFIED:
+                switch (operation) {
+                    case DELETING:
+                    case UPDATING:
+                        break;
+                    default:
+                        throw new IllegalArgumentException();
+                }
+                break;
+            case UNMODIFIED:
+                switch (operation) {
+                    case DELETING:
+                    case UPDATING:
+                    case UPDATED:
+                    case INSERTED:
+                        break;
+                    default:
+                        throw new IllegalArgumentException();
+                }
+                break;
+            default:
+                if (operation != DbOperationType.DELETED) {
+                    throw new IllegalArgumentException();
+                }
+                break;
+        }
+    }
+
     private final D dataAccessObject;
     private final DbOperationType operation;
     private final State state;
+    private final boolean confirmed;
 
     /**
-     * Creates a copy of an event with a new target, {@link EventType} and {@link DbOperationType}.
+     * Creates a clone of an event with a new target, {@link EventType} and {@link DbOperationType}.
      *
      * @param copyFrom The {@code ModelItemEvent} to copy.
      * @param target The new target for the copied event.
      * @param type The new event type for the copied event.
      * @param operation The new {@link DbOperationType} for the copied event.
      */
-    protected DbOperationEvent(DbOperationEvent<M, D> copyFrom, EventTarget target, EventType<? extends DbOperationEvent<M, D>> type, DbOperationType operation) {
+    protected DbOperationEvent(DbOperationEvent<M, D> copyFrom, EventTarget target, EventType<? extends DbOperationEvent<M, D>> type,
+            DbOperationType operation) {
         super(copyFrom.getSource(), target, type);
         state = new State(copyFrom.state.model);
-        dataAccessObject = copyFrom.getDataAccessObject();
+        assertOperationMatchesRowState((dataAccessObject = copyFrom.getDataAccessObject()).getRowState(), operation);
         this.operation = operation;
+        confirmed = copyFrom.confirmed;
     }
 
     /**
@@ -56,6 +95,7 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         state = copyFrom.state;
         dataAccessObject = copyFrom.dataAccessObject;
         operation = copyFrom.operation;
+        confirmed = copyFrom.confirmed;
     }
 
     /**
@@ -68,11 +108,13 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
      * @param operation The {@link DbOperationType} associated with the event.
      * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
      */
-    protected DbOperationEvent(M model, Object source, EventTarget target, EventType<? extends DbOperationEvent<M, D>> type, DbOperationType operation, boolean confirmed) {
+    protected DbOperationEvent(M model, Object source, EventTarget target, EventType<? extends DbOperationEvent<M, D>> type,
+            DbOperationType operation, boolean confirmed) {
         super((null == source) ? model : source, (null == target) ? model.dataObject() : target, type);
         state = new State(model);
-        dataAccessObject = model.dataObject();
+        assertOperationMatchesRowState((dataAccessObject = model.dataObject()).getRowState(), operation);
         this.operation = operation;
+        this.confirmed = confirmed;
     }
 
     /**
@@ -85,12 +127,16 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
      * @param operation The {@link DbOperationType} associated with the event.
      * @param confirmed {@code true} if validation and/or conflict checking has already been confirmed; otherwise {@code false}.
      */
-    protected DbOperationEvent(Object source, EventTarget target, D dao, EventType<? extends DbOperationEvent<M, D>> type, DbOperationType operation, boolean confirmed) {
+    protected DbOperationEvent(Object source, EventTarget target, D dao, EventType<? extends DbOperationEvent<M, D>> type,
+            DbOperationType operation, boolean confirmed) {
         super((null == source) ? dao : source, target, type);
         state = new State(null);
-        dataAccessObject = dao;
+        assertOperationMatchesRowState((dataAccessObject = dao).getRowState(), operation);
         this.operation = operation;
+        this.confirmed = confirmed;
     }
+
+    public abstract DbOperationEvent<M, D> DbOperationType(DbOperationType operation);
 
     /**
      * Gets the underlying {@link DataAccessObject} associated with the {@code DbOperationEvent}.
@@ -113,13 +159,6 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         state.setModel(model);
     }
 
-//    public DbConnector getDbConnector() {
-//        return state.dbConnector;
-//    }
-//
-//    public void setDbConnector(DbConnector dbConnector) {
-//        state.setDbConnector(dbConnector);
-//    }
     public String getSummaryTitle() {
         return state.summaryTitle;
     }
@@ -157,6 +196,10 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
     }
 
     public abstract FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>> getModelFactory();
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
 
     @Override
     @SuppressWarnings("unchecked")

@@ -1,4 +1,4 @@
-package events;
+package scheduler.events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -123,6 +123,10 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
         super(copyFrom, source, target);
     }
 
+    private AddressEvent(AddressEvent copyFrom, EventTarget target, DbOperationType operation) {
+        super(copyFrom, target, Objects.requireNonNull(toEventType(operation)), operation);
+    }
+
     public AddressEvent(AddressModel model, Object source, EventTarget target, DbOperationType operation, boolean confirmed) {
         super(model, source, target, Objects.requireNonNull(toEventType(operation)), operation, confirmed);
     }
@@ -153,6 +157,11 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
     @SuppressWarnings("unchecked")
     public EventType<AddressEvent> getEventType() {
         return (EventType<AddressEvent>) super.getEventType();
+    }
+
+    @Override
+    public AddressEvent DbOperationType(DbOperationType operation) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.AddressEvent#DbOperationType
     }
 
 }

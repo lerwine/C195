@@ -1,9 +1,9 @@
 package scheduler.dao;
 
-import events.AddressEvent;
-import events.CityEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.AddressEvent;
+import scheduler.events.CityEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -312,12 +312,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 CityEvent cityEvent;
                 switch (city.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
                                 DbOperationType.INSERTING), connection);
                         break;
                     case MODIFIED:
                         return super.insert(event, connection);
                     default:
+                        // FIXME: Need to create event including model, if possible
                         cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
                                 DbOperationType.UPDATING), connection);
                 }
@@ -417,12 +419,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 CityEvent cityEvent;
                 switch (city.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
                                 DbOperationType.INSERTING), connection);
                         break;
                     case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
+                        // FIXME: Need to create event including model, if possible
                         cityEvent = CityDAO.FACTORY.update(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
                                 DbOperationType.UPDATING), connection);
                 }

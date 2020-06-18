@@ -1,4 +1,4 @@
-package events;
+package scheduler.events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -123,6 +123,10 @@ public class UserEvent extends DbOperationEvent<UserModel, UserDAO> {
         super(copyFrom, source, target);
     }
 
+    private UserEvent(UserEvent copyFrom, EventTarget target, DbOperationType operation) {
+        super(copyFrom, target, Objects.requireNonNull(toEventType(operation)), operation);
+    }
+
     public UserEvent(UserModel model, Object source, EventTarget target, DbOperationType operation, boolean confirmed) {
         super(model, source, target, Objects.requireNonNull(toEventType(operation)), operation, confirmed);
     }
@@ -153,6 +157,11 @@ public class UserEvent extends DbOperationEvent<UserModel, UserDAO> {
     @SuppressWarnings("unchecked")
     public EventType<UserEvent> getEventType() {
         return (EventType<UserEvent>) super.getEventType();
+    }
+
+    @Override
+    public UserEvent DbOperationType(DbOperationType operation) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement events.UserEvent#DbOperationType
     }
 
 }

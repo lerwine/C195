@@ -13,8 +13,8 @@ import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
-import events.DbOperationType;
-import events.DbOperationEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.DbOperationEvent;
 
 /**
  *

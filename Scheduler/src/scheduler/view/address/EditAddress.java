@@ -1,9 +1,9 @@
 package scheduler.view.address;
 
-import events.AddressEvent;
-import events.CustomerEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.AddressEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;

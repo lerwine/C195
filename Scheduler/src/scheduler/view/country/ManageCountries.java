@@ -1,6 +1,6 @@
 package scheduler.view.country;
 
-import events.CountryEvent;
+import scheduler.events.CountryEvent;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;

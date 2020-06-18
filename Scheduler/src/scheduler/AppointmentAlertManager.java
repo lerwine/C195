@@ -27,7 +27,7 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.util.Tuple;
-import events.AppointmentEvent;
+import scheduler.events.AppointmentEvent;
 
 /**
  *

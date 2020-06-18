@@ -1,7 +1,7 @@
 package scheduler.model.ui;
 
-import events.AppointmentEvent;
-import events.DbOperationType;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.DbOperationType;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;

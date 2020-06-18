@@ -1,8 +1,8 @@
 package scheduler.model.ui;
 
 import com.sun.javafx.event.EventHandlerManager;
-import events.DbOperationEvent;
-import events.DbOperationType;
+import scheduler.events.DbOperationEvent;
+import scheduler.events.DbOperationType;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

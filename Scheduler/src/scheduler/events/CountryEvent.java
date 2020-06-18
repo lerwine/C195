@@ -1,4 +1,4 @@
-package events;
+package scheduler.events;
 
 import java.util.Objects;
 import javafx.event.EventTarget;
@@ -123,6 +123,10 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
         super(copyFrom, source, target);
     }
 
+    private CountryEvent(CountryEvent copyFrom, EventTarget target, DbOperationType operation) {
+        super(copyFrom, target, Objects.requireNonNull(toEventType(operation)), operation);
+    }
+
     public CountryEvent(CountryModel model, Object source, EventTarget target, DbOperationType operation, boolean confirmed) {
         super(model, source, target, Objects.requireNonNull(toEventType(operation)), operation, confirmed);
     }
@@ -153,6 +157,11 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
     @SuppressWarnings("unchecked")
     public EventType<CountryEvent> getEventType() {
         return (EventType<CountryEvent>) super.getEventType();
+    }
+
+    @Override
+    public CountryEvent DbOperationType(DbOperationType operation) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.CountryEvent#DbOperationType
     }
 
 }

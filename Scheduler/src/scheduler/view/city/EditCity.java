@@ -1,9 +1,9 @@
 package scheduler.view.city;
 
-import events.AddressEvent;
-import events.CityEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.AddressEvent;
+import scheduler.events.CityEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;

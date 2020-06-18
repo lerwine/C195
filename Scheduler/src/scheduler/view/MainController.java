@@ -134,10 +134,10 @@ public final class MainController {
     private AppointmentAlert appointmentAlert; // Value injected by FXMLLoader
 
     // TODO: See if this should be deleted
-    private final EventHandlerManager eventHandlerManager;
+    //private final EventHandlerManager eventHandlerManager;
 
     public MainController() {
-        eventHandlerManager = new EventHandlerManager(this);
+        //eventHandlerManager = new EventHandlerManager(this);
     }
 
     @FXML

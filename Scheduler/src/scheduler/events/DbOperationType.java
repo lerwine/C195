@@ -1,4 +1,4 @@
-package events;
+package scheduler.events;
 
 /**
  * Represents a database operation type. This is primarily used by the {@link ModelItemEvent} object.

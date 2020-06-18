@@ -1,6 +1,6 @@
 package scheduler.view.user;
 
-import events.UserEvent;
+import scheduler.events.UserEvent;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;

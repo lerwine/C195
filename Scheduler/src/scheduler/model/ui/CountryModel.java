@@ -1,7 +1,7 @@
 package scheduler.model.ui;
 
-import events.CountryEvent;
-import events.DbOperationType;
+import scheduler.events.CountryEvent;
+import scheduler.events.DbOperationType;
 import java.util.Locale;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;

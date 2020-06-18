@@ -1,9 +1,9 @@
 package scheduler.dao;
 
-import events.AddressEvent;
-import events.CustomerEvent;
-import events.DbOperationType;
-import events.EventEvaluationStatus;
+import scheduler.events.AddressEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -240,12 +240,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 AddressEvent addressEvent;
                 switch (address.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
                                 DbOperationType.INSERTING), connection);
                         break;
                     case MODIFIED:
                         return super.insert(event, connection);
                     default:
+                        // FIXME: Need to create event including model, if possible
                         addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
                                 DbOperationType.UPDATING), connection);
                 }
@@ -314,12 +316,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 AddressEvent addressEvent;
                 switch (address.getRowState()) {
                     case NEW:
+                        // FIXME: Need to create event including model, if possible
                         addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
                                 DbOperationType.INSERTING), connection);
                         break;
                     case MODIFIED:
                         return super.insert(event, connection);
                     default:
+                        // FIXME: Need to create event including model, if possible
                         addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
                                 DbOperationType.UPDATING), connection);
                 }
