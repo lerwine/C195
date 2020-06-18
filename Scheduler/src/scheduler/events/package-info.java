@@ -4,7 +4,7 @@
  * <table border="1" cellspacing="0">
  * <thead>
  * <tr>
- * <th rowspan="2">{@linkplain scheduler.events.ActivityType}</th>
+ * <th rowspan="2">{@linkplain scheduler.events.DbOperationType}</th>
  * <th rowspan="2">Constant Field Name</th>
  * <th colspan="6">Event Name</th>
  * </tr>
@@ -19,7 +19,7 @@
  * </thead>
  * <tbody>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#EDIT_REQUEST EDIT_REQUEST}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#EDIT_REQUEST EDIT_REQUEST}</th>
  * <td>EDIT_REQUEST_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#EDIT_REQUEST_EVENT_TYPE APPOINTMENT_EDIT_REQUEST_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#EDIT_REQUEST_EVENT_TYPE CUSTOMER_EDIT_REQUEST_EVENT}</td>
@@ -29,7 +29,7 @@
  * <td>{@linkplain scheduler.events.UserEvent#EDIT_REQUEST_EVENT_TYPE USER_EDIT_REQUEST_EVENT}</td>
  * </tr>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#DELETE_REQUEST DELETE_REQUEST}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#DELETE_REQUEST DELETE_REQUEST}</th>
  * <td>DELETE_REQUEST_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#DELETE_REQUEST_EVENT_TYPE APPOINTMENT_DELETE_REQUEST_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#DELETE_REQUEST_EVENT_TYPE CUSTOMER_DELETE_REQUEST_EVENT}</td>
@@ -39,7 +39,7 @@
  * <td>{@linkplain scheduler.events.UserEvent#DELETE_REQUEST_EVENT_TYPE USER_DELETE_REQUEST_EVENT}</td>
  * </tr>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#INSERTING INSERTING}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#INSERTING INSERTING}</th>
  * <td>INSERTING_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#INSERTING_EVENT_TYPE APPOINTMENT_INSERTING_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#INSERTING_EVENT_TYPE CUSTOMER_INSERTING_EVENT}</td>
@@ -49,7 +49,7 @@
  * <td>{@linkplain scheduler.events.UserEvent#INSERTING_EVENT_TYPE USER_INSERTING_EVENT}</td>
  * </tr>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#INSERTED INSERTED}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#INSERTED INSERTED}</th>
  * <td>INSERTED_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#INSERTED_EVENT_TYPE APPOINTMENT_INSERTED_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#INSERTED_EVENT_TYPE CUSTOMER_INSERTED_EVENT}</td>
@@ -59,7 +59,7 @@
  * <td>{@linkplain scheduler.events.UserEvent#INSERTED_EVENT_TYPE USER_INSERTED_EVENT}</td>
  * </tr>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#UPDATING UPDATING}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#UPDATING UPDATING}</th>
  * <td>UPDATING_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#UPDATING_EVENT_TYPE APPOINTMENT_UPDATING_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#UPDATING_EVENT_TYPE CUSTOMER_UPDATING_EVENT}</td>
@@ -69,7 +69,7 @@
  * <td>{@linkplain scheduler.events.UserEvent#UPDATING_EVENT_TYPE USER_UPDATING_EVENT}</td>
  * </tr>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#UPDATED UPDATED}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#UPDATED UPDATED}</th>
  * <td>UPDATED_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#UPDATED_EVENT_TYPE APPOINTMENT_UPDATED_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#UPDATED_EVENT_TYPE CUSTOMER_UPDATED_EVENT}</td>
@@ -79,7 +79,7 @@
  * <td>{@linkplain scheduler.events.UserEvent#UPDATED_EVENT_TYPE USER_UPDATED_EVENT}</td>
  * </tr>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#DELETING DELETING}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#DELETING DELETING}</th>
  * <td>DELETING_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#DELETING_EVENT_TYPE APPOINTMENT_DELETING_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#DELETING_EVENT_TYPE CUSTOMER_DELETING_EVENT}</td>
@@ -89,7 +89,7 @@
  * <td>{@linkplain scheduler.events.UserEvent#DELETING_EVENT_TYPE USER_DELETING_EVENT}</td>
  * </tr>
  * <tr>
- * <th align="right">{@linkplain scheduler.events.ActivityType#DELETED DELETED}</th>
+ * <th align="right">{@linkplain scheduler.events.DbOperationType#DELETED DELETED}</th>
  * <td>DELETED_EVENT_TYPE</td>
  * <td>{@linkplain scheduler.events.AppointmentEvent#DELETED_EVENT_TYPE APPOINTMENT_DELETED_EVENT}</td>
  * <td>{@linkplain scheduler.events.CustomerEvent#DELETED_EVENT_TYPE CUSTOMER_DELETED_EVENT}</td>
@@ -104,22 +104,22 @@
  * <h3>EDIT_REQUEST</h3>
  * <ul style="list-style-type: none;">
  * <li>{@linkplain scheduler.events.AppointmentEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.AppointmentEvent#EDIT_REQUEST_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#EDIT_REQUEST EDIT_REQUEST}
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#EDIT_REQUEST EDIT_REQUEST}
  * &#125;</li>
  * <li>{@linkplain scheduler.events.CustomerEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CustomerEvent#EDIT_REQUEST_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#EDIT_REQUEST EDIT_REQUEST}
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#EDIT_REQUEST EDIT_REQUEST}
  * &#125;</li>
  * <li>{@linkplain scheduler.events.AddressEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.AddressEvent#EDIT_REQUEST_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#EDIT_REQUEST EDIT_REQUEST}
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#EDIT_REQUEST EDIT_REQUEST}
  * &#125;</li>
  * <li>{@linkplain scheduler.events.CityEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CityEvent#EDIT_REQUEST_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#EDIT_REQUEST EDIT_REQUEST}
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#EDIT_REQUEST EDIT_REQUEST}
  * &#125;</li>
  * <li>{@linkplain scheduler.events.CountryEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CountryEvent#EDIT_REQUEST_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#EDIT_REQUEST EDIT_REQUEST}
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#EDIT_REQUEST EDIT_REQUEST}
  * &#125;</li>
  * <li>{@linkplain scheduler.events.UserEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.UserEvent#EDIT_REQUEST_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#EDIT_REQUEST EDIT_REQUEST}
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#EDIT_REQUEST EDIT_REQUEST}
  * &#125;</li>
  * </ul>
  * <ol>
@@ -192,21 +192,21 @@
  * </ul>
  * </li>
  * </ol>
- * <h3>{@linkplain scheduler.events.ActivityType#UPDATING}</h3>
+ * <h3>{@linkplain scheduler.events.DbOperationType#UPDATING}</h3>
  * <h3>UPDATING</h3>
  * <ul style="list-style-type: none;">
  * <li>{@linkplain scheduler.events.AppointmentEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.AppointmentEvent#UPDATING_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATING UPDATING} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATING UPDATING} &#125;</li>
  * <li>{@linkplain scheduler.events.CustomerEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CustomerEvent#UPDATING_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATING UPDATING} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATING UPDATING} &#125;</li>
  * <li>{@linkplain scheduler.events.AddressEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.AddressEvent#UPDATING_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATING UPDATING} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATING UPDATING} &#125;</li>
  * <li>{@linkplain scheduler.events.CityEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CityEvent#UPDATING_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATING UPDATING} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATING UPDATING} &#125;</li>
  * <li>{@linkplain scheduler.events.CountryEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CountryEvent#UPDATING_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATING UPDATING} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATING UPDATING} &#125;</li>
  * <li>{@linkplain scheduler.events.UserEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.UserEvent#UPDATING_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATING UPDATING} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATING UPDATING} &#125;</li>
  * </ul>
  * <ol>
  * <li>{@linkplain scheduler.view.EditItem.ModelEditor} &#x21DC; {@linkplain scheduler.view.EditItem#onSaveButtonAction(javafx.event.ActionEvent)}
@@ -270,17 +270,17 @@
  * <h3>UPDATED</h3>
  * <ul style="list-style-type: none;">
  * <li>{@linkplain scheduler.events.AppointmentEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.AppointmentEvent#UPDATED_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATED UPDATED} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATED UPDATED} &#125;</li>
  * <li>{@linkplain scheduler.events.CustomerEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CustomerEvent#UPDATED_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATED UPDATED} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATED UPDATED} &#125;</li>
  * <li>{@linkplain scheduler.events.AddressEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.AddressEvent#UPDATED_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATED UPDATED} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATED UPDATED} &#125;</li>
  * <li>{@linkplain scheduler.events.CityEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CityEvent#UPDATED_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATED UPDATED} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATED UPDATED} &#125;</li>
  * <li>{@linkplain scheduler.events.CountryEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.CountryEvent#UPDATED_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATED UPDATED} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATED UPDATED} &#125;</li>
  * <li>{@linkplain scheduler.events.UserEvent} &#123;  {@linkplain javafx.event.Event#eventType eventType} = {@linkplain scheduler.events.UserEvent#UPDATED_EVENT_TYPE};
- *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.ActivityType#UPDATED UPDATED} &#125;</li>
+ *         {@linkplain scheduler.events.ModelItemEvent#activity activity} = {@linkplain scheduler.events.DbOperationType#UPDATED UPDATED} &#125;</li>
  * </ul>
  * <ol>
  * <li>{@link scheduler.dao.DataAccessObject} &#x21DC;
