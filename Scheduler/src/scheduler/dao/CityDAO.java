@@ -1,9 +1,5 @@
 package scheduler.dao;
 
-import scheduler.events.CityEvent;
-import scheduler.events.CountryEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,10 +28,16 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
+import scheduler.events.CityEvent;
+import scheduler.events.CountryEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CountryModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -233,21 +235,38 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 return event;
             }
 
-            ICountryDAO country = dao.country;
+            ICountryDAO country;
+            CountryItem<? extends ICountryDAO> cm;
+            CityModel model = event.getModel();
+            cm = model.getCountry();
+            if (null == model) {
+                cm = null;
+                country = ICityDAO.assertValidCity(event.getDataAccessObject()).getCountry();
+            } else {
+                country = (cm = model.getCountry()).dataObject();
+            }
             if (country instanceof CountryDAO) {
                 CountryEvent countryEvent;
                 switch (country.getRowState()) {
                     case NEW:
-                        // FIXME: Need to create event including model, if possible
-                        countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                DbOperationType.INSERTING), connection);
+                        if (null != cm && cm instanceof CountryModel) {
+                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERTING), connection);
+                        } else {
+                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.INSERTING), connection);
+                        }
                         break;
                     case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
-                        // FIXME: Need to create event including model, if possible
-                        countryEvent = CountryDAO.FACTORY.update(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                DbOperationType.UPDATING), connection);
+                        if (null != cm && cm instanceof CountryModel) {
+                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATING), connection);
+                        } else {
+                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.UPDATING), connection);
+                        }
                 }
                 switch (countryEvent.getStatus()) {
                     case SUCCEEDED:
@@ -315,21 +334,37 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 return event;
             }
 
-            ICountryDAO country = dao.country;
+            ICountryDAO country;
+            CountryItem<? extends ICountryDAO> cm;
+            CityModel model = event.getModel();
+            if (null == model) {
+                cm = null;
+                country = ICityDAO.assertValidCity(event.getDataAccessObject()).getCountry();
+            } else {
+                country = (cm = model.getCountry()).dataObject();
+            }
             if (country instanceof CountryDAO) {
                 CountryEvent countryEvent;
                 switch (country.getRowState()) {
                     case NEW:
-                        // FIXME: Need to create event including model, if possible
-                        countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                DbOperationType.INSERTING), connection);
+                        if (null != cm && cm instanceof CountryModel) {
+                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERTING), connection);
+                        } else {
+                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.INSERTING), connection);
+                        }
                         break;
-                    case MODIFIED:
+                    case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
-                        // FIXME: Need to create event including model, if possible
-                        countryEvent = CountryDAO.FACTORY.update(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                DbOperationType.UPDATING), connection);
+                        if (null != cm && cm instanceof CountryModel) {
+                            countryEvent = CountryDAO.FACTORY.update(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATING), connection);
+                        } else {
+                            countryEvent = CountryDAO.FACTORY.update(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.UPDATING), connection);
+                        }
                 }
                 switch (countryEvent.getStatus()) {
                     case SUCCEEDED:

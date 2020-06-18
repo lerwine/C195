@@ -160,8 +160,8 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
     }
 
     @Override
-    public CityEvent DbOperationType(DbOperationType operation) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.CityEvent#DbOperationType
+    public CityEvent toDbOperationType(DbOperationType operation) {
+        return new CityEvent(this, getTarget(), operation);
     }
 
 }

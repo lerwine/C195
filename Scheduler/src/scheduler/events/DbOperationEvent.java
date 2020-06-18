@@ -136,7 +136,7 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         this.confirmed = confirmed;
     }
 
-    public abstract DbOperationEvent<M, D> DbOperationType(DbOperationType operation);
+    public abstract DbOperationEvent<M, D> toDbOperationType(DbOperationType operation);
 
     /**
      * Gets the underlying {@link DataAccessObject} associated with the {@code DbOperationEvent}.

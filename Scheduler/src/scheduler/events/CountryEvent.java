@@ -160,8 +160,8 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
     }
 
     @Override
-    public CountryEvent DbOperationType(DbOperationType operation) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.CountryEvent#DbOperationType
+    public CountryEvent toDbOperationType(DbOperationType operation) {
+        return new CountryEvent(this, getTarget(), operation);
     }
 
 }

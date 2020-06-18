@@ -160,8 +160,8 @@ public class UserEvent extends DbOperationEvent<UserModel, UserDAO> {
     }
 
     @Override
-    public UserEvent DbOperationType(DbOperationType operation) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement events.UserEvent#DbOperationType
+    public UserEvent toDbOperationType(DbOperationType operation) {
+        return new UserEvent(this, getTarget(), operation);
     }
 
 }

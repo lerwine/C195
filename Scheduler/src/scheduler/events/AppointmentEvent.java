@@ -161,8 +161,8 @@ public final class AppointmentEvent extends DbOperationEvent<AppointmentModel, A
     }
 
     @Override
-    public AppointmentEvent DbOperationType(DbOperationType operation) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.AppointmentEvent#DbOperationType
+    public AppointmentEvent toDbOperationType(DbOperationType operation) {
+        return new AppointmentEvent(this, getTarget(), operation);
     }
 
 }

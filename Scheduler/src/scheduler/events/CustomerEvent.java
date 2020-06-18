@@ -160,8 +160,8 @@ public final class CustomerEvent extends DbOperationEvent<CustomerModel, Custome
     }
 
     @Override
-    public CustomerEvent DbOperationType(DbOperationType operation) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.CustomerEvent#DbOperationType
+    public CustomerEvent toDbOperationType(DbOperationType operation) {
+        return new CustomerEvent(this, getTarget(), operation);
     }
 
 }

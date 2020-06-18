@@ -1,9 +1,5 @@
 package scheduler.dao;
 
-import scheduler.events.AddressEvent;
-import scheduler.events.CityEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -29,10 +25,16 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
+import scheduler.events.AddressEvent;
+import scheduler.events.CityEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CityModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -307,21 +309,38 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 return event;
             }
 
-            ICityDAO city = dao.city;
+            ICityDAO city;
+            CityItem<? extends ICityDAO> cm;
+            AddressModel model = event.getModel();
+            cm = model.getCity();
+            if (null == model) {
+                cm = null;
+                city = dao.getCity();
+            } else {
+                city = (cm = model.getCity()).dataObject();
+            }
             if (city instanceof CityDAO) {
                 CityEvent cityEvent;
                 switch (city.getRowState()) {
                     case NEW:
-                        // FIXME: Need to create event including model, if possible
-                        cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                DbOperationType.INSERTING), connection);
+                        if (null != cm && cm instanceof CityModel) {
+                            cityEvent = CityDAO.FACTORY.insert(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERTING), connection);
+                        } else {
+                            cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
+                                    DbOperationType.INSERTING), connection);
+                        }
                         break;
-                    case MODIFIED:
+                    case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
-                        // FIXME: Need to create event including model, if possible
-                        cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                DbOperationType.UPDATING), connection);
+                        if (null != cm && cm instanceof CityModel) {
+                            cityEvent = CityDAO.FACTORY.update(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATING), connection);
+                        } else {
+                            cityEvent = CityDAO.FACTORY.update(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
+                                    DbOperationType.UPDATING), connection);
+                        }
                 }
                 switch (cityEvent.getStatus()) {
                     case SUCCEEDED:
@@ -414,21 +433,38 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 return event;
             }
 
-            ICityDAO city = dao.city;
+            ICityDAO city;
+            CityItem<? extends ICityDAO> cm;
+            AddressModel model = event.getModel();
+            cm = model.getCity();
+            if (null == model) {
+                cm = null;
+                city = dao.getCity();
+            } else {
+                city = (cm = model.getCity()).dataObject();
+            }
             if (city instanceof CityDAO) {
                 CityEvent cityEvent;
                 switch (city.getRowState()) {
                     case NEW:
-                        // FIXME: Need to create event including model, if possible
-                        cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                DbOperationType.INSERTING), connection);
+                        if (null != cm && cm instanceof CityModel) {
+                            cityEvent = CityDAO.FACTORY.insert(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERTING), connection);
+                        } else {
+                            cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
+                                    DbOperationType.INSERTING), connection);
+                        }
                         break;
                     case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
-                        // FIXME: Need to create event including model, if possible
-                        cityEvent = CityDAO.FACTORY.update(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                DbOperationType.UPDATING), connection);
+                        if (null != cm && cm instanceof CityModel) {
+                            cityEvent = CityDAO.FACTORY.update(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATING), connection);
+                        } else {
+                            cityEvent = CityDAO.FACTORY.update(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
+                                    DbOperationType.UPDATING), connection);
+                        }
                 }
                 switch (cityEvent.getStatus()) {
                     case SUCCEEDED:

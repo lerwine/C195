@@ -1,9 +1,5 @@
 package scheduler.dao;
 
-import scheduler.events.AddressEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,10 +23,16 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
+import scheduler.events.AddressEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
+import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -234,22 +236,37 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 return event;
             }
 
-            IAddressDAO address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
-
+            IAddressDAO address;
+            AddressItem<? extends IAddressDAO> am;
+            CustomerModel model = event.getModel();
+            if (null == model) {
+                am = null;
+                address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
+            } else {
+                address = (am = model.getAddress()).dataObject();
+            }
             if (address instanceof AddressDAO) {
                 AddressEvent addressEvent;
                 switch (address.getRowState()) {
                     case NEW:
-                        // FIXME: Need to create event including model, if possible
-                        addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                DbOperationType.INSERTING), connection);
+                        if (null != am && am instanceof AddressModel) {
+                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERTING), connection);
+                        } else {
+                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                    DbOperationType.INSERTING), connection);
+                        }
                         break;
-                    case MODIFIED:
+                    case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
-                        // FIXME: Need to create event including model, if possible
-                        addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                DbOperationType.UPDATING), connection);
+                        if (null != am && am instanceof AddressModel) {
+                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATING), connection);
+                        } else {
+                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                    DbOperationType.UPDATING), connection);
+                        }
                 }
                 switch (addressEvent.getStatus()) {
                     case SUCCEEDED:
@@ -310,22 +327,37 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 return event;
             }
 
-            IAddressDAO address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
-
+            IAddressDAO address;
+            AddressItem<? extends IAddressDAO> am;
+            CustomerModel model = event.getModel();
+            if (null == model) {
+                am = null;
+                address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
+            } else {
+                address = (am = model.getAddress()).dataObject();
+            }
             if (address instanceof AddressDAO) {
                 AddressEvent addressEvent;
                 switch (address.getRowState()) {
                     case NEW:
-                        // FIXME: Need to create event including model, if possible
-                        addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                DbOperationType.INSERTING), connection);
+                        if (null != am && am instanceof AddressModel) {
+                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERTING), connection);
+                        } else {
+                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                    DbOperationType.INSERTING), connection);
+                        }
                         break;
-                    case MODIFIED:
+                    case UNMODIFIED:
                         return super.insert(event, connection);
                     default:
-                        // FIXME: Need to create event including model, if possible
-                        addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                DbOperationType.UPDATING), connection);
+                        if (null != am && am instanceof AddressModel) {
+                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATING), connection);
+                        } else {
+                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
+                                    DbOperationType.UPDATING), connection);
+                        }
                 }
                 switch (addressEvent.getStatus()) {
                     case SUCCEEDED:

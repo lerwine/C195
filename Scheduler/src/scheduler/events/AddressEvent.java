@@ -160,8 +160,8 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
     }
 
     @Override
-    public AddressEvent DbOperationType(DbOperationType operation) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.events.AddressEvent#DbOperationType
+    public AddressEvent toDbOperationType(DbOperationType operation) {
+        return new AddressEvent(this, getTarget(), operation);
     }
 
 }
