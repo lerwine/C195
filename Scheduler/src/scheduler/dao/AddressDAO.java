@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -58,6 +59,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     private String postalCode;
     private String phone;
     private final OriginalPropertyValues originalValues;
+    private WeakEventHandler<CityEvent> cityChangeHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} address object.
@@ -117,6 +119,26 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         ICityDAO oldValue = this.city;
         this.city = city;
         firePropertyChange(PROP_CITY, oldValue, this.city);
+        if (null == city || city instanceof CityDAO) {
+            if (null != cityChangeHandler) {
+                CityDAO.FACTORY.removeEventHandler(CityEvent.CITY_MODEL_EVENT_TYPE, cityChangeHandler);
+                cityChangeHandler = null;
+            }
+        } else if (null == cityChangeHandler) {
+            cityChangeHandler = new WeakEventHandler<>(this::onCityEvent);
+            CityDAO.FACTORY.addEventHandler(CityEvent.CITY_MODEL_EVENT_TYPE, cityChangeHandler);
+        }
+    }
+
+    private void onCityEvent(CityEvent event) {
+        ICityDAO newValue = event.getDataAccessObject();
+        if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
+            CityDAO.FACTORY.removeEventHandler(CityEvent.CITY_MODEL_EVENT_TYPE, cityChangeHandler);
+            cityChangeHandler = null;
+            ICityDAO oldValue = city;
+            city = newValue;
+            firePropertyChange(PROP_CITY, oldValue, city);
+        }
     }
 
     @Override
@@ -679,9 +701,10 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private final int primaryKey;
         private final String address1;
         private final String address2;
-        private final ICityDAO city;
+        private ICityDAO city;
         private final String postalCode;
         private final String phone;
+        private WeakEventHandler<CityEvent> cityChangeHandler;
 
         private Related(int primaryKey, String address1, String address2, ICityDAO city, String postalCode, String phone) {
             this.primaryKey = primaryKey;
@@ -690,6 +713,21 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             this.city = city;
             this.postalCode = asNonNullAndWsNormalized(postalCode);
             this.phone = asNonNullAndWsNormalized(phone);
+            if (!(null == city || city instanceof CityDAO)) {
+                cityChangeHandler = new WeakEventHandler<>(this::onCityEvent);
+                CityDAO.FACTORY.addEventHandler(CityEvent.CITY_MODEL_EVENT_TYPE, cityChangeHandler);
+            }
+        }
+
+        private void onCityEvent(CityEvent event) {
+            ICityDAO newValue = event.getDataAccessObject();
+            if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
+                CityDAO.FACTORY.removeEventHandler(CityEvent.CITY_MODEL_EVENT_TYPE, cityChangeHandler);
+                cityChangeHandler = null;
+                ICityDAO oldValue = city;
+                city = newValue;
+                firePropertyChange(PROP_CITY, oldValue, city);
+            }
         }
 
         @Override

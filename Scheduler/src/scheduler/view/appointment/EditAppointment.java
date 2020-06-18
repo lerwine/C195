@@ -234,11 +234,11 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
             return;
         }
-        throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
     }
 
     private void onAppointmentInserted(AppointmentEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) Implement scheduler.view.appointment.EditAppointment#onAppointmentInserted
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#onAppointmentInserted
     }
 
     @FXML
@@ -356,7 +356,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         assert dropdownOptionsInactiveRadioButton != null : "fx:id=\"dropdownOptionsInactiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
-        // PENDING: (FIXME) Reimplement
+        // FIXME: Reimplement
 //        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).map((t) -> {
 //            AddressDAO dao = t.getDataAccessObject();
 //            if (null == dao) {

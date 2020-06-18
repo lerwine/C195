@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.WeakEventHandler;
 import scheduler.AppointmentAlertManager;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
@@ -33,6 +34,7 @@ import scheduler.events.UserEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
+import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
@@ -72,6 +74,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     private String url;
     private Timestamp start;
     private Timestamp end;
+    private WeakEventHandler<CustomerEvent> customerChangeHandler;
+    private WeakEventHandler<UserEvent> userChangeHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} appointment object.
@@ -106,6 +110,26 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         ICustomerDAO oldValue = this.customer;
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
+        if (null == customer || customer instanceof CustomerDAO) {
+            if (null != customerChangeHandler) {
+                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE, customerChangeHandler);
+                customerChangeHandler = null;
+            }
+        } else if (null == customerChangeHandler) {
+            customerChangeHandler = new WeakEventHandler<>(this::onCustomerEvent);
+            CustomerDAO.FACTORY.addEventHandler(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE, customerChangeHandler);
+        }
+    }
+
+    private void onCustomerEvent(CustomerEvent event) {
+        ICustomerDAO newValue = event.getDataAccessObject();
+        if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
+            CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE, customerChangeHandler);
+            customerChangeHandler = null;
+            ICustomerDAO oldValue = customer;
+            customer = newValue;
+            firePropertyChange(PROP_CUSTOMER, oldValue, customer);
+        }
     }
 
     @Override
@@ -122,6 +146,26 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         IUserDAO oldValue = this.user;
         this.user = user;
         firePropertyChange(PROP_USER, oldValue, this.user);
+        if (null == user || user instanceof UserDAO) {
+            if (null != userChangeHandler) {
+                UserDAO.FACTORY.removeEventHandler(UserEvent.USER_MODEL_EVENT_TYPE, userChangeHandler);
+                userChangeHandler = null;
+            }
+        } else if (null == userChangeHandler) {
+            userChangeHandler = new WeakEventHandler<>(this::onUserEvent);
+            UserDAO.FACTORY.addEventHandler(UserEvent.USER_MODEL_EVENT_TYPE, userChangeHandler);
+        }
+    }
+
+    private void onUserEvent(UserEvent event) {
+        IUserDAO newValue = event.getDataAccessObject();
+        if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
+            UserDAO.FACTORY.removeEventHandler(UserEvent.USER_MODEL_EVENT_TYPE, userChangeHandler);
+            userChangeHandler = null;
+            IUserDAO oldValue = user;
+            user = newValue;
+            firePropertyChange(PROP_ADDRESS, oldValue, user);
+        }
     }
 
     @Override

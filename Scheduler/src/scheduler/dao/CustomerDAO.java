@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.WeakEventHandler;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -59,6 +60,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     private String name;
     private IAddressDAO address;
     private boolean active;
+    private WeakEventHandler<AddressEvent> addressChangeHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} customer object.
@@ -101,6 +103,26 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         IAddressDAO oldValue = this.address;
         this.address = address;
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
+        if (null == address || address instanceof AddressDAO) {
+            if (null != addressChangeHandler) {
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+                addressChangeHandler = null;
+            }
+        } else if (null == addressChangeHandler) {
+            addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
+            AddressDAO.FACTORY.addEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+        }
+    }
+
+    private void onAddressEvent(AddressEvent event) {
+        IAddressDAO newValue = event.getDataAccessObject();
+        if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
+            AddressDAO.FACTORY.removeEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+            addressChangeHandler = null;
+            IAddressDAO oldValue = address;
+            address = newValue;
+            firePropertyChange(PROP_ADDRESS, oldValue, address);
+        }
     }
 
     @Override
@@ -589,15 +611,31 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     public static class Related extends PropertyBindable implements ICustomerDAO {
 
         private final String name;
-        private final IAddressDAO address;
+        private IAddressDAO address;
         private final boolean active;
         private final int primaryKey;
+        private WeakEventHandler<AddressEvent> addressChangeHandler;
 
         private Related(int primaryKey, String name, IAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.address = address;
             this.active = active;
+            if (!(null == address || address instanceof AddressDAO)) {
+                addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
+                AddressDAO.FACTORY.addEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+            }
+        }
+
+        private void onAddressEvent(AddressEvent event) {
+            IAddressDAO newValue = event.getDataAccessObject();
+            if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+                addressChangeHandler = null;
+                IAddressDAO oldValue = address;
+                address = newValue;
+                firePropertyChange(PROP_ADDRESS, oldValue, address);
+            }
         }
 
         @Override

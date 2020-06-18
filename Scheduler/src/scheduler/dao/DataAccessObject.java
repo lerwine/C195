@@ -62,7 +62,6 @@ import scheduler.view.task.WaitBorderPane;
  * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link DbObject}s so the property is updated whenever a change occurs.
  */
 public abstract class DataAccessObject extends PropertyBindable implements DbRecord, EventTarget {
 
@@ -76,7 +75,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     private Timestamp lastModifiedDate;
     private String lastModifiedBy;
     private DataRowState rowState;
-//    private boolean changing = false;
 
     /**
      * Initializes a {@link DataRowState#NEW} data access object.
@@ -226,10 +224,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
     }
 
-//    @Override
-//    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-//        return tail.append(eventHandlerManager);
-//    }
     /**
      * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
      *
