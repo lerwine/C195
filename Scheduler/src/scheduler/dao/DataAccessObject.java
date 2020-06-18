@@ -56,17 +56,17 @@ import scheduler.view.task.WaitBorderPane;
 /**
  * Data access object that represents all columns from a data row.
  * <p>
- * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each
- * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
- * {@code getFactory()} method.</p>
+ * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each class must also have an
+ * associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static {@code getFactory()} method.</p>
  * <p>
  * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link DbObject}s so the property is updated whenever a
- * change occurs.
+ * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link DbObject}s so the property is updated whenever a change occurs.
  */
 public abstract class DataAccessObject extends PropertyBindable implements DbRecord, EventTarget {
+
+    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
 
     private final EventHandlerManager eventHandlerManager;
     private final OriginalValues originalValues;
@@ -76,7 +76,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     private Timestamp lastModifiedDate;
     private String lastModifiedBy;
     private DataRowState rowState;
-    private boolean changing = false;
+//    private boolean changing = false;
 
     /**
      * Initializes a {@link DataRowState#NEW} data access object.
@@ -103,9 +103,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     protected abstract void onRejectChanges();
 
     public void rejectChanges() {
-        beginChange();
-        changing = true;
-        try {
+        try (ChangeEventDeferral eventDeferral = deferChangeEvents()) {
             Timestamp oldCreateDate = createDate;
             String oldCreatedBy = createdBy;
             Timestamp oldLastModifiedDate = lastModifiedDate;
@@ -124,9 +122,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, lastModifiedDate);
             firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, lastModifiedBy);
             firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
-        } finally {
-            endChange();
-            changing = false;
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Unxpected exception in change deferral", ex);
         }
     }
 
@@ -179,8 +176,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
      *
      * @param propertyName The name of the target property.
-     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to
-     * {@link DataRowState#MODIFIED}; otherwise, {@code false} to leave {@link #rowState} unchanged.
+     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
+     * to leave {@link #rowState} unchanged.
      */
     protected boolean propertyChangeModifiesState(String propertyName) {
         switch (propertyName) {
@@ -199,7 +196,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     protected void onPropertyChange(PropertyChangeEvent event) throws Exception {
         super.onPropertyChange(event);
         String propertyName = event.getPropertyName();
-        if ((null == propertyName || propertyChangeModifiesState(propertyName)) && !changing) {
+        if ((null == propertyName || propertyChangeModifiesState(propertyName)) && !arePropertyChangeEventsDeferred()) {
             UserDAO currentUser = Scheduler.getCurrentUser();
             String oldModifiedby = lastModifiedBy;
             Timestamp oldModifiedDate = lastModifiedDate;
@@ -705,9 +702,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
             DataAccessObject d1 = (DataAccessObject) fromDAO;
             DataAccessObject d2 = (DataAccessObject) toDAO;
-            d2.beginChange();
-            d2.changing = true;
-            try {
+            try (ChangeEventDeferral eventDeferral = d2.deferChangeEvents()) {
                 Timestamp oldCreateDate = d2.createDate;
                 String oldCreatedBy = d2.createdBy;
                 Timestamp oldLastModifiedDate = d2.lastModifiedDate;
@@ -732,9 +727,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 d2.firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, d2.lastModifiedBy);
                 d2.firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, d2.primaryKey);
                 d2.firePropertyChange(PROP_ROWSTATE, oldRowState, d2.rowState);
-            } finally {
-                d2.endChange();
-                d2.changing = false;
+            } catch (Exception ex) {
+                LOG.log(Level.SEVERE, "Unxpected exception in change deferral", ex);
             }
         }
 
@@ -756,11 +750,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             });
             DataAccessObject obj = (DataAccessObject) dao;
 
-            dao.beginChange();
             DataRowState oldRowState = obj.rowState;
             DataAccessObject dataAccessObject = (DataAccessObject) dao;
-            dataAccessObject.changing = true;
-            try {
+            try (ChangeEventDeferral eventDeferral = dataAccessObject.deferChangeEvents()) {
                 Consumer<PropertyChangeSupport> consumer;
                 synchronized (dao) {
                     obj.createDate = rs.getTimestamp(DbName.CREATE_DATE.toString());
@@ -774,9 +766,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     consumer.accept(obj.getPropertyChangeSupport());
                 }
                 dataAccessObject.acceptChanges();
+            } catch (Exception ex) {
+                LOG.log(Level.SEVERE, "Unxpected exception in change deferral", ex);
             } finally {
-                dao.endChange();
-                dataAccessObject.changing = false;
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, obj.rowState);
             }
             return dao;
@@ -801,9 +793,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
-         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
-         * implementing classes to put fields directly while property change events are deferred. This value can be {@code null} if it is not
-         * applicable.
+         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow implementing classes to put fields
+         * directly while property change events are deferred. This value can be {@code null} if it is not applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
         protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(T dao, ResultSet rs) throws SQLException;
@@ -854,8 +845,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Indicates whether {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables.
          *
-         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise,
-         * {@code false}.
+         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise, {@code false}.
          */
         public abstract boolean isCompoundSelect();
 
@@ -912,18 +902,16 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param event The {@link DbOperationEvent} for the {@link DataAccessObject} to delete.
          * @param connection The database connection to use.
-         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed;
-         * otherwise, the original {@code event} object is returned, which will reflect the status.
+         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed; otherwise, the original {@code event}
+         * object is returned, which will reflect the status.
          */
         protected E delete(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
             DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
-            dataObj.beginChange();
             DataRowState oldRowState = dataObj.rowState;
-            dataObj.changing = true;
-            try {
+            try (ChangeEventDeferral eventDeferral = dataObj.deferChangeEvents()) {
                 synchronized (dataObj) {
                     if (dataObj.rowState == DataRowState.DELETED) {
                         event.setSucceeded();
@@ -956,12 +944,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     }
                     dataObj.rowState = DataRowState.DELETED;
                 }
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 event.setFaulted("Unexpected error", "Error deleting object from database", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
             } finally {
-                dataObj.endChange();
-                dataObj.changing = false;
                 dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
             }
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
@@ -1000,8 +986,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1011,8 +996,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1022,8 +1006,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1033,8 +1016,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1164,11 +1146,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @Override
         protected E call(E event, Connection connection) throws Exception {
             DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
-            dataObj.beginChange();
             oldRowState = dataObj.rowState;
-            dataObj.changing = true;
             E resultEvent;
-            try {
+            try (ChangeEventDeferral eventDeferral = dataObj.deferChangeEvents()) {
                 synchronized (dataObj) {
                     if (event.getOperation() == DbOperationType.INSERTING) {
                         if (dataObj.getRowState() != DataRowState.NEW) {
@@ -1186,9 +1166,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                         resultEvent = getDaoFactory().update(event, connection);
                     }
                 }
-            } finally {
-                dataObj.endChange();
-                dataObj.changing = false;
+            } catch (Exception ex) {
+                (resultEvent = event).setFaulted("Unexpected error", "Unxpected exception in change deferral", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
             }
             if (resultEvent.getStatus() == EventEvaluationStatus.SUCCEEDED) {
                 dataObj.acceptChanges();
@@ -1212,9 +1192,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * {@link Task} for deleting a {@link DataAccessObject} from the database. This will fire a {@link DbOperationEvent} on the target
-     * {@link DataAccessObject} after successful deletion. The {@link DbOperationEvent#operation operation} property will be set to
-     * {@link DbOperationType#DELETED} and it will be fired in the FX application thread.
+     * {@link Task} for deleting a {@link DataAccessObject} from the database. This will fire a {@link DbOperationEvent} on the target {@link DataAccessObject} after successful
+     * deletion. The {@link DbOperationEvent#operation operation} property will be set to {@link DbOperationType#DELETED} and it will be fired in the FX application thread.
      *
      * @param <D> The type of {@link DataAccessObject} to be deleted.
      * @param <M> The type of {@link FxRecordModel} that corresponds to the {@link DataAccessObject} type.
