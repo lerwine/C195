@@ -385,7 +385,6 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void lookupOptionsOkClick(ActionEvent event) {
-        Stage stage;
         if (lookupOptionCustomersCheckBox.isSelected() != includeInactiveCustomers) {
             includeInactiveCustomers = lookupOptionCustomersCheckBox.isSelected();
             if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {

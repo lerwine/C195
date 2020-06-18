@@ -238,7 +238,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             ICountryDAO country;
             CountryItem<? extends ICountryDAO> cm;
             CityModel model = event.getModel();
-            cm = model.getCountry();
             if (null == model) {
                 cm = null;
                 country = ICityDAO.assertValidCity(event.getDataAccessObject()).getCountry();

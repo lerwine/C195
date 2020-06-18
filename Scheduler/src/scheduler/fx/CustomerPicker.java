@@ -453,11 +453,11 @@ public class CustomerPicker extends BorderPane {
 
     class LoadCustomersTask extends Task<ArrayList<CustomerDAO>> {
 
-        // PENDING: The value of the field CustomerPicker.LoadCustomersTask.country is not used
+        // FIXME: The value of the field CustomerPicker.LoadCustomersTask.country is not used
         private final CountryDAO country;
-        // PENDING: The value of the field CustomerPicker.LoadCustomersTask.city is not used
+        // FIXME: The value of the field CustomerPicker.LoadCustomersTask.city is not used
         private final CityDAO city;
-        // PENDING: The value of the field CustomerPicker.LoadCustomersTask.active is not used
+        // FIXME: The value of the field CustomerPicker.LoadCustomersTask.active is not used
         private final OptionalBoolean active;
         private final CustomerDAO customer;
 

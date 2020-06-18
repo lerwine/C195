@@ -155,6 +155,10 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
         return state.model;
     }
 
+    public M ensureModel() {
+        return state.ensureModel();
+    }
+
     public void setModel(M model) {
         state.setModel(model);
     }
@@ -244,7 +248,14 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
             fault = null;
         }
 
-        public synchronized void setModel(M model) {
+        private synchronized M ensureModel() {
+            if (null == model) {
+                model = getModelFactory().createNew(dataAccessObject);
+            }
+            return model;
+        }
+
+        private synchronized void setModel(M model) {
             if (null != this.model) {
                 throw new IllegalStateException();
             }
@@ -254,10 +265,7 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
             this.model = model;
         }
 
-//        public synchronized void setDbConnector(DbConnector dbConnector) {
-//            this.dbConnector = dbConnector;
-//        }
-        public synchronized void setStatus(EventEvaluationStatus status, String title, String message, Throwable ex) {
+        private synchronized void setStatus(EventEvaluationStatus status, String title, String message, Throwable ex) {
             if (status == EventEvaluationStatus.EVALUATING) {
                 fault = ex;
                 this.status = Objects.requireNonNull(status);

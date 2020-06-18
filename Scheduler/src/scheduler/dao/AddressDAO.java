@@ -312,7 +312,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             ICityDAO city;
             CityItem<? extends ICityDAO> cm;
             AddressModel model = event.getModel();
-            cm = model.getCity();
             if (null == model) {
                 cm = null;
                 city = dao.getCity();
@@ -436,7 +435,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             ICityDAO city;
             CityItem<? extends ICityDAO> cm;
             AddressModel model = event.getModel();
-            cm = model.getCity();
             if (null == model) {
                 cm = null;
                 city = dao.getCity();

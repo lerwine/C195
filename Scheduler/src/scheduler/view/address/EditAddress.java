@@ -611,35 +611,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private class EditDataLoadTask extends Task<Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>>> {
 
         private final AddressDAO dao;
-        // TODO: See if this should be used or removed
-        private final Optional<Integer> countryPk;
-        // TODO: See if this should be used or removed
-        private final Optional<Integer> cityPk;
 
         private EditDataLoadTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             dao = model.dataObject();
-            CityItem<? extends ICityDAO> cm = model.getCity();
-            CountryItem<? extends ICountryDAO> nm;
-            if (null == cm) {
-                nm = null;
-            } else {
-                nm = cm.getCountry();
-            }
-            if (null != nm && nm.getRowState() != DataRowState.NEW) {
-                if (nm instanceof CountryModel) {
-                    countryPk = Optional.empty();
-                } else {
-                    countryPk = Optional.of(nm.getPrimaryKey());
-                }
-                if (null != cm && cm.getRowState() != DataRowState.NEW && !(cm instanceof CityModel)) {
-                    cityPk = Optional.of(cm.getPrimaryKey());
-                    return;
-                }
-            } else {
-                countryPk = Optional.of(nm.getPrimaryKey());
-            }
-            cityPk = Optional.empty();
         }
 
         @Override
