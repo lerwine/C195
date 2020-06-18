@@ -1,9 +1,5 @@
 package scheduler.view.address;
 
-import scheduler.events.AddressEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +45,10 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
+import scheduler.events.AddressEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;

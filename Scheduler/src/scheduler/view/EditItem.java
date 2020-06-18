@@ -1,7 +1,5 @@
 package scheduler.view;
 
-import scheduler.events.DbOperationEvent;
-import scheduler.events.DbOperationType;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -27,6 +25,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.events.DbOperationEvent;
+import scheduler.events.DbOperationType;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;

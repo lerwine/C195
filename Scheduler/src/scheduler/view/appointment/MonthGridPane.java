@@ -1,6 +1,5 @@
 package scheduler.view.appointment;
 
-import scheduler.model.ui.AppointmentModel;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -27,9 +26,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import scheduler.fx.AppointmentListCellFactory;
+import scheduler.fx.CssClassName;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.util.NodeUtil;
 import scheduler.util.ViewControllerLoader;
-import scheduler.fx.CssClassName;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.report.DailyAppointmentsBorderPane;
@@ -162,8 +162,8 @@ public class MonthGridPane extends GridPane {
                     LocalDateTime endRange = t.getEnd();
                     if (startRange.compareTo(endExcl) < 0 && endRange.compareTo(beginIncl) > 0) {
                         int s = ((startRange.compareTo(beginIncl) < 0) ? beginIncl : startRange).getDayOfMonth() - 1;
-                        int e = (endRange.compareTo(endExcl) < 0) ? ((endRange.equals(endRange.toLocalDate().atStartOfDay())) ?
-                                endRange.getDayOfMonth() - 1 : endRange.getDayOfMonth()) : 31;
+                        int e = (endRange.compareTo(endExcl) < 0) ? ((endRange.equals(endRange.toLocalDate().atStartOfDay()))
+                                ? endRange.getDayOfMonth() - 1 : endRange.getDayOfMonth()) : 31;
                         for (int i = s; i < e; i++) {
                             cellNodes.get(i).backingList.add(t);
                         }

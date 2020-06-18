@@ -1,6 +1,7 @@
 /**
  * Data access objects.
- * <p>Nested packages:</p>
+ * <p>
+ * Nested packages:</p>
  * <dl>
  * <dt><a href="{@docRoot}/scheduler/dao/event/package-summary.html">event</a></dt>
  * <dd>Data access object event support.</dd>

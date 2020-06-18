@@ -1,6 +1,5 @@
 package scheduler.view;
 
-import com.sun.javafx.event.EventHandlerManager;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
@@ -133,11 +132,7 @@ public final class MainController {
     @FXML // fx:id="appointmentAlert"
     private AppointmentAlert appointmentAlert; // Value injected by FXMLLoader
 
-    // TODO: See if this should be deleted
-    //private final EventHandlerManager eventHandlerManager;
-
     public MainController() {
-        //eventHandlerManager = new EventHandlerManager(this);
     }
 
     @FXML

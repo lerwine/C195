@@ -1,9 +1,5 @@
 package scheduler.view.city;
 
-import scheduler.events.AddressEvent;
-import scheduler.events.CityEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +44,10 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
+import scheduler.events.AddressEvent;
+import scheduler.events.CityEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.fx.TimeZoneListCellFactory;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;

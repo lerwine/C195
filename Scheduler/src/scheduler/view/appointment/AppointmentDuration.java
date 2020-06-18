@@ -43,8 +43,8 @@ public class AppointmentDuration extends HourAndMinute implements Comparable<App
                 }
             }
         }
-            
-        if (d > (long)(Integer.MAX_VALUE)) {
+
+        if (d > (long) (Integer.MAX_VALUE)) {
             throw new ArithmeticException("Duration too large");
         }
         return new AppointmentDuration((int) d, (int) h, (int) m);
@@ -79,8 +79,9 @@ public class AppointmentDuration extends HourAndMinute implements Comparable<App
      * @param value new value of days
      */
     protected void setDays(int value) {
-        if (value < 0)
+        if (value < 0) {
             throw new IllegalArgumentException("Days cannot be negative");
+        }
         int oldValue = days;
         days = value;
         if (value != oldValue) {
@@ -98,21 +99,23 @@ public class AppointmentDuration extends HourAndMinute implements Comparable<App
 
     @Override
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof AppointmentDuration && (this == obj || (super.equals(obj) && ((AppointmentDuration)obj).days == days));
+        return null != obj && obj instanceof AppointmentDuration && (this == obj || (super.equals(obj) && ((AppointmentDuration) obj).days == days));
     }
 
     public Duration toDuration() {
-        return Duration.ofSeconds((((long)getDays() * 24 + (long)getHours()) * 60L + (long)getMinutes()) * 60L);
+        return Duration.ofSeconds((((long) getDays() * 24 + (long) getHours()) * 60L + (long) getMinutes()) * 60L);
     }
 
     @Override
     public int compareTo(AppointmentDuration o) {
-        if (null == o)
+        if (null == o) {
             return -1;
+        }
         int result = getDays() - o.getDays();
-        if (result == 0 && (result = getHours() - o.getHours()) == 0)
+        if (result == 0 && (result = getHours() - o.getHours()) == 0) {
             return getMinutes() - o.getMinutes();
+        }
         return result;
     }
-    
+
 }

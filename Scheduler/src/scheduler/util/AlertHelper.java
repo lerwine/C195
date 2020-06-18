@@ -47,7 +47,7 @@ public class AlertHelper {
         if (null != parent) {
             alert.initOwner(parent);
         }
-        
+
         return alert.showAndWait();
     }
 

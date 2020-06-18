@@ -14,12 +14,13 @@ import java.util.Iterator;
  * @param <V> Type of object that represents a row to be exported.
  */
 public abstract class TabularDataExporter<K, V> {
+
     private final TabularDataReader<K, V> dataReader;
-    
+
     protected TabularDataExporter(TabularDataReader<K, V> dataReader) {
         this.dataReader = dataReader;
     }
-    
+
     protected abstract void exportHeaderCell(String data, int colIndex, Writer writer) throws IOException;
 
     protected abstract void exportDataCell(String data, int colIndex, Writer writer) throws IOException;

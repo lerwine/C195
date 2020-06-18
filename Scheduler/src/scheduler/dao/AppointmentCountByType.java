@@ -10,13 +10,13 @@ public class AppointmentCountByType extends ItemCountResult<AppointmentType> {
 
     private final String displayText;
 
-    public String getDisplayText() {
-        return displayText;
-    }
-
     public AppointmentCountByType(AppointmentType value, int count) {
         super(value, count);
         displayText = AppointmentType.toDisplayText(value);
+    }
+
+    public String getDisplayText() {
+        return displayText;
     }
 
 }

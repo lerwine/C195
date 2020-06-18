@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * A functional interface similar to {@link java.util.function.Consumer} that can throw an error.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of the input to the operation.
  * @param <E> The type of {@link Throwable} that can be thrown.

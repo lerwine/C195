@@ -2,7 +2,7 @@ package scheduler.util;
 
 /**
  * A functional interface similar to {@link java.util.function.BiConsumer} that can throw an error.
- * 
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of the first argument.
  * @param <U> The type of the second argument.

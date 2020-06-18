@@ -49,8 +49,9 @@ public abstract class HourAndMinute extends PropertyBindable {
         }
         int oldValue = hours;
         hours = value;
-        if (value != oldValue)
+        if (value != oldValue) {
             firePropertyChange(PROP_HOURS, oldValue, hours);
+        }
     }
 
     /**
@@ -76,8 +77,9 @@ public abstract class HourAndMinute extends PropertyBindable {
         }
         int oldValue = minutes;
         minutes = value;
-        if (value != oldValue)
+        if (value != oldValue) {
             firePropertyChange(PROP_MINUTES, oldValue, minutes);
+        }
     }
 
     @Override

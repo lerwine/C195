@@ -1,6 +1,5 @@
 package scheduler.view.customer;
 
-import scheduler.events.CustomerEvent;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
@@ -19,6 +18,7 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
+import scheduler.events.CustomerEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
 import scheduler.model.ui.CustomerModel;

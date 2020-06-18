@@ -1,6 +1,5 @@
 package scheduler.view.country;
 
-import scheduler.events.CountryEvent;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
@@ -18,6 +17,7 @@ import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.events.CountryEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
 import scheduler.model.ui.CountryModel;

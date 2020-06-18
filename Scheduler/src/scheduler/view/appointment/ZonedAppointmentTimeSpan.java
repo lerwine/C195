@@ -50,6 +50,57 @@ public class ZonedAppointmentTimeSpan extends AppointmentTimeSpan {
         return result;
     }
 
+    public static boolean overlap(AppointmentTimeSpan x, AppointmentTimeSpan y) {
+        if (null == x) {
+            return (null == y);
+        }
+        if (null == y) {
+            return false;
+        }
+        if (x instanceof ZonedAppointmentTimeSpan) {
+            ZoneId a = ((ZonedAppointmentTimeSpan) x).zone;
+            if (y instanceof ZonedAppointmentTimeSpan) {
+                ZonedAppointmentTimeSpan b = (ZonedAppointmentTimeSpan) y;
+                if (!b.zone.equals(a)) {
+                    y = b.withZoneSameInstant(a);
+                }
+            } else {
+                ZoneId b = ZoneId.systemDefault();
+                if (!a.equals(b)) {
+                    y = y.atZone(b).withZoneSameInstant(a);
+                }
+            }
+        } else if (y instanceof ZonedAppointmentTimeSpan) {
+            ZoneId a = ((ZonedAppointmentTimeSpan) y).zone;
+            ZoneId b = ZoneId.systemDefault();
+            if (!a.equals(b)) {
+                x = x.atZone(b).withZoneSameInstant(a);
+            }
+        }
+
+        return x.getEnd().compareTo(y.getStart()) > 0 && x.getStart().compareTo(y.getEnd()) < 0;
+    }
+
+    public static boolean isInRange(DateAndTimeSelection dateAndTime, AppointmentTimeSpan timeSpan) {
+        if (timeSpan instanceof ZonedAppointmentTimeSpan) {
+            ZoneId a = ((ZonedAppointmentTimeSpan) timeSpan).zone;
+            if (dateAndTime instanceof ZonedDateAndTimeSelection) {
+                ZonedDateAndTimeSelection b = (ZonedDateAndTimeSelection) dateAndTime;
+                if (!a.equals(b.getZone())) {
+                    dateAndTime = b.withZoneSameInstant(a);
+                }
+            } else if (!a.equals(ZoneId.systemDefault())) {
+                dateAndTime = dateAndTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(a);
+            }
+        } else if (dateAndTime instanceof ZonedDateAndTimeSelection) {
+            ZonedDateAndTimeSelection b = (ZonedDateAndTimeSelection) dateAndTime;
+            if (!b.getZone().equals(ZoneId.systemDefault())) {
+                dateAndTime = b.withZoneSameInstant(ZoneId.systemDefault());
+            }
+        }
+        return dateAndTime.compareTo(timeSpan.getStart()) >= 0 && dateAndTime.compareTo(timeSpan.getEnd()) < 0;
+    }
+
     private ZoneId zone;
 
     public ZonedAppointmentTimeSpan(DateAndTimeSelection start, AppointmentDuration duration, ZoneId zone) {
@@ -95,52 +146,4 @@ public class ZonedAppointmentTimeSpan extends AppointmentTimeSpan {
         return ZonedDateTime.of(super.getEnd().toLocalDateTime(), zone);
     }
 
-    public static boolean overlap(AppointmentTimeSpan x, AppointmentTimeSpan y) {
-        if (null == x) {
-            return (null == y);
-        }
-        if (null == y) {
-            return false;
-        }
-        if (x instanceof ZonedAppointmentTimeSpan) {
-            ZoneId a = ((ZonedAppointmentTimeSpan) x).zone;
-            if (y instanceof ZonedAppointmentTimeSpan) {
-                ZonedAppointmentTimeSpan b = (ZonedAppointmentTimeSpan) y;
-                if (!b.zone.equals(a)) {
-                    y = b.withZoneSameInstant(a);
-                }
-            } else {
-                ZoneId b = ZoneId.systemDefault();
-                if (!a.equals(b)) {
-                    y = y.atZone(b).withZoneSameInstant(a);
-                }
-            }
-        } else if (y instanceof ZonedAppointmentTimeSpan) {
-            ZoneId a = ((ZonedAppointmentTimeSpan) y).zone;
-            ZoneId b = ZoneId.systemDefault();
-            if (!a.equals(b)) {
-                x = x.atZone(b).withZoneSameInstant(a);
-            }
-        }
-        
-        return x.getEnd().compareTo(y.getStart()) > 0 && x.getStart().compareTo(y.getEnd()) < 0;
-    }
-
-    public static boolean isInRange(DateAndTimeSelection dateAndTime, AppointmentTimeSpan timeSpan) {
-        if (timeSpan instanceof ZonedAppointmentTimeSpan) {
-            ZoneId a = ((ZonedAppointmentTimeSpan)timeSpan).zone;
-            if (dateAndTime instanceof ZonedDateAndTimeSelection) {
-                ZonedDateAndTimeSelection b = (ZonedDateAndTimeSelection)dateAndTime;
-                if (!a.equals(b.getZone()))
-                    dateAndTime = b.withZoneSameInstant(a);
-            } else if (!a.equals(ZoneId.systemDefault()))
-                dateAndTime = dateAndTime.atZone(ZoneId.systemDefault()).withZoneSameInstant(a);
-        } else if (dateAndTime instanceof ZonedDateAndTimeSelection) {
-            ZonedDateAndTimeSelection b = (ZonedDateAndTimeSelection)dateAndTime;
-            if (!b.getZone().equals(ZoneId.systemDefault()))
-                dateAndTime = b.withZoneSameInstant(ZoneId.systemDefault());
-        }
-        return dateAndTime.compareTo(timeSpan.getStart()) >= 0 && dateAndTime.compareTo(timeSpan.getEnd()) < 0;
-    }
-    
 }

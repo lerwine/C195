@@ -14,13 +14,14 @@ import java.util.regex.Pattern;
  * @param <V> Type of object that represents a row to be exported.
  */
 public final class HtmlDataExporter<K, V> extends TabularDataExporter<K, V> {
+
     public static final Pattern CDATA_RECODE = Pattern.compile("\\]\\]>");
     public static final Pattern ENTITY_ENCODE = Pattern.compile("\r\n?|\n|[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u0019&<>\\u00fe-\\uffff]");
-    private final String title;
-    
+
     public static final String toEntityEncoded(String text) {
-        if (null == text || text.isEmpty())
+        if (null == text || text.isEmpty()) {
             return text;
+        }
         Matcher matcher = ENTITY_ENCODE.matcher(text);
         if (matcher.find()) {
             return toEntityEncoded(matcher);
@@ -54,10 +55,11 @@ public final class HtmlDataExporter<K, V> extends TabularDataExporter<K, V> {
         matcher.appendTail(sb);
         return sb.insert(0, "<![CDATA[").append("]]>").toString();
     }
-    
+
     public static final String toCDataSection(String text) {
-        if (null == text || text.isEmpty())
+        if (null == text || text.isEmpty()) {
             return "<![CDATA[]]>";
+        }
         Matcher matcher = CDATA_RECODE.matcher(text);
         if (matcher.find()) {
             StringBuffer sb = new StringBuffer();
@@ -69,13 +71,15 @@ public final class HtmlDataExporter<K, V> extends TabularDataExporter<K, V> {
         }
         return text;
     }
-    
+
     public static final String encode(String text) {
-        if (null == text || text.isEmpty())
+        if (null == text || text.isEmpty()) {
             return "";
-        if (text.contains("\t"))
+        }
+        if (text.contains("\t")) {
             return toCDataSection(text);
-        
+        }
+
         Matcher matcher = ENTITY_ENCODE.matcher(text);
         if (matcher.find()) {
             String a = toEntityEncoded(matcher);
@@ -84,12 +88,13 @@ public final class HtmlDataExporter<K, V> extends TabularDataExporter<K, V> {
         }
         return text;
     }
+    private final String title;
 
     public HtmlDataExporter(String title, TabularDataReader<K, V> dataReader) {
         super(dataReader);
         this.title = title;
     }
-    
+
     @Override
     protected final void exportHeader(Iterator<K> columns, Writer writer) throws IOException {
         writer.write(String.format("%n\t\t<thead>%n\t\t\t<tr>"));
@@ -101,8 +106,9 @@ public final class HtmlDataExporter<K, V> extends TabularDataExporter<K, V> {
     protected final void exportHeaderCell(String data, int colIndex, Writer writer) throws IOException {
         writer.write(String.format("%n\t\t\t\t<th>"));
         String text = encode(data);
-        if (!text.isEmpty())
+        if (!text.isEmpty()) {
             writer.write(text);
+        }
         writer.write("</th>");
     }
 
@@ -124,15 +130,16 @@ public final class HtmlDataExporter<K, V> extends TabularDataExporter<K, V> {
     protected final void exportDataCell(String data, int colIndex, Writer writer) throws IOException {
         writer.write(String.format("%n\t\t\t\t<td>"));
         String text = encode(data);
-        if (!text.isEmpty())
+        if (!text.isEmpty()) {
             writer.write(text);
+        }
         writer.write("</td>");
     }
 
     @Override
     public void export(Writer writer, Iterable<V> rows) throws IOException {
-        writer.write(String.format("<!DOCTYPE html>%n<html lang=\"en\">%n<head>%n\t<meta charset=\"UTF-8\">%n" +
-            "\t<meta name=\"viewport\" content=\"width=900, initial-scale=1.0\">%n\t<title>%s</title>%n</head>%n<body>%n\t<table>",
+        writer.write(String.format("<!DOCTYPE html>%n<html lang=\"en\">%n<head>%n\t<meta charset=\"UTF-8\">%n"
+                + "\t<meta name=\"viewport\" content=\"width=900, initial-scale=1.0\">%n\t<title>%s</title>%n</head>%n<body>%n\t<table>",
                 toEntityEncoded(title)));
         super.export(writer, rows);
         writer.write(String.format("%n\t</table>%n</body>%n</html>"));

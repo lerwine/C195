@@ -9,10 +9,11 @@ public enum DataRowState {
     UNMODIFIED,
     MODIFIED,
     DELETED;
-    
+
     public static boolean existsInDb(DataRowState status) {
-        if (null == status)
+        if (null == status) {
             return false;
+        }
         switch (status) {
             case MODIFIED:
             case UNMODIFIED:
@@ -21,10 +22,11 @@ public enum DataRowState {
                 return false;
         }
     }
-    
+
     public static boolean isChanged(DataRowState status) {
-        if (null == status)
+        if (null == status) {
             return false;
+        }
         switch (status) {
             case MODIFIED:
             case NEW:
@@ -33,7 +35,7 @@ public enum DataRowState {
                 return false;
         }
     }
-    
+
     public static boolean isNewRow(DataRowState status) {
         return null != status && status == NEW;
     }

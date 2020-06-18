@@ -7,9 +7,7 @@ package scheduler.util;
  * @param <U>
  */
 public interface Tuple<T, U> {
-    T getValue1();
-    U getValue2();
-    
+
     public static <T, U> Tuple<T, U> of(T value1, U value2) {
         return new Tuple<T, U>() {
             @Override
@@ -23,5 +21,9 @@ public interface Tuple<T, U> {
             }
         };
     }
-    
+
+    T getValue1();
+
+    U getValue2();
+
 }

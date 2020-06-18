@@ -8,8 +8,7 @@ package scheduler.util;
  * @param <S>
  */
 public interface Triplet<T, U, S> extends Tuple<T, U> {
-    S getValue3();
-    
+
     public static <T, U, S> Triplet<T, U, S> of(T value1, U value2, S value3) {
         return new Triplet<T, U, S>() {
             @Override
@@ -26,8 +25,10 @@ public interface Triplet<T, U, S> extends Tuple<T, U> {
             public S getValue3() {
                 return value3;
             }
-            
+
         };
     }
-    
+
+    S getValue3();
+
 }

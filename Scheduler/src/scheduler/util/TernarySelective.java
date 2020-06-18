@@ -105,7 +105,8 @@ public final class TernarySelective<T, U, S> {
 
     /**
      * Initializes a new {@code TernarySwitch} object.
-     * <p>{@link #optionSpec} value definitions:
+     * <p>
+     * {@link #optionSpec} value definitions:
      * <dl>
      * <dt>{@code true}</dt>
      * <dd>{@link #value} contains the primary option value.</dd>
@@ -114,7 +115,7 @@ public final class TernarySelective<T, U, S> {
      * <dt>{@code empty}</dt>
      * <dd>{@link #value} contains the tertiary option value.</dd>
      * </dl></p>
-     * 
+     *
      * @param obj The stored value.
      * @param optionSpec The optional specification.
      */
@@ -202,17 +203,17 @@ public final class TernarySelective<T, U, S> {
     public Optional<T> toPrimaryOption() {
         return (isPrimary()) ? Optional.of((T) value) : Optional.empty();
     }
-    
+
     @SuppressWarnings("unchecked")
     public Optional<U> toSecondaryOption() {
         return (isSecondary()) ? Optional.of((U) value) : Optional.empty();
     }
-    
+
     @SuppressWarnings("unchecked")
     public Optional<S> toTertiaryOption() {
         return (isTertiary()) ? Optional.of((S) value) : Optional.empty();
     }
-    
+
     /**
      * If this contains the primary value option, invoke the specified consumer with the value; otherwise, do nothing. This is similar to
      * {@link Optional#ifPresent(Consumer)}.
@@ -356,13 +357,12 @@ public final class TernarySelective<T, U, S> {
         return hash;
     }
 
-
     @Override
     public boolean equals(Object obj) {
         if (null != obj && obj instanceof TernarySelective) {
-            TernarySelective<?, ?, ?> other = (TernarySelective<?, ?, ?>)obj;
+            TernarySelective<?, ?, ?> other = (TernarySelective<?, ?, ?>) obj;
             if (optionSpec.isPresent()) {
-                return other.optionSpec.isPresent() && (boolean)optionSpec.get() == (boolean)other.optionSpec.get() && Objects.equals(value, other.value);
+                return other.optionSpec.isPresent() && (boolean) optionSpec.get() == (boolean) other.optionSpec.get() && Objects.equals(value, other.value);
             }
             return !other.optionSpec.isPresent() && Objects.equals(value, other.value);
         }
@@ -372,8 +372,9 @@ public final class TernarySelective<T, U, S> {
     @Override
     public String toString() {
         if (optionSpec.isPresent()) {
-            if (optionSpec.get())
+            if (optionSpec.get()) {
                 return (null == value) ? "TernarySwitch.PRIMARY" : String.format("TernarySwitch.PRIMARY[%s]", value);
+            }
             return (null == value) ? "TernarySwitch.SECONDARY" : String.format("TernarySwitch.SECONDARY[%s]", value);
         }
         return (null == value) ? "TernarySwitch.TERTIARY" : String.format("TernarySwitch.TERTIARY[%s]", value);

@@ -9,8 +9,7 @@ package scheduler.util;
  * @param <V>
  */
 public interface Quadruplet<T, U, S, V> extends Triplet<T, U, S> {
-    V getValue4();
-    
+
     public static <T, U, S, V> Quadruplet<T, U, S, V> of(T value1, U value2, S value3, V value4) {
         return new Quadruplet<T, U, S, V>() {
             @Override
@@ -32,7 +31,9 @@ public interface Quadruplet<T, U, S, V> extends Triplet<T, U, S> {
             public V getValue4() {
                 return value4;
             }
-            
+
         };
     }
+
+    V getValue4();
 }

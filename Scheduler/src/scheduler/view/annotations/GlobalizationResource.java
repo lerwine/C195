@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies the name of the resource bundle that contains the localized string values for the annotated controller type.
- * This annotation is utilized by the {@link scheduler.util.ViewControllerLoader} to determine which {@link java.util.ResourceBundle} to load along with the FXML resource
+ * Specifies the name of the resource bundle that contains the localized string values for the annotated controller type. This annotation is utilized
+ * by the {@link scheduler.util.ViewControllerLoader} to determine which {@link java.util.ResourceBundle} to load along with the FXML resource
  * specified by the {@link FXMLResource} annotation.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

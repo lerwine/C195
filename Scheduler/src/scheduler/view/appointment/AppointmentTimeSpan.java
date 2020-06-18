@@ -85,10 +85,7 @@ public class AppointmentTimeSpan extends PropertyBindable implements Comparable<
     protected void setEnd(DateAndTimeSelection value) {
         DateAndTimeSelection oldValue = this.end;
         if (!oldValue.equals(Objects.requireNonNull(value))) {
-            
-            
-            
-            
+
             firePropertyChange(PROP_END, oldValue, value);
         }
     }
@@ -105,5 +102,5 @@ public class AppointmentTimeSpan extends PropertyBindable implements Comparable<
     public boolean isInRange(DateAndTimeSelection dataAndTime) {
         return ZonedAppointmentTimeSpan.isInRange(dataAndTime, this);
     }
-    
+
 }

@@ -22,12 +22,12 @@ import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.events.AppointmentEvent;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.util.Tuple;
-import scheduler.events.AppointmentEvent;
 
 /**
  *

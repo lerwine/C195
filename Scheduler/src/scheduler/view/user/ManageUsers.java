@@ -1,6 +1,5 @@
 package scheduler.view.user;
 
-import scheduler.events.UserEvent;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Optional;
@@ -19,6 +18,7 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
+import scheduler.events.UserEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.User;
 import scheduler.model.ui.UserModel;

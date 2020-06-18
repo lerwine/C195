@@ -12,19 +12,23 @@ public class AppointmentTime extends HourAndMinute implements Comparable<Appoint
 
     public static AppointmentTime of(LocalTime time) {
         if (time.getNano() > 499_999_999L) {
-            if (time.equals(LocalTime.MAX))
+            if (time.equals(LocalTime.MAX)) {
                 time = LocalTime.MIDNIGHT;
-            else
+            } else {
                 time = time.withNano(0).plusSeconds(1L);
-        } else if (time.getNano() > 0)
+            }
+        } else if (time.getNano() > 0) {
             time = time.withNano(0);
+        }
         if (time.getSecond() > 29) {
-            if (time.equals(LocalTime.MAX.withNano(0)))
+            if (time.equals(LocalTime.MAX.withNano(0))) {
                 time = LocalTime.MIDNIGHT;
-            else
+            } else {
                 time = time.withSecond(0).plusMinutes(1L);
-        } else if (time.getSecond() > 0)
-                time = time.withSecond(0);
+            }
+        } else if (time.getSecond() > 0) {
+            time = time.withSecond(0);
+        }
         return new AppointmentTime(time.getHour(), time.getMinute());
     }
 
@@ -102,15 +106,17 @@ public class AppointmentTime extends HourAndMinute implements Comparable<Appoint
     @Override
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object obj) {
-        return this == obj || (super.equals(obj) && ((AppointmentTime)obj).pm == pm);
+        return this == obj || (super.equals(obj) && ((AppointmentTime) obj).pm == pm);
     }
 
     @Override
     public int compareTo(AppointmentTime o) {
-        if (null == o)
+        if (null == o) {
             return -1;
-        if (pm != o.pm)
+        }
+        if (pm != o.pm) {
             return (pm) ? 1 : -1;
+        }
         int result = getHours() - o.getHours();
         return (result == 0) ? getMinutes() - o.getMinutes() : result;
     }

@@ -18,10 +18,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.model.ui.AppointmentModel;
 
 /**
  * List item for {@link ConsultantSchedule#appointmentScheduleListView} to display an ordered list of consultant appointments for a single day.
@@ -76,7 +76,7 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'DailyAppointments.fxml'.";
         headingLabel.setText(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date.get()));
         listingTableView.setItems(appointments);
-        listingTableView.setPrefHeight((double)appointments.size() * listingTableView.getFixedCellSize() + 24.0);
+        listingTableView.setPrefHeight((double) appointments.size() * listingTableView.getFixedCellSize() + 24.0);
     }
 
     public LocalDate getDate() {
@@ -94,6 +94,5 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
     public ReadOnlyListProperty<AppointmentModel> appointmentsProperty() {
         return appointments.getReadOnlyProperty();
     }
-    
-    
+
 }

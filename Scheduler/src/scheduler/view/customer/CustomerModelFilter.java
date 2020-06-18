@@ -1,6 +1,5 @@
 package scheduler.view.customer;
 
-import scheduler.model.ui.CustomerModel;
 import java.util.function.Predicate;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ACTIVECUSTOMERS;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCUSTOMERS;
@@ -9,6 +8,7 @@ import scheduler.AppResources;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilterExpression;
+import scheduler.model.ui.CustomerModel;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.ModelFilter;
 

@@ -1,9 +1,5 @@
 package scheduler.view.customer;
 
-import scheduler.events.AppointmentEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -55,6 +51,10 @@ import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;

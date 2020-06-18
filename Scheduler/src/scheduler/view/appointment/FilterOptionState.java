@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.UserDAO;
 import scheduler.dao.filter.DateFilterType;
 import scheduler.dao.filter.TextFilterType;
-import scheduler.dao.UserDAO;
 
 /**
  *

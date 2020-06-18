@@ -41,6 +41,76 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
     private MapListenerHelper<String, V> listenerHelper;
 
     /**
+     * Creates a new case-insensitive String-to-value mapping with the same mappings as the source {@link Map}.
+     *
+     * @param m The map whose mappings are to be placed in this map.
+     * @param nullAllowed {@code true} if {@code null} values are allowed.
+     */
+    public CaseInsensitiveStringMap(Map<String, ? extends V> m, boolean nullAllowed) {
+        this(nullAllowed);
+        if (nullAllowed) {
+            m.keySet().forEach((t) -> {
+                if (null == t) {
+                    throw new NullPointerException();
+                }
+                for (Entry e : backingList) {
+                    if (e.key.equalsIgnoreCase(t)) {
+                        e.value = m.get(t);
+                        return;
+                    }
+                }
+                backingList.add(new Entry(t, m.get(t)));
+            });
+        } else {
+            m.keySet().forEach((t) -> {
+                if (null == t) {
+                    throw new NullPointerException();
+                }
+                V v = Objects.requireNonNull(m.get(t));
+                for (Entry e : backingList) {
+                    if (e.key.equalsIgnoreCase(t)) {
+                        e.value = v;
+                        return;
+                    }
+                }
+                backingList.add(new Entry(t, v));
+            });
+        }
+    }
+
+    /**
+     * Creates a new case-insensitive String-to-value mapping, which does not allow null values, with the same mappings as the source {@link Map}.
+     *
+     * @param m The map whose mappings are to be placed in this map.
+     */
+    public CaseInsensitiveStringMap(Map<String, ? extends V> m) {
+        this(m, false);
+    }
+
+    /**
+     * Creates a new case-insensitive String-to-value mapping.
+     *
+     * @param nullAllowed {@code true} if {@code null} values are allowed.
+     */
+    public CaseInsensitiveStringMap(boolean nullAllowed) {
+        this.nullAllowed = nullAllowed;
+        backingList = new LinkedList<>();
+        entrySet = new EntrySet();
+        readOnlyEntrySet = new ReadOnlyEntrySet();
+        keySet = new KeySet();
+        values = new Values();
+        readOnlyMap = new ReadOnly();
+        changeEvents = new LinkedList<>();
+    }
+
+    /**
+     * Creates a new case-insensitive String-to-value mapping, which does not allow null values.
+     */
+    public CaseInsensitiveStringMap() {
+        this(false);
+    }
+
+    /**
      * Indicates whether {@code null} values are allowed by this map.
      *
      * @return {@code true} if {@code null} values are allowed by this map; otherwise {@code false}.
@@ -51,7 +121,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
 
     /**
      * Gets a read-only wrapper of the current map.
-     * 
+     *
      * @return A read-only wrapper of the current map.
      */
     public ReadOnlyMap<String, V> getReadOnlyMap() {
@@ -121,76 +191,6 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
             changeEvents.clear();
         }
         fireChangeEvents(listeners, iterator);
-    }
-
-    /**
-     * Creates a new case-insensitive String-to-value mapping with the same mappings as the source {@link Map}.
-     * 
-     * @param m The map whose mappings are to be placed in this map.
-     * @param nullAllowed {@code true} if {@code null} values are allowed.
-     */
-    public CaseInsensitiveStringMap(Map<String, ? extends V> m, boolean nullAllowed) {
-        this(nullAllowed);
-        if (nullAllowed) {
-            m.keySet().forEach((t) -> {
-                if (null == t) {
-                    throw new NullPointerException();
-                }
-                for (Entry e : backingList) {
-                    if (e.key.equalsIgnoreCase(t)) {
-                        e.value = m.get(t);
-                        return;
-                    }
-                }
-                backingList.add(new Entry(t, m.get(t)));
-            });
-        } else {
-            m.keySet().forEach((t) -> {
-                if (null == t) {
-                    throw new NullPointerException();
-                }
-                V v = Objects.requireNonNull(m.get(t));
-                for (Entry e : backingList) {
-                    if (e.key.equalsIgnoreCase(t)) {
-                        e.value = v;
-                        return;
-                    }
-                }
-                backingList.add(new Entry(t, v));
-            });
-        }
-    }
-
-    /**
-     * Creates a new case-insensitive String-to-value mapping, which does not allow null values, with the same mappings as the source {@link Map}.
-     * 
-     * @param m The map whose mappings are to be placed in this map.
-     */
-    public CaseInsensitiveStringMap(Map<String, ? extends V> m) {
-        this(m, false);
-    }
-
-    /**
-     * Creates a new case-insensitive String-to-value mapping.
-     * 
-     * @param nullAllowed {@code true} if {@code null} values are allowed.
-     */
-    public CaseInsensitiveStringMap(boolean nullAllowed) {
-        this.nullAllowed = nullAllowed;
-        backingList = new LinkedList<>();
-        entrySet = new EntrySet();
-        readOnlyEntrySet = new ReadOnlyEntrySet();
-        keySet = new KeySet();
-        values = new Values();
-        readOnlyMap = new ReadOnly();
-        changeEvents = new LinkedList<>();
-    }
-
-    /**
-     * Creates a new case-insensitive String-to-value mapping, which does not allow null values.
-     */
-    public CaseInsensitiveStringMap() {
-        this(false);
     }
 
     @Override
@@ -287,8 +287,9 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
             try {
                 if (null != changed) {
                     try {
-                        if (!oldKey.equals(changed.key))
+                        if (!oldKey.equals(changed.key)) {
                             changed.propertyChangeSupport.firePropertyChange(Entry.PROP_KEY, oldKey, changed.key);
+                        }
                     } finally {
                         changed.propertyChangeSupport.firePropertyChange(Entry.PROP_VALUE, oldValue, changed.value);
                     }
@@ -331,8 +332,9 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
     @Override
     public void clear() {
         synchronized (backingList) {
-            if (backingList.isEmpty())
+            if (backingList.isEmpty()) {
                 return;
+            }
             backingList.forEach((t) -> addChangeEvent(t.key, t.value, null, false, true));
             backingList.clear();
         }
@@ -519,7 +521,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
 
         @Override
         public boolean contains(Object o) {
-            return containsKey((String)o);
+            return containsKey((String) o);
         }
 
         @Override
@@ -534,7 +536,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
 
         @Override
         public boolean containsAll(Collection<?> c) {
-            return c.stream().allMatch((t) -> containsKey((String)t));
+            return c.stream().allMatch((t) -> containsKey((String) t));
         }
 
     }
@@ -554,7 +556,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
         @SuppressWarnings("unchecked")
         @Override
         public boolean contains(Object o) {
-            return containsValue((V)o);
+            return containsValue((V) o);
         }
 
         @Override
@@ -570,7 +572,7 @@ public class CaseInsensitiveStringMap<V> implements ObservableMap<String, V> {
         @SuppressWarnings("unchecked")
         @Override
         public boolean containsAll(Collection<?> c) {
-            return c.stream().allMatch((t) -> containsValue((V)t));
+            return c.stream().allMatch((t) -> containsValue((V) t));
         }
 
     }

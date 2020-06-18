@@ -1,9 +1,6 @@
 package scheduler.dao;
 
 import com.sun.javafx.event.EventHandlerManager;
-import scheduler.events.DbOperationEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.lang.ref.WeakReference;
@@ -43,6 +40,9 @@ import scheduler.dao.schema.DbName;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
+import scheduler.events.DbOperationEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.DataObject;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
@@ -917,7 +917,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param connection The database connection to use.
          * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed;
          * otherwise, the original {@code event} object is returned, which will reflect the status.
-         * @todo Make private.
          */
         protected E delete(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
@@ -1047,21 +1046,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             eventHandlerManager.removeEventFilter(type, eventHandler);
         }
 
-    }
-
-    private class OriginalValues {
-
-        private Timestamp createDate;
-        private String createdBy;
-        private Timestamp lastModifiedDate;
-        private String lastModifiedBy;
-
-        private OriginalValues() {
-            this.createDate = DataAccessObject.this.createDate;
-            this.createdBy = DataAccessObject.this.createdBy;
-            this.lastModifiedDate = DataAccessObject.this.lastModifiedDate;
-            this.lastModifiedBy = DataAccessObject.this.lastModifiedBy;
-        }
     }
 
     public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends Task<E> {
@@ -1267,5 +1251,20 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
         }
 
+    }
+
+    private class OriginalValues {
+
+        private Timestamp createDate;
+        private String createdBy;
+        private Timestamp lastModifiedDate;
+        private String lastModifiedBy;
+
+        private OriginalValues() {
+            this.createDate = DataAccessObject.this.createDate;
+            this.createdBy = DataAccessObject.this.createdBy;
+            this.lastModifiedDate = DataAccessObject.this.lastModifiedDate;
+            this.lastModifiedBy = DataAccessObject.this.lastModifiedBy;
+        }
     }
 }

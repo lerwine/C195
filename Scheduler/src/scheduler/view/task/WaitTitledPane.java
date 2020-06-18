@@ -90,28 +90,28 @@ public final class WaitTitledPane extends TitledPane {
     }
 
     private void onRunning(WorkerStateEvent event) {
-        Task<?> task = (Task<?>)event.getSource();
+        Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task started", task.getTitle()));
         fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.RUNNING));
     }
 
     private void onFailed(WorkerStateEvent event) {
         removeTaskEventHandlers();
-        Task<?> task = (Task<?>)event.getSource();
+        Task<?> task = (Task<?>) event.getSource();
         LOG.log(Level.SEVERE, String.format("Background task %s failed", task.getTitle()), task.getException());
-        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, (Task<?>)event.getSource(), WaitTitledPaneEvent.FAILED));
+        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, (Task<?>) event.getSource(), WaitTitledPaneEvent.FAILED));
     }
 
     private void onSucceeded(WorkerStateEvent event) {
         removeTaskEventHandlers();
-        Task<?> task = (Task<?>)event.getSource();
+        Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task succeeded", task.getTitle()));
         fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.SUCCEEDED));
     }
 
     private void onCanceled(WorkerStateEvent event) {
         removeTaskEventHandlers();
-        Task<?> task = (Task<?>)event.getSource();
+        Task<?> task = (Task<?>) event.getSource();
         LOG.warning(() -> String.format("%s task canceled", task.getTitle()));
         fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.CANCELED));
     }

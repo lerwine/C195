@@ -17,7 +17,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param key The candidate key value.
      * @return (throws exception by default)
      * @throws UnsupportedOperationException - Map is read-only.
@@ -29,7 +29,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param key The candidate key.
      * @param value The candidate value.
      * @return (throws exception by default)
@@ -42,7 +42,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param m The candidate mapping.
      * @throws UnsupportedOperationException - Map is read-only.
      */
@@ -53,7 +53,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @throws UnsupportedOperationException - Map is read-only.
      */
     @Override
@@ -63,7 +63,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param function The candidate function.
      * @throws UnsupportedOperationException - Map is read-only.
      */
@@ -74,7 +74,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param key The candidate key.
      * @param value The candidate value.
      * @return (throws exception by default)
@@ -87,7 +87,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param key The candidate key.
      * @param value The candidate value.
      * @return (throws exception by default)
@@ -100,7 +100,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param key The candidate key.
      * @param oldValue The candidate old value.
      * @param newValue The candidate new value.
@@ -114,7 +114,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param key The candidate key.
      * @param value The candidate value.
      * @return (throws exception by default)
@@ -127,7 +127,7 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
 
     /**
      * Overridden to prevent changes to the current map.
-     * 
+     *
      * @param key The candidate key.
      * @param value The candidate value.
      * @param remappingFunction The candidate function.
@@ -138,8 +138,9 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
     public default V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         throw new UnsupportedOperationException("Map is read-only.");
     }
-    
+
     public static class Wrapper<K, V> extends HashMap<K, V> {
+
         /**
          *
          */
@@ -184,21 +185,21 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
             public Set<Entry<K, V>> entrySet() {
                 return Wrapper.this.entrySet();
             }
-            
+
         };
-        
+
         public Wrapper() {
             super();
         }
-        
+
         public Wrapper(int initialCapacity, float loadFactor) {
             super(initialCapacity, loadFactor);
         }
-        
+
         public Wrapper(int initialCapacity) {
             super(initialCapacity);
         }
-        
+
         public Wrapper(Map<? extends K, ? extends V> m) {
             super(m);
         }
@@ -206,6 +207,6 @@ public interface ReadOnlyMap<K, V> extends Map<K, V> {
         public ReadOnlyMap<K, V> getReadOnlyMap() {
             return readOnlyMap;
         }
-        
+
     }
 }

@@ -1,8 +1,5 @@
 package scheduler.dao;
 
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
-import scheduler.events.UserEvent;
 import java.beans.PropertyChangeSupport;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,6 +22,9 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
+import scheduler.events.UserEvent;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;

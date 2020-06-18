@@ -49,50 +49,6 @@ public final class PwHash {
      */
     public static final int HASHED_STRING_LENGTH = 50;
 
-    private final NonNullableStringProperty encodedHash;
-
-    public String getEncodedHash() {
-        return encodedHash.get();
-    }
-
-    public void setEncodedHash(String value) {
-        encodedHash.set(value);
-    }
-
-    public StringProperty encodedHashProperty() {
-        return encodedHash;
-    }
-
-    private final ReadOnlyObjectWrapper<ObservableByteArrayList> salt;
-
-    public ObservableByteArrayList getSalt() {
-        return salt.get();
-    }
-
-    public ReadOnlyObjectProperty<ObservableByteArrayList> saltProperty() {
-        return salt.getReadOnlyProperty();
-    }
-
-    private final ReadOnlyObjectWrapper<ObservableByteArrayList> hash;
-
-    public ObservableByteArrayList getHash() {
-        return hash.get();
-    }
-
-    public ReadOnlyObjectProperty<ObservableByteArrayList> hashProperty() {
-        return hash.getReadOnlyProperty();
-    }
-
-    private final ReadOnlyBooleanWrapper valid;
-
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid.getReadOnlyProperty();
-    }
-
     private static boolean test(String password, byte[] salt, byte[] hash) {
         if (salt == null || hash == null || password == null || password.isEmpty()) {
             return false;
@@ -119,38 +75,10 @@ public final class PwHash {
         return false;
     }
 
-    public void setFromRawPassword(String password, boolean useSameSalt) {
-        if (password.isEmpty()) {
-            salt.set(null);
-            hash.set(null);
-            encodedHash.set("");
-            return;
-        }
-        try {
-            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            ObservableByteArrayList existingSalt = salt.get();
-            byte[] sb;
-            if (useSameSalt && null != existingSalt) {
-                sb = existingSalt.bytes;
-            } else {
-                // Create new random salt sequence.
-                SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-                sb = new byte[SALT_LENGTH];
-                random.nextBytes(sb);
-                salt.set(new ObservableByteArrayList(sb));
-            }
-            // Generate new hash of the raw password.
-            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), sb, CIPHER_ITERATION_COUNT, HASH_LENGTH * 8);
-            byte[] hb = skf.generateSecret(spec).getEncoded();
-            hash.set(new ObservableByteArrayList(hb));
-            Base64.Encoder enc = Base64.getEncoder();
-            encodedHash.set((enc.encodeToString(sb) + enc.encodeToString(hb)).substring(0, HASHED_STRING_LENGTH));
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            // This should never occur unless there is a typo or invalid constant in the code.
-            LOG.log(Level.SEVERE, "Unexpected failure", ex);
-            throw new InternalException("Unexpected error generating hash", ex);
-        }
-    }
+    private final NonNullableStringProperty encodedHash;
+    private final ReadOnlyObjectWrapper<ObservableByteArrayList> salt;
+    private final ReadOnlyObjectWrapper<ObservableByteArrayList> hash;
+    private final ReadOnlyBooleanWrapper valid;
 
     /**
      * Constructs a new password hash.
@@ -210,6 +138,75 @@ public final class PwHash {
         }
     }
 
+    public String getEncodedHash() {
+        return encodedHash.get();
+    }
+
+    public void setEncodedHash(String value) {
+        encodedHash.set(value);
+    }
+
+    public StringProperty encodedHashProperty() {
+        return encodedHash;
+    }
+
+    public ObservableByteArrayList getSalt() {
+        return salt.get();
+    }
+
+    public ReadOnlyObjectProperty<ObservableByteArrayList> saltProperty() {
+        return salt.getReadOnlyProperty();
+    }
+
+    public ObservableByteArrayList getHash() {
+        return hash.get();
+    }
+
+    public ReadOnlyObjectProperty<ObservableByteArrayList> hashProperty() {
+        return hash.getReadOnlyProperty();
+    }
+
+    public boolean isValid() {
+        return valid.get();
+    }
+
+    public ReadOnlyBooleanProperty validProperty() {
+        return valid.getReadOnlyProperty();
+    }
+
+    public void setFromRawPassword(String password, boolean useSameSalt) {
+        if (password.isEmpty()) {
+            salt.set(null);
+            hash.set(null);
+            encodedHash.set("");
+            return;
+        }
+        try {
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+            ObservableByteArrayList existingSalt = salt.get();
+            byte[] sb;
+            if (useSameSalt && null != existingSalt) {
+                sb = existingSalt.bytes;
+            } else {
+                // Create new random salt sequence.
+                SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+                sb = new byte[SALT_LENGTH];
+                random.nextBytes(sb);
+                salt.set(new ObservableByteArrayList(sb));
+            }
+            // Generate new hash of the raw password.
+            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), sb, CIPHER_ITERATION_COUNT, HASH_LENGTH * 8);
+            byte[] hb = skf.generateSecret(spec).getEncoded();
+            hash.set(new ObservableByteArrayList(hb));
+            Base64.Encoder enc = Base64.getEncoder();
+            encodedHash.set((enc.encodeToString(sb) + enc.encodeToString(hb)).substring(0, HASHED_STRING_LENGTH));
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            // This should never occur unless there is a typo or invalid constant in the code.
+            LOG.log(Level.SEVERE, "Unexpected failure", ex);
+            throw new InternalException("Unexpected error generating hash", ex);
+        }
+    }
+
     /**
      * Gets the salt and password hash as a sequence of hexadecimal character pairs.
      *
@@ -221,8 +218,8 @@ public final class PwHash {
     }
 
     /**
-     * Determines whether the hash for the specified password matches the current password hash. This uses the current salt sequence to generate a hash from the specified password
-     * and then compares the resulting bytes with the current hash.
+     * Determines whether the hash for the specified password matches the current password hash. This uses the current salt sequence to generate a
+     * hash from the specified password and then compares the resulting bytes with the current hash.
      *
      * @param password The password to check.
      * @return {@code true} if the hash of the specified password matches the current hash; otherwise, {@code false}.

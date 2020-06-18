@@ -1,9 +1,5 @@
 package scheduler.view.user;
 
-import scheduler.events.AppointmentEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
-import scheduler.events.UserEvent;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -47,6 +43,10 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
+import scheduler.events.UserEvent;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;

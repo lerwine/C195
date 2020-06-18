@@ -35,7 +35,12 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.events.CityEvent;
+import scheduler.events.CountryEvent;
+import scheduler.events.DbOperationType;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.CityProperties;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
@@ -52,11 +57,6 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.city.EditCity;
 import static scheduler.view.country.EditCountryResourceKeys.*;
-import scheduler.events.DbOperationType;
-import scheduler.events.CityEvent;
-import scheduler.events.CountryEvent;
-import scheduler.events.EventEvaluationStatus;
-import scheduler.dao.DataAccessObject;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -133,14 +133,14 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             model.setLocale(selectedLocale.get());
         }
     }
-    
+
     private void onCountryInserted(CountryEvent event) {
         restoreNode(citiesLabel);
         restoreNode(citiesTableView);
         restoreNode(newButtonBar);
         initializeEditMode();
     }
-    
+
     @SuppressWarnings("incomplete-switch")
     @FXML
     private void onCitiesTableViewKeyReleased(KeyEvent event) {

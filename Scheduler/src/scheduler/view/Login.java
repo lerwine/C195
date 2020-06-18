@@ -117,7 +117,7 @@ public final class Login extends Scheduler.LoginBorderPane {
         // Create bindings for the current Stage so we can update the titleProperty when the language changes.
         // Use low-level API to create a nested property binding to the window property of the scene property for the current custom control (Login).
         // The class used by the BindingUtil.ofNestedObject method re-binds to the new nested window property when the scene property changes.
-        ObjectBinding<Window> currentWindow = Bindings.when(sceneProperty().isNull()).then((Window)null)
+        ObjectBinding<Window> currentWindow = Bindings.when(sceneProperty().isNull()).then((Window) null)
                 .otherwise(Bindings.<Window>select(sceneProperty(), "window"));
         // Create an object binding which returns the nested windowProperty as a Stage object.
         ObjectBinding<Stage> currentStage = Bindings.createObjectBinding(() -> {

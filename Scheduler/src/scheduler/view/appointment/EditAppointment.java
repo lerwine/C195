@@ -48,6 +48,8 @@ import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.EventEvaluationStatus;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
@@ -71,8 +73,6 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.events.AppointmentEvent;
-import scheduler.events.EventEvaluationStatus;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -236,11 +236,11 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
         throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
     }
-    
+
     private void onAppointmentInserted(AppointmentEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); // PENDING: (TODO) Implement scheduler.view.appointment.EditAppointment#onAppointmentInserted
     }
-    
+
     @FXML
     private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
         editingUserOptions = false;

@@ -9,7 +9,10 @@ import java.util.Collection;
  * @param <V> Type of object that represents a row to be exported.
  */
 public interface TabularDataReader<K, V> {
+
     Collection<K> getColumns();
+
     String getHeaderText(K column);
+
     String getColumnText(V item, K column);
 }
