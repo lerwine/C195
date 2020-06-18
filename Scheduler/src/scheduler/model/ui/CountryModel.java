@@ -1,7 +1,5 @@
 package scheduler.model.ui;
 
-import scheduler.events.CountryEvent;
-import scheduler.events.DbOperationType;
 import java.util.Locale;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
@@ -19,6 +17,8 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.events.CountryEvent;
+import scheduler.events.DbOperationType;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -151,20 +151,6 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         @Override
         public CountryModel createNew(CountryDAO dao) {
             return new CountryModel(dao);
-        }
-
-        @Deprecated
-        @Override
-        public CountryDAO updateDAO(CountryModel item) {
-            CountryDAO dataObject = item.dataObject();
-            dataObject.setLocale(item.getLocale());
-            return dataObject;
-        }
-
-        @Deprecated
-        @Override
-        protected void updateItemProperties(CountryModel item, CountryDAO dao) {
-            item.locale.set(dao.getLocale());
         }
 
         @Override

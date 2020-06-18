@@ -1,15 +1,11 @@
 package scheduler.model.ui;
 
 import com.sun.javafx.event.EventHandlerManager;
-import scheduler.events.DbOperationEvent;
-import scheduler.events.DbOperationType;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -23,7 +19,6 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventTarget;
@@ -33,12 +28,13 @@ import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.events.DbOperationEvent;
+import scheduler.events.DbOperationType;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
 import scheduler.view.ModelFilter;
-import scheduler.view.task.WaitBorderPane;
 
 /**
  * Java FX object model for a {@link DataAccessObject} object.
@@ -284,118 +280,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         public abstract M createNew(D dao);
 
-        /**
-         * Applies changes made in the {@link FxRecordModel} to the underlying {@link DataAccessObject}.
-         *
-         * @param item The model item.
-         * @return The {@link DataAccessObject} with changes applied.
-         * @deprecated Use {@link #handle(scheduler.events.ModelItemEvent)}.
-         * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateDAO
-         */
-        @Deprecated
-        public abstract D updateDAO(M item);
-
-        /**
-         *
-         * @deprecated Use {@link #handle(scheduler.events.ModelItemEvent)}.
-         * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateItemProperties
-         */
-        @Deprecated
-        protected abstract void updateItemProperties(M item, D dao);
-
         public abstract ModelFilter<D, M, ? extends DaoFilter<D>> getAllItemsFilter();
 
         public abstract ModelFilter<D, M, ? extends DaoFilter<D>> getDefaultFilter();
-
-        /**
-         * Updates the {@link FxRecordModel} with changes from a {@link DataAccessObject}.
-         *
-         * @param item The {@link FxRecordModel} to be updated.
-         * @param updatedDao The source {@link DataAccessObject}.
-         * @deprecated Use {@link #handle(scheduler.events.ModelItemEvent)}.
-         * @todo Remove usages of scheduler.model.ui.FxRecordModel.ModelFactory#updateItemProperties
-         */
-        @Deprecated
-        public final void updateItem(M item, D updatedDao) {
-            D currentDao = item.dataObject();
-            if (Objects.requireNonNull(updatedDao) == currentDao) {
-                updateItemProperties(item, currentDao);
-                return;
-            }
-            if (updatedDao.getRowState() == DataRowState.NEW) {
-                throw new IllegalArgumentException("Replacement data access object cannot have a new row state");
-            } else if (currentDao.getRowState() != DataRowState.NEW && currentDao.getPrimaryKey() != updatedDao.getPrimaryKey()) {
-                throw new IllegalArgumentException("Replacement data access object does not represent the same record as the current data object.");
-            }
-            getDaoFactory().synchronize(updatedDao, currentDao);
-            updateItemProperties(item, currentDao);
-        }
-
-        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess,
-                Consumer<Throwable> onFail) {
-            DataAccessObject.DaoFactory<D, E> factory = getDaoFactory();
-            factory.loadAsync(waitBorderPane, filter, (t) -> {
-                ArrayList<M> newItems = new ArrayList<>();
-                t.forEach((u) -> {
-                    Optional<M> existing = target.stream().filter((s) -> s.dataObject().equals(u)).findFirst();
-                    if (existing.isPresent()) {
-                        updateItem(existing.get(), u);
-                        newItems.add(existing.get());
-                    } else {
-                        newItems.add(createNew(u));
-                    }
-                });
-                for (int i = 0; i < target.size() && i < newItems.size(); i++) {
-                    target.set(i, newItems.get(i));
-                }
-                while (target.size() < newItems.size()) {
-                    target.add(newItems.get(target.size()));
-                }
-                while (target.size() > newItems.size()) {
-                    target.remove(newItems.size());
-                }
-                if (null != onSuccess) {
-                    onSuccess.accept(target);
-                }
-            }, onFail);
-        }
-
-        public final void loadAsync(WaitBorderPane waitBorderPane, DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess) {
-            loadAsync(waitBorderPane, filter, target, onSuccess, null);
-        }
-
-        public final void loadAsync(DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess,
-                Consumer<Throwable> onFail) {
-            DataAccessObject.DaoFactory<D, E> factory = getDaoFactory();
-            factory.loadAsync(filter, (t) -> {
-                ArrayList<M> newItems = new ArrayList<>();
-                t.forEach((u) -> {
-                    Optional<M> existing = target.stream().filter((s) -> s.dataObject().equals(u)).findFirst();
-                    if (existing.isPresent()) {
-                        updateItem(existing.get(), u);
-                        newItems.add(existing.get());
-                    } else {
-                        newItems.add(createNew(u));
-                    }
-                });
-                for (int i = 0; i < target.size() && i < newItems.size(); i++) {
-                    target.set(i, newItems.get(i));
-                }
-                while (target.size() < newItems.size()) {
-                    target.add(newItems.get(target.size()));
-                }
-                while (target.size() > newItems.size()) {
-                    target.remove(newItems.size());
-                }
-                if (null != onSuccess) {
-                    onSuccess.accept(target);
-                }
-            }, onFail);
-        }
-
-        public final void loadAsync(DaoFilter<D> filter, ObservableList<M> target, Consumer<ObservableList<M>> onSuccess) {
-            loadAsync(filter, target, onSuccess, null);
-        }
 
         public final Optional<M> find(Iterator<M> source, D dao) {
             if (null != source) {

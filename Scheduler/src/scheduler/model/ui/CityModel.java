@@ -1,7 +1,5 @@
 package scheduler.model.ui;
 
-import scheduler.events.CityEvent;
-import scheduler.events.DbOperationType;
 import java.util.Objects;
 import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
@@ -22,6 +20,8 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.events.CityEvent;
+import scheduler.events.DbOperationType;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
@@ -204,28 +204,6 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         @Override
         public CityModel createNew(CityDAO dao) {
             return new CityModel(dao);
-        }
-
-        @Deprecated
-        @Override
-        public CityDAO updateDAO(CityModel item) {
-            CityDAO dao = item.dataObject();
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("City has been deleted");
-            }
-            dao.setName(item.getName());
-            CountryItem<? extends ICountryDAO> c = item.getCountry();
-            dao.setCountry((null == c) ? null : c.dataObject());
-            dao.setTimeZone(item.getTimeZone());
-            return dao;
-        }
-
-        @Deprecated
-        @Override
-        protected void updateItemProperties(CityModel item, CityDAO dao) {
-            item.setName(dao.getName());
-            item.setCountry(CountryItem.createModel(dao.getCountry()));
-            item.setTimeZone(dao.getTimeZone());
         }
 
         @Override

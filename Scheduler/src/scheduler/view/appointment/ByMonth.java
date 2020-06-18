@@ -18,9 +18,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.StackPane;
 import scheduler.Scheduler;
-import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.util.DB;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -105,11 +103,11 @@ public class ByMonth extends StackPane {
 
     private void loadAppointments(int year, int month) {
         LocalDate d = LocalDate.of(year, Month.of(month), 1);
-        AppointmentModel.FACTORY.loadAsync(AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
-                DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
-            allAppointments.clear();
-            allAppointments.addAll(t);
-        });
+//        AppointmentModel.FACTORY.loadAsync(AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
+//                DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
+//            allAppointments.clear();
+//            allAppointments.addAll(t);
+//        });
     }
 
 }

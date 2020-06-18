@@ -1,7 +1,5 @@
 package scheduler.model.ui;
 
-import scheduler.events.AppointmentEvent;
-import scheduler.events.DbOperationType;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
@@ -17,12 +15,12 @@ import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
-import scheduler.dao.UserDAO;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.DbOperationType;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.PredefinedData;
@@ -615,47 +613,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         @Override
         public AppointmentModelFilter getDefaultFilter() {
             return AppointmentModelFilter.myCurrentAndFuture();
-        }
-
-        @Deprecated
-        @Override
-        public AppointmentDAO updateDAO(AppointmentModel item) {
-            AppointmentDAO dao = item.dataObject();
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Appointment has been deleted");
-            }
-            if (!item.isValid()) {
-                throw new IllegalStateException();
-            }
-
-            dao.setCustomer(item.getCustomer().dataObject());
-            dao.setUser(item.getUser().dataObject());
-            dao.setTitle(item.getTitle());
-            dao.setDescription(item.getDescription());
-            dao.setContact(item.getContact());
-            dao.setEnd(DB.toUtcTimestamp(item.getEnd()));
-            dao.setLocation(item.getLocation());
-            dao.setStart(DB.toUtcTimestamp(item.getStart()));
-            dao.setType(item.getType());
-            dao.setUrl(item.getUrl());
-            return dao;
-        }
-
-        @Deprecated
-        @Override
-        protected void updateItemProperties(AppointmentModel item, AppointmentDAO dao) {
-            ICustomerDAO c = dao.getCustomer();
-            item.setCustomer((null == c) ? null : ((c instanceof CustomerDAO) ? new CustomerModel((CustomerDAO) c) : new RelatedCustomer(c)));
-            IUserDAO u = dao.getUser();
-            item.setUser((null == u) ? null : ((u instanceof UserDAO) ? new UserModel((UserDAO) u) : new RelatedUser(u)));
-            item.setTitle(dao.getTitle());
-            item.setDescription(dao.getDescription());
-            item.setLocation(dao.getLocation());
-            item.setContact(dao.getContact());
-            item.setType(dao.getType());
-            item.setUrl(dao.getUrl());
-            item.setStart(item.getStart());
-            item.setEnd(item.getEnd());
         }
 
         @Override

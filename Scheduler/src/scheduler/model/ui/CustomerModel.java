@@ -1,7 +1,5 @@
 package scheduler.model.ui;
 
-import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -18,6 +16,8 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
+import scheduler.events.CustomerEvent;
+import scheduler.events.DbOperationType;
 import scheduler.model.AddressProperties;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -283,40 +283,6 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         @Override
         public CustomerModelFilter getDefaultFilter() {
             return CustomerModelFilter.active();
-        }
-
-        @Deprecated
-        @Override
-        public CustomerDAO updateDAO(CustomerModel item) {
-            CustomerDAO dao = item.dataObject();
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Customer has been deleted");
-            }
-            String name = item.name.get();
-            if (name.trim().isEmpty()) {
-                throw new IllegalArgumentException("Customer name empty");
-            }
-            AddressItem<? extends IAddressDAO> addressModel = item.address.get();
-            if (null == addressModel) {
-                throw new IllegalArgumentException("No associated address");
-            }
-            IAddressDAO addressDAO = (addressModel instanceof AddressItem)
-                    ? ((AddressItem<? extends IAddressDAO>) addressModel).dataObject() : (IAddressDAO) addressModel;
-            if (null == addressDAO || addressDAO.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Associated address has been deleted");
-            }
-            dao.setAddress(addressDAO);
-            dao.setName(name);
-            dao.setActive(item.isActive());
-            return dao;
-        }
-
-        @Deprecated
-        @Override
-        protected void updateItemProperties(CustomerModel item, CustomerDAO dao) {
-            item.setName(dao.getName());
-            item.setActive(dao.isActive());
-            item.setAddress(AddressItem.createModel(dao.getAddress()));
         }
 
         @Override

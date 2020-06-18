@@ -1,7 +1,5 @@
 package scheduler.model.ui;
 
-import scheduler.events.AddressEvent;
-import scheduler.events.DbOperationType;
 import java.util.Objects;
 import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
@@ -22,6 +20,8 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.events.AddressEvent;
+import scheduler.events.DbOperationType;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
@@ -408,39 +408,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         @Override
         public AddressModel createNew(AddressDAO dao) {
             return new AddressModel(dao);
-        }
-
-        @Deprecated
-        @Override
-        public AddressDAO updateDAO(AddressModel item) {
-            AddressDAO dao = item.dataObject();
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Address has been deleted");
-            }
-            String address1 = item.address1.get();
-            String address2 = item.address2.get();
-            CityItem<? extends ICityDAO> cityModel = item.city.get();
-            ICityDAO cityDAO = cityModel.dataObject();
-            if (null == cityDAO || cityDAO.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Associated city has been deleted");
-            }
-            item.isNewRow();
-            dao.setCity(cityDAO);
-            dao.setAddress1(address1);
-            dao.setAddress2(address2);
-            dao.setPostalCode(item.getPostalCode());
-            dao.setPhone(item.getPhone());
-            return dao;
-        }
-
-        @Deprecated
-        @Override
-        protected void updateItemProperties(AddressModel item, AddressDAO dao) {
-            item.setAddress1(dao.getAddress1());
-            item.setAddress2(dao.getAddress2());
-            item.setCity(CityItem.createModel(dao.getCity()));
-            item.setPostalCode(dao.getPostalCode());
-            item.setPhone(dao.getPhone());
         }
 
         @Override

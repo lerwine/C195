@@ -1,7 +1,5 @@
 package scheduler.model.ui;
 
-import scheduler.events.DbOperationType;
-import scheduler.events.UserEvent;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -16,10 +14,11 @@ import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
+import scheduler.events.DbOperationType;
+import scheduler.events.UserEvent;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.PwHash;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.user.UserModelFilter;
@@ -192,31 +191,6 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         @Override
         public UserModelFilter getDefaultFilter() {
             return UserModelFilter.active();
-        }
-
-        @Deprecated
-        @Override
-        public UserDAO updateDAO(UserModel item) {
-            UserDAO dao = item.dataObject();
-            if (dao.getRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("User has been deleted");
-            }
-            dao.setUserName(item.userName.get());
-            String pw = item.password.get();
-            if (!pw.isEmpty()) {
-                PwHash h = new PwHash(pw, true);
-                dao.setPassword(h.getEncodedHash());
-            }
-            dao.setStatus(item.getStatus());
-            return dao;
-        }
-
-        @Deprecated
-        @Override
-        protected void updateItemProperties(UserModel item, UserDAO dao) {
-            item.setUserName(dao.getUserName());
-            item.setPassword("");
-            item.setStatus(dao.getStatus());
         }
 
         @Override
