@@ -55,12 +55,17 @@ public interface AddressPickerResourceKeys {
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Phone Number"}.
      */
-    public static final String RESOURCEKEY_PHONENUMBER = "phoneNumber";
+    public static final String RESOURCEKEY_PHONENUMBERCOLHEADING = "phoneNumberColHeading";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Postal Code:"}.
+     */
+    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Postal Code"}.
      */
-    public static final String RESOURCEKEY_POSTALCODE = "postalCode";
+    public static final String RESOURCEKEY_POSTALCODECOLHEADING = "postalCodeColHeading";
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Select"}.

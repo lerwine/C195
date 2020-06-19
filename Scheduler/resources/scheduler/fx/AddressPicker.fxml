@@ -54,8 +54,8 @@
                                 <TableView fx:id="addressesTableView" tableMenuButtonVisible="true">
                                     <columns>
                                         <TableColumn id="addressLines" editable="false" maxWidth="1.7976931348623157E308" minWidth="40.0" prefWidth="-1.0" text="%street" />
-                                        <TableColumn id="postalCode" editable="false" maxWidth="-1.0" minWidth="72.0" prefWidth="-1.0" text="%postalCode" />
-                                        <TableColumn id="phone" editable="false" maxWidth="-1.0" minWidth="90.0" prefWidth="-1.0" text="%phoneNumber" />
+                                        <TableColumn id="postalCode" editable="false" maxWidth="-1.0" minWidth="72.0" prefWidth="-1.0" text="%postalCodeColHeading" />
+                                        <TableColumn id="phone" editable="false" maxWidth="-1.0" minWidth="90.0" prefWidth="-1.0" text="%phoneNumberColHeading" />
                                         <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%createdOn" visible="false" />
                                         <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%createdBy" visible="false" />
                                         <TableColumn editable="false" maxWidth="-1.0" minWidth="75.0" prefWidth="-1.0" text="%updatedOn" visible="false" />
