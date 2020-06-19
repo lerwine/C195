@@ -14,8 +14,9 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 
 /**
- * Base class for objects that support property binding through {@link PropertyChangeSupport} and reduces the risk of race conditions when used with the JavaFX API. This only
- * actually fires events when the old and new values are different, and fires all {@link PropertyChangeEvent}s on the JavaFX Application Thread.
+ * Base class for objects that support property binding through {@link PropertyChangeSupport} and reduces the risk of race conditions when used with
+ * the JavaFX API. This only actually fires events when the old and new values are different, and fires all {@link PropertyChangeEvent}s on the JavaFX
+ * Application Thread.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -26,8 +27,8 @@ public abstract class PropertyBindable implements IPropertyBindable {
     private transient final PropertyChangeSupportImpl propertyChangeSupport = new PropertyChangeSupportImpl();
 
     /**
-     * Gets the {@link PropertyChangeSupport} object for supporting bound properties. The {@link PropertyChangeSupport} for this class fires all {@link PropertyChangeEvent}s on the
-     * JavaFX Application Thread.
+     * Gets the {@link PropertyChangeSupport} object for supporting bound properties. The {@link PropertyChangeSupport} for this class fires all
+     * {@link PropertyChangeEvent}s on the JavaFX Application Thread.
      *
      * @return The {@link PropertyChangeSupport} object for supporting bound properties.
      */
@@ -94,8 +95,8 @@ public abstract class PropertyBindable implements IPropertyBindable {
     /**
      * This gets called just before a {@link PropertyChangeEvent} is fired for {@link PropertyChangeSupport}.
      * <p>
-     * If {@link PropertyChangeEvent}s are being deferred, this will be called for each deferred {@link PropertyChangeEvent} once they are no longer being deferred. In this case,
-     * this will be called on the same thread that the {@link ChangeEventDeferral#close()} method was called.</p>
+     * If {@link PropertyChangeEvent}s are being deferred, this will be called for each deferred {@link PropertyChangeEvent} once they are no longer
+     * being deferred. In this case, this will be called on the same thread that the {@link ChangeEventDeferral#close()} method was called.</p>
      * <p>
      * Otherwise, if {@link PropertyChangeEvent}s are not being deferred, this will be called immediately after
      * {@link PropertyChangeSupport#firePropertyChange(PropertyChangeEvent)} is called, and on the same thread.</p>
@@ -107,9 +108,9 @@ public abstract class PropertyBindable implements IPropertyBindable {
     }
 
     /**
-     * Creates a {@link ChangeEventDeferral} object that defers {@link PropertyChangeEvent} firing on the current {@code PropertyBindable} object. Deferred
-     * {@link PropertyChangeEvent}s will be fired and subsequent {@link PropertyChangeEvent} firing will resume when all {@link ChangeEventDeferral}s for the current
-     * {@code PropertyBindable} object have been closed.
+     * Creates a {@link ChangeEventDeferral} object that defers {@link PropertyChangeEvent} firing on the current {@code PropertyBindable} object.
+     * Deferred {@link PropertyChangeEvent}s will be fired and subsequent {@link PropertyChangeEvent} firing will resume when all
+     * {@link ChangeEventDeferral}s for the current {@code PropertyBindable} object have been closed.
      *
      * @return A {@link ChangeEventDeferral} object that defers {@link PropertyChangeEvent} firing on the current {@code PropertyBindable} object.
      */
@@ -117,28 +118,6 @@ public abstract class PropertyBindable implements IPropertyBindable {
         ChangeEventDeferral result = new ChangeEventDeferral();
         result.open(this);
         return result;
-    }
-
-    /**
-     * Defers the firing of {@link PropertyChangeEvent}s until a corresponding {@link #endChange()} is called.
-     *
-     * @return
-     * @deprecated Use {@link ChangeEventDeferral} or {@link #deferChangeEvents()}, instead.
-     */
-    @Deprecated
-    protected boolean beginChange() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Deactivates the last {@link OldObj} for the current property change session.
-     *
-     * @return {@code true} if the last remaining {@link OldObj} was deactivated and {@link PropertyChangeEvent} firing was resumed; otherwise {@code false}.
-     * @deprecated Use {@link ChangeEventDeferral} or {@link #deferChangeEvents()}, instead.
-     */
-    @Deprecated
-    protected boolean endChange() {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -168,7 +147,7 @@ public abstract class PropertyBindable implements IPropertyBindable {
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             if (null != target) {
                 PropertyChangeSupportImpl pcs = target.propertyChangeSupport;
                 target = null;
