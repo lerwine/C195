@@ -123,9 +123,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
-        addEventHandler(CountryEvent.INSERTING_EVENT_TYPE, this::onCountryUpdating);
-        addEventHandler(CountryEvent.UPDATING_EVENT_TYPE, this::onCountryUpdating);
-        addEventHandler(CountryEvent.INSERTED_EVENT_TYPE, this::onCountryInserted);
+        addEventHandler(CountryEvent.INSERT_VALIDATION_EVENT_TYPE, this::onCountryUpdating);
+        addEventHandler(CountryEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onCountryUpdating);
+        addEventHandler(CountryEvent.DB_INSERT_EVENT_TYPE, this::onCountryInserted);
     }
 
     private void onCountryUpdating(CountryEvent event) {
@@ -264,9 +264,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
-        CityModel.FACTORY.addEventHandler(CityEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onCityAdded));
+        CityModel.FACTORY.addEventHandler(CityEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onCityAdded));
         CityModel.FACTORY.addEventHandler(CityEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onCityUpdated));
-        CityModel.FACTORY.addEventHandler(CityEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onCityDeleted));
+        CityModel.FACTORY.addEventHandler(CityEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onCityDeleted));
     }
 
     private void onCityAdded(CityEvent event) {

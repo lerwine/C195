@@ -13,6 +13,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -147,7 +148,9 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     @Override
     protected void onEditItem(CustomerEvent event) {
         try {
-            EditCustomer.edit(event.getModel(), getScene().getWindow());
+            CustomerModel m = event.getModel();
+            Window w = getScene().getWindow();
+            EditCustomer.edit(m, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -165,7 +168,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected EventType<CustomerEvent> getInsertedEventType() {
-        return CustomerEvent.INSERTED_EVENT_TYPE;
+        return CustomerEvent.DB_INSERT_EVENT_TYPE;
     }
 
     @Override
@@ -175,7 +178,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected EventType<CustomerEvent> getDeletedEventType() {
-        return CustomerEvent.DELETED_EVENT_TYPE;
+        return CustomerEvent.DB_DELETE_EVENT_TYPE;
     }
 
 }

@@ -11,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -106,7 +107,9 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     @Override
     protected void onEditItem(CountryEvent event) {
         try {
-            EditCountry.edit(event.getModel(), getScene().getWindow());
+            CountryModel m = event.getModel();
+            Window w = getScene().getWindow();
+            EditCountry.edit(m, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -124,7 +127,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected EventType<CountryEvent> getInsertedEventType() {
-        return CountryEvent.INSERTED_EVENT_TYPE;
+        return CountryEvent.DB_INSERT_EVENT_TYPE;
     }
 
     @Override
@@ -134,7 +137,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected EventType<CountryEvent> getDeletedEventType() {
-        return CountryEvent.DELETED_EVENT_TYPE;
+        return CountryEvent.DB_DELETE_EVENT_TYPE;
     }
 
 }

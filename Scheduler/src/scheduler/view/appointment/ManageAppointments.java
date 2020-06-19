@@ -29,6 +29,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -485,7 +486,9 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @Override
     protected void onEditItem(AppointmentEvent event) {
         try {
-            EditAppointment.edit(event.getModel(), getScene().getWindow());
+            AppointmentModel m = event.getModel();
+            Window w = getScene().getWindow();
+            EditAppointment.edit(m, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -503,7 +506,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected EventType<AppointmentEvent> getInsertedEventType() {
-        return AppointmentEvent.INSERTED_EVENT_TYPE;
+        return AppointmentEvent.DB_INSERT_EVENT_TYPE;
     }
 
     @Override
@@ -513,7 +516,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected EventType<AppointmentEvent> getDeletedEventType() {
-        return AppointmentEvent.DELETED_EVENT_TYPE;
+        return AppointmentEvent.DB_DELETE_EVENT_TYPE;
     }
 
 }

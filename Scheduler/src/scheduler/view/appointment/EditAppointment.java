@@ -225,9 +225,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        addEventHandler(AppointmentEvent.INSERTING_EVENT_TYPE, this::onAppointmentUpdating);
-        addEventHandler(AppointmentEvent.UPDATING_EVENT_TYPE, this::onAppointmentUpdating);
-        addEventHandler(AppointmentEvent.INSERTED_EVENT_TYPE, this::onAppointmentInserted);
+        addEventHandler(AppointmentEvent.INSERT_VALIDATION_EVENT_TYPE, this::onAppointmentUpdating);
+        addEventHandler(AppointmentEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onAppointmentUpdating);
+        addEventHandler(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
     }
 
     private void onAppointmentUpdating(AppointmentEvent event) {

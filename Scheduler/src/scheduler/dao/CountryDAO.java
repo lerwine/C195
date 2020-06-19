@@ -157,7 +157,16 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        CountryEvent insert(CountryEvent event, Connection connection) {
+        void insert(CountryEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
+            }
+            super.insert(event, connection); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#insert
+        }
+
+        // FIXME: Accessing model from event is a bad idea
+        @Override
+        CountryEvent badInsert(CountryEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -198,11 +207,20 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 event.setInvalid("Name in use", ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
                 return event;
             }
-            return super.insert(event, connection);
+            return super.badInsert(event, connection);
         }
 
         @Override
-        CountryEvent update(CountryEvent event, Connection connection) {
+        void update(CountryEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
+            }
+            super.update(event, connection); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#update
+        }
+
+        // FIXME: Accessing model from event is a bad idea
+        @Override
+        CountryEvent badUpdate(CountryEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -244,11 +262,20 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 event.setInvalid("Name in use", ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
                 return event;
             }
-            return super.update(event, connection);
+            return super.badUpdate(event, connection);
         }
 
         @Override
-        protected CountryEvent delete(CountryEvent event, Connection connection) {
+        protected void delete(CountryEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
+            }
+            super.delete(event, connection); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#delete
+        }
+
+        // FIXME: Accessing model from event is a bad idea
+        @Override
+        protected CountryEvent badDelete(CountryEvent event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -263,7 +290,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             }
             switch (count) {
                 case 0:
-                    return super.delete(event, connection);
+                    return super.badDelete(event, connection);
                 case 1:
                     event.setInvalid("Country in use", ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
                     break;

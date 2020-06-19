@@ -29,14 +29,16 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
     private static void assertOperationMatchesRowState(DataRowState rowState, DbOperationType operation) {
         switch (rowState) {
             case NEW:
-                if (operation != DbOperationType.INSERTING) {
+                if (operation != DbOperationType.INSERT_VALIDATION) {
                     throw new IllegalArgumentException();
                 }
                 break;
             case MODIFIED:
                 switch (operation) {
-                    case DELETING:
-                    case UPDATING:
+                    case DELETE_VALIDATION:
+                    case UPDATE_VALIDATION:
+                    case EDIT_REQUEST:
+                    case DELETE_REQUEST:
                         break;
                     default:
                         throw new IllegalArgumentException();
@@ -44,17 +46,19 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
                 break;
             case UNMODIFIED:
                 switch (operation) {
-                    case DELETING:
-                    case UPDATING:
-                    case UPDATED:
-                    case INSERTED:
+                    case DELETE_VALIDATION:
+                    case UPDATE_VALIDATION:
+                    case DB_UPDATE:
+                    case DB_INSERT:
+                    case EDIT_REQUEST:
+                    case DELETE_REQUEST:
                         break;
                     default:
                         throw new IllegalArgumentException();
                 }
                 break;
             default:
-                if (operation != DbOperationType.DELETED) {
+                if (operation != DbOperationType.DB_DELETE) {
                     throw new IllegalArgumentException();
                 }
                 break;
@@ -69,7 +73,7 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
     /**
      * Creates a clone of an event with a new target, {@link EventType} and {@link DbOperationType}.
      *
-     * @param copyFrom The {@code ModelItemEvent} to copy.
+     * @param copyFrom The {@code DbOperationEvent} to copy.
      * @param target The new target for the copied event.
      * @param type The new event type for the copied event.
      * @param operation The new {@link DbOperationType} for the copied event.
@@ -84,9 +88,9 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
     }
 
     /**
-     * Creates a copy of a {@code ModelItemEvent} with a new source and target.
+     * Creates a copy of a {@code DbOperationEvent} with a new source and target.
      *
-     * @param copyFrom The {@code ModelItemEvent} to copy.
+     * @param copyFrom The {@code DbOperationEvent} to copy.
      * @param source The new source for the copied event.
      * @param target The new target for the copied event.
      */
@@ -99,7 +103,7 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
     }
 
     /**
-     * Creates a new {@code ModelItemEvent} for a {@link FxRecordModel} object.
+     * Creates a new {@code DbOperationEvent} for a {@link FxRecordModel} object.
      *
      * @param model The affected {@link FxRecordModel}.
      * @param source The event source which sent the event.
@@ -118,7 +122,7 @@ public abstract class DbOperationEvent<M extends FxRecordModel<D>, D extends Dat
     }
 
     /**
-     * Creates a new {@code ModelItemEvent} for a {@link DataAccessObject}.
+     * Creates a new {@code DbOperationEvent} for a {@link DataAccessObject}.
      *
      * @param source The event source which sent the event.
      * @param target The event target to associate with the event.

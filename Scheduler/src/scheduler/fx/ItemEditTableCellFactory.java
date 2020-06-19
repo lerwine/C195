@@ -1,6 +1,8 @@
 package scheduler.fx;
 
 import com.sun.javafx.event.EventHandlerManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventDispatchChain;
@@ -15,6 +17,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.events.DbOperationType;
 import scheduler.events.DbOperationEvent;
+import scheduler.util.LogHelper;
 
 /**
  *
@@ -23,6 +26,9 @@ import scheduler.events.DbOperationEvent;
  */
 public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends DataAccessObject>, E extends DbOperationEvent<T, ? extends DataAccessObject>>
         implements Callback<TableColumn<T, T>, TableCell<T, T>>, EventTarget {
+
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ItemEditTableCellFactory.class.getName());
 
     private final EventHandlerManager eventHandlerManager;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
@@ -56,7 +62,10 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
     protected void onItemActionRequest(E event) {
         EventHandler<E> listener = onItemActionRequest.get();
         if (null != listener) {
+            LOG.fine(() -> String.format("Relaying event %s", event));
             listener.handle(event);
+        } else {
+            LOG.fine(() -> String.format("Handled event %s, but no listener", event));
         }
     }
 

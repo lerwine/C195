@@ -397,7 +397,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             eventHandlerManager = new EventHandlerManager(this);
         }
 
-        E insert(E event, Connection connection) {
+        void insert(E event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
+            }
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.DataAccessObject.DaoFactory#insert
+        }
+
+        // FIXME: Accessing model from event is a bad idea
+        E badInsert(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -504,12 +512,20 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 return event;
             }
             event.setSucceeded();
-            E resultEvent = createDbOperationEvent(event, DbOperationType.INSERTED);
+            E resultEvent = createDbOperationEvent(event, DbOperationType.DB_INSERT);
             resultEvent.setSucceeded();
             return resultEvent;
         }
 
-        E update(E event, Connection connection) {
+        void update(E event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
+            }
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.DataAccessObject.DaoFactory#update
+        }
+
+        // FIXME: Accessing model from event is a bad idea
+        E badUpdate(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -599,13 +615,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 return event;
             }
             event.setSucceeded();
-            E resultEvent = createDbOperationEvent(event, DbOperationType.UPDATED);
+            E resultEvent = createDbOperationEvent(event, DbOperationType.DB_UPDATE);
             resultEvent.setSucceeded();
             return resultEvent;
         }
 
         /**
-         * Loads items from the database. {@link #save(scheduler.events.ModelItemEvent, java.sql.Connection, boolean)}
+         * Loads items from the database. {@link #save(scheduler.events.DbOperationEvent, java.sql.Connection, boolean)}
          *
          * @param connection An opened database connection.
          * @param filter The {@link DaoFilter} that is used to build the WHERE clause of the SQL query.
@@ -900,13 +916,19 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Deletes the corresponding {@link DataAccessObject} from the database.
          *
-         * @param event The {@link DbOperationEvent} for the {@link DataAccessObject} to delete.
-         * @param connection The database connection to use.
-         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed;
-         * otherwise, the original {@code event} object is returned, which will reflect the status.
+         * @param event
+         * @param connection
          */
+        protected void delete(E event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
+            }
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.DataAccessObject.DaoFactory#delete
+        }
+
+        // FIXME: Accessing model from event is a bad idea
         @SuppressWarnings("try")
-        protected E delete(E event, Connection connection) {
+        protected E badDelete(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
             }
@@ -955,7 +977,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 return event;
             }
             event.setSucceeded();
-            E resultEvent = createDbOperationEvent(event, DbOperationType.DELETED);
+            E resultEvent = createDbOperationEvent(event, DbOperationType.DB_DELETE);
             resultEvent.setSucceeded();
             if (Platform.isFxApplicationThread()) {
                 LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
@@ -1124,8 +1146,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         public SaveTask(E event) {
             super(event);
             switch (event.getOperation()) {
-                case INSERTING:
-                case UPDATING:
+                case INSERT_VALIDATION:
+                case UPDATE_VALIDATION:
                     oldRowState = event.getDataAccessObject().getRowState();
                     break;
                 default:
@@ -1156,11 +1178,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             E resultEvent;
             try (ChangeEventDeferral eventDeferral = dataObj.deferChangeEvents()) {
                 synchronized (dataObj) {
-                    if (event.getOperation() == DbOperationType.INSERTING) {
+                    if (event.getOperation() == DbOperationType.INSERT_VALIDATION) {
                         if (dataObj.getRowState() != DataRowState.NEW) {
                             throw new IllegalStateException("Invalid row state");
                         }
-                        resultEvent = getDaoFactory().insert(event, connection);
+                        resultEvent = getDaoFactory().badInsert(event, connection);
                     } else {
                         switch (dataObj.getRowState()) {
                             case MODIFIED:
@@ -1169,7 +1191,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                             default:
                                 throw new IllegalStateException("Invalid row state");
                         }
-                        resultEvent = getDaoFactory().update(event, connection);
+                        resultEvent = getDaoFactory().badUpdate(event, connection);
                     }
                 }
             } catch (Exception ex) {
@@ -1188,8 +1210,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @SuppressWarnings("incomplete-switch")
         protected void onCompleted(E e) {
             switch (e.getOperation()) {
-                case INSERTED:
-                case UPDATED:
+                case DB_INSERT:
+                case DB_UPDATE:
                     Event.fireEvent(e.getDataAccessObject(), e);
                     break;
             }
@@ -1200,7 +1222,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     /**
      * {@link Task} for deleting a {@link DataAccessObject} from the database. This will fire a {@link DbOperationEvent} on the target
      * {@link DataAccessObject} after successful deletion. The {@link DbOperationEvent#operation operation} property will be set to
-     * {@link DbOperationType#DELETED} and it will be fired in the FX application thread.
+     * {@link DbOperationType#DB_DELETE} and it will be fired in the FX application thread.
      *
      * @param <D> The type of {@link DataAccessObject} to be deleted.
      * @param <M> The type of {@link FxRecordModel} that corresponds to the {@link DataAccessObject} type.
@@ -1212,11 +1234,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * Creates a new {@code DeleteTask} object.
          *
          * @param event A {@link DbOperationEvent} that refers to the {@link DataAccessObject} to be deleted.
-         * @throws IllegalArgumentException if {@link DbOperationEvent#operation} is not set to {@link DbOperationType#DELETING}.
+         * @throws IllegalArgumentException if {@link DbOperationEvent#operation} is not set to {@link DbOperationType#DELETE_VALIDATION}.
          */
         public DeleteTask(E event) {
             super(event);
-            if (event.getOperation() != DbOperationType.DELETING) {
+            if (event.getOperation() != DbOperationType.DELETE_VALIDATION) {
                 throw new IllegalArgumentException();
             }
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
@@ -1224,12 +1246,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         @Override
         protected E call(E event, Connection connection) throws Exception {
-            return getDaoFactory().delete(event, connection);
+            return getDaoFactory().badDelete(event, connection);
         }
 
         @Override
         protected void onCompleted(E e) {
-            if (e.getOperation() == DbOperationType.DELETED) {
+            if (e.getOperation() == DbOperationType.DB_DELETE) {
                 Event.fireEvent(e.getDataAccessObject(), e);
             }
         }

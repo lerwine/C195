@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.AppointmentAlertManager;
@@ -38,10 +40,6 @@ import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.UserItem;
-import scheduler.model.ui.UserModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -782,123 +780,103 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        AppointmentEvent insert(AppointmentEvent event, Connection connection) {
-            if (onSave(event, connection)) {
-                return super.update(event, connection);
+        void insert(AppointmentEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
-            return event;
+            onSave(event, connection);
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                Platform.runLater(() -> Event.fireEvent(event.getDataAccessObject(), event));
+            } else {
+                super.insert(event, connection);
+            }
         }
 
         @Override
-        AppointmentEvent update(AppointmentEvent event, Connection connection) {
-            if (onSave(event, connection)) {
-                return super.update(event, connection);
+        void update(AppointmentEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_UPDATE) {
+                throw new IllegalArgumentException();
             }
-            return event;
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                return;
+            }
+            onSave(event, connection);
+            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                Platform.runLater(() -> Event.fireEvent(event.getDataAccessObject(), event));
+            } else {
+                super.update(event, connection);
+            }
         }
 
-        private boolean onSave(AppointmentEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return false;
+        private void onSave(AppointmentEvent event, Connection connection) {
+            AppointmentDAO appointment = event.getDataAccessObject();
+            try {
+                IAppointmentDAO.assertValidAppointment(appointment);
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                event.setFaulted("Invalid Appointment", ex.getMessage(), ex);
+                return;
             }
-            AppointmentDAO dao = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject());
-            ICustomerDAO customer;
-            AppointmentModel model = event.getModel();
-            CustomerItem<? extends ICustomerDAO> cm;
-            if (null == model) {
-                cm = null;
-                customer = dao.getCustomer();
-            } else {
-                customer = (cm = model.getCustomer()).dataObject();
-            }
-            if (customer instanceof CustomerDAO) {
+            ICustomerDAO c = appointment.customer;
+            if (c instanceof CustomerDAO) {
                 CustomerEvent customerEvent;
-                switch (customer.getRowState()) {
+                switch (c.getRowState()) {
                     case NEW:
-                        if (null != cm && cm instanceof CustomerModel) {
-                            customerEvent = CustomerDAO.FACTORY.insert(new CustomerEvent((CustomerModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
-                        } else {
-                            customerEvent = CustomerDAO.FACTORY.insert(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
-                                    DbOperationType.INSERTING), connection);
-                        }
+                        customerEvent = event.createCustomerEvent(DbOperationType.DB_INSERT);
+                        CustomerDAO.FACTORY.insert(customerEvent, connection);
                         break;
-                    case UNMODIFIED:
-                        return true;
+                    case MODIFIED:
+                        customerEvent = event.createCustomerEvent(DbOperationType.DB_UPDATE);
+                        CustomerDAO.FACTORY.update(customerEvent, connection);
+                        break;
                     default:
-                        if (null != cm && cm instanceof CustomerModel) {
-                            customerEvent = CustomerDAO.FACTORY.update(new CustomerEvent((CustomerModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
-                        } else {
-                            customerEvent = CustomerDAO.FACTORY.update(new CustomerEvent(event.getSource(), event.getTarget(), (CustomerDAO) customer,
-                                    DbOperationType.UPDATING), connection);
-                        }
+                        customerEvent = null;
+                        break;
                 }
                 if (null != customerEvent) {
                     switch (customerEvent.getStatus()) {
-                        case SUCCEEDED:
-                            break;
                         case FAULTED:
                             event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
-                            return false;
+                            return;
                         case INVALID:
                             event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
-                            return false;
+                            return;
+                        case SUCCEEDED:
+                            break;
                         default:
                             event.setCanceled();
-                            return false;
+                            return;
                     }
                 }
             }
-            IUserDAO user;
-            UserItem<? extends IUserDAO> um;
-            if (null == model) {
-                um = null;
-                user = dao.getUser();
-            } else {
-                user = (um = model.getUser()).dataObject();
-            }
-            if (user instanceof UserDAO) {
+            IUserDAO u = appointment.user;
+            if (u instanceof UserDAO) {
                 UserEvent userEvent;
-                switch (user.getRowState()) {
+                switch (c.getRowState()) {
                     case NEW:
-                        if (null != um && um instanceof UserModel) {
-                            userEvent = UserDAO.FACTORY.insert(new UserEvent((UserModel) um, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
-                        } else {
-                            userEvent = UserDAO.FACTORY.insert(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
-                                    DbOperationType.INSERTING), connection);
-                        }
+                        userEvent = event.createUserEvent(DbOperationType.DB_INSERT);
+                        UserDAO.FACTORY.insert(userEvent, connection);
                         break;
-                    case UNMODIFIED:
-                        return true;
+                    case MODIFIED:
+                        userEvent = event.createUserEvent(DbOperationType.DB_UPDATE);
+                        UserDAO.FACTORY.update(userEvent, connection);
+                        break;
                     default:
-                        if (null != um && um instanceof UserModel) {
-                            userEvent = UserDAO.FACTORY.update(new UserEvent((UserModel) um, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
-                        } else {
-                            userEvent = UserDAO.FACTORY.update(new UserEvent(event.getSource(), event.getTarget(), (UserDAO) user,
-                                    DbOperationType.UPDATING), connection);
-                        }
-                        break;
+                        return;
                 }
                 switch (userEvent.getStatus()) {
-                    case SUCCEEDED:
-                        return true;
                     case FAULTED:
                         event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
                         break;
                     case INVALID:
                         event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
                         break;
+                    case SUCCEEDED:
+                        break;
                     default:
                         event.setCanceled();
                         break;
                 }
-            } else {
-                return true;
             }
-            return false;
         }
 
         @Override

@@ -4,7 +4,11 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
+import scheduler.dao.CityDAO;
+import scheduler.dao.ICityDAO;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CityModel;
 import scheduler.model.ui.FxRecordModel;
 
 /**
@@ -18,12 +22,12 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
     public static final String ADDRESS_MODEL_EVENT_NAME = "SCHEDULER_ADDRESS_DB_OPERATION";
     public static final String EDIT_REQUEST_EVENT_NAME = "SCHEDULER_ADDRESS_EDIT_REQUEST";
     public static final String DELETE_REQUEST_EVENT_NAME = "SCHEDULER_ADDRESS_DELETE_REQUEST";
-    public static final String INSERTING_EVENT_NAME = "SCHEDULER_ADDRESS_INSERTING";
-    public static final String INSERTED_EVENT_NAME = "SCHEDULER_ADDRESS_INSERTED";
-    public static final String UPDATING_EVENT_NAME = "SCHEDULER_ADDRESS_UPDATING";
-    public static final String UPDATED_EVENT_NAME = "SCHEDULER_ADDRESS_UPDATED";
-    public static final String DELETING_EVENT_NAME = "SCHEDULER_ADDRESS_DELETING";
-    public static final String DELETED_EVENT_NAME = "SCHEDULER_ADDRESS_DELETED";
+    public static final String INSERT_VALIDATION_EVENT_NAME = "SCHEDULER_ADDRESS_INSERT_VALIDATION";
+    public static final String DB_INSERT_EVENT_NAME = "SCHEDULER_ADDRESS_DB_INSERT";
+    public static final String UPDATE_VALIDATION_EVENT_NAME = "SCHEDULER_ADDRESS_UPDATE_VALIDATION";
+    public static final String UPDATED_EVENT_NAME = "SCHEDULER_ADDRESS_DB_UPDATE";
+    public static final String DELETING_EVENT_NAME = "SCHEDULER_ADDRESS_DELETE_VALIDATION";
+    public static final String DB_DELETE_EVENT_NAME = "SCHEDULER_ADDRESS_DB_DELETE";
 
     /**
      * Base {@link EventType} for all {@code AddressEvent}s.
@@ -41,34 +45,34 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
     public static final EventType<AddressEvent> DELETE_REQUEST_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DELETE_REQUEST_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#INSERTING} {@code AddressEvent}s.
+     * {@link EventType} for {@link DbOperationType#INSERT_VALIDATION} {@code AddressEvent}s.
      */
-    public static final EventType<AddressEvent> INSERTING_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, INSERTING_EVENT_NAME);
+    public static final EventType<AddressEvent> INSERT_VALIDATION_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, INSERT_VALIDATION_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#INSERTED} {@code AddressEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_INSERT} {@code AddressEvent}s.
      */
-    public static final EventType<AddressEvent> INSERTED_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, INSERTED_EVENT_NAME);
+    public static final EventType<AddressEvent> DB_INSERT_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DB_INSERT_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#UPDATING} {@code AddressEvent}s.
+     * {@link EventType} for {@link DbOperationType#UPDATE_VALIDATION} {@code AddressEvent}s.
      */
-    public static final EventType<AddressEvent> UPDATING_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, UPDATING_EVENT_NAME);
+    public static final EventType<AddressEvent> UPDATE_VALIDATION_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, UPDATE_VALIDATION_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#UPDATED} {@code AddressEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_UPDATE} {@code AddressEvent}s.
      */
     public static final EventType<AddressEvent> UPDATED_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, UPDATED_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#DELETING} {@code AddressEvent}s.
+     * {@link EventType} for {@link DbOperationType#DELETE_VALIDATION} {@code AddressEvent}s.
      */
     public static final EventType<AddressEvent> DELETING_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DELETING_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#DELETED} {@code AddressEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_DELETE} {@code AddressEvent}s.
      */
-    public static final EventType<AddressEvent> DELETED_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DELETED_EVENT_NAME);
+    public static final EventType<AddressEvent> DB_DELETE_EVENT_TYPE = new EventType<>(ADDRESS_MODEL_EVENT_TYPE, DB_DELETE_EVENT_NAME);
 
     public static DbOperationType toDbOperationType(String eventName) {
         if (null != eventName) {
@@ -77,18 +81,18 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
                     return DbOperationType.EDIT_REQUEST;
                 case DELETE_REQUEST_EVENT_NAME:
                     return DbOperationType.DELETE_REQUEST;
-                case INSERTING_EVENT_NAME:
-                    return DbOperationType.INSERTING;
-                case INSERTED_EVENT_NAME:
-                    return DbOperationType.INSERTED;
-                case UPDATING_EVENT_NAME:
-                    return DbOperationType.UPDATING;
+                case INSERT_VALIDATION_EVENT_NAME:
+                    return DbOperationType.INSERT_VALIDATION;
+                case DB_INSERT_EVENT_NAME:
+                    return DbOperationType.DB_INSERT;
+                case UPDATE_VALIDATION_EVENT_NAME:
+                    return DbOperationType.UPDATE_VALIDATION;
                 case UPDATED_EVENT_NAME:
-                    return DbOperationType.UPDATED;
+                    return DbOperationType.DB_UPDATE;
                 case DELETING_EVENT_NAME:
-                    return DbOperationType.DELETING;
-                case DELETED_EVENT_NAME:
-                    return DbOperationType.DELETED;
+                    return DbOperationType.DELETE_VALIDATION;
+                case DB_DELETE_EVENT_NAME:
+                    return DbOperationType.DB_DELETE;
             }
         }
         return DbOperationType.NONE;
@@ -102,18 +106,18 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
                     return EDIT_REQUEST_EVENT_TYPE;
                 case DELETE_REQUEST:
                     return DELETE_REQUEST_EVENT_TYPE;
-                case INSERTING:
-                    return INSERTING_EVENT_TYPE;
-                case INSERTED:
-                    return INSERTED_EVENT_TYPE;
-                case UPDATING:
-                    return UPDATING_EVENT_TYPE;
-                case UPDATED:
+                case INSERT_VALIDATION:
+                    return INSERT_VALIDATION_EVENT_TYPE;
+                case DB_INSERT:
+                    return DB_INSERT_EVENT_TYPE;
+                case UPDATE_VALIDATION:
+                    return UPDATE_VALIDATION_EVENT_TYPE;
+                case DB_UPDATE:
                     return UPDATED_EVENT_TYPE;
-                case DELETING:
+                case DELETE_VALIDATION:
                     return DELETING_EVENT_TYPE;
-                case DELETED:
-                    return DELETED_EVENT_TYPE;
+                case DB_DELETE:
+                    return DB_DELETE_EVENT_TYPE;
             }
         }
         return ADDRESS_MODEL_EVENT_TYPE;
@@ -162,6 +166,21 @@ public final class AddressEvent extends DbOperationEvent<AddressModel, AddressDA
     @Override
     public AddressEvent toDbOperationType(DbOperationType operation) {
         return new AddressEvent(this, getTarget(), operation);
+    }
+
+    public CityEvent createCityEvent(DbOperationType operation) {
+        AddressModel model = getModel();
+        if (null != model) {
+            CityItem<? extends ICityDAO> cm = model.getCity();
+            if (cm instanceof CityModel) {
+                return new CityEvent((CityModel) cm, getSource(), getTarget(), operation);
+            }
+        }
+        ICityDAO dao = getDataAccessObject().getCity();
+        if (dao instanceof CityDAO) {
+            return new CityEvent(getSource(), getTarget(), (CityDAO) dao, operation);
+        }
+        return null;
     }
 
 }

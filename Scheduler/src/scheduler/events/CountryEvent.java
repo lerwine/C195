@@ -18,12 +18,12 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
     public static final String COUNTRY_MODEL_EVENT_NAME = "SCHEDULER_COUNTRY_DB_OPERATION";
     public static final String EDIT_REQUEST_EVENT_NAME = "SCHEDULER_COUNTRY_EDIT_REQUEST";
     public static final String DELETE_REQUEST_EVENT_NAME = "SCHEDULER_COUNTRY_DELETE_REQUEST";
-    public static final String INSERTING_EVENT_NAME = "SCHEDULER_COUNTRY_INSERTING";
-    public static final String INSERTED_EVENT_NAME = "SCHEDULER_COUNTRY_INSERTED";
-    public static final String UPDATING_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATING";
-    public static final String UPDATED_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATED";
-    public static final String DELETING_EVENT_NAME = "SCHEDULER_COUNTRY_DELETING";
-    public static final String DELETED_EVENT_NAME = "SCHEDULER_COUNTRY_DELETED";
+    public static final String INSERT_VALIDATION_EVENT_NAME = "SCHEDULER_COUNTRY_INSERT_VALIDATION";
+    public static final String DB_INSERT_EVENT_NAME = "SCHEDULER_COUNTRY_DB_INSERT";
+    public static final String UPDATE_VALIDATION_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATE_VALIDATION";
+    public static final String UPDATED_EVENT_NAME = "SCHEDULER_COUNTRY_DB_UPDATE";
+    public static final String DELETING_EVENT_NAME = "SCHEDULER_COUNTRY_DELETE_VALIDATION";
+    public static final String DB_DELETE_EVENT_NAME = "SCHEDULER_COUNTRY_DB_DELETE";
 
     /**
      * Base {@link EventType} for all {@code CountryEvent}s.
@@ -41,34 +41,34 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
     public static final EventType<CountryEvent> DELETE_REQUEST_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, DELETE_REQUEST_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#INSERTING} {@code CountryEvent}s.
+     * {@link EventType} for {@link DbOperationType#INSERT_VALIDATION} {@code CountryEvent}s.
      */
-    public static final EventType<CountryEvent> INSERTING_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, INSERTING_EVENT_NAME);
+    public static final EventType<CountryEvent> INSERT_VALIDATION_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, INSERT_VALIDATION_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#INSERTED} {@code CountryEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_INSERT} {@code CountryEvent}s.
      */
-    public static final EventType<CountryEvent> INSERTED_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, INSERTED_EVENT_NAME);
+    public static final EventType<CountryEvent> DB_INSERT_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, DB_INSERT_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#UPDATING} {@code CountryEvent}s.
+     * {@link EventType} for {@link DbOperationType#UPDATE_VALIDATION} {@code CountryEvent}s.
      */
-    public static final EventType<CountryEvent> UPDATING_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, UPDATING_EVENT_NAME);
+    public static final EventType<CountryEvent> UPDATE_VALIDATION_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, UPDATE_VALIDATION_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#UPDATED} {@code CountryEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_UPDATE} {@code CountryEvent}s.
      */
     public static final EventType<CountryEvent> UPDATED_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, UPDATED_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#DELETING} {@code CountryEvent}s.
+     * {@link EventType} for {@link DbOperationType#DELETE_VALIDATION} {@code CountryEvent}s.
      */
     public static final EventType<CountryEvent> DELETING_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, DELETING_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#DELETED} {@code CountryEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_DELETE} {@code CountryEvent}s.
      */
-    public static final EventType<CountryEvent> DELETED_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, DELETED_EVENT_NAME);
+    public static final EventType<CountryEvent> DB_DELETE_EVENT_TYPE = new EventType<>(COUNTRY_MODEL_EVENT_TYPE, DB_DELETE_EVENT_NAME);
 
     public static DbOperationType toDbOperationType(String eventName) {
         if (null != eventName) {
@@ -77,18 +77,18 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
                     return DbOperationType.EDIT_REQUEST;
                 case DELETE_REQUEST_EVENT_NAME:
                     return DbOperationType.DELETE_REQUEST;
-                case INSERTING_EVENT_NAME:
-                    return DbOperationType.INSERTING;
-                case INSERTED_EVENT_NAME:
-                    return DbOperationType.INSERTED;
-                case UPDATING_EVENT_NAME:
-                    return DbOperationType.UPDATING;
+                case INSERT_VALIDATION_EVENT_NAME:
+                    return DbOperationType.INSERT_VALIDATION;
+                case DB_INSERT_EVENT_NAME:
+                    return DbOperationType.DB_INSERT;
+                case UPDATE_VALIDATION_EVENT_NAME:
+                    return DbOperationType.UPDATE_VALIDATION;
                 case UPDATED_EVENT_NAME:
-                    return DbOperationType.UPDATED;
+                    return DbOperationType.DB_UPDATE;
                 case DELETING_EVENT_NAME:
-                    return DbOperationType.DELETING;
-                case DELETED_EVENT_NAME:
-                    return DbOperationType.DELETED;
+                    return DbOperationType.DELETE_VALIDATION;
+                case DB_DELETE_EVENT_NAME:
+                    return DbOperationType.DB_DELETE;
             }
         }
         return DbOperationType.NONE;
@@ -102,18 +102,18 @@ public final class CountryEvent extends DbOperationEvent<CountryModel, CountryDA
                     return EDIT_REQUEST_EVENT_TYPE;
                 case DELETE_REQUEST:
                     return DELETE_REQUEST_EVENT_TYPE;
-                case INSERTING:
-                    return INSERTING_EVENT_TYPE;
-                case INSERTED:
-                    return INSERTED_EVENT_TYPE;
-                case UPDATING:
-                    return UPDATING_EVENT_TYPE;
-                case UPDATED:
+                case INSERT_VALIDATION:
+                    return INSERT_VALIDATION_EVENT_TYPE;
+                case DB_INSERT:
+                    return DB_INSERT_EVENT_TYPE;
+                case UPDATE_VALIDATION:
+                    return UPDATE_VALIDATION_EVENT_TYPE;
+                case DB_UPDATE:
                     return UPDATED_EVENT_TYPE;
-                case DELETING:
+                case DELETE_VALIDATION:
                     return DELETING_EVENT_TYPE;
-                case DELETED:
-                    return DELETED_EVENT_TYPE;
+                case DB_DELETE:
+                    return DB_DELETE_EVENT_TYPE;
             }
         }
         return COUNTRY_MODEL_EVENT_TYPE;

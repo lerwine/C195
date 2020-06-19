@@ -140,7 +140,7 @@ public abstract class PropertyBindable implements IPropertyBindable {
          * @throws IllegalStateException if this is already in an opened state.
          */
         protected synchronized void open(PropertyBindable target) {
-            if (null != target) {
+            if (null != this.target) {
                 throw new IllegalStateException("Change deferral has already been opened");
             }
             (this.target = target).propertyChangeSupport.registerDeferral(this);

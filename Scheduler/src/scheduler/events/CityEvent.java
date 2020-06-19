@@ -4,7 +4,11 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
+import scheduler.dao.ICountryDAO;
 import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
 
 /**
@@ -18,12 +22,12 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
     public static final String CITY_MODEL_EVENT_NAME = "SCHEDULER_CITY_DB_OPERATION";
     public static final String EDIT_REQUEST_EVENT_NAME = "SCHEDULER_CITY_EDIT_REQUEST";
     public static final String DELETE_REQUEST_EVENT_NAME = "SCHEDULER_CITY_DELETE_REQUEST";
-    public static final String INSERTING_EVENT_NAME = "SCHEDULER_CITY_INSERTING";
-    public static final String INSERTED_EVENT_NAME = "SCHEDULER_CITY_INSERTED";
-    public static final String UPDATING_EVENT_NAME = "SCHEDULER_CITY_UPDATING";
-    public static final String UPDATED_EVENT_NAME = "SCHEDULER_CITY_UPDATED";
-    public static final String DELETING_EVENT_NAME = "SCHEDULER_CITY_DELETING";
-    public static final String DELETED_EVENT_NAME = "SCHEDULER_CITY_DELETED";
+    public static final String INSERT_VALIDATION_EVENT_NAME = "SCHEDULER_CITY_INSERT_VALIDATION";
+    public static final String DB_INSERT_EVENT_NAME = "SCHEDULER_CITY_DB_INSERT";
+    public static final String UPDATE_VALIDATION_EVENT_NAME = "SCHEDULER_CITY_UPDATE_VALIDATION";
+    public static final String UPDATED_EVENT_NAME = "SCHEDULER_CITY_DB_UPDATE";
+    public static final String DELETING_EVENT_NAME = "SCHEDULER_CITY_DELETE_VALIDATION";
+    public static final String DB_DELETE_EVENT_NAME = "SCHEDULER_CITY_DB_DELETE";
 
     /**
      * Base {@link EventType} for all {@code CityEvent}s.
@@ -41,34 +45,34 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
     public static final EventType<CityEvent> DELETE_REQUEST_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, DELETE_REQUEST_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#INSERTING} {@code CityEvent}s.
+     * {@link EventType} for {@link DbOperationType#INSERT_VALIDATION} {@code CityEvent}s.
      */
-    public static final EventType<CityEvent> INSERTING_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, INSERTING_EVENT_NAME);
+    public static final EventType<CityEvent> INSERT_VALIDATION_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, INSERT_VALIDATION_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#INSERTED} {@code CityEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_INSERT} {@code CityEvent}s.
      */
-    public static final EventType<CityEvent> INSERTED_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, INSERTED_EVENT_NAME);
+    public static final EventType<CityEvent> DB_INSERT_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, DB_INSERT_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#UPDATING} {@code CityEvent}s.
+     * {@link EventType} for {@link DbOperationType#UPDATE_VALIDATION} {@code CityEvent}s.
      */
-    public static final EventType<CityEvent> UPDATING_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, UPDATING_EVENT_NAME);
+    public static final EventType<CityEvent> UPDATE_VALIDATION_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, UPDATE_VALIDATION_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#UPDATED} {@code CityEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_UPDATE} {@code CityEvent}s.
      */
     public static final EventType<CityEvent> UPDATED_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, UPDATED_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#DELETING} {@code CityEvent}s.
+     * {@link EventType} for {@link DbOperationType#DELETE_VALIDATION} {@code CityEvent}s.
      */
     public static final EventType<CityEvent> DELETING_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, DELETING_EVENT_NAME);
 
     /**
-     * {@link EventType} for {@link DbOperationType#DELETED} {@code CityEvent}s.
+     * {@link EventType} for {@link DbOperationType#DB_DELETE} {@code CityEvent}s.
      */
-    public static final EventType<CityEvent> DELETED_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, DELETED_EVENT_NAME);
+    public static final EventType<CityEvent> DB_DELETE_EVENT_TYPE = new EventType<>(CITY_MODEL_EVENT_TYPE, DB_DELETE_EVENT_NAME);
 
     public static DbOperationType toDbOperationType(String eventName) {
         if (null != eventName) {
@@ -77,18 +81,18 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
                     return DbOperationType.EDIT_REQUEST;
                 case DELETE_REQUEST_EVENT_NAME:
                     return DbOperationType.DELETE_REQUEST;
-                case INSERTING_EVENT_NAME:
-                    return DbOperationType.INSERTING;
-                case INSERTED_EVENT_NAME:
-                    return DbOperationType.INSERTED;
-                case UPDATING_EVENT_NAME:
-                    return DbOperationType.UPDATING;
+                case INSERT_VALIDATION_EVENT_NAME:
+                    return DbOperationType.INSERT_VALIDATION;
+                case DB_INSERT_EVENT_NAME:
+                    return DbOperationType.DB_INSERT;
+                case UPDATE_VALIDATION_EVENT_NAME:
+                    return DbOperationType.UPDATE_VALIDATION;
                 case UPDATED_EVENT_NAME:
-                    return DbOperationType.UPDATED;
+                    return DbOperationType.DB_UPDATE;
                 case DELETING_EVENT_NAME:
-                    return DbOperationType.DELETING;
-                case DELETED_EVENT_NAME:
-                    return DbOperationType.DELETED;
+                    return DbOperationType.DELETE_VALIDATION;
+                case DB_DELETE_EVENT_NAME:
+                    return DbOperationType.DB_DELETE;
             }
         }
         return DbOperationType.NONE;
@@ -102,18 +106,18 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
                     return EDIT_REQUEST_EVENT_TYPE;
                 case DELETE_REQUEST:
                     return DELETE_REQUEST_EVENT_TYPE;
-                case INSERTING:
-                    return INSERTING_EVENT_TYPE;
-                case INSERTED:
-                    return INSERTED_EVENT_TYPE;
-                case UPDATING:
-                    return UPDATING_EVENT_TYPE;
-                case UPDATED:
+                case INSERT_VALIDATION:
+                    return INSERT_VALIDATION_EVENT_TYPE;
+                case DB_INSERT:
+                    return DB_INSERT_EVENT_TYPE;
+                case UPDATE_VALIDATION:
+                    return UPDATE_VALIDATION_EVENT_TYPE;
+                case DB_UPDATE:
                     return UPDATED_EVENT_TYPE;
-                case DELETING:
+                case DELETE_VALIDATION:
                     return DELETING_EVENT_TYPE;
-                case DELETED:
-                    return DELETED_EVENT_TYPE;
+                case DB_DELETE:
+                    return DB_DELETE_EVENT_TYPE;
             }
         }
         return CITY_MODEL_EVENT_TYPE;
@@ -162,6 +166,21 @@ public final class CityEvent extends DbOperationEvent<CityModel, CityDAO> {
     @Override
     public CityEvent toDbOperationType(DbOperationType operation) {
         return new CityEvent(this, getTarget(), operation);
+    }
+
+    public CountryEvent createCountryEvent(DbOperationType operation) {
+        CityModel model = getModel();
+        if (null != model) {
+            CountryItem<? extends ICountryDAO> cm = model.getCountry();
+            if (cm instanceof CountryModel) {
+                return new CountryEvent((CountryModel) cm, getSource(), getTarget(), operation);
+            }
+        }
+        ICountryDAO dao = getDataAccessObject().getCountry();
+        if (dao instanceof CountryDAO) {
+            return new CountryEvent(getSource(), getTarget(), (CountryDAO) dao, operation);
+        }
+        return null;
     }
 
 }

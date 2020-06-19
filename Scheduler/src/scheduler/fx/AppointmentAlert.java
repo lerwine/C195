@@ -117,9 +117,9 @@ public class AppointmentAlert extends BorderPane {
             i = 2;
         }
         checkFrequency = i;
-        addEventFilter(AppointmentEvent.INSERTED_EVENT_TYPE, this::onAppointmentInserted);
+        addEventFilter(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
         addEventFilter(AppointmentEvent.UPDATED_EVENT_TYPE, this::onAppointmentUpdated);
-        addEventFilter(AppointmentEvent.DELETED_EVENT_TYPE, this::onAppointmentDeleted);
+        addEventFilter(AppointmentEvent.DB_DELETE_EVENT_TYPE, this::onAppointmentDeleted);
     }
 
     private synchronized void onAppointmentInserted(AppointmentEvent event) {

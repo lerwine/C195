@@ -165,9 +165,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         timeZoneOptionList = FXCollections.observableArrayList();
         timeZoneOptionList.addAll(allTimeZones);
         addressItemList = FXCollections.observableArrayList();
-        addEventHandler(CityEvent.INSERTING_EVENT_TYPE, this::onCityUpdating);
-        addEventHandler(CityEvent.UPDATING_EVENT_TYPE, this::onCityUpdating);
-        addEventHandler(CityEvent.INSERTED_EVENT_TYPE, this::onCityInserted);
+        addEventHandler(CityEvent.INSERT_VALIDATION_EVENT_TYPE, this::onCityUpdating);
+        addEventHandler(CityEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onCityUpdating);
+        addEventHandler(CityEvent.DB_INSERT_EVENT_TYPE, this::onCityInserted);
     }
 
     private void onCityUpdating(CityEvent event) {
@@ -382,9 +382,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                     });
         }
 
-        AddressModel.FACTORY.addEventHandler(AddressEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onAddressAdded));
+        AddressModel.FACTORY.addEventHandler(AddressEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onAddressAdded));
         AddressModel.FACTORY.addEventHandler(AddressEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onAddressUpdated));
-        AddressModel.FACTORY.addEventHandler(AddressEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onAddressDeleted));
+        AddressModel.FACTORY.addEventHandler(AddressEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onAddressDeleted));
 
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())

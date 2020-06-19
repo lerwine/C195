@@ -187,9 +187,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
-        addEventHandler(AddressEvent.INSERTING_EVENT_TYPE, this::onAddressUpdating);
-        addEventHandler(AddressEvent.UPDATING_EVENT_TYPE, this::onAddressUpdating);
-        addEventHandler(AddressEvent.INSERTED_EVENT_TYPE, this::onAddressInserted);
+        addEventHandler(AddressEvent.INSERT_VALIDATION_EVENT_TYPE, this::onAddressUpdating);
+        addEventHandler(AddressEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onAddressUpdating);
+        addEventHandler(AddressEvent.DB_INSERT_EVENT_TYPE, this::onAddressInserted);
     }
 
     private void onAddressUpdating(AddressEvent event) {
@@ -387,9 +387,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         postalCodeTextField.setText(model.getPostalCode());
         phoneTextField.setText(model.getPhone());
 
-        CustomerModel.FACTORY.addEventHandler(CustomerEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerAdded));
+        CustomerModel.FACTORY.addEventHandler(CustomerEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerAdded));
         CustomerModel.FACTORY.addEventHandler(CustomerEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerUpdated));
-        CustomerModel.FACTORY.addEventHandler(CustomerEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerDeleted));
+        CustomerModel.FACTORY.addEventHandler(CustomerEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerDeleted));
 
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())

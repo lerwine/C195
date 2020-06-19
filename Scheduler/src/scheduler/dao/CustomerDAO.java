@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.dao.filter.CustomerFilter;
@@ -32,8 +34,6 @@ import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -218,9 +218,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        CustomerEvent insert(CustomerEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void insert(CustomerEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             String sql = "SELECT COUNT(" + DbColumn.CUSTOMER_ID.getDbName() + ") FROM " + DbTable.CUSTOMER.getDbName()
                     + " WHERE LOWER(" + DbColumn.CUSTOMER_NAME.getDbName() + ")=?";
@@ -251,66 +251,55 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             if (count > 0) {
                 event.setInvalid("Customer name already in use", "Another customer has the same name");
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
-            IAddressDAO address;
-            AddressItem<? extends IAddressDAO> am;
-            CustomerModel model = event.getModel();
-            if (null == model) {
-                am = null;
-                address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
-            } else {
-                address = (am = model.getAddress()).dataObject();
-            }
+            IAddressDAO address = dao.getAddress();
             if (address instanceof AddressDAO) {
                 AddressEvent addressEvent;
                 switch (address.getRowState()) {
                     case NEW:
-                        if (null != am && am instanceof AddressModel) {
-                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
-                        } else {
-                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                    DbOperationType.INSERTING), connection);
-                        }
+                        addressEvent = event.createAddressEvent(DbOperationType.DB_INSERT);
+                        AddressDAO.FACTORY.insert(addressEvent, connection);
                         break;
                     case UNMODIFIED:
-                        return super.insert(event, connection);
+                        super.insert(event, connection);
+                        return;
                     default:
-                        if (null != am && am instanceof AddressModel) {
-                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
-                        } else {
-                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                    DbOperationType.UPDATING), connection);
-                        }
+                        addressEvent = event.createAddressEvent(DbOperationType.DB_UPDATE);
+                        AddressDAO.FACTORY.update(addressEvent, connection);
+                        break;
                 }
                 switch (addressEvent.getStatus()) {
                     case SUCCEEDED:
-                        break;
+                        super.insert(event, connection);
+                        return;
                     case FAULTED:
                         event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
-                        return event;
+                        break;
                     case INVALID:
                         event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
-                        return event;
+                        break;
                     default:
                         event.setCanceled();
-                        return event;
+                        break;
                 }
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.insert(event, connection);
             }
-            return super.insert(event, connection);
         }
 
         @Override
-        CustomerEvent update(CustomerEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void update(CustomerEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             CustomerDAO dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
             String sql = "SELECT COUNT(" + DbColumn.CUSTOMER_ID.getDbName() + ") FROM " + DbTable.CUSTOMER.getDbName()
@@ -342,66 +331,55 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             if (count > 0) {
                 event.setInvalid("Customer name already in use", "Another customer has the same name");
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
-            IAddressDAO address;
-            AddressItem<? extends IAddressDAO> am;
-            CustomerModel model = event.getModel();
-            if (null == model) {
-                am = null;
-                address = ICustomerDAO.assertValidCustomer(event.getDataAccessObject()).getAddress();
-            } else {
-                address = (am = model.getAddress()).dataObject();
-            }
+            IAddressDAO address = dao.getAddress();
             if (address instanceof AddressDAO) {
                 AddressEvent addressEvent;
                 switch (address.getRowState()) {
                     case NEW:
-                        if (null != am && am instanceof AddressModel) {
-                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
-                        } else {
-                            addressEvent = AddressDAO.FACTORY.insert(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                    DbOperationType.INSERTING), connection);
-                        }
+                        addressEvent = event.createAddressEvent(DbOperationType.DB_INSERT);
+                        AddressDAO.FACTORY.insert(addressEvent, connection);
                         break;
                     case UNMODIFIED:
-                        return super.insert(event, connection);
+                        super.update(event, connection);
+                        return;
                     default:
-                        if (null != am && am instanceof AddressModel) {
-                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent((AddressModel) am, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
-                        } else {
-                            addressEvent = AddressDAO.FACTORY.update(new AddressEvent(event.getSource(), event.getTarget(), (AddressDAO) address,
-                                    DbOperationType.UPDATING), connection);
-                        }
+                        addressEvent = event.createAddressEvent(DbOperationType.DB_UPDATE);
+                        AddressDAO.FACTORY.update(addressEvent, connection);
+                        break;
                 }
                 switch (addressEvent.getStatus()) {
                     case SUCCEEDED:
-                        break;
+                        super.update(event, connection);
+                        return;
                     case FAULTED:
                         event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
-                        return event;
+                        break;
                     case INVALID:
                         event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
-                        return event;
+                        break;
                     default:
                         event.setCanceled();
-                        return event;
+                        break;
                 }
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.update(event, connection);
             }
-            return super.update(event, connection);
         }
 
         @Override
-        protected CustomerEvent delete(CustomerEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        protected void delete(CustomerEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             CustomerDAO dao = event.getDataAccessObject();
 
@@ -411,11 +389,13 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             switch (count) {
                 case 0:
-                    return super.delete(event, connection);
+                    super.delete(event, connection);
+                    return;
                 case 1:
                     event.setInvalid("Customer in use", "Customer is referenced by one appointment.");
                     break;
@@ -423,7 +403,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
                     break;
             }
-            return event;
+            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override

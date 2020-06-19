@@ -1,5 +1,7 @@
 package scheduler.fx;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
@@ -15,6 +17,7 @@ import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;
 import scheduler.events.DbOperationType;
 import scheduler.events.DbOperationEvent;
+import scheduler.util.LogHelper;
 
 /**
  *
@@ -24,6 +27,9 @@ import scheduler.events.DbOperationEvent;
  */
 public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>, E extends DbOperationEvent<T, ? extends DataAccessObject>>
         extends TableCell<T, T> {
+
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
     private final FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory;
     private final HBox graphic;
@@ -62,14 +68,18 @@ public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAcces
     private void onEditButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            fireEvent(factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.EDIT_REQUEST));
+            E e = factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.EDIT_REQUEST);
+            LOG.fine(() -> String.format("Firing event %s", e.toString()));
+            fireEvent(e);
         }
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
         T item = getItem();
         if (null != item) {
-            fireEvent(factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.DELETE_REQUEST));
+            E e = factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.DELETE_REQUEST);
+            LOG.fine(() -> String.format("Firing event %s", e.toString()));
+            fireEvent(e);
         }
     }
 

@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
@@ -193,15 +195,15 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        UserEvent insert(UserEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void insert(UserEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             String sql = "SELECT COUNT(" + DbColumn.USER_ID.getDbName() + ") FROM " + DbTable.USER.getDbName()
                     + " WHERE LOWER(" + DbColumn.USER_NAME.getDbName() + ")=?";
             int count;
+            UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
                 ps.setString(1, dao.getUserName());
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
@@ -226,26 +228,27 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             if (count > 0) {
                 event.setInvalid("User name already in use", "Another user has the same name");
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.insert(event, connection);
             }
-
-            return super.insert(event, connection);
         }
 
         @Override
-        UserEvent update(UserEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void update(UserEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             String sql = "SELECT COUNT(" + DbColumn.USER_ID.getDbName() + ") FROM " + DbTable.USER.getDbName()
                     + " WHERE LOWER(" + DbColumn.USER_NAME.getDbName() + ")=?" + " AND " + DbColumn.USER_ID.getDbName() + "<>?";
             int count;
+            UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
                 ps.setString(1, dao.getUserName());
                 ps.setInt(2, dao.getPrimaryKey());
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
@@ -271,26 +274,28 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             if (count > 0) {
                 event.setInvalid("User name already in use", "Another user has the same name");
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.update(event, connection);
             }
-
-            return super.update(event, connection);
         }
 
         @Override
-        protected UserEvent delete(UserEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        protected void delete(UserEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             UserDAO dao = event.getDataAccessObject();
 
             if (dao == Scheduler.getCurrentUser()) {
                 event.setInvalid("Self-delete", "Cannot delete the current user");
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
             int count;
@@ -299,11 +304,13 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             switch (count) {
                 case 0:
-                    return super.delete(event, connection);
+                    super.delete(event, connection);
+                    return;
                 case 1:
                     event.setInvalid("User in use", "User is referenced by one appointment.");
                     break;
@@ -311,7 +318,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                     event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
                     break;
             }
-            return event;
+            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override

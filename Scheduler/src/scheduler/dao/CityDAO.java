@@ -13,6 +13,8 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
@@ -212,9 +214,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        CityEvent insert(CityEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void insert(CityEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             String sql = "SELECT COUNT(" + DbColumn.CITY_ID.getDbName() + ") FROM " + DbTable.CITY.getDbName()
                     + " LEFT JOIN " + DbTable.COUNTRY.getDbName() + " ON " + DbTable.CITY.getDbName() + "." + DbColumn.CITY_COUNTRY.getDbName()
@@ -249,12 +251,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
             if (count > 0) {
                 event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
             ICountryDAO country;
@@ -270,48 +274,54 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 CountryEvent countryEvent;
                 switch (country.getRowState()) {
                     case NEW:
+                        // FIXME: INSERT_VALIDATION event needs to be created from FX app thread and fired on DAO
                         if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
+                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERT_VALIDATION), connection);
                         } else {
-                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.INSERTING), connection);
+                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.INSERT_VALIDATION), connection);
                         }
                         break;
                     case UNMODIFIED:
-                        return super.insert(event, connection);
+                        super.insert(event, connection);
+                        return;
                     default:
+                        // FIXME: UPDATE_VALIDATION event needs to be created from FX app thread and fired on DAO
                         if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
+                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATE_VALIDATION), connection);
                         } else {
-                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.UPDATING), connection);
+                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.UPDATE_VALIDATION), connection);
                         }
                 }
                 switch (countryEvent.getStatus()) {
                     case SUCCEEDED:
-                        break;
+                        super.insert(event, connection);
+                        return;
                     case FAULTED:
                         event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
-                        return event;
+                        break;
                     case INVALID:
                         event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
-                        return event;
+                        break;
                     default:
                         event.setCanceled();
-                        return event;
+                        break;
                 }
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.insert(event, connection);
             }
-
-            return super.insert(event, connection);
         }
 
         @Override
-        CityEvent update(CityEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void update(CityEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
+            super.update(event, connection);
             String sql = "SELECT COUNT(" + DbColumn.CITY_ID.getDbName() + ") FROM " + DbTable.CITY.getDbName()
                     + " LEFT JOIN " + DbTable.COUNTRY.getDbName() + " ON " + DbTable.CITY.getDbName() + "." + DbColumn.CITY_COUNTRY.getDbName()
                     + "=" + DbTable.COUNTRY.getDbName() + "." + DbColumn.COUNTRY_ID.getDbName()
@@ -347,12 +357,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
             if (count > 0) {
                 event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
             ICountryDAO country;
@@ -368,47 +380,49 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 CountryEvent countryEvent;
                 switch (country.getRowState()) {
                     case NEW:
+                        // FIXME: INSERT_VALIDATION event needs to be created from FX app thread and fired on DAO
                         if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
+                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.INSERT_VALIDATION), connection);
                         } else {
-                            countryEvent = CountryDAO.FACTORY.insert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.INSERTING), connection);
+                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.INSERT_VALIDATION), connection);
                         }
                         break;
                     case UNMODIFIED:
-                        return super.insert(event, connection);
+                        super.update(event, connection);
+                        return;
                     default:
+                        // FIXME: UPDATE_VALIDATION event needs to be created from FX app thread and fired on DAO
                         if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.update(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
+                            countryEvent = CountryDAO.FACTORY.badUpdate(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
+                                    DbOperationType.UPDATE_VALIDATION), connection);
                         } else {
-                            countryEvent = CountryDAO.FACTORY.update(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.UPDATING), connection);
+                            countryEvent = CountryDAO.FACTORY.badUpdate(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
+                                    DbOperationType.UPDATE_VALIDATION), connection);
                         }
                 }
                 switch (countryEvent.getStatus()) {
                     case SUCCEEDED:
-                        break;
+                        super.update(event, connection);
+                        return;
                     case FAULTED:
                         event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
-                        return event;
                     case INVALID:
                         event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
-                        return event;
                     default:
                         event.setCanceled();
-                        return event;
                 }
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.update(event, connection);
             }
-
-            return super.update(event, connection);
         }
 
         @Override
-        protected CityEvent delete(CityEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        protected void delete(CityEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             CityDAO dao = event.getDataAccessObject();
             int count;
@@ -417,11 +431,13 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             switch (count) {
                 case 0:
-                    return super.delete(event, connection);
+                    super.delete(event, connection);
+                    return;
                 case 1:
                     event.setInvalid("City in use", ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
                     break;
@@ -429,7 +445,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                     event.setInvalid("City in use", ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
                     break;
             }
-            return event;
+            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override

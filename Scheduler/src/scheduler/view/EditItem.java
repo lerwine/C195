@@ -190,7 +190,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     void onDeleteButtonAction(ActionEvent event) {
         FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
-        E deleteEvent = factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.DELETING);
+        E deleteEvent = factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.DELETE_VALIDATION);
         editorRegion.fireEvent(deleteEvent);
         if (!deleteEvent.isConsumed()) {
             Stage stage = (Stage) getScene().getWindow();
@@ -210,8 +210,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
         // FIXME: Need to find a good way to ensure the model is updated after DAO is updated.. Perhaps passing event instead of DAO
         E updateEvent = (model.isNewRow())
-                ? factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.INSERTING)
-                : factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.UPDATING);
+                ? factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.INSERT_VALIDATION)
+                : factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.UPDATE_VALIDATION);
         editorRegion.fireEvent(updateEvent);
         if (!updateEvent.isConsumed()) {
             waitBorderPane.startNow(new SaveTask(updateEvent));
@@ -333,14 +333,14 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         @SuppressWarnings("incomplete-switch")
         protected void onCompleted(E e) {
             switch (e.getOperation()) {
-                case INSERTED:
+                case DB_INSERT:
                     if (keepOpen) {
                         editorRegion.fireEvent(e);
                     } else {
                         getScene().getWindow().hide();
                     }
                     break;
-                case UPDATED:
+                case DB_UPDATE:
                     getScene().getWindow().hide();
                     break;
             }

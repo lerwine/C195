@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
@@ -34,8 +36,6 @@ import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CityModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -262,9 +262,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        AddressEvent insert(AddressEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void insert(AddressEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             AddressDAO dao = IAddressDAO.assertValidAddress(event.getDataAccessObject());
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
@@ -324,66 +324,55 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking address conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             if (count > 0) {
                 event.setInvalid("Address already exusts", "Another matching address exists");
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
-            ICityDAO city;
-            CityItem<? extends ICityDAO> cm;
-            AddressModel model = event.getModel();
-            if (null == model) {
-                cm = null;
-                city = dao.getCity();
-            } else {
-                city = (cm = model.getCity()).dataObject();
-            }
+            ICityDAO city = dao.getCity();
             if (city instanceof CityDAO) {
                 CityEvent cityEvent;
                 switch (city.getRowState()) {
                     case NEW:
-                        if (null != cm && cm instanceof CityModel) {
-                            cityEvent = CityDAO.FACTORY.insert(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
-                        } else {
-                            cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                    DbOperationType.INSERTING), connection);
-                        }
+                        cityEvent = event.createCityEvent(DbOperationType.DB_INSERT);
+                        CityDAO.FACTORY.insert(cityEvent, connection);
                         break;
                     case UNMODIFIED:
-                        return super.insert(event, connection);
+                        super.insert(event, connection);
+                        return;
                     default:
-                        if (null != cm && cm instanceof CityModel) {
-                            cityEvent = CityDAO.FACTORY.update(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
-                        } else {
-                            cityEvent = CityDAO.FACTORY.update(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                    DbOperationType.UPDATING), connection);
-                        }
+                        cityEvent = event.createCityEvent(DbOperationType.DB_UPDATE);
+                        CityDAO.FACTORY.update(cityEvent, connection);
+                        break;
                 }
                 switch (cityEvent.getStatus()) {
                     case SUCCEEDED:
-                        break;
+                        super.insert(event, connection);
+                        return;
                     case FAULTED:
                         event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage(), cityEvent.getFault());
-                        return event;
+                        break;
                     case INVALID:
                         event.setInvalid(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
-                        return event;
+                        break;
                     default:
                         event.setCanceled();
-                        return event;
+                        break;
                 }
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.insert(event, connection);
             }
-            return super.insert(event, connection);
         }
 
         @Override
-        AddressEvent update(AddressEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        void update(AddressEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             AddressDAO dao = IAddressDAO.assertValidAddress(event.getDataAccessObject());
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
@@ -447,66 +436,52 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking address conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             if (count > 0) {
                 event.setInvalid("Address already exusts", "Another matching address exists");
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
 
-            ICityDAO city;
-            CityItem<? extends ICityDAO> cm;
-            AddressModel model = event.getModel();
-            if (null == model) {
-                cm = null;
-                city = dao.getCity();
-            } else {
-                city = (cm = model.getCity()).dataObject();
-            }
+            ICityDAO city = dao.getCity();
             if (city instanceof CityDAO) {
                 CityEvent cityEvent;
                 switch (city.getRowState()) {
                     case NEW:
-                        if (null != cm && cm instanceof CityModel) {
-                            cityEvent = CityDAO.FACTORY.insert(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERTING), connection);
-                        } else {
-                            cityEvent = CityDAO.FACTORY.insert(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                    DbOperationType.INSERTING), connection);
-                        }
+                        cityEvent = event.createCityEvent(DbOperationType.DB_INSERT);
+                        CityDAO.FACTORY.insert(cityEvent, connection);
                         break;
                     case UNMODIFIED:
-                        return super.insert(event, connection);
+                        super.insert(event, connection);
+                        return;
                     default:
-                        if (null != cm && cm instanceof CityModel) {
-                            cityEvent = CityDAO.FACTORY.update(new CityEvent((CityModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATING), connection);
-                        } else {
-                            cityEvent = CityDAO.FACTORY.update(new CityEvent(event.getSource(), event.getTarget(), (CityDAO) city,
-                                    DbOperationType.UPDATING), connection);
-                        }
+                        cityEvent = event.createCityEvent(DbOperationType.DB_UPDATE);
+                        CityDAO.FACTORY.update(cityEvent, connection);
+                        break;
                 }
                 switch (cityEvent.getStatus()) {
                     case SUCCEEDED:
-                        break;
+                        super.update(event, connection);
+                        return;
                     case FAULTED:
                         event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage(), cityEvent.getFault());
-                        return event;
                     case INVALID:
                         event.setInvalid(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
-                        return event;
                     default:
                         event.setCanceled();
-                        return event;
                 }
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+            } else {
+                super.insert(event, connection);
             }
-            return super.insert(event, connection);
         }
 
         @Override
-        protected AddressEvent delete(AddressEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+        protected void delete(AddressEvent event, Connection connection) {
+            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
+                throw new IllegalArgumentException();
             }
             AddressDAO dao = event.getDataAccessObject();
 
@@ -516,11 +491,13 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                Platform.runLater(() -> Event.fireEvent(dao, event));
+                return;
             }
             switch (count) {
                 case 0:
-                    return super.delete(event, connection);
+                    super.delete(event, connection);
+                    return;
                 case 1:
                     event.setInvalid("Address in use", "Address is referenced by one customer.");
                     break;
@@ -528,7 +505,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                     event.setInvalid("Address in use", String.format("Address is referenced by %d other customers", count));
                     break;
             }
-            return event;
+            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override

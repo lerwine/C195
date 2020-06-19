@@ -212,9 +212,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-        addEventHandler(CustomerEvent.INSERTING_EVENT_TYPE, this::onCustomerUpdating);
-        addEventHandler(CustomerEvent.UPDATING_EVENT_TYPE, this::onCustomerUpdating);
-        addEventHandler(CustomerEvent.INSERTED_EVENT_TYPE, this::onCustomerInserted);
+        addEventHandler(CustomerEvent.INSERT_VALIDATION_EVENT_TYPE, this::onCustomerUpdating);
+        addEventHandler(CustomerEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onCustomerUpdating);
+        addEventHandler(CustomerEvent.DB_INSERT_EVENT_TYPE, this::onCustomerInserted);
     }
 
     private void onCustomerUpdating(CustomerEvent event) {
@@ -455,9 +455,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
         onSelectedCityChanged(selectedCity, null, selectedCity.get());
 
-        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentDeleted));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentDeleted));
 
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
@@ -473,8 +473,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
 
-        addEventHandler(CustomerEvent.UPDATING_EVENT_TYPE, this::onCustomerUpdate);
-        addEventHandler(CustomerEvent.INSERTING_EVENT_TYPE, this::onCustomerUpdate);
+        addEventHandler(CustomerEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onCustomerUpdate);
+        addEventHandler(CustomerEvent.INSERT_VALIDATION_EVENT_TYPE, this::onCustomerUpdate);
     }
 
     private void initializeEditMode() {

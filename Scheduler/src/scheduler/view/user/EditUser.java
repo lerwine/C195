@@ -151,9 +151,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
-        addEventHandler(UserEvent.INSERTING_EVENT_TYPE, this::onUserUpdating);
-        addEventHandler(UserEvent.UPDATING_EVENT_TYPE, this::onUserUpdating);
-        addEventHandler(UserEvent.INSERTED_EVENT_TYPE, this::onUserInserted);
+        addEventHandler(UserEvent.INSERT_VALIDATION_EVENT_TYPE, this::onUserUpdating);
+        addEventHandler(UserEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onUserUpdating);
+        addEventHandler(UserEvent.DB_INSERT_EVENT_TYPE, this::onUserInserted);
     }
 
     private void onUserUpdating(UserEvent event) {
@@ -303,9 +303,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 .or(changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus())))
                 .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
 
-        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.INSERTED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DELETED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentDeleted));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentDeleted));
 
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())

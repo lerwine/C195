@@ -188,9 +188,9 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized void start(boolean isInitial) {
-        eventHandlerManager.addEventFilter(AppointmentEvent.INSERTED_EVENT_TYPE, this::onAppointmentInserted);
+        eventHandlerManager.addEventFilter(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
         eventHandlerManager.addEventFilter(AppointmentEvent.UPDATED_EVENT_TYPE, this::onAppointmentUpdated);
-        eventHandlerManager.addEventFilter(AppointmentEvent.DELETED_EVENT_TYPE, this::onAppointmentDeleted);
+        eventHandlerManager.addEventFilter(AppointmentEvent.DB_DELETE_EVENT_TYPE, this::onAppointmentDeleted);
         if (null != appointmentCheckTimer) {
             if (isInitial) {
                 return;
@@ -202,9 +202,9 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized boolean stop(boolean isPermanent) {
-        eventHandlerManager.removeEventFilter(AppointmentEvent.INSERTED_EVENT_TYPE, this::onAppointmentInserted);
+        eventHandlerManager.removeEventFilter(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
         eventHandlerManager.removeEventFilter(AppointmentEvent.UPDATED_EVENT_TYPE, this::onAppointmentUpdated);
-        eventHandlerManager.removeEventFilter(AppointmentEvent.DELETED_EVENT_TYPE, this::onAppointmentDeleted);
+        eventHandlerManager.removeEventFilter(AppointmentEvent.DB_DELETE_EVENT_TYPE, this::onAppointmentDeleted);
         if (null == appointmentCheckTimer) {
             return false;
         }
