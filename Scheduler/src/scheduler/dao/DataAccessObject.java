@@ -56,8 +56,9 @@ import scheduler.view.task.WaitBorderPane;
 /**
  * Data access object that represents all columns from a data row.
  * <p>
- * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each class must also have an
- * associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static {@code getFactory()} method.</p>
+ * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each
+ * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
+ * {@code getFactory()} method.</p>
  * <p>
  * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  *
@@ -100,6 +101,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     protected abstract void onRejectChanges();
 
+    @SuppressWarnings("try")
     public void rejectChanges() {
         try (ChangeEventDeferral eventDeferral = deferChangeEvents()) {
             Timestamp oldCreateDate = createDate;
@@ -174,8 +176,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
      *
      * @param propertyName The name of the target property.
-     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
-     * to leave {@link #rowState} unchanged.
+     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to
+     * {@link DataRowState#MODIFIED}; otherwise, {@code false} to leave {@link #rowState} unchanged.
      */
     protected boolean propertyChangeModifiesState(String propertyName) {
         switch (propertyName) {
@@ -690,6 +692,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             cloneProperties(source, target);
         }
 
+        @SuppressWarnings("try")
         protected final void cloneProperties(T fromDAO, T toDAO) {
             if (Objects.equals(fromDAO, toDAO)) {
                 return;
@@ -735,6 +738,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return The newly-initialized data access object.
          * @throws SQLException if unable to read values from the {@link ResultSet}.
          */
+        @SuppressWarnings("try")
         protected T fromResultSet(ResultSet rs) throws SQLException {
             int key = rs.getInt(getPrimaryKeyColumn().toString());
             T dao = dataObjectCache.get(key, () -> {
@@ -787,8 +791,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
-         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow implementing classes to put fields
-         * directly while property change events are deferred. This value can be {@code null} if it is not applicable.
+         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
+         * implementing classes to put fields directly while property change events are deferred. This value can be {@code null} if it is not
+         * applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
         protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(T dao, ResultSet rs) throws SQLException;
@@ -839,7 +844,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Indicates whether {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables.
          *
-         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise, {@code false}.
+         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise,
+         * {@code false}.
          */
         public abstract boolean isCompoundSelect();
 
@@ -896,9 +902,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param event The {@link DbOperationEvent} for the {@link DataAccessObject} to delete.
          * @param connection The database connection to use.
-         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed; otherwise, the original {@code event}
-         * object is returned, which will reflect the status.
+         * @return The {@link DbOperationEvent} that was fired on the affected {@link DataAccessObject} if the save operation was completed;
+         * otherwise, the original {@code event} object is returned, which will reflect the status.
          */
+        @SuppressWarnings("try")
         protected E delete(E event, Connection connection) {
             if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
                 return event;
@@ -980,7 +987,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -990,7 +998,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1000,7 +1009,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1010,7 +1020,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param type The event type.
          * @param eventHandler The event handler.
@@ -1138,6 +1149,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         @Override
+        @SuppressWarnings("try")
         protected E call(E event, Connection connection) throws Exception {
             DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
             oldRowState = dataObj.rowState;
@@ -1186,8 +1198,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * {@link Task} for deleting a {@link DataAccessObject} from the database. This will fire a {@link DbOperationEvent} on the target {@link DataAccessObject} after successful
-     * deletion. The {@link DbOperationEvent#operation operation} property will be set to {@link DbOperationType#DELETED} and it will be fired in the FX application thread.
+     * {@link Task} for deleting a {@link DataAccessObject} from the database. This will fire a {@link DbOperationEvent} on the target
+     * {@link DataAccessObject} after successful deletion. The {@link DbOperationEvent#operation operation} property will be set to
+     * {@link DbOperationType#DELETED} and it will be fired in the FX application thread.
      *
      * @param <D> The type of {@link DataAccessObject} to be deleted.
      * @param <M> The type of {@link FxRecordModel} that corresponds to the {@link DataAccessObject} type.
