@@ -5,13 +5,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
@@ -31,11 +28,11 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -51,7 +48,8 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 public final class AddressDAO extends DataAccessObject implements AddressDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AddressDAO.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
 
     private String address1;
     private String address2;
@@ -262,11 +260,16 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        void insert(AddressEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
+        void validateSave(SaveTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> task) {
+            AddressEvent event = task.getValidationEvent();
+            AddressDAO dao;
+            try {
+                dao = IAddressDAO.assertValidAddress(event.getDataAccessObject());
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                event.setFaulted("Invalid Address", ex.getMessage(), ex);
+                return;
             }
-            AddressDAO dao = IAddressDAO.assertValidAddress(event.getDataAccessObject());
+            Connection connection = task.getConnection();
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
                     .append(") FROM ").append(DbTable.ADDRESS.getDbName())
                     .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
@@ -289,6 +292,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 sb.append(" AND LENGTH(").append(DbColumn.PHONE.getDbName()).append(")=0");
             } else {
                 sb.append(" AND LOWER(").append(DbColumn.PHONE.getDbName()).append(")=?");
+            }
+            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                sb.append(" AND ").append(DbColumn.ADDRESS_ID.getDbName()).append("<>?");
             }
             String sql = sb.toString();
             int count;
@@ -307,116 +313,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 if (!dao.phone.isEmpty()) {
                     ps.setString(index, dao.phone.toLowerCase());
                 }
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking address conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-            if (count > 0) {
-                event.setInvalid("Address already exusts", "Another matching address exists");
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-
-            ICityDAO city = dao.getCity();
-            if (city instanceof CityDAO) {
-                CityEvent cityEvent;
-                switch (city.getRowState()) {
-                    case NEW:
-                        cityEvent = event.createCityEvent(DbOperationType.DB_INSERT);
-                        CityDAO.FACTORY.insert(cityEvent, connection);
-                        break;
-                    case UNMODIFIED:
-                        super.insert(event, connection);
-                        return;
-                    default:
-                        cityEvent = event.createCityEvent(DbOperationType.DB_UPDATE);
-                        CityDAO.FACTORY.update(cityEvent, connection);
-                        break;
-                }
-                switch (cityEvent.getStatus()) {
-                    case SUCCEEDED:
-                        super.insert(event, connection);
-                        return;
-                    case FAULTED:
-                        event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage(), cityEvent.getFault());
-                        break;
-                    case INVALID:
-                        event.setInvalid(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
-                        break;
-                    default:
-                        event.setCanceled();
-                        break;
-                }
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-            } else {
-                super.insert(event, connection);
-            }
-        }
-
-        @Override
-        void update(AddressEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            AddressDAO dao = IAddressDAO.assertValidAddress(event.getDataAccessObject());
-            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
-                    .append(") FROM ").append(DbTable.ADDRESS.getDbName())
-                    .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
-            if (dao.address1.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS1.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.ADDRESS1.getDbName()).append(")=?");
-            }
-            if (dao.address2.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS2.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.ADDRESS2.getDbName()).append(")=?");
-            }
-            if (dao.postalCode.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=?");
-            }
-            if (dao.phone.isEmpty()) {
-                sb.append(" AND LENGTH(").append(DbColumn.PHONE.getDbName()).append(")=0");
-            } else {
-                sb.append(" AND LOWER(").append(DbColumn.PHONE.getDbName()).append(")=?");
-            }
-            sb.append(" AND ").append(DbColumn.ADDRESS_ID.getDbName()).append("<>?");
-            String sql = sb.toString();
-            int count;
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, ModelHelper.getPrimaryKey(dao.getCity()));
-                int index = 2;
-                if (!dao.address1.isEmpty()) {
-                    ps.setString(index++, dao.address1.toLowerCase());
-                }
-                if (!dao.address2.isEmpty()) {
-                    ps.setString(index++, dao.address2.toLowerCase());
-                }
-                if (!dao.postalCode.isEmpty()) {
-                    ps.setString(index++, dao.postalCode.toLowerCase());
-                }
-                if (!dao.phone.isEmpty()) {
-                    ps.setString(index++, dao.phone.toLowerCase());
-                }
-                if (dao.getRowState() != DataRowState.NEW) {
+                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
                     ps.setInt(index, dao.getPrimaryKey());
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
@@ -426,22 +323,15 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                     } else {
                         throw new SQLException("Unexpected lack of results from database query");
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking address conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
             if (count > 0) {
                 event.setInvalid("Address already exusts", "Another matching address exists");
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
 
@@ -451,52 +341,48 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 switch (city.getRowState()) {
                     case NEW:
                         cityEvent = event.createCityEvent(DbOperationType.DB_INSERT);
-                        CityDAO.FACTORY.insert(cityEvent, connection);
                         break;
                     case UNMODIFIED:
-                        super.insert(event, connection);
+                        event.setSucceeded();
                         return;
                     default:
                         cityEvent = event.createCityEvent(DbOperationType.DB_UPDATE);
-                        CityDAO.FACTORY.update(cityEvent, connection);
                         break;
                 }
+                new SaveTask<>(cityEvent).run();
                 switch (cityEvent.getStatus()) {
                     case SUCCEEDED:
-                        super.update(event, connection);
-                        return;
+                        break;
                     case FAULTED:
                         event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage(), cityEvent.getFault());
+                        return;
                     case INVALID:
                         event.setInvalid(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
+                        return;
                     default:
                         event.setCanceled();
+                        return;
                 }
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-            } else {
-                super.insert(event, connection);
             }
+            event.setSucceeded();
         }
 
         @Override
-        protected void delete(AddressEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            AddressDAO dao = event.getDataAccessObject();
-
+        void validateDelete(DeleteTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> task) {
+            AddressEvent event = task.getValidationEvent();
+            Connection connection = task.getConnection();
+            AddressDAO dao = task.getDataAccessObject();
             int count;
             try {
                 count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
             switch (count) {
                 case 0:
-                    super.delete(event, connection);
+                    event.setSucceeded();
                     return;
                 case 1:
                     event.setInvalid("Address in use", "Address is referenced by one customer.");
@@ -505,7 +391,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                     event.setInvalid("Address in use", String.format("Address is referenced by %d other customers", count));
                     break;
             }
-            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override
@@ -637,20 +522,10 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         int result = rs.getInt(1);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");

@@ -8,7 +8,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -23,7 +22,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventDispatchChain;
@@ -49,6 +47,7 @@ import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
+import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.view.MainController;
 import scheduler.view.task.WaitBorderPane;
@@ -66,7 +65,8 @@ import scheduler.view.task.WaitBorderPane;
  */
 public abstract class DataAccessObject extends PropertyBindable implements DbRecord, EventTarget {
 
-    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
 
     private final EventHandlerManager eventHandlerManager;
     private final OriginalValues originalValues;
@@ -389,7 +389,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      */
     public static abstract class DaoFactory<T extends DataAccessObject, E extends DbOperationEvent<? extends FxRecordModel<T>, T>> implements EventTarget {
 
-        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
         private final EventHandlerManager eventHandlerManager;
         private final DataObjectCache<T> dataObjectCache = new DataObjectCache<>();
 
@@ -397,45 +398,61 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             eventHandlerManager = new EventHandlerManager(this);
         }
 
-        void insert(E event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.DataAccessObject.DaoFactory#insert
-        }
+        abstract void validateSave(SaveTask<T, ? extends FxRecordModel<T>, E> task);
 
-        // FIXME: Accessing model from event is a bad idea
-        E badInsert(E event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
-            StringBuilder sb = new StringBuilder();
-            sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (");
-            DbColumn[] columns = SchemaHelper.getTableColumns(getDbTable(),
-                    (t) -> t.getUsageCategory() != ColumnCategory.PRIMARY_KEY).toArray(DbColumn[]::new);
-            Iterator<DbColumn> iterator = Arrays.stream(columns).iterator();
-            sb.append(iterator.next().getDbName());
-            int index = 1;
-            while (iterator.hasNext()) {
-                index++;
-                sb.append(", ").append(iterator.next().getDbName());
-            }
-            sb.append(") VALUES (?");
-            for (int i = 1; i < index; i++) {
-                sb.append(", ?");
-            }
-            sb.append(")");
-            String sql = sb.toString();
+        final void saveChanges(SaveTask<T, ? extends FxRecordModel<T>, E> task) {
+            E event = task.getCompletionEvent();
+            Connection connection = task.getConnection();
             T dao = event.getDataAccessObject();
             DataAccessObject dataObj = (DataAccessObject) dao;
-            try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                index = 1;
+            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
+            StringBuilder sb = new StringBuilder();
+            DbColumn[] columns;
+            Iterator<DbColumn> iterator;
+            DbName dbName;
+            int colNum = 0;
+            if (event.getOperation() == DbOperationType.DB_INSERT) {
+                columns = SchemaHelper.getTableColumns(getDbTable(),
+                        (t) -> t.getUsageCategory() != ColumnCategory.PRIMARY_KEY).toArray(DbColumn[]::new);
                 iterator = Arrays.stream(columns).iterator();
+                sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (")
+                        .append(iterator.next().getDbName());
+                int index = 1;
+                while (iterator.hasNext()) {
+                    index++;
+                    sb.append(", ").append(iterator.next().getDbName());
+                }
+                sb.append(") VALUES (?");
+                for (int i = 1; i < index; i++) {
+                    sb.append(", ?");
+                }
+                sb.append(")");
+            } else {
+                columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
+                iterator = Arrays.stream(columns).iterator();
+                dbName = iterator.next().getDbName();
+                sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
+                LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
+                sb.append(dbName).append("=?");
+                while (iterator.hasNext()) {
+                    dbName = iterator.next().getDbName();
+                    LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                    sb.append(", ").append(dbName).append("=?");
+                }
+                dbName = getPrimaryKeyColumn().getDbName();
+                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                sb.append(" WHERE ").append(dbName).append("=?");
+            }
+            String sql = sb.toString();
+            try (PreparedStatement ps = (event.getOperation() == DbOperationType.DB_INSERT)
+                    ? connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+                    : connection.prepareStatement(sb.toString())) {
+                iterator = Arrays.stream(columns).iterator();
+                int index = 1;
                 do {
                     DbColumn column = iterator.next();
                     try {
-                        LOG.fine(String.format("Setting value for %s at index %d", column.getDbName(), index));
+                        LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
                         if (column.getUsageCategory() == ColumnCategory.AUDIT) {
                             switch (column.getDbName()) {
                                 case CREATE_DATE:
@@ -455,12 +472,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                                     ps.setString(index++, dataObj.lastModifiedBy);
                                     break;
                                 default:
-                                    SQLWarning sqlWarning = connection.getWarnings();
-                                    if (null != sqlWarning) {
-                                        do {
-                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                    }
+                                    LogHelper.logWarnings(connection, LOG);
                                     throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
                             }
                         } else {
@@ -469,155 +481,91 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     } catch (SQLException ex) {
                         event.setFaulted("Unexpected Error", String.format("Error setting value for column %s", column.getDbName()), ex);
                         LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                        return event;
+                        return;
                     }
                 } while (iterator.hasNext());
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                if (ps.executeUpdate() < 1) {
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                    event.setFaulted("No change", "executeUpdate unexpectedly resulted in no database changes");
-                    return event;
-                }
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (!rs.next()) {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                        throw new SQLException("No primary key returned");
-                    }
-                    dataObj.primaryKey = rs.getInt(1);
-                    dataObjectCache.put(dao);
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                } catch (SQLException ex) {
-                    event.setFaulted("Unexpected Error", "Error getting new primary key value", ex);
-                    LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                    return event;
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected Error", "Error executing DML statement", ex);
-                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
-                return event;
-            }
-            event.setSucceeded();
-            E resultEvent = createDbOperationEvent(event, DbOperationType.DB_INSERT);
-            resultEvent.setSucceeded();
-            return resultEvent;
-        }
-
-        void update(E event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.DataAccessObject.DaoFactory#update
-        }
-
-        // FIXME: Accessing model from event is a bad idea
-        E badUpdate(E event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            T dao = event.getDataAccessObject();
-            DataAccessObject dataObj = (DataAccessObject) dao;
-            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
-            StringBuilder sb = new StringBuilder();
-            sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
-            DbColumn[] columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
-            Iterator<DbColumn> iterator = Arrays.stream(columns).iterator();
-            DbName dbName = iterator.next().getDbName();
-            int colNum = 0;
-            LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
-            sb.append(dbName).append("=?");
-            while (iterator.hasNext()) {
-                dbName = iterator.next().getDbName();
-                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
-                sb.append(", ").append(dbName).append("=?");
-            }
-            dbName = getPrimaryKeyColumn().getDbName();
-            LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
-            sb.append(" WHERE ").append(dbName).append("=?");
-            String sql = sb.toString();
-            try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
-                iterator = Arrays.stream(columns).iterator();
-                int index = 1;
-                do {
-                    DbColumn column = iterator.next();
+                if (event.getOperation() != DbOperationType.DB_INSERT) {
                     try {
-                        LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
-                        if (column.getUsageCategory() == ColumnCategory.AUDIT) {
-                            switch (column.getDbName()) {
-                                case LAST_UPDATE:
-                                    dataObj.lastModifiedDate = timeStamp;
-                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
-                                    break;
-                                case LAST_UPDATE_BY:
-                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
-                                    ps.setString(index++, dataObj.lastModifiedBy);
-                                    break;
-                                default:
-                                    SQLWarning sqlWarning = connection.getWarnings();
-                                    if (null != sqlWarning) {
-                                        do {
-                                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                                    }
-                                    throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
-                            }
-                        } else {
-                            applyColumnValue(dao, column, ps, index++);
-                        }
+                        LOG.fine(String.format("Setting value primary key at index %d", index));
+                        ps.setInt(index, dataObj.primaryKey);
                     } catch (SQLException ex) {
-                        event.setFaulted("Unexpected Error", String.format("Error setting value for column %s", column.getDbName()), ex);
+                        LogHelper.logWarnings(connection, LOG);
+                        event.setFaulted("Unexpected Error", "Error setting value for primary key column", ex);
                         LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                        return event;
+                        return;
                     }
-                } while (iterator.hasNext());
-                try {
-                    LOG.fine(String.format("Setting value primary key at index %d", index));
-                    ps.setInt(index, dataObj.primaryKey);
-                } catch (SQLException ex) {
-                    event.setFaulted("Unexpected Error", "Error setting value for primary key column", ex);
-                    LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                    return event;
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 if (ps.executeUpdate() < 1) {
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                     event.setFaulted("No change", "executeUpdate unexpectedly resulted in no database changes");
-                    return event;
+                    return;
                 }
-                SQLWarning sqlWarning = connection.getWarnings();
-                if (null != sqlWarning) {
-                    do {
-                        LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                    } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                LogHelper.logWarnings(connection, LOG);
+                if (event.getOperation() == DbOperationType.DB_INSERT) {
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        if (!rs.next()) {
+                            LogHelper.logWarnings(connection, LOG);
+                            throw new SQLException("No primary key returned");
+                        }
+                        dataObj.primaryKey = rs.getInt(1);
+                        dataObjectCache.put(dao);
+                        LogHelper.logWarnings(connection, LOG);
+                    } catch (SQLException ex) {
+                        event.setFaulted("Unexpected Error", "Error getting new primary key value", ex);
+                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+                        return;
+                    }
                 }
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected Error", "Error executing DML statement", ex);
                 LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
-                return event;
+                return;
             }
             event.setSucceeded();
-            E resultEvent = createDbOperationEvent(event, DbOperationType.DB_UPDATE);
-            resultEvent.setSucceeded();
-            return resultEvent;
+        }
+
+        abstract void validateDelete(DeleteTask<T, ? extends FxRecordModel<T>, E> task);
+
+        final void deleteRecord(DeleteTask<T, ? extends FxRecordModel<T>, E> task) {
+            E event = task.getCompletionEvent();
+            Connection connection = task.getConnection();
+            T dao = task.getDataAccessObject();
+            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
+            DataRowState oldRowState = dataObj.rowState;
+            try (ChangeEventDeferral eventDeferral = dataObj.deferChangeEvents()) {
+                synchronized (dataObj) {
+                    if (dataObj.rowState == DataRowState.DELETED) {
+                        event.setFaulted("Already deleted", "Item has already been deleted");
+                        return;
+                    }
+                    if (dataObj.rowState == DataRowState.NEW) {
+                        event.setFaulted("Not Saved", "Item has never been saved to the database");
+                        return;
+                    }
+                    StringBuilder sb = new StringBuilder("DELETE FROM ");
+                    sb.append(getDbTable().getDbName()).append(" WHERE ").append(getPrimaryKeyColumn().getDbName()).append("=?");
+                    String sql = sb.toString();
+                    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                        ps.setInt(1, dataObj.primaryKey);
+                        LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                        if (ps.executeUpdate() < 1) {
+                            LogHelper.logWarnings(connection, LOG);
+                            event.setFaulted("No results", "executeUpdate unexpectedly resulted in no database changes");
+                        }
+                        LogHelper.logWarnings(connection, LOG);
+                    }
+                    dataObj.rowState = DataRowState.DELETED;
+                }
+            } catch (Exception ex) {
+                event.setFaulted("Unexpected error", "Error deleting object from database", ex);
+                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+            } finally {
+                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
+            }
+            if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
+                event.setSucceeded();
+            }
         }
 
         /**
@@ -628,7 +576,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return A list of items loaded.
          * @throws SQLException if unable to read data from the database.
          */
-        public List<T> load(Connection connection, DaoFilter<T> filter) throws SQLException {
+        public final List<T> load(Connection connection, DaoFilter<T> filter) throws SQLException {
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build();
             if (null != filter && !filter.isEmpty()) {
@@ -652,12 +600,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                             result.add(item);
                         }
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             return result;
@@ -672,13 +615,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param onFail The {@link Consumer} to invoke if an exception is thrown.
          * @return The {@link Task} that has been started.
          */
-        public Task<List<T>> loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+        public final Task<List<T>> loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
             LoadTask<T> task = new LoadTask<>(this, filter, onSuccess, onFail);
             waitBorderPane.startNow(task);
             return task;
         }
 
-        public Task<List<T>> loadAsync(DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+        public final Task<List<T>> loadAsync(DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
             LoadTask<T> task = new LoadTask<>(this, filter, onSuccess, onFail);
             MainController.startBusyTaskNow(task);
             return task;
@@ -755,7 +698,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @throws SQLException if unable to read values from the {@link ResultSet}.
          */
         @SuppressWarnings("try")
-        protected T fromResultSet(ResultSet rs) throws SQLException {
+        protected final T fromResultSet(ResultSet rs) throws SQLException {
             int key = rs.getInt(getPrimaryKeyColumn().toString());
             T dao = dataObjectCache.get(key, () -> {
                 T t = createNew();
@@ -819,7 +762,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @return The {@link DbTable} for the supported {@link DataAccessObject}.
          */
-        public DbTable getDbTable() {
+        public final DbTable getDbTable() {
             return AnnotationHelper.getDbTable(getDaoClass());
         }
 
@@ -873,7 +816,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return An {@link Optional} {@link DataAccessObject} which will be empty if no match was found.
          * @throws SQLException If unable to perform the database operation.
          */
-        public Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
+        public final Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
             Objects.requireNonNull(connection, "Connection cannot be null");
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build().append(" WHERE ");
@@ -894,101 +837,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         Optional<T> result = Optional.of(fromResultSet(rs));
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             return Optional.empty();
-        }
-
-        /**
-         * Deletes the corresponding {@link DataAccessObject} from the database.
-         *
-         * @param event
-         * @param connection
-         */
-        protected void delete(E event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.DataAccessObject.DaoFactory#delete
-        }
-
-        // FIXME: Accessing model from event is a bad idea
-        @SuppressWarnings("try")
-        protected E badDelete(E event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
-            DataRowState oldRowState = dataObj.rowState;
-            try (ChangeEventDeferral eventDeferral = dataObj.deferChangeEvents()) {
-                synchronized (dataObj) {
-                    if (dataObj.rowState == DataRowState.DELETED) {
-                        event.setSucceeded();
-                        return event;
-                    }
-                    if (dataObj.rowState == DataRowState.NEW) {
-                        throw new IllegalArgumentException(String.format("%s has not been inserted into the database", event.getDataAccessObject().getClass().getName()));
-                    }
-                    StringBuilder sb = new StringBuilder("DELETE FROM ");
-                    sb.append(getDbTable().getDbName()).append(" WHERE ").append(getPrimaryKeyColumn().getDbName()).append("=?");
-                    String sql = sb.toString();
-                    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                        ps.setInt(1, dataObj.primaryKey);
-                        LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                        if (ps.executeUpdate() < 1) {
-                            SQLWarning sqlWarning = connection.getWarnings();
-                            if (null != sqlWarning) {
-                                do {
-                                    LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                            }
-                            event.setFaulted("No results", "executeUpdate unexpectedly resulted in no database changes");
-                        }
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                    }
-                    dataObj.rowState = DataRowState.DELETED;
-                }
-            } catch (Exception ex) {
-                event.setFaulted("Unexpected error", "Error deleting object from database", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-            } finally {
-                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
-            }
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            event.setSucceeded();
-            E resultEvent = createDbOperationEvent(event, DbOperationType.DB_DELETE);
-            resultEvent.setSucceeded();
-            if (Platform.isFxApplicationThread()) {
-                LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
-                Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
-            } else {
-                Platform.runLater(() -> {
-                    LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
-                    Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
-                });
-            }
-            return resultEvent;
         }
 
         protected abstract E createDbOperationEvent(E sourceEvent, DbOperationType operation);
@@ -1015,7 +870,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        public final void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -1026,7 +881,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        public final void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.addEventFilter(type, eventHandler);
         }
 
@@ -1037,7 +892,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        public final void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -1048,7 +903,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        public final void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
             eventHandlerManager.removeEventFilter(type, eventHandler);
         }
 
@@ -1056,85 +911,229 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends Task<E> {
 
-        private final E inpuEvent;
+        private final D dataAccessObject;
         private final DaoFactory<D, E> daoFactory;
+        private final E validationEvent;
+        private E completionEvent;
+        private Connection connection;
 
         @SuppressWarnings("unchecked")
-        protected DaoTask(E event) {
-            this.inpuEvent = event;
-            daoFactory = (DaoFactory<D, E>) event.getModelFactory().getDaoFactory();
+        protected DaoTask(E validationEvent) {
+            dataAccessObject = (this.validationEvent = validationEvent).getDataAccessObject();
+            daoFactory = (DaoFactory<D, E>) validationEvent.getModelFactory().getDaoFactory();
+            switch (validationEvent.getOperation()) {
+                case INSERT_VALIDATION:
+                    if (dataAccessObject.getRowState() != DataRowState.NEW) {
+                        throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
+                                validationEvent.getOperation(), dataAccessObject.getRowState()));
+                    }
+                    break;
+                case UPDATE_VALIDATION:
+                    switch (dataAccessObject.getRowState()) {
+                        case MODIFIED:
+                        case UNMODIFIED:
+                            break;
+                        default:
+                            throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
+                                    validationEvent.getOperation(), dataAccessObject.getRowState()));
+                    }
+                    break;
+                case DELETE_VALIDATION:
+                    switch (dataAccessObject.getRowState()) {
+                        case MODIFIED:
+                        case UNMODIFIED:
+                            break;
+                        default:
+                            throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
+                                    validationEvent.getOperation(), dataAccessObject.getRowState()));
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
+                            validationEvent.getOperation(), dataAccessObject.getRowState()));
+            }
         }
 
-        public E getInpuEvent() {
-            return inpuEvent;
+        @Override
+        public void updateMessage(String message) {
+            super.updateMessage(message);
+        }
+
+        @Override
+        public void updateTitle(String title) {
+            super.updateTitle(title);
+        }
+
+        public E getValidationEvent() {
+            return validationEvent;
+        }
+
+        public E getCurrentEvent() {
+            return (null == completionEvent) ? validationEvent : completionEvent;
+        }
+
+        public E getCompletionEvent() {
+            return completionEvent;
+        }
+
+        public D getDataAccessObject() {
+            return dataAccessObject;
+        }
+
+        public Connection getConnection() {
+            return connection;
         }
 
         public DaoFactory<D, E> getDaoFactory() {
             return daoFactory;
         }
 
-        @Override
-        protected void succeeded() {
-            E e = getValue();
-            if (e != inpuEvent) {
-                switch (e.getStatus()) {
-                    case FAULTED:
-                        if (inpuEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                            inpuEvent.setFaulted(e.getSummaryTitle(), e.getDetailMessage(), e.getFault());
-                        }
+        private synchronized E ensureCompletedEvent() {
+            if (null == completionEvent) {
+                switch (validationEvent.getOperation()) {
+                    case DELETE_VALIDATION:
+                        completionEvent = daoFactory.createDbOperationEvent(validationEvent, DbOperationType.DB_DELETE);
                         break;
-                    case SUCCEEDED:
-                        if (inpuEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                            inpuEvent.setSucceeded();
-                        }
+                    case INSERT_VALIDATION:
+                        completionEvent = daoFactory.createDbOperationEvent(validationEvent, DbOperationType.DB_INSERT);
                         break;
-                    case INVALID:
-                        if (inpuEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                            inpuEvent.setInvalid(e.getSummaryTitle(), e.getDetailMessage());
-                        }
+                    case UPDATE_VALIDATION:
+                        completionEvent = daoFactory.createDbOperationEvent(validationEvent, DbOperationType.DB_UPDATE);
                         break;
                     default:
-                        if (inpuEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                            inpuEvent.setCanceled();
-                        }
-                        break;
+                        return validationEvent;
                 }
             }
+            return completionEvent;
+        }
+
+        @Override
+        protected void succeeded() {
+            if (null == completionEvent) {
+                ensureCompletedEvent();
+                if (null != completionEvent) {
+                    switch (validationEvent.getStatus()) {
+                        case EVALUATING:
+                            validationEvent.setSucceeded();
+                            completionEvent.setCanceled();
+                            break;
+                        case FAULTED:
+                            completionEvent.setFaulted(validationEvent.getSummaryTitle(), validationEvent.getDetailMessage(), validationEvent.getFault());
+                            break;
+                        case INVALID:
+                            completionEvent.setInvalid(validationEvent.getSummaryTitle(), validationEvent.getDetailMessage());
+                            break;
+                        default:
+                            completionEvent.setCanceled();
+                            break;
+                    }
+                    LOG.fine(() -> String.format("Firing %s", completionEvent));
+                    Event.fireEvent(getDataAccessObject(), completionEvent);
+                } else if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
+                    validationEvent.setCanceled();
+                }
+            } else {
+                if (completionEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
+                    completionEvent.setSucceeded();
+                }
+                LOG.fine(() -> String.format("Firing %s", completionEvent));
+                Event.fireEvent(getDataAccessObject(), completionEvent);
+            }
             super.succeeded();
-            onCompleted(e);
         }
 
         @Override
         protected void cancelled() {
-            if (inpuEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                inpuEvent.setCanceled();
+            LOG.warning(() -> String.format("Task canceled: %s", getCurrentEvent()));
+            if (null == completionEvent) {
+                if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
+                    validationEvent.setCanceled();
+                }
+            }
+            E event = ensureCompletedEvent();
+            if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
+                event.setCanceled();
+            }
+            if (null != completionEvent) {
+                LOG.fine(() -> String.format("Firing %s", completionEvent));
+                Event.fireEvent(getDataAccessObject(), completionEvent);
             }
             super.cancelled();
-            onCompleted(inpuEvent);
         }
 
         @Override
         protected void failed() {
-            if (inpuEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                Throwable fault = getException();
-                inpuEvent.setFaulted("Unexpected failure", fault.getMessage(), fault);
+            Throwable fault = getException();
+            LOG.log(Level.SEVERE, String.format("Task failed: %s", getCurrentEvent()), fault);
+            if (null == completionEvent) {
+                if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
+                    validationEvent.setFaulted("Task failed", fault.getMessage(), fault);
+                }
+            }
+            E event = ensureCompletedEvent();
+            if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
+                event.setFaulted("Task failed", fault.getMessage(), fault);
+            }
+            if (null != completionEvent) {
+                LOG.fine(() -> String.format("Firing %s", completionEvent));
+                Event.fireEvent(getDataAccessObject(), completionEvent);
             }
             super.failed();
-            onCompleted(inpuEvent);
         }
 
-        protected abstract E call(E event, Connection connection) throws Exception;
+        protected abstract void onValidate() throws Exception;
+
+        protected abstract void onExecute() throws Exception;
 
         @Override
         protected E call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
+                connection = dbConnector.getConnection();
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                return call(inpuEvent, dbConnector.getConnection());
+                DataAccessObject dao = dataAccessObject;
+                DataRowState oldRowState = dao.rowState;
+                try (ChangeEventDeferral eventDeferral = dataAccessObject.deferChangeEvents()) {
+                    synchronized (dataAccessObject) {
+                        if (validationEvent.getOperation() == DbOperationType.INSERT_VALIDATION) {
+                            if (dao.rowState != DataRowState.NEW) {
+                                throw new IllegalStateException("Invalid row state");
+                            }
+                        } else {
+                            switch (dao.rowState) {
+                                case MODIFIED:
+                                case UNMODIFIED:
+                                    break;
+                                default:
+                                    throw new IllegalStateException("Invalid row state");
+                            }
+                        }
+                    }
+                    if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
+                        onValidate();
+                    }
+                    switch (validationEvent.getStatus()) {
+                        case EVALUATING:
+                            validationEvent.setSucceeded();
+                            break;
+                        case SUCCEEDED:
+                            break;
+                        default:
+                            return validationEvent;
+                    }
+                    ensureCompletedEvent();
+                    if (null != completionEvent) {
+                        onExecute();
+                    }
+                }
+                if (null != completionEvent && completionEvent.getStatus() == EventEvaluationStatus.SUCCEEDED) {
+                    dao.acceptChanges();
+                    dao.rowState = DataRowState.UNMODIFIED;
+                    dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
+                }
+                return getCurrentEvent();
             }
         }
-
-        protected abstract void onCompleted(E e);
 
     }
 
@@ -1171,50 +1170,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         @Override
-        @SuppressWarnings("try")
-        protected E call(E event, Connection connection) throws Exception {
-            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
-            oldRowState = dataObj.rowState;
-            E resultEvent;
-            try (ChangeEventDeferral eventDeferral = dataObj.deferChangeEvents()) {
-                synchronized (dataObj) {
-                    if (event.getOperation() == DbOperationType.INSERT_VALIDATION) {
-                        if (dataObj.getRowState() != DataRowState.NEW) {
-                            throw new IllegalStateException("Invalid row state");
-                        }
-                        resultEvent = getDaoFactory().badInsert(event, connection);
-                    } else {
-                        switch (dataObj.getRowState()) {
-                            case MODIFIED:
-                            case UNMODIFIED:
-                                break;
-                            default:
-                                throw new IllegalStateException("Invalid row state");
-                        }
-                        resultEvent = getDaoFactory().badUpdate(event, connection);
-                    }
-                }
-            } catch (Exception ex) {
-                (resultEvent = event).setFaulted("Unexpected error", "Unxpected exception in change deferral", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-            }
-            if (resultEvent.getStatus() == EventEvaluationStatus.SUCCEEDED) {
-                dataObj.acceptChanges();
-                dataObj.rowState = DataRowState.UNMODIFIED;
-                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
-            }
-            return resultEvent;
+        protected void onValidate() throws Exception {
+            getDaoFactory().validateSave(this);
         }
 
         @Override
-        @SuppressWarnings("incomplete-switch")
-        protected void onCompleted(E e) {
-            switch (e.getOperation()) {
-                case DB_INSERT:
-                case DB_UPDATE:
-                    Event.fireEvent(e.getDataAccessObject(), e);
-                    break;
-            }
+        protected void onExecute() throws Exception {
+            getDaoFactory().saveChanges(this);
         }
 
     }
@@ -1245,15 +1207,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         @Override
-        protected E call(E event, Connection connection) throws Exception {
-            return getDaoFactory().badDelete(event, connection);
+        protected void onValidate() throws Exception {
+            getDaoFactory().validateDelete(this);
         }
 
         @Override
-        protected void onCompleted(E e) {
-            if (e.getOperation() == DbOperationType.DB_DELETE) {
-                Event.fireEvent(e.getDataAccessObject(), e);
-            }
+        protected void onExecute() throws Exception {
+            getDaoFactory().deleteRecord(this);
         }
 
     }

@@ -331,22 +331,32 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         @Override
         @SuppressWarnings("incomplete-switch")
-        protected void onCompleted(E e) {
-            switch (e.getOperation()) {
-                case DB_INSERT:
-                    if (keepOpen) {
-                        editorRegion.fireEvent(e);
-                    } else {
-                        getScene().getWindow().hide();
+        protected void succeeded() {
+            super.succeeded();
+            E e = getCurrentEvent();
+            switch (e.getStatus()) {
+                case FAULTED:
+                    // FIXME: Not sure if this is being presented in the WaitBorderPane
+                    break;
+                case INVALID:
+                    // FIXME: Not sure if this is being presented in the WaitBorderPane
+                    break;
+                case SUCCEEDED:
+                    switch (e.getOperation()) {
+                        case DB_INSERT:
+                            if (keepOpen) {
+                                editorRegion.fireEvent(e);
+                            } else {
+                                getScene().getWindow().hide();
+                            }
+                            break;
+                        case DB_UPDATE:
+                            getScene().getWindow().hide();
+                            break;
                     }
                     break;
-                case DB_UPDATE:
-                    getScene().getWindow().hide();
-                    break;
             }
-            super.onCompleted(e);
         }
-
     }
 
 }

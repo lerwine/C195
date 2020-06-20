@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,11 +22,11 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.CountryEvent;
 import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CountryModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -46,7 +45,8 @@ import static scheduler.view.country.EditCountryResourceKeys.*;
 public final class CountryDAO extends DataAccessObject implements CountryDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    private static final Logger LOG = Logger.getLogger(CountryDAO.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CountryDAO.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(CountryDAO.class.getName());
 
     private final OriginalValues originalValues;
     private String name;
@@ -157,140 +157,69 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        void insert(CountryEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
+        void validateSave(SaveTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> task) {
+            CountryEvent event = task.getValidationEvent();
+            Connection connection = task.getConnection();
+            CountryDAO dao;
+            try {
+                dao = ICountryDAO.assertValidCountry(event.getDataAccessObject());
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                event.setFaulted("Invalid Country", ex.getMessage(), ex);
+                return;
             }
-            super.insert(event, connection); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#insert
-        }
-
-        // FIXME: Accessing model from event is a bad idea
-        @Override
-        CountryEvent badInsert(CountryEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
+            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())
+                    .append(") FROM ").append(DbTable.COUNTRY.getDbName()).append(" WHERE ").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
+            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                sb.append(" AND ").append(DbColumn.COUNTRY_ID.getDbName()).append("<>?");
             }
-            String sql = "SELECT COUNT(" + DbColumn.COUNTRY_ID.getDbName() + ") FROM " + DbTable.COUNTRY.getDbName()
-                    + " WHERE " + DbColumn.COUNTRY_NAME.getDbName() + "=?";
-            CountryDAO dao = ICountryDAO.assertValidCountry(event.getDataAccessObject());
+            String sql = sb.toString();
             String lt = dao.locale.toLanguageTag();
             int count;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, lt);
+                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                    ps.setInt(2, dao.getPrimaryKey());
+                }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         throw new SQLException("Unexpected lack of results from database query");
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking country naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                return;
             }
 
             if (count > 0) {
                 event.setInvalid("Name in use", ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
-                return event;
+            } else {
+                event.setSucceeded();
             }
-            return super.badInsert(event, connection);
         }
 
         @Override
-        void update(CountryEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            super.update(event, connection); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#update
-        }
-
-        // FIXME: Accessing model from event is a bad idea
-        @Override
-        CountryEvent badUpdate(CountryEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            String sql = "SELECT COUNT(" + DbColumn.COUNTRY_ID.getDbName() + ") FROM " + DbTable.COUNTRY.getDbName()
-                    + " WHERE " + DbColumn.COUNTRY_NAME.getDbName() + "=?" + " AND " + DbColumn.COUNTRY_ID.getDbName() + "<>?";
-            CountryDAO dao = ICountryDAO.assertValidCountry(event.getDataAccessObject());
-            String lt = dao.locale.toLanguageTag();
-            int count;
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, lt);
-                ps.setInt(2, dao.getPrimaryKey());
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking country naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
-            }
-
-            if (count > 0) {
-                event.setInvalid("Name in use", ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
-                return event;
-            }
-            return super.badUpdate(event, connection);
-        }
-
-        @Override
-        protected void delete(CountryEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            super.delete(event, connection); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#delete
-        }
-
-        // FIXME: Accessing model from event is a bad idea
-        @Override
-        protected CountryEvent badDelete(CountryEvent event, Connection connection) {
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return event;
-            }
-            CountryDAO dao = event.getDataAccessObject();
+        void validateDelete(DeleteTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> task) {
+            CountryEvent event = task.getValidationEvent();
+            Connection connection = task.getConnection();
+            CountryDAO dao = task.getDataAccessObject();
             int count;
             try {
                 count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return event;
+                return;
             }
             switch (count) {
                 case 0:
-                    return super.badDelete(event, connection);
+                    event.setSucceeded();
+                    return;
                 case 1:
                     event.setInvalid("Country in use", ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
                     break;
@@ -298,7 +227,6 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                     event.setInvalid("Country in use", ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
                     break;
             }
-            return event;
         }
 
         @Override
@@ -392,21 +320,13 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                         do {
                             result.add(fromResultSet(rs));
                         } while (rs.next());
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null == sqlWarning) {
-                        LOG.log(Level.WARNING, "No results, no warnings.");
+                    if (LogHelper.logWarnings(connection, LOG)) {
+                        LOG.log(Level.WARNING, "No results.");
                     } else {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                        LOG.log(Level.WARNING, "No results, no warnings.");
                     }
                 }
             }
@@ -422,20 +342,10 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 try (ResultSet rs = ps.getResultSet()) {
                     if (rs.next()) {
                         CountryDAO result = fromResultSet(rs);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             return null;

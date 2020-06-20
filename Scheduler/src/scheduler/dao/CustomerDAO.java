@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,12 +28,12 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -50,7 +49,8 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 public final class CustomerDAO extends DataAccessObject implements ICustomerDAO, CustomerRecord<Timestamp> {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerDAO.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -218,45 +218,45 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        void insert(CustomerEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
+        void validateSave(SaveTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> task) {
+            CustomerEvent event = task.getValidationEvent();
+            CustomerDAO dao;
+            try {
+                dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                event.setFaulted("Invalid Customer", ex.getMessage(), ex);
+                return;
             }
-            String sql = "SELECT COUNT(" + DbColumn.CUSTOMER_ID.getDbName() + ") FROM " + DbTable.CUSTOMER.getDbName()
-                    + " WHERE LOWER(" + DbColumn.CUSTOMER_NAME.getDbName() + ")=?";
-            CustomerDAO dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
+            Connection connection = task.getConnection();
+            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
+                    .append(") FROM ").append(DbTable.CUSTOMER.getDbName()).append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME.getDbName()).append(")=?");
+            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                sb.append(" AND ").append(DbColumn.CUSTOMER_ID.getDbName()).append("<>?");
+            }
             int count;
+            String sql = sb.toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, dao.getName());
+                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                    ps.setInt(2, dao.getPrimaryKey());
+                }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         throw new SQLException("Unexpected lack of results from database query");
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
             if (count > 0) {
                 event.setInvalid("Customer name already in use", "Another customer has the same name");
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
 
@@ -266,19 +266,18 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 switch (address.getRowState()) {
                     case NEW:
                         addressEvent = event.createAddressEvent(DbOperationType.DB_INSERT);
-                        AddressDAO.FACTORY.insert(addressEvent, connection);
                         break;
                     case UNMODIFIED:
-                        super.insert(event, connection);
+                        event.setSucceeded();
                         return;
                     default:
                         addressEvent = event.createAddressEvent(DbOperationType.DB_UPDATE);
-                        AddressDAO.FACTORY.update(addressEvent, connection);
                         break;
                 }
+                new SaveTask<>(addressEvent).run();
                 switch (addressEvent.getStatus()) {
                     case SUCCEEDED:
-                        super.insert(event, connection);
+                        event.setSucceeded();
                         return;
                     case FAULTED:
                         event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
@@ -290,102 +289,16 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                         event.setCanceled();
                         break;
                 }
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-            } else {
-                super.insert(event, connection);
             }
         }
 
         @Override
-        void update(CustomerEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            CustomerDAO dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
-            String sql = "SELECT COUNT(" + DbColumn.CUSTOMER_ID.getDbName() + ") FROM " + DbTable.CUSTOMER.getDbName()
-                    + " WHERE LOWER(" + DbColumn.CUSTOMER_NAME.getDbName() + ")=?" + " AND " + DbColumn.CUSTOMER_ID.getDbName() + "<>?";
-            int count;
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, dao.getName());
-                ps.setInt(2, dao.getPrimaryKey());
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-            if (count > 0) {
-                event.setInvalid("Customer name already in use", "Another customer has the same name");
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-
-            IAddressDAO address = dao.getAddress();
-            if (address instanceof AddressDAO) {
-                AddressEvent addressEvent;
-                switch (address.getRowState()) {
-                    case NEW:
-                        addressEvent = event.createAddressEvent(DbOperationType.DB_INSERT);
-                        AddressDAO.FACTORY.insert(addressEvent, connection);
-                        break;
-                    case UNMODIFIED:
-                        super.update(event, connection);
-                        return;
-                    default:
-                        addressEvent = event.createAddressEvent(DbOperationType.DB_UPDATE);
-                        AddressDAO.FACTORY.update(addressEvent, connection);
-                        break;
-                }
-                switch (addressEvent.getStatus()) {
-                    case SUCCEEDED:
-                        super.update(event, connection);
-                        return;
-                    case FAULTED:
-                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
-                        break;
-                    case INVALID:
-                        event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
-                        break;
-                    default:
-                        event.setCanceled();
-                        break;
-                }
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-            } else {
-                super.update(event, connection);
-            }
-        }
-
-        @Override
-        protected void delete(CustomerEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            CustomerDAO dao = event.getDataAccessObject();
-
+        void validateDelete(DeleteTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> task) {
+            CustomerEvent event = task.getValidationEvent();
+            CustomerDAO dao = task.getDataAccessObject();
             int count;
             try {
-                count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
+                count = AppointmentDAO.FACTORY.countByCustomer(task.getConnection(), dao.getPrimaryKey(), null, null);
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
@@ -394,8 +307,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             }
             switch (count) {
                 case 0:
-                    super.delete(event, connection);
-                    return;
+                    event.setSucceeded();
+                    break;
                 case 1:
                     event.setInvalid("Customer in use", "Customer is referenced by one appointment.");
                     break;
@@ -403,7 +316,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
                     break;
             }
-            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override
@@ -518,20 +430,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             Optional<CustomerDAO> result = Optional.of(fromResultSet(rs));
-                            SQLWarning sqlWarning = connection.getWarnings();
-                            if (null != sqlWarning) {
-                                do {
-                                    LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                                } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                            }
+                            LogHelper.logWarnings(connection, LOG);
                             return result;
                         }
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                     }
                 }
             }
@@ -547,20 +449,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         int result = rs.getInt(1);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");

@@ -1,5 +1,8 @@
 package scheduler.util;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.Objects;
@@ -156,6 +159,17 @@ public class LogHelper {
             return sb.append('"').toString();
         }
         return Objects.toString(obj);
+    }
+
+    public static boolean logWarnings(Connection connection, Logger logger) throws SQLException {
+        SQLWarning sqlWarning = connection.getWarnings();
+        if (null == sqlWarning) {
+            return false;
+        }
+        do {
+            logger.log(Level.WARNING, "SQL warning", sqlWarning);
+        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+        return true;
     }
 
 }

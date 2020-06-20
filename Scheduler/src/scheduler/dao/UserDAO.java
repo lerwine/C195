@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -25,11 +24,11 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import scheduler.events.UserEvent;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -48,7 +47,8 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    private static final Logger LOG = Logger.getLogger(UserDAO.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(UserDAO.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(UserDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -195,59 +195,23 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        void insert(UserEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            String sql = "SELECT COUNT(" + DbColumn.USER_ID.getDbName() + ") FROM " + DbTable.USER.getDbName()
-                    + " WHERE LOWER(" + DbColumn.USER_NAME.getDbName() + ")=?";
-            int count;
-            UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, dao.getUserName());
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
+        void validateSave(SaveTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> task) {
+            UserEvent event = task.getValidationEvent();
+            UserDAO dao;
+            try {
+                dao = IUserDAO.assertValidUser(event.getDataAccessObject());
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                event.setFaulted("Invalid User", ex.getMessage(), ex);
                 return;
             }
-            if (count > 0) {
-                event.setInvalid("User name already in use", "Another user has the same name");
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-            } else {
-                super.insert(event, connection);
+            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
+                    .append(") FROM ").append(DbTable.USER.getDbName()).append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?");
+            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                sb.append(" AND ").append(DbColumn.USER_ID.getDbName()).append("<>?");
             }
-        }
-
-        @Override
-        void update(UserEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            String sql = "SELECT COUNT(" + DbColumn.USER_ID.getDbName() + ") FROM " + DbTable.USER.getDbName()
-                    + " WHERE LOWER(" + DbColumn.USER_NAME.getDbName() + ")=?" + " AND " + DbColumn.USER_ID.getDbName() + "<>?";
             int count;
-            UserDAO dao = IUserDAO.assertValidUser(event.getDataAccessObject());
+            String sql = sb.toString();
+            Connection connection = task.getConnection();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, dao.getUserName());
                 ps.setInt(2, dao.getPrimaryKey());
@@ -256,51 +220,35 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         throw new SQLException("Unexpected lack of results from database query");
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
             if (count > 0) {
                 event.setInvalid("User name already in use", "Another user has the same name");
-                Platform.runLater(() -> Event.fireEvent(dao, event));
             } else {
-                super.update(event, connection);
+                event.setSucceeded();
             }
         }
 
         @Override
-        protected void delete(UserEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
+        void validateDelete(DeleteTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> task) {
+            UserEvent event = task.getValidationEvent();
             UserDAO dao = event.getDataAccessObject();
-
             if (dao == Scheduler.getCurrentUser()) {
                 event.setInvalid("Self-delete", "Cannot delete the current user");
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
 
             int count;
             try {
-                count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
+                count = AppointmentDAO.FACTORY.countByUser(task.getConnection(), dao.getPrimaryKey(), null, null);
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
@@ -309,7 +257,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             }
             switch (count) {
                 case 0:
-                    super.delete(event, connection);
+                    event.setSucceeded();
                     return;
                 case 1:
                     event.setInvalid("User in use", "User is referenced by one appointment.");
@@ -318,7 +266,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                     event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
                     break;
             }
-            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override
@@ -360,17 +307,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         public DmlSelectQueryBuilder createDmlSelectQueryBuilder() {
             return new DmlSelectQueryBuilder(DbTable.USER, SchemaHelper.getTableColumns(DbTable.USER));
-        }
-
-        @Override
-        protected UserDAO fromResultSet(ResultSet rs) throws SQLException {
-            UserDAO result = super.fromResultSet(rs);
-            UserDAO currentUser = Scheduler.getCurrentUser();
-            if (null != currentUser && currentUser.getPrimaryKey() == result.getPrimaryKey()) {
-                UserDAO.FACTORY.cloneProperties(currentUser, result);
-                return currentUser;
-            }
-            return result;
         }
 
         @Override
@@ -439,19 +375,11 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 try (ResultSet rs = ps.executeQuery()) {
                     if (null != rs && rs.next()) {
                         Optional<UserDAO> result = Optional.of(fromResultSet(rs));
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
+                    if (LogHelper.logWarnings(connection, LOG)) {
+                        LOG.log(Level.WARNING, "No results");
                     } else {
                         LOG.log(Level.WARNING, "No results, no warnings.");
                     }

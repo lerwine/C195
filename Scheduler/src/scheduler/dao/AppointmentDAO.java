@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,8 +13,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.AppointmentAlertManager;
@@ -31,7 +28,6 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import scheduler.events.UserEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
@@ -40,6 +36,7 @@ import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -55,7 +52,8 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 public final class AppointmentDAO extends DataAccessObject implements AppointmentDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -566,20 +564,10 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         int result = rs.getInt(1);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
@@ -614,12 +602,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     while (rs.next()) {
                         result.add(new AppointmentCountByType(AppointmentType.of(rs.getString(DbColumn.TYPE.toString()), AppointmentType.OTHER), rs.getInt("c")));
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                     return result;
                 }
             }
@@ -662,12 +645,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     while (rs.next()) {
                         result.add(new ItemCountResult<>(rs.getString(DbColumn.COUNTRY_NAME.toString()), rs.getInt("c")));
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                     return result;
                 }
             }
@@ -707,20 +685,10 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         int result = rs.getInt(1);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
@@ -760,58 +728,26 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         int result = rs.getInt(1);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
         }
 
         @Override
-        void insert(AppointmentEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            onSave(event, connection);
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                Platform.runLater(() -> Event.fireEvent(event.getDataAccessObject(), event));
-            } else {
-                super.insert(event, connection);
-            }
+        void validateDelete(DeleteTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> task) {
+            task.getValidationEvent().setSucceeded();
         }
 
         @Override
-        void update(AppointmentEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_UPDATE) {
-                throw new IllegalArgumentException();
-            }
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                return;
-            }
-            onSave(event, connection);
-            if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                Platform.runLater(() -> Event.fireEvent(event.getDataAccessObject(), event));
-            } else {
-                super.update(event, connection);
-            }
-        }
-
-        private void onSave(AppointmentEvent event, Connection connection) {
-            AppointmentDAO appointment = event.getDataAccessObject();
+        void validateSave(SaveTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> task) {
+            AppointmentEvent event = task.getValidationEvent();
+            AppointmentDAO appointment;
             try {
-                IAppointmentDAO.assertValidAppointment(appointment);
+                appointment = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject());
             } catch (IllegalArgumentException | IllegalStateException ex) {
                 event.setFaulted("Invalid Appointment", ex.getMessage(), ex);
                 return;
@@ -822,17 +758,16 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 switch (c.getRowState()) {
                     case NEW:
                         customerEvent = event.createCustomerEvent(DbOperationType.DB_INSERT);
-                        CustomerDAO.FACTORY.insert(customerEvent, connection);
                         break;
                     case MODIFIED:
                         customerEvent = event.createCustomerEvent(DbOperationType.DB_UPDATE);
-                        CustomerDAO.FACTORY.update(customerEvent, connection);
                         break;
                     default:
                         customerEvent = null;
                         break;
                 }
                 if (null != customerEvent) {
+                    new SaveTask<>(customerEvent).run();
                     switch (customerEvent.getStatus()) {
                         case FAULTED:
                             event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
@@ -851,32 +786,33 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             IUserDAO u = appointment.user;
             if (u instanceof UserDAO) {
                 UserEvent userEvent;
-                switch (c.getRowState()) {
+                switch (u.getRowState()) {
                     case NEW:
                         userEvent = event.createUserEvent(DbOperationType.DB_INSERT);
-                        UserDAO.FACTORY.insert(userEvent, connection);
                         break;
                     case MODIFIED:
                         userEvent = event.createUserEvent(DbOperationType.DB_UPDATE);
-                        UserDAO.FACTORY.update(userEvent, connection);
                         break;
                     default:
+                        event.setSucceeded();
                         return;
                 }
+                new SaveTask<>(userEvent).run();
                 switch (userEvent.getStatus()) {
                     case FAULTED:
                         event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
-                        break;
+                        return;
                     case INVALID:
                         event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
-                        break;
+                        return;
                     case SUCCEEDED:
                         break;
                     default:
                         event.setCanceled();
-                        break;
+                        return;
                 }
             }
+            event.setSucceeded();
         }
 
         @Override

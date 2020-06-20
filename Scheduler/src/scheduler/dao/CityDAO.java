@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -13,8 +12,6 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
@@ -34,13 +31,11 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.events.CityEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryItem;
-import scheduler.model.ui.CountryModel;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -62,7 +57,8 @@ import scheduler.view.country.EditCountryResourceKeys;
 public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CityDAO.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());
 
     public static FactoryImpl getFactory() {
         return FACTORY;
@@ -214,229 +210,103 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        void insert(CityEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_INSERT || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
+        void validateSave(SaveTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> task) {
+            CityEvent event = task.getValidationEvent();
+            CityDAO dao;
+            try {
+                dao = ICityDAO.assertValidCity(event.getDataAccessObject());
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                event.setFaulted("Invalid City", ex.getMessage(), ex);
+                return;
             }
-            String sql = "SELECT COUNT(" + DbColumn.CITY_ID.getDbName() + ") FROM " + DbTable.CITY.getDbName()
-                    + " LEFT JOIN " + DbTable.COUNTRY.getDbName() + " ON " + DbTable.CITY.getDbName() + "." + DbColumn.CITY_COUNTRY.getDbName()
-                    + "=" + DbTable.COUNTRY.getDbName() + "." + DbColumn.COUNTRY_ID.getDbName()
-                    + " WHERE " + DbTable.CITY.getDbName() + "." + DbColumn.CITY_NAME.getDbName()
-                    + " LIKE ? AND " + DbTable.COUNTRY.getDbName() + "." + DbColumn.COUNTRY_NAME.getDbName() + "=?";
-            CityDAO dao = ICityDAO.assertValidCity(event.getDataAccessObject());
+            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
+                    .append(") FROM ").append(DbTable.CITY.getDbName())
+                    .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())
+                    .append(" ON ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_COUNTRY.getDbName())
+                    .append("=").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_ID.getDbName())
+                    .append(" WHERE ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_NAME.getDbName())
+                    .append(" LIKE ? AND ").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
+            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                sb.append(" AND ").append(DbColumn.CITY_ID.getDbName()).append("<>?");
+            }
+
+            String sql = sb.toString();
             int count;
+            Connection connection = task.getConnection();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, dao.getCountry().getPrimaryKey());
                 ps.setString(2, String.format("%s;*", DB.escapeWC(dao.name)));
+                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+                    ps.setInt(3, dao.getPrimaryKey());
+                }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         count = rs.getInt(1);
                     } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         throw new SQLException("Unexpected lack of results from database query");
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
 
             if (count > 0) {
                 event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
 
-            ICountryDAO country;
-            CountryItem<? extends ICountryDAO> cm;
-            CityModel model = event.getModel();
-            if (null == model) {
-                cm = null;
-                country = ICityDAO.assertValidCity(event.getDataAccessObject()).getCountry();
-            } else {
-                country = (cm = model.getCountry()).dataObject();
-            }
-            if (country instanceof CountryDAO) {
+            ICountryDAO c = dao.country;
+            if (c instanceof CountryDAO) {
                 CountryEvent countryEvent;
-                switch (country.getRowState()) {
+                switch (c.getRowState()) {
                     case NEW:
-                        // FIXME: INSERT_VALIDATION event needs to be created from FX app thread and fired on DAO
-                        if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERT_VALIDATION), connection);
-                        } else {
-                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.INSERT_VALIDATION), connection);
-                        }
+                        countryEvent = event.createCountryEvent(DbOperationType.DB_INSERT);
                         break;
-                    case UNMODIFIED:
-                        super.insert(event, connection);
-                        return;
+                    case MODIFIED:
+                        countryEvent = event.createCountryEvent(DbOperationType.DB_UPDATE);
+                        break;
                     default:
-                        // FIXME: UPDATE_VALIDATION event needs to be created from FX app thread and fired on DAO
-                        if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATE_VALIDATION), connection);
-                        } else {
-                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.UPDATE_VALIDATION), connection);
-                        }
-                }
-                switch (countryEvent.getStatus()) {
-                    case SUCCEEDED:
-                        super.insert(event, connection);
+                        event.setSucceeded();
                         return;
+                }
+                new SaveTask<>(countryEvent).run();
+                switch (countryEvent.getStatus()) {
                     case FAULTED:
                         event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
-                        break;
+                        return;
                     case INVALID:
                         event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
+                        return;
+                    case SUCCEEDED:
                         break;
                     default:
                         event.setCanceled();
-                        break;
+                        return;
                 }
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-            } else {
-                super.insert(event, connection);
             }
         }
 
         @Override
-        void update(CityEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_UPDATE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
-            super.update(event, connection);
-            String sql = "SELECT COUNT(" + DbColumn.CITY_ID.getDbName() + ") FROM " + DbTable.CITY.getDbName()
-                    + " LEFT JOIN " + DbTable.COUNTRY.getDbName() + " ON " + DbTable.CITY.getDbName() + "." + DbColumn.CITY_COUNTRY.getDbName()
-                    + "=" + DbTable.COUNTRY.getDbName() + "." + DbColumn.COUNTRY_ID.getDbName()
-                    + " WHERE " + DbTable.CITY.getDbName() + "." + DbColumn.CITY_NAME.getDbName()
-                    + " LIKE ? AND " + DbTable.COUNTRY.getDbName() + "." + DbColumn.COUNTRY_NAME.getDbName() + "=?"
-                    + " AND " + DbColumn.CITY_ID.getDbName() + "<>?";
-            CityDAO dao = ICityDAO.assertValidCity(event.getDataAccessObject());
-            int count;
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, dao.getCountry().getPrimaryKey());
-                ps.setString(2, String.format("%s;*", DB.escapeWC(dao.name)));
-                ps.setInt(3, dao.getPrimaryKey());
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-
-            if (count > 0) {
-                event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-
-            ICountryDAO country;
-            CountryItem<? extends ICountryDAO> cm;
-            CityModel model = event.getModel();
-            if (null == model) {
-                cm = null;
-                country = ICityDAO.assertValidCity(event.getDataAccessObject()).getCountry();
-            } else {
-                country = (cm = model.getCountry()).dataObject();
-            }
-            if (country instanceof CountryDAO) {
-                CountryEvent countryEvent;
-                switch (country.getRowState()) {
-                    case NEW:
-                        // FIXME: INSERT_VALIDATION event needs to be created from FX app thread and fired on DAO
-                        if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.INSERT_VALIDATION), connection);
-                        } else {
-                            countryEvent = CountryDAO.FACTORY.badInsert(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.INSERT_VALIDATION), connection);
-                        }
-                        break;
-                    case UNMODIFIED:
-                        super.update(event, connection);
-                        return;
-                    default:
-                        // FIXME: UPDATE_VALIDATION event needs to be created from FX app thread and fired on DAO
-                        if (null != cm && cm instanceof CountryModel) {
-                            countryEvent = CountryDAO.FACTORY.badUpdate(new CountryEvent((CountryModel) cm, event.getSource(), event.getTarget(),
-                                    DbOperationType.UPDATE_VALIDATION), connection);
-                        } else {
-                            countryEvent = CountryDAO.FACTORY.badUpdate(new CountryEvent(event.getSource(), event.getTarget(), (CountryDAO) country,
-                                    DbOperationType.UPDATE_VALIDATION), connection);
-                        }
-                }
-                switch (countryEvent.getStatus()) {
-                    case SUCCEEDED:
-                        super.update(event, connection);
-                        return;
-                    case FAULTED:
-                        event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
-                    case INVALID:
-                        event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
-                    default:
-                        event.setCanceled();
-                }
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-            } else {
-                super.update(event, connection);
-            }
-        }
-
-        @Override
-        protected void delete(CityEvent event, Connection connection) {
-            if (event.getOperation() != DbOperationType.DB_DELETE || event.getStatus() != EventEvaluationStatus.EVALUATING) {
-                throw new IllegalArgumentException();
-            }
+        void validateDelete(DeleteTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> task) {
+            CityEvent event = task.getValidationEvent();
             CityDAO dao = event.getDataAccessObject();
+            Connection connection = task.getConnection();
             int count;
             try {
                 count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
             } catch (SQLException ex) {
                 event.setFaulted("Unexpected error", "Error checking dependencies", ex);
                 LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
                 return;
             }
             switch (count) {
                 case 0:
-                    super.delete(event, connection);
+                    event.setSucceeded();
                     return;
                 case 1:
                     event.setInvalid("City in use", ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
@@ -445,7 +315,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                     event.setInvalid("City in use", ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
                     break;
             }
-            Platform.runLater(() -> Event.fireEvent(dao, event));
         }
 
         @Override
@@ -562,12 +431,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                     while (rs.next()) {
                         result.add(fromResultSet(rs));
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             return result;
@@ -582,20 +446,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 try (ResultSet rs = ps.getResultSet()) {
                     if (rs.next()) {
                         CityDAO result = fromResultSet(rs);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             return null;
@@ -610,20 +464,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         int result = rs.getInt(1);
-                        SQLWarning sqlWarning = connection.getWarnings();
-                        if (null != sqlWarning) {
-                            do {
-                                LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                            } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                        }
+                        LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
-                    SQLWarning sqlWarning = connection.getWarnings();
-                    if (null != sqlWarning) {
-                        do {
-                            LOG.log(Level.WARNING, "Encountered warning", sqlWarning);
-                        } while (null != (sqlWarning = sqlWarning.getNextWarning()));
-                    }
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
