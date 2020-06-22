@@ -162,7 +162,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DataAccessObject.DeleteTask<>(event));
+            MainController.startBusyTaskNow(new DataAccessObject.DeleteTaskOld<>(event));
         }
     }
 

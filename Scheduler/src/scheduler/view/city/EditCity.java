@@ -264,7 +264,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                         AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
                 if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(event));
+                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
                 }
                 event.consume();
                 break;

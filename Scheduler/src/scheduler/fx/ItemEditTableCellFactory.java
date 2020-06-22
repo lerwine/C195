@@ -24,7 +24,7 @@ import scheduler.util.LogHelper;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
  */
-public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends DataAccessObject>, E extends DbOperationEvent<T, ? extends DataAccessObject>>
+public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelEvent<? extends DataAccessObject, T>>
         implements Callback<TableColumn<T, T>, TableCell<T, T>>, EventTarget {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);

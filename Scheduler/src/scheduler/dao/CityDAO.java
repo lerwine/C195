@@ -30,23 +30,16 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.CityEvent;
 import scheduler.events.CountryEvent;
-import scheduler.events.DbOperationType;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
-import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
-import scheduler.view.city.EditCity;
-import static scheduler.view.city.EditCityResourceKeys.*;
-import scheduler.view.country.EditCountry;
-import scheduler.view.country.EditCountryResourceKeys;
 
 /**
  * Data access object for the {@code city} database table.
@@ -102,19 +95,19 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
         if (null == country || country instanceof CountryDAO) {
             if (null != countryChangeHandler) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.COUNTRY_MODEL_EVENT_TYPE, countryChangeHandler);
+                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
                 countryChangeHandler = null;
             }
         } else if (null == countryChangeHandler) {
             countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-            CountryDAO.FACTORY.addEventHandler(CountryEvent.COUNTRY_MODEL_EVENT_TYPE, countryChangeHandler);
+            CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
         }
     }
 
     private void onCountryEvent(CountryEvent event) {
         ICountryDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-            CountryDAO.FACTORY.removeEventHandler(CountryEvent.COUNTRY_MODEL_EVENT_TYPE, countryChangeHandler);
+            CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
             countryChangeHandler = null;
             ICountryDAO oldValue = country;
             country = newValue;
@@ -207,114 +200,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        void validateSave(SaveTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> task) {
-            CityEvent event = task.getValidationEvent();
-            CityDAO dao;
-            try {
-                dao = ICityDAO.assertValidCity(event.getDataAccessObject());
-            } catch (IllegalArgumentException | IllegalStateException ex) {
-                event.setFaulted("Invalid City", ex.getMessage(), ex);
-                return;
-            }
-            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
-                    .append(") FROM ").append(DbTable.CITY.getDbName())
-                    .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())
-                    .append(" ON ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_COUNTRY.getDbName())
-                    .append("=").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_ID.getDbName())
-                    .append(" WHERE ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_NAME.getDbName())
-                    .append(" LIKE ? AND ").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
-            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-                sb.append(" AND ").append(DbColumn.CITY_ID.getDbName()).append("<>?");
-            }
-
-            String sql = sb.toString();
-            int count;
-            Connection connection = task.getConnection();
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, dao.getCountry().getPrimaryKey());
-                ps.setString(2, String.format("%s;*", DB.escapeWC(dao.name)));
-                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-                    ps.setInt(3, dao.getPrimaryKey());
-                }
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        LogHelper.logWarnings(connection, LOG);
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    LogHelper.logWarnings(connection, LOG);
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return;
-            }
-
-            if (count > 0) {
-                event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
-                return;
-            }
-
-            ICountryDAO c = dao.country;
-            if (c instanceof CountryDAO) {
-                CountryEvent countryEvent;
-                switch (c.getRowState()) {
-                    case NEW:
-                        countryEvent = event.createCountryEvent(DbOperationType.DB_INSERT);
-                        break;
-                    case MODIFIED:
-                        countryEvent = event.createCountryEvent(DbOperationType.DB_UPDATE);
-                        break;
-                    default:
-                        event.setSucceeded();
-                        return;
-                }
-                new SaveTask<>(countryEvent).run();
-                switch (countryEvent.getStatus()) {
-                    case FAULTED:
-                        event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
-                        return;
-                    case INVALID:
-                        event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
-                        return;
-                    case SUCCEEDED:
-                        break;
-                    default:
-                        event.setCanceled();
-                        return;
-                }
-            }
-        }
-
-        @Override
-        void validateDelete(DeleteTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> task) {
-            CityEvent event = task.getValidationEvent();
-            CityDAO dao = event.getDataAccessObject();
-            Connection connection = task.getConnection();
-            int count;
-            try {
-                count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return;
-            }
-            switch (count) {
-                case 0:
-                    event.setSucceeded();
-                    return;
-                case 1:
-                    event.setInvalid("City in use", ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
-                    break;
-                default:
-                    event.setInvalid("City in use", ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
-                    break;
-            }
         }
 
         @Override
@@ -473,19 +358,192 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             throw new SQLException("Unexpected lack of results from database query");
         }
 
-        @Override
-        protected CityEvent createDbOperationEvent(CityEvent sourceEvent, DbOperationType operation) {
-            CityModel model = sourceEvent.getModel();
-            if (null != model) {
-                return new CityEvent(model, sourceEvent.getSource(), this, operation);
-            }
-            return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-        }
-
+//        @Override
+//        protected CityEvent createDbOperationEvent(CityEvent sourceEvent, DbOperationType operation) {
+//            CityModel model = sourceEvent.getModel();
+//            if (null != model) {
+//                return new CityEvent(model, sourceEvent.getSource(), this, operation);
+//            }
+//            return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
+//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", CityModel.FACTORY.getClass().getName()));
             return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+    }
+
+    public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
+
+        public SaveTask(CityModel fxRecordModel, FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public SaveTask(CityDAO dataAccessObject, DaoFactory<CityDAO, CityEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected CityEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+//            CityEvent event = task.getValidationEvent();
+//            CityDAO dao;
+//            try {
+//                dao = ICityDAO.assertValidCity(event.getDataAccessObject());
+//            } catch (IllegalArgumentException | IllegalStateException ex) {
+//                event.setFaulted("Invalid City", ex.getMessage(), ex);
+//                return;
+//            }
+//            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
+//                    .append(") FROM ").append(DbTable.CITY.getDbName())
+//                    .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())
+//                    .append(" ON ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_COUNTRY.getDbName())
+//                    .append("=").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_ID.getDbName())
+//                    .append(" WHERE ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_NAME.getDbName())
+//                    .append(" LIKE ? AND ").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
+//            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+//                sb.append(" AND ").append(DbColumn.CITY_ID.getDbName()).append("<>?");
+//            }
+
+//            String sql = sb.toString();
+//            int count;
+//            Connection connection = task.getConnection();
+//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//                ps.setInt(1, dao.getCountry().getPrimaryKey());
+//                ps.setString(2, String.format("%s;*", DB.escapeWC(dao.name)));
+//                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+//                    ps.setInt(3, dao.getPrimaryKey());
+//                }
+//                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+//                try (ResultSet rs = ps.executeQuery()) {
+//                    if (rs.next()) {
+//                        count = rs.getInt(1);
+//                    } else {
+//                        LogHelper.logWarnings(connection, LOG);
+//                        throw new SQLException("Unexpected lack of results from database query");
+//                    }
+//                    LogHelper.logWarnings(connection, LOG);
+//                }
+//            } catch (SQLException ex) {
+//                event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
+//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+//                return;
+//            }
+//
+//            if (count > 0) {
+//                event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+//                return;
+//            }
+//
+//            ICountryDAO c = dao.country;
+//            if (c instanceof CountryDAO) {
+//                CountryEvent countryEvent;
+//                switch (c.getRowState()) {
+//                    case NEW:
+//                        countryEvent = event.createCountryEvent(DbOperationType.DB_INSERT);
+//                        break;
+//                    case MODIFIED:
+//                        countryEvent = event.createCountryEvent(DbOperationType.DB_UPDATE);
+//                        break;
+//                    default:
+//                        event.setSucceeded();
+//                        return;
+//                }
+//                new SaveTaskOld<>(countryEvent).run();
+//                switch (countryEvent.getStatus()) {
+//                    case FAULTED:
+//                        event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
+//                        return;
+//                    case INVALID:
+//                        event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
+//                        return;
+//                    case SUCCEEDED:
+//                        break;
+//                    default:
+//                        event.setCanceled();
+//                        return;
+//                }
+//            }
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#validate
+        }
+
+        @Override
+        protected CityEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected CityEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createCancelledEvent
+        }
+
+        @Override
+        protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createValidationFailureEvent
+        }
+
+    }
+
+    public static class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
+
+        public DeleteTask(CityModel fxRecordModel, FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public DeleteTask(CityDAO dataAccessObject, DaoFactory<CityDAO, CityEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected CityEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+//            CityEvent event = task.getValidationEvent();
+//            CityDAO dao = event.getDataAccessObject();
+//            Connection connection = task.getConnection();
+//            int count;
+//            try {
+//                count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
+//            } catch (SQLException ex) {
+//                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+//                return;
+//            }
+//            switch (count) {
+//                case 0:
+//                    event.setSucceeded();
+//                    return;
+//                case 1:
+//                    event.setInvalid("City in use", ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
+//                    break;
+//                default:
+//                    event.setInvalid("City in use", ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
+//                    break;
+//            }
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#validate
+        }
+
+        @Override
+        protected CityEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected CityEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createCancelledEvent
+        }
+
+        @Override
+        protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createValidationFailureEvent
         }
 
     }
@@ -505,14 +563,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             this.timeZone = zoneId;
             if (!(null == country || country instanceof CountryDAO)) {
                 countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-                CountryDAO.FACTORY.addEventHandler(CountryEvent.COUNTRY_MODEL_EVENT_TYPE, countryChangeHandler);
+                CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
             }
         }
 
         private void onCountryEvent(CountryEvent event) {
             ICountryDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.COUNTRY_MODEL_EVENT_TYPE, countryChangeHandler);
+                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
                 countryChangeHandler = null;
                 ICountryDAO oldValue = country;
                 country = newValue;

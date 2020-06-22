@@ -16,7 +16,7 @@ import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;
 import scheduler.events.DbOperationType;
-import scheduler.events.DbOperationEvent;
+import scheduler.events.ModelEvent;
 import scheduler.util.LogHelper;
 
 /**
@@ -25,7 +25,7 @@ import scheduler.util.LogHelper;
  * @param <T> The target item type.
  * @param <E> The event type.
  */
-public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>, E extends DbOperationEvent<T, ? extends DataAccessObject>>
+public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelEvent<? extends DataAccessObject, T>>
         extends TableCell<T, T> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);

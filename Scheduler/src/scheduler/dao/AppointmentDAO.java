@@ -27,7 +27,6 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
 import scheduler.events.UserEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
@@ -108,19 +107,19 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
         if (null == customer || customer instanceof CustomerDAO) {
             if (null != customerChangeHandler) {
-                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE, customerChangeHandler);
+                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.OP_EVENT, customerChangeHandler);
                 customerChangeHandler = null;
             }
         } else if (null == customerChangeHandler) {
             customerChangeHandler = new WeakEventHandler<>(this::onCustomerEvent);
-            CustomerDAO.FACTORY.addEventHandler(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE, customerChangeHandler);
+            CustomerDAO.FACTORY.addEventHandler(CustomerEvent.OP_EVENT, customerChangeHandler);
         }
     }
 
     private void onCustomerEvent(CustomerEvent event) {
         ICustomerDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
-            CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE, customerChangeHandler);
+            CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.OP_EVENT, customerChangeHandler);
             customerChangeHandler = null;
             ICustomerDAO oldValue = customer;
             customer = newValue;
@@ -144,19 +143,19 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         firePropertyChange(PROP_USER, oldValue, this.user);
         if (null == user || user instanceof UserDAO) {
             if (null != userChangeHandler) {
-                UserDAO.FACTORY.removeEventHandler(UserEvent.USER_MODEL_EVENT_TYPE, userChangeHandler);
+                UserDAO.FACTORY.removeEventHandler(UserEvent.OP_EVENT, userChangeHandler);
                 userChangeHandler = null;
             }
         } else if (null == userChangeHandler) {
             userChangeHandler = new WeakEventHandler<>(this::onUserEvent);
-            UserDAO.FACTORY.addEventHandler(UserEvent.USER_MODEL_EVENT_TYPE, userChangeHandler);
+            UserDAO.FACTORY.addEventHandler(UserEvent.OP_EVENT, userChangeHandler);
         }
     }
 
     private void onUserEvent(UserEvent event) {
         IUserDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
-            UserDAO.FACTORY.removeEventHandler(UserEvent.USER_MODEL_EVENT_TYPE, userChangeHandler);
+            UserDAO.FACTORY.removeEventHandler(UserEvent.OP_EVENT, userChangeHandler);
             userChangeHandler = null;
             IUserDAO oldValue = user;
             user = newValue;
@@ -738,84 +737,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        void validateDelete(DeleteTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> task) {
-            task.getValidationEvent().setSucceeded();
-        }
-
-        @Override
-        void validateSave(SaveTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> task) {
-            AppointmentEvent event = task.getValidationEvent();
-            AppointmentDAO appointment;
-            try {
-                appointment = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject());
-            } catch (IllegalArgumentException | IllegalStateException ex) {
-                event.setFaulted("Invalid Appointment", ex.getMessage(), ex);
-                return;
-            }
-            ICustomerDAO c = appointment.customer;
-            if (c instanceof CustomerDAO) {
-                CustomerEvent customerEvent;
-                switch (c.getRowState()) {
-                    case NEW:
-                        customerEvent = event.createCustomerEvent(DbOperationType.DB_INSERT);
-                        break;
-                    case MODIFIED:
-                        customerEvent = event.createCustomerEvent(DbOperationType.DB_UPDATE);
-                        break;
-                    default:
-                        customerEvent = null;
-                        break;
-                }
-                if (null != customerEvent) {
-                    new SaveTask<>(customerEvent).run();
-                    switch (customerEvent.getStatus()) {
-                        case FAULTED:
-                            event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
-                            return;
-                        case INVALID:
-                            event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
-                            return;
-                        case SUCCEEDED:
-                            break;
-                        default:
-                            event.setCanceled();
-                            return;
-                    }
-                }
-            }
-            IUserDAO u = appointment.user;
-            if (u instanceof UserDAO) {
-                UserEvent userEvent;
-                switch (u.getRowState()) {
-                    case NEW:
-                        userEvent = event.createUserEvent(DbOperationType.DB_INSERT);
-                        break;
-                    case MODIFIED:
-                        userEvent = event.createUserEvent(DbOperationType.DB_UPDATE);
-                        break;
-                    default:
-                        event.setSucceeded();
-                        return;
-                }
-                new SaveTask<>(userEvent).run();
-                switch (userEvent.getStatus()) {
-                    case FAULTED:
-                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
-                        return;
-                    case INVALID:
-                        event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
-                        return;
-                    case SUCCEEDED:
-                        break;
-                    default:
-                        event.setCanceled();
-                        return;
-                }
-            }
-            event.setSucceeded();
-        }
-
-        @Override
         protected void onCloneProperties(AppointmentDAO fromDAO, AppointmentDAO toDAO) {
             String oldContact = toDAO.contact;
             ICustomerDAO oldCustomer = toDAO.customer;
@@ -859,19 +780,162 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             toDAO.firePropertyChange(PROP_END, oldEnd, toDAO.end);
         }
 
-        @Override
-        protected AppointmentEvent createDbOperationEvent(AppointmentEvent sourceEvent, DbOperationType operation) {
-            AppointmentModel model = sourceEvent.getModel();
-            if (null != model) {
-                return new AppointmentEvent(model, sourceEvent.getSource(), this, operation);
-            }
-            return new AppointmentEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-        }
-
+//        @Deprecated
+////        @Override
+//        protected AppointmentEvent createDbOperationEvent(AppointmentEvent sourceEvent, DbOperationType operation) {
+//            AppointmentModel model = sourceEvent.getModel();
+//            if (null != model) {
+//                return new AppointmentEvent(model, sourceEvent.getSource(), this, operation);
+//            }
+//            return new AppointmentEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
+//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", AppointmentModel.FACTORY.getClass().getName()));
             return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+    }
+
+    public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+
+        public SaveTask(AppointmentModel fxRecordModel, FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public SaveTask(AppointmentDAO dataAccessObject, DaoFactory<AppointmentDAO, AppointmentEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected AppointmentEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+//            AppointmentEvent event = task.getValidationEvent();
+//            AppointmentDAO appointment;
+//            try {
+//                appointment = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject());
+//            } catch (IllegalArgumentException | IllegalStateException ex) {
+//                event.setFaulted("Invalid Appointment", ex.getMessage(), ex);
+//                return;
+//            }
+//            ICustomerDAO c = appointment.customer;
+//            if (c instanceof CustomerDAO) {
+//                CustomerEvent customerEvent;
+//                switch (c.getRowState()) {
+//                    case NEW:
+//                        customerEvent = event.createCustomerEvent(DbOperationType.DB_INSERT);
+//                        break;
+//                    case MODIFIED:
+//                        customerEvent = event.createCustomerEvent(DbOperationType.DB_UPDATE);
+//                        break;
+//                    default:
+//                        customerEvent = null;
+//                        break;
+//                }
+//                if (null != customerEvent) {
+//                    new SaveTaskOld<>(customerEvent).run();
+//                    switch (customerEvent.getStatus()) {
+//                        case FAULTED:
+//                            event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
+//                            return;
+//                        case INVALID:
+//                            event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
+//                            return;
+//                        case SUCCEEDED:
+//                            break;
+//                        default:
+//                            event.setCanceled();
+//                            return;
+//                    }
+//                }
+//            }
+//            IUserDAO u = appointment.user;
+//            if (u instanceof UserDAO) {
+//                UserEvent userEvent;
+//                switch (u.getRowState()) {
+//                    case NEW:
+//                        userEvent = event.createUserEvent(DbOperationType.DB_INSERT);
+//                        break;
+//                    case MODIFIED:
+//                        userEvent = event.createUserEvent(DbOperationType.DB_UPDATE);
+//                        break;
+//                    default:
+//                        event.setSucceeded();
+//                        return;
+//                }
+//                new SaveTaskOld<>(userEvent).run();
+//                switch (userEvent.getStatus()) {
+//                    case FAULTED:
+//                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
+//                        return;
+//                    case INVALID:
+//                        event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
+//                        return;
+//                    case SUCCEEDED:
+//                        break;
+//                    default:
+//                        event.setCanceled();
+//                        return;
+//                }
+//            }
+//            event.setSucceeded();
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#validate
+        }
+
+        @Override
+        protected AppointmentEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected AppointmentEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createCancelledEvent
+        }
+
+        @Override
+        protected AppointmentEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createValidationFailureEvent
+        }
+
+    }
+
+    public static class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+
+        public DeleteTask(AppointmentModel fxRecordModel, FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public DeleteTask(AppointmentDAO dataAccessObject, DaoFactory<AppointmentDAO, AppointmentEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected AppointmentEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#validate
+        }
+
+        @Override
+        protected AppointmentEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected AppointmentEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createCancelledEvent
+        }
+
+        @Override
+        protected AppointmentEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createValidationFailureEvent
         }
 
     }

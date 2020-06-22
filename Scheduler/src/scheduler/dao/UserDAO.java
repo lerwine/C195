@@ -10,10 +10,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
-import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -23,7 +20,6 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
-import scheduler.events.DbOperationType;
 import scheduler.events.UserEvent;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
@@ -195,80 +191,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        void validateSave(SaveTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> task) {
-            UserEvent event = task.getValidationEvent();
-            UserDAO dao;
-            try {
-                dao = IUserDAO.assertValidUser(event.getDataAccessObject());
-            } catch (IllegalArgumentException | IllegalStateException ex) {
-                event.setFaulted("Invalid User", ex.getMessage(), ex);
-                return;
-            }
-            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
-                    .append(") FROM ").append(DbTable.USER.getDbName()).append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?");
-            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-                sb.append(" AND ").append(DbColumn.USER_ID.getDbName()).append("<>?");
-            }
-            int count;
-            String sql = sb.toString();
-            Connection connection = task.getConnection();
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, dao.getUserName());
-                ps.setInt(2, dao.getPrimaryKey());
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        LogHelper.logWarnings(connection, LOG);
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    LogHelper.logWarnings(connection, LOG);
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return;
-            }
-            if (count > 0) {
-                event.setInvalid("User name already in use", "Another user has the same name");
-            } else {
-                event.setSucceeded();
-            }
-        }
-
-        @Override
-        void validateDelete(DeleteTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> task) {
-            UserEvent event = task.getValidationEvent();
-            UserDAO dao = event.getDataAccessObject();
-            if (dao == Scheduler.getCurrentUser()) {
-                event.setInvalid("Self-delete", "Cannot delete the current user");
-                return;
-            }
-
-            int count;
-            try {
-                count = AppointmentDAO.FACTORY.countByUser(task.getConnection(), dao.getPrimaryKey(), null, null);
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-            switch (count) {
-                case 0:
-                    event.setSucceeded();
-                    return;
-                case 1:
-                    event.setInvalid("User in use", "User is referenced by one appointment.");
-                    break;
-                default:
-                    event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
-                    break;
-            }
-        }
-
-        @Override
         public boolean isCompoundSelect() {
             return false;
         }
@@ -393,19 +315,158 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             return UserDAO.class;
         }
 
-        @Override
-        protected UserEvent createDbOperationEvent(UserEvent sourceEvent, DbOperationType operation) {
-            UserModel model = sourceEvent.getModel();
-            if (null != model) {
-                return new UserEvent(model, sourceEvent.getSource(), this, operation);
-            }
-            return new UserEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-        }
-
+//        @Override
+//        protected UserEvent createDbOperationEvent(UserEvent sourceEvent, DbOperationType operation) {
+//            UserModel model = sourceEvent.getModel();
+//            if (null != model) {
+//                return new UserEvent(model, sourceEvent.getSource(), this, operation);
+//            }
+//            return new UserEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
+//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", UserModel.FACTORY.getClass().getName()));
             return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+    }
+
+    public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
+
+        public SaveTask(UserModel fxRecordModel, FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public SaveTask(UserDAO dataAccessObject, DaoFactory<UserDAO, UserEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected UserEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+//            UserEvent event = task.getValidationEvent();
+//            UserDAO dao;
+//            try {
+//                dao = IUserDAO.assertValidUser(event.getDataAccessObject());
+//            } catch (IllegalArgumentException | IllegalStateException ex) {
+//                event.setFaulted("Invalid User", ex.getMessage(), ex);
+//                return;
+//            }
+//            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
+//                    .append(") FROM ").append(DbTable.USER.getDbName()).append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?");
+//            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+//                sb.append(" AND ").append(DbColumn.USER_ID.getDbName()).append("<>?");
+//            }
+//            int count;
+//            String sql = sb.toString();
+//            Connection connection = task.getConnection();
+//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//                ps.setString(1, dao.getUserName());
+//                ps.setInt(2, dao.getPrimaryKey());
+//                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+//                try (ResultSet rs = ps.executeQuery()) {
+//                    if (rs.next()) {
+//                        count = rs.getInt(1);
+//                    } else {
+//                        LogHelper.logWarnings(connection, LOG);
+//                        throw new SQLException("Unexpected lack of results from database query");
+//                    }
+//                    LogHelper.logWarnings(connection, LOG);
+//                }
+//            } catch (SQLException ex) {
+//                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
+//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+//                return;
+//            }
+//            if (count > 0) {
+//                event.setInvalid("User name already in use", "Another user has the same name");
+//            } else {
+//                event.setSucceeded();
+//            }
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#validate
+        }
+
+        @Override
+        protected UserEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected UserEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createCancelledEvent
+        }
+
+        @Override
+        protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createValidationFailureEvent
+        }
+
+    }
+
+    public static class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
+
+        public DeleteTask(UserModel fxRecordModel, FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public DeleteTask(UserDAO dataAccessObject, DaoFactory<UserDAO, UserEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected UserEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+//            UserEvent event = task.getValidationEvent();
+//            UserDAO dao = event.getDataAccessObject();
+//            if (dao == Scheduler.getCurrentUser()) {
+//                event.setInvalid("Self-delete", "Cannot delete the current user");
+//                return;
+//            }
+//
+//            int count;
+//            try {
+//                count = AppointmentDAO.FACTORY.countByUser(task.getConnection(), dao.getPrimaryKey(), null, null);
+//            } catch (SQLException ex) {
+//                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+//                Platform.runLater(() -> Event.fireEvent(dao, event));
+//                return;
+//            }
+//            switch (count) {
+//                case 0:
+//                    event.setSucceeded();
+//                    return;
+//                case 1:
+//                    event.setInvalid("User in use", "User is referenced by one appointment.");
+//                    break;
+//                default:
+//                    event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
+//                    break;
+//            }
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#validate
+        }
+
+        @Override
+        protected UserEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected UserEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createCancelledEvent
+        }
+
+        @Override
+        protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createValidationFailureEvent
         }
 
     }

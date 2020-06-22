@@ -22,8 +22,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
@@ -38,10 +41,9 @@ import scheduler.dao.schema.DbName;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
-import scheduler.events.DbOperationEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
+import scheduler.events.ModelEvent;
 import scheduler.model.DataObject;
+import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
@@ -227,49 +229,53 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
      *
-     * @param <E> The type of {@link DbOperationEvent}.
+     * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends DbOperationEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+    // FIXME: Switch to ModelEvent
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
     /**
-     * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
      *
-     * @param <E> The type of {@link DbOperationEvent}.
+     * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends DbOperationEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+    // FIXME: Switch to ModelEvent
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
     /**
-     * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
      *
-     * @param <E> The type of {@link DbOperationEvent}.
+     * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends DbOperationEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+    // FIXME: Switch to ModelEvent
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
     /**
-     * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
+     * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
      *
-     * @param <E> The type of {@link DbOperationEvent}.
+     * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends DbOperationEvent<? extends FxRecordModel<? extends DataAccessObject>, ? extends DataAccessObject>>
+    // FIXME: Switch to ModelEvent
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
@@ -293,12 +299,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
 
-        private final DaoFactory<T, ? extends DbOperationEvent<? extends FxRecordModel<T>, T>> factory;
+        private final DaoFactory<T, ? extends ModelEvent<T, ? extends FxRecordModel<T>>> factory;
         private final DaoFilter<T> filter;
         private final Consumer<List<T>> onSuccess;
         private final Consumer<Throwable> onFail;
 
-        LoadTask(DaoFactory<T, ? extends DbOperationEvent<? extends FxRecordModel<T>, T>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+        LoadTask(DaoFactory<T, ? extends ModelEvent<T, ? extends FxRecordModel<T>>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
             updateTitle(filter.getLoadingTitle());
             this.factory = Objects.requireNonNull(factory);
             this.filter = Objects.requireNonNull(filter);
@@ -381,13 +387,14 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     }
 
+    // FIXME: Switch to ModelEvent
     /**
      * Base factory class for {@link DataAccessObject} objects.
      *
      * @param <T> The type of {@link DataAccessObject} object supported.
-     * @param <E> The {@link DbOperationEvent} type.
+     * @param <E> The {@link ModelEvent} type.
      */
-    public static abstract class DaoFactory<T extends DataAccessObject, E extends DbOperationEvent<? extends FxRecordModel<T>, T>> implements EventTarget {
+    public static abstract class DaoFactory<T extends DataAccessObject, E extends ModelEvent<T, ? extends FxRecordModel<T>>> implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
@@ -398,178 +405,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             eventHandlerManager = new EventHandlerManager(this);
         }
 
-        abstract void validateSave(SaveTask<T, ? extends FxRecordModel<T>, E> task);
-
-        final void saveChanges(SaveTask<T, ? extends FxRecordModel<T>, E> task) {
-            E event = task.getCompletionEvent();
-            Connection connection = task.getConnection();
-            T dao = event.getDataAccessObject();
-            DataAccessObject dataObj = (DataAccessObject) dao;
-            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
-            StringBuilder sb = new StringBuilder();
-            DbColumn[] columns;
-            Iterator<DbColumn> iterator;
-            DbName dbName;
-            int colNum = 0;
-            if (event.getOperation() == DbOperationType.DB_INSERT) {
-                columns = SchemaHelper.getTableColumns(getDbTable(),
-                        (t) -> t.getUsageCategory() != ColumnCategory.PRIMARY_KEY).toArray(DbColumn[]::new);
-                iterator = Arrays.stream(columns).iterator();
-                sb.append("INSERT INTO ").append(getDbTable().getDbName()).append(" (")
-                        .append(iterator.next().getDbName());
-                int index = 1;
-                while (iterator.hasNext()) {
-                    index++;
-                    sb.append(", ").append(iterator.next().getDbName());
-                }
-                sb.append(") VALUES (?");
-                for (int i = 1; i < index; i++) {
-                    sb.append(", ?");
-                }
-                sb.append(")");
-            } else {
-                columns = SchemaHelper.getTableColumns(getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
-                iterator = Arrays.stream(columns).iterator();
-                dbName = iterator.next().getDbName();
-                sb.append("UPDATE ").append(getDbTable().getDbName()).append(" SET ");
-                LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
-                sb.append(dbName).append("=?");
-                while (iterator.hasNext()) {
-                    dbName = iterator.next().getDbName();
-                    LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
-                    sb.append(", ").append(dbName).append("=?");
-                }
-                dbName = getPrimaryKeyColumn().getDbName();
-                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
-                sb.append(" WHERE ").append(dbName).append("=?");
-            }
-            String sql = sb.toString();
-            try (PreparedStatement ps = (event.getOperation() == DbOperationType.DB_INSERT)
-                    ? connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-                    : connection.prepareStatement(sb.toString())) {
-                iterator = Arrays.stream(columns).iterator();
-                int index = 1;
-                do {
-                    DbColumn column = iterator.next();
-                    try {
-                        LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
-                        if (column.getUsageCategory() == ColumnCategory.AUDIT) {
-                            switch (column.getDbName()) {
-                                case CREATE_DATE:
-                                    dataObj.createDate = timeStamp;
-                                    ps.setTimestamp(index++, dataObj.createDate);
-                                    break;
-                                case CREATED_BY:
-                                    dataObj.createdBy = Scheduler.getCurrentUser().getUserName();
-                                    ps.setString(index++, dataObj.createdBy);
-                                    break;
-                                case LAST_UPDATE:
-                                    dataObj.lastModifiedDate = timeStamp;
-                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
-                                    break;
-                                case LAST_UPDATE_BY:
-                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
-                                    ps.setString(index++, dataObj.lastModifiedBy);
-                                    break;
-                                default:
-                                    LogHelper.logWarnings(connection, LOG);
-                                    throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
-                            }
-                        } else {
-                            applyColumnValue(dao, column, ps, index++);
-                        }
-                    } catch (SQLException ex) {
-                        event.setFaulted("Unexpected Error", String.format("Error setting value for column %s", column.getDbName()), ex);
-                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                        return;
-                    }
-                } while (iterator.hasNext());
-                if (event.getOperation() != DbOperationType.DB_INSERT) {
-                    try {
-                        LOG.fine(String.format("Setting value primary key at index %d", index));
-                        ps.setInt(index, dataObj.primaryKey);
-                    } catch (SQLException ex) {
-                        LogHelper.logWarnings(connection, LOG);
-                        event.setFaulted("Unexpected Error", "Error setting value for primary key column", ex);
-                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                        return;
-                    }
-                }
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                if (ps.executeUpdate() < 1) {
-                    LogHelper.logWarnings(connection, LOG);
-                    event.setFaulted("No change", "executeUpdate unexpectedly resulted in no database changes");
-                    return;
-                }
-                LogHelper.logWarnings(connection, LOG);
-                if (event.getOperation() == DbOperationType.DB_INSERT) {
-                    try (ResultSet rs = ps.getGeneratedKeys()) {
-                        if (!rs.next()) {
-                            LogHelper.logWarnings(connection, LOG);
-                            throw new SQLException("No primary key returned");
-                        }
-                        dataObj.primaryKey = rs.getInt(1);
-                        dataObjectCache.put(dao);
-                        LogHelper.logWarnings(connection, LOG);
-                    } catch (SQLException ex) {
-                        event.setFaulted("Unexpected Error", "Error getting new primary key value", ex);
-                        LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                        return;
-                    }
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected Error", "Error executing DML statement", ex);
-                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
-                return;
-            }
-            event.setSucceeded();
-        }
-
-        abstract void validateDelete(DeleteTask<T, ? extends FxRecordModel<T>, E> task);
-
-        final void deleteRecord(DeleteTask<T, ? extends FxRecordModel<T>, E> task) {
-            E event = task.getCompletionEvent();
-            Connection connection = task.getConnection();
-            T dao = task.getDataAccessObject();
-            DataAccessObject dataObj = (DataAccessObject) event.getDataAccessObject();
-            DataRowState oldRowState = dataObj.rowState;
-            try (ChangeEventDeferral eventDeferral = dataObj.deferChangeEvents()) {
-                synchronized (dataObj) {
-                    if (dataObj.rowState == DataRowState.DELETED) {
-                        event.setFaulted("Already deleted", "Item has already been deleted");
-                        return;
-                    }
-                    if (dataObj.rowState == DataRowState.NEW) {
-                        event.setFaulted("Not Saved", "Item has never been saved to the database");
-                        return;
-                    }
-                    StringBuilder sb = new StringBuilder("DELETE FROM ");
-                    sb.append(getDbTable().getDbName()).append(" WHERE ").append(getPrimaryKeyColumn().getDbName()).append("=?");
-                    String sql = sb.toString();
-                    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                        ps.setInt(1, dataObj.primaryKey);
-                        LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                        if (ps.executeUpdate() < 1) {
-                            LogHelper.logWarnings(connection, LOG);
-                            event.setFaulted("No results", "executeUpdate unexpectedly resulted in no database changes");
-                        }
-                        LogHelper.logWarnings(connection, LOG);
-                    }
-                    dataObj.rowState = DataRowState.DELETED;
-                }
-            } catch (Exception ex) {
-                event.setFaulted("Unexpected error", "Error deleting object from database", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-            } finally {
-                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
-            }
-            if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
-                event.setSucceeded();
-            }
-        }
-
         /**
-         * Loads items from the database. {@link #save(scheduler.events.DbOperationEvent, java.sql.Connection, boolean)}
+         * Loads items from the database. {@link #save(scheduler.events.ModelEvent, java.sql.Connection, boolean)}
          *
          * @param connection An opened database connection.
          * @param filter The {@link DaoFilter} that is used to build the WHERE clause of the SQL query.
@@ -846,8 +683,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return Optional.empty();
         }
 
-        protected abstract E createDbOperationEvent(E sourceEvent, DbOperationType operation);
-
         /**
          * Helper method that can be used to determine if a {@link DataAccessObject} object is supported by the current factory class.
          *
@@ -864,7 +699,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -875,7 +710,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -886,7 +721,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -897,7 +732,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
          * @param type The event type.
@@ -909,311 +744,433 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     }
 
-    public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends Task<E> {
+    /**
+     * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on a
+     * {@link DataAccessObject}.
+     *
+     * @param <D> The target {@link DataAccessObject} type.
+     * @param <M> The associated {@link FxRecordModel} type.
+     * @param <E> The result {@link ModelEvent} type.
+     */
+    public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends Task<E> {
 
-        private final D dataAccessObject;
-        private final DaoFactory<D, E> daoFactory;
-        private final E validationEvent;
-        private E completionEvent;
-        private Connection connection;
+        private final ReadOnlyObjectWrapper<D> dataAccessObject;
+        private final ReadOnlyObjectWrapper<M> fxRecordModel;
 
-        @SuppressWarnings("unchecked")
-        protected DaoTask(E validationEvent) {
-            dataAccessObject = (this.validationEvent = validationEvent).getDataAccessObject();
-            daoFactory = (DaoFactory<D, E>) validationEvent.getModelFactory().getDaoFactory();
-            switch (validationEvent.getOperation()) {
-                case INSERT_VALIDATION:
-                    if (dataAccessObject.getRowState() != DataRowState.NEW) {
-                        throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
-                                validationEvent.getOperation(), dataAccessObject.getRowState()));
-                    }
-                    break;
-                case UPDATE_VALIDATION:
-                    switch (dataAccessObject.getRowState()) {
-                        case MODIFIED:
-                        case UNMODIFIED:
-                            break;
-                        default:
-                            throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
-                                    validationEvent.getOperation(), dataAccessObject.getRowState()));
-                    }
-                    break;
-                case DELETE_VALIDATION:
-                    switch (dataAccessObject.getRowState()) {
-                        case MODIFIED:
-                        case UNMODIFIED:
-                            break;
-                        default:
-                            throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
-                                    validationEvent.getOperation(), dataAccessObject.getRowState()));
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException(String.format("Operation type %s not supported for %s row state",
-                            validationEvent.getOperation(), dataAccessObject.getRowState()));
-            }
+        /**
+         *
+         * @param fxRecordModel The {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
+         */
+        protected DaoTask(M fxRecordModel) {
+            dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", fxRecordModel.dataObject());
+            this.fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", fxRecordModel);
         }
 
-        @Override
-        public void updateMessage(String message) {
-            super.updateMessage(message);
+        /**
+         *
+         * @param dataAccessObject The target {@link DataAccessObject}.
+         */
+        protected DaoTask(D dataAccessObject) {
+            this.dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", Objects.requireNonNull(dataAccessObject));
+            fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", null);
         }
 
-        @Override
-        public void updateTitle(String title) {
-            super.updateTitle(title);
-        }
-
-        public E getValidationEvent() {
-            return validationEvent;
-        }
-
-        public E getCurrentEvent() {
-            return (null == completionEvent) ? validationEvent : completionEvent;
-        }
-
-        public E getCompletionEvent() {
-            return completionEvent;
-        }
-
+        /**
+         * Gets the target {@link DataAccessObject}.
+         *
+         * @return The target {@link DataAccessObject}.
+         */
         public D getDataAccessObject() {
-            return dataAccessObject;
+            return dataAccessObject.get();
         }
 
-        public Connection getConnection() {
-            return connection;
+        public ReadOnlyObjectProperty<D> dataAccessObjectProperty() {
+            return dataAccessObject.getReadOnlyProperty();
         }
 
-        public DaoFactory<D, E> getDaoFactory() {
-            return daoFactory;
+        /**
+         * Gets the {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
+         *
+         * @return The {@link FxRecordModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target
+         * {@link DataAccessObject} was provided to this task.
+         */
+        public M getFxRecordModel() {
+            return fxRecordModel.get();
         }
 
-        private synchronized E ensureCompletedEvent() {
-            if (null == completionEvent) {
-                switch (validationEvent.getOperation()) {
-                    case DELETE_VALIDATION:
-                        completionEvent = daoFactory.createDbOperationEvent(validationEvent, DbOperationType.DB_DELETE);
-                        break;
-                    case INSERT_VALIDATION:
-                        completionEvent = daoFactory.createDbOperationEvent(validationEvent, DbOperationType.DB_INSERT);
-                        break;
-                    case UPDATE_VALIDATION:
-                        completionEvent = daoFactory.createDbOperationEvent(validationEvent, DbOperationType.DB_UPDATE);
-                        break;
-                    default:
-                        return validationEvent;
-                }
-            }
-            return completionEvent;
+        public ReadOnlyObjectProperty<M> fxRecordModelProperty() {
+            return fxRecordModel.getReadOnlyProperty();
         }
 
-        @Override
-        protected void succeeded() {
-            if (null == completionEvent) {
-                ensureCompletedEvent();
-                if (null != completionEvent) {
-                    switch (validationEvent.getStatus()) {
-                        case EVALUATING:
-                            validationEvent.setSucceeded();
-                            completionEvent.setCanceled();
-                            break;
-                        case FAULTED:
-                            completionEvent.setFaulted(validationEvent.getSummaryTitle(), validationEvent.getDetailMessage(), validationEvent.getFault());
-                            break;
-                        case INVALID:
-                            completionEvent.setInvalid(validationEvent.getSummaryTitle(), validationEvent.getDetailMessage());
-                            break;
-                        default:
-                            completionEvent.setCanceled();
-                            break;
-                    }
-                    LOG.fine(() -> String.format("Firing %s", completionEvent));
-                    Event.fireEvent(getDataAccessObject(), completionEvent);
-                } else if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                    validationEvent.setCanceled();
-                }
-            } else {
-                if (completionEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                    completionEvent.setSucceeded();
-                }
-                LOG.fine(() -> String.format("Firing %s", completionEvent));
-                Event.fireEvent(getDataAccessObject(), completionEvent);
-            }
-            super.succeeded();
-        }
-
-        @Override
-        protected void cancelled() {
-            LOG.warning(() -> String.format("Task canceled: %s", getCurrentEvent()));
-            if (null == completionEvent) {
-                if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                    validationEvent.setCanceled();
-                }
-            }
-            E event = ensureCompletedEvent();
-            if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
-                event.setCanceled();
-            }
-            if (null != completionEvent) {
-                LOG.fine(() -> String.format("Firing %s", completionEvent));
-                Event.fireEvent(getDataAccessObject(), completionEvent);
-            }
-            super.cancelled();
-        }
-
-        @Override
-        protected void failed() {
-            Throwable fault = getException();
-            LOG.log(Level.SEVERE, String.format("Task failed: %s", getCurrentEvent()), fault);
-            if (null == completionEvent) {
-                if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                    validationEvent.setFaulted("Task failed", fault.getMessage(), fault);
-                }
-            }
-            E event = ensureCompletedEvent();
-            if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
-                event.setFaulted("Task failed", fault.getMessage(), fault);
-            }
-            if (null != completionEvent) {
-                LOG.fine(() -> String.format("Firing %s", completionEvent));
-                Event.fireEvent(getDataAccessObject(), completionEvent);
-            }
-            super.failed();
-        }
-
-        protected abstract void onValidate() throws Exception;
-
-        protected abstract void onExecute() throws Exception;
+        /**
+         * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
+         *
+         * @param connection The database {@link Connection}.
+         * @return The {@link ModelEvent} for a successful task completion.
+         * @throws Exception if an un-handled exception occurred during the task operation.
+         */
+        protected abstract E call(Connection connection) throws Exception;
 
         @Override
         protected E call() throws Exception {
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
-                connection = dbConnector.getConnection();
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                DataAccessObject dao = dataAccessObject;
-                DataRowState oldRowState = dao.rowState;
-                try (ChangeEventDeferral eventDeferral = dataAccessObject.deferChangeEvents()) {
+                if (isCancelled()) {
+                    return null;
+                }
+                try (ChangeEventDeferral eventDeferral = ((DataAccessObject) dataAccessObject.get()).deferChangeEvents()) {
                     synchronized (dataAccessObject) {
-                        if (validationEvent.getOperation() == DbOperationType.INSERT_VALIDATION) {
-                            if (dao.rowState != DataRowState.NEW) {
-                                throw new IllegalStateException("Invalid row state");
-                            }
-                        } else {
-                            switch (dao.rowState) {
-                                case MODIFIED:
-                                case UNMODIFIED:
-                                    break;
-                                default:
-                                    throw new IllegalStateException("Invalid row state");
-                            }
+                        E event = call(dbConnector.getConnection());
+                        if (null == event && !isCancelled()) {
+                            throw new IllegalAccessException("No result event was produced");
                         }
-                    }
-                    if (validationEvent.getStatus() == EventEvaluationStatus.EVALUATING) {
-                        onValidate();
-                    }
-                    switch (validationEvent.getStatus()) {
-                        case EVALUATING:
-                            validationEvent.setSucceeded();
-                            break;
-                        case SUCCEEDED:
-                            break;
-                        default:
-                            return validationEvent;
-                    }
-                    ensureCompletedEvent();
-                    if (null != completionEvent) {
-                        onExecute();
+                        return event;
                     }
                 }
-                if (null != completionEvent && completionEvent.getStatus() == EventEvaluationStatus.SUCCEEDED) {
-                    dao.acceptChanges();
-                    dao.rowState = DataRowState.UNMODIFIED;
-                    dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
-                }
-                return getCurrentEvent();
             }
         }
 
     }
 
-    public static class SaveTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends DaoTask<D, M, E> {
+    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends DaoTask<D, M, E> {
 
-        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
-        private DataRowState oldRowState;
+        private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
+        private final ReadOnlyObjectWrapper<FxRecordModel.ModelFactory<D, M, E>> modelFactory;
+        private final ReadOnlyObjectWrapper<E> finalEvent;
+        private boolean validationSuccessful;
+        private DataRowState originalRowState;
 
-        public SaveTask(E event) {
-            super(event);
-            switch (event.getOperation()) {
-                case INSERT_VALIDATION:
-                case UPDATE_VALIDATION:
-                    oldRowState = event.getDataAccessObject().getRowState();
-                    break;
-                default:
-                    throw new IllegalArgumentException();
+        // FIXME: ModelFactory needs to use same event type
+        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel);
+            daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
+            this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
+            validationSuccessful = alreadyValidated;
+            validationFailed = new ReadOnlyBooleanWrapper(!alreadyValidated);
+            originalRowState = getDataAccessObject().getRowState();
+            finalEvent = new ReadOnlyObjectWrapper<>(null);
+        }
+
+        // FIXME: DaoFactory needs to use same event type
+        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject);
+            originalRowState = getDataAccessObject().getRowState();
+            this.daoFactory = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(daoFactory));
+            this.modelFactory = new ReadOnlyObjectWrapper<>(null);
+            validationSuccessful = alreadyValidated;
+            validationFailed = new ReadOnlyBooleanWrapper(!alreadyValidated);
+            finalEvent = new ReadOnlyObjectWrapper<>(null);
+        }
+        private final ReadOnlyBooleanWrapper validationFailed;
+
+        public boolean isValidationFailed() {
+            return validationFailed.get();
+        }
+
+        public ReadOnlyBooleanProperty validationFailedProperty() {
+            return validationFailed.getReadOnlyProperty();
+        }
+
+        protected final DataRowState getOriginalRowState() {
+            return originalRowState;
+        }
+
+        public DaoFactory<D, E> getDaoFactory() {
+            return daoFactory.get();
+        }
+
+        public ReadOnlyObjectProperty<DaoFactory<D, E>> daoFactoryProperty() {
+            return daoFactory.getReadOnlyProperty();
+        }
+
+        public FxRecordModel.ModelFactory<D, M, E> getModelFactory() {
+            return modelFactory.get();
+        }
+
+        public ReadOnlyObjectProperty<FxRecordModel.ModelFactory<D, M, E>> modelFactoryProperty() {
+            return modelFactory.getReadOnlyProperty();
+        }
+
+        public E getFinalEvent() {
+            return finalEvent.get();
+        }
+
+        public ReadOnlyObjectProperty<E> finalEventProperty() {
+            return finalEvent.getReadOnlyProperty();
+        }
+
+        @Override
+        protected final E call() throws Exception {
+            if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
+                throw new IllegalStateException("Row state has changed");
             }
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_SAVINGCHANGES));
+            return super.call();
+        }
+
+        @Override
+        protected final E call(Connection connection) throws Exception {
+            if (!validationSuccessful) {
+                validate(connection);
+                validationSuccessful = true;
+            }
+            return onValidated(connection);
+        }
+
+        /**
+         * Validates the current {@link DataAccessObject}.
+         *
+         * @param connection
+         * @throws Exception if unable to perform validation.
+         */
+        protected abstract void validate(Connection connection) throws Exception;
+
+        protected abstract E onValidated(Connection connection) throws Exception;
+
+        protected abstract E createUnhandledExceptionEvent(Throwable fault);
+
+        protected abstract E createCancelledEvent();
+
+        protected abstract E createValidationFailureEvent(ValidationFailureException ex);
+
+        @Override
+        protected void cancelled() {
+            super.cancelled();
+            E event = createCancelledEvent();
+            finalEvent.set(event);
+            onFinished(event);
+        }
+
+        @Override
+        protected void failed() {
+            super.failed();
+            Throwable ex = getException();
+            E event;
+            if (validationFailed.get() && ex instanceof ValidationFailureException) {
+                event = createValidationFailureEvent((ValidationFailureException) ex);
+            } else {
+                event = createUnhandledExceptionEvent(ex);
+            }
+            finalEvent.set(event);
+            onFinished(event);
         }
 
         @Override
         protected void succeeded() {
-            E resultEvent = getValue();
-            if (resultEvent.getStatus() == EventEvaluationStatus.SUCCEEDED) {
-                DataAccessObject dataObj = (DataAccessObject) resultEvent.getDataAccessObject();
-                dataObj.acceptChanges();
-                dataObj.rowState = DataRowState.UNMODIFIED;
-                dataObj.firePropertyChange(PROP_ROWSTATE, oldRowState, dataObj.rowState);
-                LOG.fine(() -> String.format("Firing event %s on %s", resultEvent.getEventType().getName(), resultEvent.getDataAccessObject().getClass().getName()));
-                Event.fireEvent(resultEvent.getDataAccessObject(), resultEvent);
-            }
             super.succeeded();
+            E event = getValue();
+            finalEvent.set(event);
+            onFinished(event);
+        }
+
+        protected void onFinished(E event) {
+
+        }
+    }
+
+    public static abstract class SaveDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
+
+        protected SaveDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+            if (getOriginalRowState() == DataRowState.DELETED) {
+                throw new IllegalStateException("Record was already deleted");
+            }
+        }
+
+        protected SaveDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+            if (getOriginalRowState() == DataRowState.DELETED) {
+                throw new IllegalStateException("Record was already deleted");
+            }
+        }
+
+        protected abstract E createSuccessEvent();
+
+        @Override
+        protected final E onValidated(Connection connection) throws Exception {
+            D dao = getDataAccessObject();
+            DaoFactory<D, E> factory = getDaoFactory();
+            DataAccessObject dataObj = (DataAccessObject) dao;
+            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
+            StringBuilder sb = new StringBuilder();
+            DbColumn[] columns;
+            Iterator<DbColumn> iterator;
+            DbName dbName;
+            int colNum = 0;
+            if (getOriginalRowState() == DataRowState.NEW) {
+                columns = SchemaHelper.getTableColumns(factory.getDbTable(),
+                        (t) -> t.getUsageCategory() != ColumnCategory.PRIMARY_KEY).toArray(DbColumn[]::new);
+                iterator = Arrays.stream(columns).iterator();
+                sb.append("INSERT INTO ").append(factory.getDbTable().getDbName()).append(" (")
+                        .append(iterator.next().getDbName());
+                int index = 1;
+                while (iterator.hasNext()) {
+                    index++;
+                    sb.append(", ").append(iterator.next().getDbName());
+                }
+                sb.append(") VALUES (?");
+                for (int i = 1; i < index; i++) {
+                    sb.append(", ?");
+                }
+                sb.append(")");
+            } else {
+                columns = SchemaHelper.getTableColumns(factory.getDbTable(), (t) -> SchemaHelper.isUpdatable(t)).toArray(DbColumn[]::new);
+                iterator = Arrays.stream(columns).iterator();
+                dbName = iterator.next().getDbName();
+                sb.append("UPDATE ").append(factory.getDbTable().getDbName()).append(" SET ");
+                LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
+                sb.append(dbName).append("=?");
+                while (iterator.hasNext()) {
+                    dbName = iterator.next().getDbName();
+                    LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                    sb.append(", ").append(dbName).append("=?");
+                }
+                dbName = factory.getPrimaryKeyColumn().getDbName();
+                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                sb.append(" WHERE ").append(dbName).append("=?");
+            }
+            String sql = sb.toString();
+            try (PreparedStatement ps = (getOriginalRowState() == DataRowState.NEW)
+                    ? connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+                    : connection.prepareStatement(sb.toString())) {
+                iterator = Arrays.stream(columns).iterator();
+                int index = 1;
+                do {
+                    DbColumn column = iterator.next();
+                    try {
+                        LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
+                        if (column.getUsageCategory() == ColumnCategory.AUDIT) {
+                            switch (column.getDbName()) {
+                                case CREATE_DATE:
+                                    dataObj.createDate = timeStamp;
+                                    ps.setTimestamp(index++, dataObj.createDate);
+                                    break;
+                                case CREATED_BY:
+                                    dataObj.createdBy = Scheduler.getCurrentUser().getUserName();
+                                    ps.setString(index++, dataObj.createdBy);
+                                    break;
+                                case LAST_UPDATE:
+                                    dataObj.lastModifiedDate = timeStamp;
+                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
+                                    break;
+                                case LAST_UPDATE_BY:
+                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
+                                    ps.setString(index++, dataObj.lastModifiedBy);
+                                    break;
+                                default:
+                                    LogHelper.logWarnings(connection, LOG);
+                                    throw new InternalException(String.format("Unexpected AUDIT column name %s", column.getDbName()));
+                            }
+                        } else {
+                            factory.applyColumnValue(dao, column, ps, index++);
+                        }
+                    } catch (SQLException ex) {
+                        LogHelper.logWarnings(connection, LOG);
+                        throw new Exception(String.format("Error setting value for column %s", column.getDbName()), ex);
+                    }
+                } while (iterator.hasNext());
+                if (getOriginalRowState() != DataRowState.NEW) {
+                    try {
+                        LOG.fine(String.format("Setting value primary key at index %d", index));
+                        ps.setInt(index, dataObj.primaryKey);
+                    } catch (SQLException ex) {
+                        LogHelper.logWarnings(connection, LOG);
+                        throw new Exception("Error setting value for primary key column", ex);
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                if (ps.executeUpdate() < 1) {
+                    LogHelper.logWarnings(connection, LOG);
+                    throw new Exception("No database changes as result of query");
+                }
+                LogHelper.logWarnings(connection, LOG);
+                if (getOriginalRowState() == DataRowState.NEW) {
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        if (!rs.next()) {
+                            throw new SQLException("No primary key returned");
+                        }
+                        dataObj.primaryKey = rs.getInt(1);
+                        factory.dataObjectCache.put(dao);
+                    } catch (SQLException ex) {
+                        LogHelper.logWarnings(connection, LOG);
+                        throw new Exception("Error getting new primary key value", ex);
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+            } catch (SQLException ex) {
+                LogHelper.logWarnings(connection, LOG);
+                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
+                throw new Exception("Error executing DML statement", ex);
+            }
+            return createSuccessEvent();
         }
 
         @Override
-        protected void onValidate() throws Exception {
-            getDaoFactory().validateSave(this);
-        }
-
-        @Override
-        protected void onExecute() throws Exception {
-            getDaoFactory().saveChanges(this);
+        protected void succeeded() {
+            DataAccessObject obj = (DataAccessObject) getDataAccessObject();
+            obj.acceptChanges();
+            obj.rowState = DataRowState.UNMODIFIED;
+            obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
+            super.succeeded();
         }
 
     }
 
-    /**
-     * {@link Task} for deleting a {@link DataAccessObject} from the database. This will fire a {@link DbOperationEvent} on the target
-     * {@link DataAccessObject} after successful deletion. The {@link DbOperationEvent#operation operation} property will be set to
-     * {@link DbOperationType#DB_DELETE} and it will be fired in the FX application thread.
-     *
-     * @param <D> The type of {@link DataAccessObject} to be deleted.
-     * @param <M> The type of {@link FxRecordModel} that corresponds to the {@link DataAccessObject} type.
-     * @param <E> The type of {@link DbOperationEvent} that contains the {@link DataAccessObject} to be deleted.
-     */
-    public static class DeleteTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends DaoTask<D, M, E> {
+    public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
 
-        /**
-         * Creates a new {@code DeleteTask} object.
-         *
-         * @param event A {@link DbOperationEvent} that refers to the {@link DataAccessObject} to be deleted.
-         * @throws IllegalArgumentException if {@link DbOperationEvent#operation} is not set to {@link DbOperationType#DELETE_VALIDATION}.
-         */
-        public DeleteTask(E event) {
-            super(event);
-            if (event.getOperation() != DbOperationType.DELETE_VALIDATION) {
-                throw new IllegalArgumentException();
+        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+            switch (getOriginalRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Record was already deleted");
+                case NEW:
+                    throw new IllegalStateException("Record was never saved");
             }
-            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_DELETINGRECORD));
+        }
+
+        protected DeleteDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+            switch (getOriginalRowState()) {
+                case DELETED:
+                    throw new IllegalStateException("Record was already deleted");
+                case NEW:
+                    throw new IllegalStateException("Record was never saved");
+            }
         }
 
         @Override
-        protected void onValidate() throws Exception {
-            getDaoFactory().validateDelete(this);
+        protected E onValidated(Connection connection) throws Exception {
+            D dao = getDataAccessObject();
+            DaoFactory<D, E> factory = getDaoFactory();
+            StringBuilder sb = new StringBuilder("DELETE FROM ");
+            sb.append(factory.getDbTable().getDbName()).append(" WHERE ").append(factory.getPrimaryKeyColumn().getDbName()).append("=?");
+            String sql = sb.toString();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, ((DataAccessObject) dao).primaryKey);
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                if (ps.executeUpdate() < 1) {
+                    LogHelper.logWarnings(connection, LOG);
+                    throw new Exception("No database changes as result of query");
+                }
+                LogHelper.logWarnings(connection, LOG);
+            }
+            DataAccessObject obj = (DataAccessObject) dao;
+            obj.acceptChanges();
+            obj.rowState = DataRowState.DELETED;
+            dao.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
+            return createSuccessEvent();
         }
 
+        protected abstract E createSuccessEvent();
+
         @Override
-        protected void onExecute() throws Exception {
-            getDaoFactory().deleteRecord(this);
+        protected void succeeded() {
+            DataAccessObject obj = (DataAccessObject) getDataAccessObject();
+            obj.acceptChanges();
+            obj.rowState = DataRowState.DELETED;
+            obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
+            super.succeeded();
         }
 
     }

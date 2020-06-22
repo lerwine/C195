@@ -11,8 +11,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.WeakEventHandler;
 import scheduler.dao.filter.CustomerFilter;
@@ -27,7 +25,6 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
@@ -105,19 +102,19 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
         if (null == address || address instanceof AddressDAO) {
             if (null != addressChangeHandler) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
                 addressChangeHandler = null;
             }
         } else if (null == addressChangeHandler) {
             addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
-            AddressDAO.FACTORY.addEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+            AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
         }
     }
 
     private void onAddressEvent(AddressEvent event) {
         IAddressDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-            AddressDAO.FACTORY.removeEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+            AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
             addressChangeHandler = null;
             IAddressDAO oldValue = address;
             address = newValue;
@@ -215,107 +212,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        void validateSave(SaveTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> task) {
-            CustomerEvent event = task.getValidationEvent();
-            CustomerDAO dao;
-            try {
-                dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
-            } catch (IllegalArgumentException | IllegalStateException ex) {
-                event.setFaulted("Invalid Customer", ex.getMessage(), ex);
-                return;
-            }
-            Connection connection = task.getConnection();
-            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
-                    .append(") FROM ").append(DbTable.CUSTOMER.getDbName()).append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME.getDbName()).append(")=?");
-            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-                sb.append(" AND ").append(DbColumn.CUSTOMER_ID.getDbName()).append("<>?");
-            }
-            int count;
-            String sql = sb.toString();
-            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, dao.getName());
-                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-                    ps.setInt(2, dao.getPrimaryKey());
-                }
-                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        count = rs.getInt(1);
-                    } else {
-                        LogHelper.logWarnings(connection, LOG);
-                        throw new SQLException("Unexpected lack of results from database query");
-                    }
-                    LogHelper.logWarnings(connection, LOG);
-                }
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                return;
-            }
-            if (count > 0) {
-                event.setInvalid("Customer name already in use", "Another customer has the same name");
-                return;
-            }
-
-            IAddressDAO address = dao.getAddress();
-            if (address instanceof AddressDAO) {
-                AddressEvent addressEvent;
-                switch (address.getRowState()) {
-                    case NEW:
-                        addressEvent = event.createAddressEvent(DbOperationType.DB_INSERT);
-                        break;
-                    case UNMODIFIED:
-                        event.setSucceeded();
-                        return;
-                    default:
-                        addressEvent = event.createAddressEvent(DbOperationType.DB_UPDATE);
-                        break;
-                }
-                new SaveTask<>(addressEvent).run();
-                switch (addressEvent.getStatus()) {
-                    case SUCCEEDED:
-                        event.setSucceeded();
-                        return;
-                    case FAULTED:
-                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
-                        break;
-                    case INVALID:
-                        event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
-                        break;
-                    default:
-                        event.setCanceled();
-                        break;
-                }
-            }
-        }
-
-        @Override
-        void validateDelete(DeleteTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> task) {
-            CustomerEvent event = task.getValidationEvent();
-            CustomerDAO dao = task.getDataAccessObject();
-            int count;
-            try {
-                count = AppointmentDAO.FACTORY.countByCustomer(task.getConnection(), dao.getPrimaryKey(), null, null);
-            } catch (SQLException ex) {
-                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-                Platform.runLater(() -> Event.fireEvent(dao, event));
-                return;
-            }
-            switch (count) {
-                case 0:
-                    event.setSucceeded();
-                    break;
-                case 1:
-                    event.setInvalid("Customer in use", "Customer is referenced by one appointment.");
-                    break;
-                default:
-                    event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
-                    break;
-            }
         }
 
         @Override
@@ -463,19 +359,185 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return CustomerDAO.class;
         }
 
-        @Override
-        protected CustomerEvent createDbOperationEvent(CustomerEvent sourceEvent, DbOperationType operation) {
-            CustomerModel model = sourceEvent.getModel();
-            if (null != model) {
-                return new CustomerEvent(model, sourceEvent.getSource(), this, operation);
-            }
-            return new CustomerEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-        }
-
+//        @Override
+//        protected CustomerEvent createModelEvent(CustomerEvent sourceEvent, DbOperationType operation) {
+//            CustomerModel model = sourceEvent.getModel();
+//            if (null != model) {
+//                return new CustomerEvent(model, sourceEvent.getSource(), this, operation);
+//            }
+//            return new CustomerEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
+//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", CustomerModel.FACTORY.getClass().getName()));
             return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+    }
+
+    public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+
+        public SaveTask(CustomerModel fxRecordModel, FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public SaveTask(CustomerDAO dataAccessObject, DaoFactory<CustomerDAO, CustomerEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected CustomerEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+//            CustomerEvent event = task.getValidationEvent();
+//            CustomerDAO dao;
+//            try {
+//                dao = ICustomerDAO.assertValidCustomer(event.getDataAccessObject());
+//            } catch (IllegalArgumentException | IllegalStateException ex) {
+//                event.setFaulted("Invalid Customer", ex.getMessage(), ex);
+//                return;
+//            }
+//            Connection connection = task.getConnection();
+//            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
+//                    .append(") FROM ").append(DbTable.CUSTOMER.getDbName()).append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME.getDbName()).append(")=?");
+//            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+//                sb.append(" AND ").append(DbColumn.CUSTOMER_ID.getDbName()).append("<>?");
+//            }
+//            int count;
+//            String sql = sb.toString();
+//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//                ps.setString(1, dao.getName());
+//                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
+//                    ps.setInt(2, dao.getPrimaryKey());
+//                }
+//                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+//                try (ResultSet rs = ps.executeQuery()) {
+//                    if (rs.next()) {
+//                        count = rs.getInt(1);
+//                    } else {
+//                        LogHelper.logWarnings(connection, LOG);
+//                        throw new SQLException("Unexpected lack of results from database query");
+//                    }
+//                    LogHelper.logWarnings(connection, LOG);
+//                }
+//            } catch (SQLException ex) {
+//                event.setFaulted("Unexpected error", "Error customer naming conflicts", ex);
+//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+//                return;
+//            }
+//            if (count > 0) {
+//                event.setInvalid("Customer name already in use", "Another customer has the same name");
+//                return;
+//            }
+//
+//            IAddressDAO address = dao.getAddress();
+//            if (address instanceof AddressDAO) {
+//                AddressEvent addressEvent;
+//                switch (address.getRowState()) {
+//                    case NEW:
+//                        addressEvent = event.createAddressEvent(DbOperationType.DB_INSERT);
+//                        break;
+//                    case UNMODIFIED:
+//                        event.setSucceeded();
+//                        return;
+//                    default:
+//                        addressEvent = event.createAddressEvent(DbOperationType.DB_UPDATE);
+//                        break;
+//                }
+//                new SaveTaskOld<>(addressEvent).run();
+//                switch (addressEvent.getStatus()) {
+//                    case SUCCEEDED:
+//                        event.setSucceeded();
+//                        return;
+//                    case FAULTED:
+//                        event.setFaulted(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage(), addressEvent.getFault());
+//                        break;
+//                    case INVALID:
+//                        event.setInvalid(addressEvent.getSummaryTitle(), addressEvent.getDetailMessage());
+//                        break;
+//                    default:
+//                        event.setCanceled();
+//                        break;
+//                }
+//            }
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#validate
+        }
+
+        @Override
+        protected CustomerEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected CustomerEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createCancelledEvent
+        }
+
+        @Override
+        protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createValidationFailureEvent
+        }
+
+    }
+
+    public static class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+
+        public DeleteTask(CustomerModel fxRecordModel, FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, alreadyValidated);
+        }
+
+        public DeleteTask(CustomerDAO dataAccessObject, DaoFactory<CustomerDAO, CustomerEvent> daoFactory, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, alreadyValidated);
+        }
+
+        @Override
+        protected CustomerEvent createSuccessEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createSuccessEvent
+        }
+
+        @Override
+        protected void validate(Connection connection) throws Exception {
+//            CustomerEvent event = task.getValidationEvent();
+//            CustomerDAO dao = task.getDataAccessObject();
+//            int count;
+//            try {
+//                count = AppointmentDAO.FACTORY.countByCustomer(task.getConnection(), dao.getPrimaryKey(), null, null);
+//            } catch (SQLException ex) {
+//                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
+//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
+//                Platform.runLater(() -> Event.fireEvent(dao, event));
+//                return;
+//            }
+//            switch (count) {
+//                case 0:
+//                    event.setSucceeded();
+//                    break;
+//                case 1:
+//                    event.setInvalid("Customer in use", "Customer is referenced by one appointment.");
+//                    break;
+//                default:
+//                    event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
+//                    break;
+//            }
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#validate
+        }
+
+        @Override
+        protected CustomerEvent createUnhandledExceptionEvent(Throwable fault) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createUnhandledExceptionEvent
+        }
+
+        @Override
+        protected CustomerEvent createCancelledEvent() {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createCancelledEvent
+        }
+
+        @Override
+        protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
+            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createValidationFailureEvent
         }
 
     }
@@ -495,14 +557,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             this.active = active;
             if (!(null == address || address instanceof AddressDAO)) {
                 addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
-                AddressDAO.FACTORY.addEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+                AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
             }
         }
 
         private void onAddressEvent(AddressEvent event) {
             IAddressDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.ADDRESS_MODEL_EVENT_TYPE, addressChangeHandler);
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
                 addressChangeHandler = null;
                 IAddressDAO oldValue = address;
                 address = newValue;

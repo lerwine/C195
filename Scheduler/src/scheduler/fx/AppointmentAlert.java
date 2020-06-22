@@ -59,7 +59,7 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentSuccessEvent;
 
 /**
  * FXML Controller class
@@ -117,12 +117,13 @@ public class AppointmentAlert extends BorderPane {
             i = 2;
         }
         checkFrequency = i;
-        addEventFilter(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
-        addEventFilter(AppointmentEvent.UPDATED_EVENT_TYPE, this::onAppointmentUpdated);
-        addEventFilter(AppointmentEvent.DB_DELETE_EVENT_TYPE, this::onAppointmentDeleted);
+        addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
+        // TODO: Create event to distinguish insert from update
+        addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentUpdated);
+        addEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
     }
 
-    private synchronized void onAppointmentInserted(AppointmentEvent event) {
+    private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         AppointmentDAO dao = event.getDataAccessObject();
         // XXX: Check for model
@@ -148,7 +149,7 @@ public class AppointmentAlert extends BorderPane {
         }
     }
 
-    private synchronized void onAppointmentUpdated(AppointmentEvent event) {
+    private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         AppointmentDAO dao = event.getDataAccessObject();
         // XXX: Check for model
@@ -198,7 +199,7 @@ public class AppointmentAlert extends BorderPane {
         }
     }
 
-    private synchronized void onAppointmentDeleted(AppointmentEvent event) {
+    private synchronized void onAppointmentDeleted(AppointmentSuccessEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         AppointmentDAO dao = event.getDataAccessObject();
         // XXX: Check for model

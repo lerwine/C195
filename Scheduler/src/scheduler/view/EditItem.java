@@ -199,7 +199,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                     resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
                     .ifPresent((t) -> {
                         if (t == ButtonType.YES) {
-                            waitBorderPane.startNow(new DataAccessObject.DeleteTask<>(deleteEvent));
+                            waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(deleteEvent));
                         }
                     });
         }
@@ -323,7 +323,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     }
 
-    private class SaveTask extends DataAccessObject.SaveTask<T, U, E> {
+    private class SaveTask extends DataAccessObject.SaveTaskOld<T, U, E> {
 
         SaveTask(E event) {
             super(event);

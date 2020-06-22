@@ -4,7 +4,9 @@ package scheduler.events;
  * Represents a database operation type. This is primarily used by the {@link DbOperationEvent} object.
  * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @deprecated
  */
+@Deprecated
 public enum DbOperationType {
     /**
      * Request to open an {@link scheduler.model.ui.FxRecordModel} for editing.
@@ -16,7 +18,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#EDIT_REQUEST_EVENT_TYPE}</li>
      * <li>{@link UserEvent#EDIT_REQUEST_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     EDIT_REQUEST,
     /**
      * Request to open a confirmation dialog for deleting an {@link scheduler.model.ui.FxRecordModel}.
@@ -28,7 +32,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#DELETE_REQUEST_EVENT_TYPE}</li>
      * <li>{@link UserEvent#DELETE_REQUEST_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     DELETE_REQUEST,
     /**
      * Pending database insert for a {@link scheduler.model.DataRecord}.
@@ -40,7 +46,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#INSERT_VALIDATION_EVENT_TYPE}</li>
      * <li>{@link UserEvent#INSERT_VALIDATION_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     INSERT_VALIDATION,
     /**
      * A new {@link scheduler.model.DataRecord} has been inserted into the database.
@@ -52,7 +60,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#DB_INSERT_EVENT_TYPE}</li>
      * <li>{@link UserEvent#DB_INSERT_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     DB_INSERT,
     /**
      * Pending database update for a {@link scheduler.model.DataRecord}.
@@ -64,7 +74,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#UPDATE_VALIDATION_EVENT_TYPE}</li>
      * <li>{@link UserEvent#UPDATE_VALIDATION_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     UPDATE_VALIDATION,
     /**
      * Changes to a {@link scheduler.model.DataRecord} has been saved to the database.
@@ -76,7 +88,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#UPDATED_EVENT_TYPE}</li>
      * <li>{@link UserEvent#UPDATED_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     DB_UPDATE,
     /**
      * Pending database delete for a {@link scheduler.model.DataRecord}.
@@ -88,7 +102,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#DELETING_EVENT_TYPE}</li>
      * <li>{@link UserEvent#DELETING_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     DELETE_VALIDATION,
     /**
      * A {@link scheduler.model.DataRecord} has been deleted from the database.
@@ -100,7 +116,9 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#DB_DELETE_EVENT_TYPE}</li>
      * <li>{@link UserEvent#DB_DELETE_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     DB_DELETE,
     /**
      * No (any) database operation.
@@ -112,6 +130,8 @@ public enum DbOperationType {
      * <li>{@link CountryEvent#COUNTRY_MODEL_EVENT}</li>
      * <li>{@link UserEvent#USER_MODEL_EVENT_TYPE}</li>
      * </ul>
+     * @deprecated
      */
+    @Deprecated
     NONE;
 }
