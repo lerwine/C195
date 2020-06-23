@@ -7,6 +7,8 @@ import scheduler.model.ui.UserModel;
 
 public abstract class UserEvent extends ModelEvent<UserDAO, UserModel> {
 
+    private static final long serialVersionUID = -4220071150094259420L;
+
     /**
      * Base {@link EventType} for all {@code UserEvent}s.
      */

@@ -10,14 +10,11 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
 import scheduler.model.AddressProperties;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -259,7 +256,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
 
         private Factory() {
-            super(CustomerEvent.CUSTOMER_MODEL_EVENT_TYPE);
+            super(CustomerEvent.CUSTOMER_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -267,7 +264,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
         @Override
         public DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> getDaoFactory() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.model.ui.CustomerModel.Factory#getDaoFactory
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getDaoFactory
         }
 
         @Override
@@ -286,13 +283,13 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public CustomerEvent createDbOperationEvent(CustomerModel model, Object source, EventTarget target, DbOperationType operation) {
-            return new CustomerEvent(model, source, target, operation);
+        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createSaveTask(CustomerModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#createSaveTask
         }
 
         @Override
-        public EventType<CustomerEvent> toEventType(DbOperationType operation) {
-            return CustomerEvent.toEventType(operation);
+        public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createDeleteTask(CustomerModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#createDeleteTask
         }
 
     }

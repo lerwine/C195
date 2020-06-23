@@ -102,19 +102,19 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
         if (null == address || address instanceof AddressDAO) {
             if (null != addressChangeHandler) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
                 addressChangeHandler = null;
             }
         } else if (null == addressChangeHandler) {
             addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
-            AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
+            AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
         }
     }
 
     private void onAddressEvent(AddressEvent event) {
         IAddressDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-            AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
+            AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
             addressChangeHandler = null;
             IAddressDAO oldValue = address;
             address = newValue;
@@ -373,21 +373,31 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
+        @Override
+        public SaveDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createSaveTask(CustomerDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.FactoryImpl#createSaveTask
+        }
+
+        @Override
+        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.FactoryImpl#createDeleteTask
+        }
+
     }
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
 
         public SaveTask(CustomerModel fxRecordModel, FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         public SaveTask(CustomerDAO dataAccessObject, DaoFactory<CustomerDAO, CustomerEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CustomerEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createSuccessEvent
         }
 
         @Override
@@ -463,22 +473,22 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 //                        break;
 //                }
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#validate
         }
 
         @Override
         protected CustomerEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected CustomerEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createCancelledEvent
         }
 
         @Override
         protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.SaveTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createValidationFailureEvent
         }
 
     }
@@ -486,16 +496,16 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     public static class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
 
         public DeleteTask(CustomerModel fxRecordModel, FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         public DeleteTask(CustomerDAO dataAccessObject, DaoFactory<CustomerDAO, CustomerEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CustomerEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createSuccessEvent
         }
 
         @Override
@@ -522,22 +532,22 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 //                    event.setInvalid("Customer in use", String.format("Customer is referenced by %d other appointments", count));
 //                    break;
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#validate
         }
 
         @Override
         protected CustomerEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected CustomerEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createCancelledEvent
         }
 
         @Override
         protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CustomerDAO.DeleteTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createValidationFailureEvent
         }
 
     }
@@ -557,14 +567,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             this.active = active;
             if (!(null == address || address instanceof AddressDAO)) {
                 addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
-                AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
+                AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
             }
         }
 
         private void onAddressEvent(AddressEvent event) {
             IAddressDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT, addressChangeHandler);
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
                 addressChangeHandler = null;
                 IAddressDAO oldValue = address;
                 address = newValue;

@@ -15,6 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -25,6 +26,7 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
+import scheduler.events.ModelEvent;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -32,8 +34,6 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
-import scheduler.events.DbOperationType;
-import scheduler.events.DbOperationEvent;
 
 /**
  * Base class for item list management.
@@ -43,7 +43,7 @@ import scheduler.events.DbOperationEvent;
  * @param <E> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends DbOperationEvent<M, D>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
@@ -98,8 +98,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onDeleteMenuItemAction(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDeleteItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
-                    DbOperationType.DELETE_REQUEST));
+            onDeleteItem(item);
         }
     }
 
@@ -107,27 +106,14 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onEditMenuItemAction(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onEditItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
-                    DbOperationType.EDIT_REQUEST));
+            onEditItem(item);
         }
     }
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(E event) {
-        if (event.isConsumed()) {
-            return;
-        }
-        switch (event.getOperation()) {
-            case EDIT_REQUEST:
-                onEditItem(event);
-                event.consume();
-                break;
-            case DELETE_REQUEST:
-                onDeleteItem(event);
-                event.consume();
-                break;
-        }
+    private void onItemActionRequest(Event event) {
+        // FIXME: Implement this
     }
 
     @FXML
@@ -139,15 +125,13 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 case DELETE:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDeleteItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
-                                DbOperationType.DELETE_REQUEST));
+                        onDeleteItem(item);
                     }
                     break;
                 case ENTER:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onEditItem(getModelFactory().createDbOperationEvent(item, event.getSource(), event.getTarget(),
-                                DbOperationType.EDIT_REQUEST));
+                        onEditItem(item);
                     }
                     break;
             }
@@ -205,7 +189,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>> factory = getModelFactory();
+            FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -230,7 +214,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         D dao = event.getDataAccessObject();
         // XXX: Check to see if we need to get/update model
-        FxRecordModel.ModelFactory<D, M, ? extends DbOperationEvent<M, D>> mf = getModelFactory();
+        FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
@@ -266,15 +250,15 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract void onNewItem();
 
-    protected abstract void onEditItem(E event);
+    protected abstract void onEditItem(M item);
 
-    protected abstract void onDeleteItem(E event);
+    protected abstract void onDeleteItem(M item);
 
-    protected abstract EventType<E> getInsertedEventType();
+    protected abstract EventType<? extends E> getInsertedEventType();
 
-    protected abstract EventType<E> getUpdatedEventType();
+    protected abstract EventType<? extends E> getUpdatedEventType();
 
-    protected abstract EventType<E> getDeletedEventType();
+    protected abstract EventType<? extends E> getDeletedEventType();
 
     protected class LoadItemsTask extends Task<List<D>> {
 

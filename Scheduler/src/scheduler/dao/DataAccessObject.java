@@ -22,12 +22,15 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.event.WeakEventHandler;
@@ -43,7 +46,6 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.ModelEvent;
 import scheduler.model.DataObject;
-import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
@@ -575,6 +577,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          */
         public abstract T createNew();
 
+        public abstract SaveDaoTask<T, ? extends FxRecordModel<T>, E> createSaveTask(T dao);
+
+        public abstract DeleteDaoTask<T, ? extends FxRecordModel<T>, E> createDeleteTask(T dao);
+
         /**
          * Gets a {@link DaoFilter} for returning all items.
          *
@@ -702,10 +708,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        // FIXME: The type parameter T is hiding the type T
+        public final <T extends E> void addEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -713,21 +721,25 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
-         * @param eventHandler The event handler.
+         * @param eventFilter The event filter.
          */
-        public final void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
-            eventHandlerManager.addEventFilter(type, eventHandler);
+        // FIXME: The type parameter T is hiding the type T
+        public final <T extends E> void addEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+            eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
         /**
          * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        // FIXME: The type parameter T is hiding the type T
+        public final <T extends E> void removeEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -735,11 +747,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
-         * @param eventHandler The event handler.
+         * @param eventFilter The event filter.
          */
-        public final void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
-            eventHandlerManager.removeEventFilter(type, eventHandler);
+        // FIXME: The type parameter T is hiding the type T
+        public final <T extends E> void removeEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+            eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 
     }
@@ -840,9 +854,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         private final ReadOnlyObjectWrapper<E> finalEvent;
         private boolean validationSuccessful;
         private DataRowState originalRowState;
+        private final ReadOnlyBooleanWrapper validationFailed;
+        private final SimpleObjectProperty<EventHandler<E>> onFinished;
 
         // FIXME: ModelFactory needs to use same event type
-        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, boolean alreadyValidated) {
+        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean alreadyValidated) {
             super(fxRecordModel);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
@@ -850,10 +866,22 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             validationFailed = new ReadOnlyBooleanWrapper(!alreadyValidated);
             originalRowState = getDataAccessObject().getRowState();
             finalEvent = new ReadOnlyObjectWrapper<>(null);
+            onFinished = new SimpleObjectProperty<>(null);
+            onFinished.addListener((observable, oldValue, newValue) -> {
+                try {
+                    if (null != oldValue) {
+                        removeEventHandler(anyEventType, oldValue);
+                    }
+                } finally {
+                    if (null != newValue) {
+                        addEventHandler(anyEventType, newValue);
+                    }
+                }
+            });
         }
 
         // FIXME: DaoFactory needs to use same event type
-        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, boolean alreadyValidated) {
+        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean alreadyValidated) {
             super(dataAccessObject);
             originalRowState = getDataAccessObject().getRowState();
             this.daoFactory = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(daoFactory));
@@ -861,8 +889,19 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             validationSuccessful = alreadyValidated;
             validationFailed = new ReadOnlyBooleanWrapper(!alreadyValidated);
             finalEvent = new ReadOnlyObjectWrapper<>(null);
+            onFinished = new SimpleObjectProperty<>(null);
+            onFinished.addListener((observable, oldValue, newValue) -> {
+                try {
+                    if (null != oldValue) {
+                        removeEventHandler(anyEventType, oldValue);
+                    }
+                } finally {
+                    if (null != newValue) {
+                        addEventHandler(anyEventType, newValue);
+                    }
+                }
+            });
         }
-        private final ReadOnlyBooleanWrapper validationFailed;
 
         public boolean isValidationFailed() {
             return validationFailed.get();
@@ -963,22 +1002,34 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             onFinished(event);
         }
 
-        protected void onFinished(E event) {
+        public final EventHandler<E> getOnFinished() {
+            return onFinished.get();
+        }
 
+        public final void setOnFinished(EventHandler<E> value) {
+            onFinished.set(value);
+        }
+
+        public final ObjectProperty<EventHandler<E>> onFinishedProperty() {
+            return onFinished;
+        }
+
+        protected void onFinished(E event) {
+            fireEvent(event);
         }
     }
 
     public static abstract class SaveDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
 
-        protected SaveDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+        protected SaveDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, anyEventType, alreadyValidated);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalStateException("Record was already deleted");
             }
         }
 
-        protected SaveDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+        protected SaveDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, anyEventType, alreadyValidated);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalStateException("Record was already deleted");
             }
@@ -1119,8 +1170,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
 
-        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+        @SuppressWarnings("incomplete-switch")
+        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean alreadyValidated) {
+            super(fxRecordModel, modelFactory, anyEventType, alreadyValidated);
             switch (getOriginalRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Record was already deleted");
@@ -1129,8 +1181,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
         }
 
-        protected DeleteDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+        @SuppressWarnings("incomplete-switch")
+        protected DeleteDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean alreadyValidated) {
+            super(dataAccessObject, daoFactory, anyEventType, alreadyValidated);
             switch (getOriginalRowState()) {
                 case DELETED:
                     throw new IllegalStateException("Record was already deleted");

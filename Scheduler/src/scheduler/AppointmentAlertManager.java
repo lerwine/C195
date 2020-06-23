@@ -22,7 +22,7 @@ import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DB;
@@ -159,7 +159,7 @@ public class AppointmentAlertManager implements EventTarget {
         return false;
     }
 
-    private void onAppointmentInserted(AppointmentEvent event) {
+    private void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         // XXX: Check to see if we need to get model, instead
         if (checkInsert(event.getDataAccessObject(), true)) {
@@ -167,7 +167,7 @@ public class AppointmentAlertManager implements EventTarget {
         }
     }
 
-    private void onAppointmentUpdated(AppointmentEvent event) {
+    private void onAppointmentUpdated(AppointmentSuccessEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         // XXX: Check to see if we need to get model, instead
         if (checkUpdate(event.getDataAccessObject(), true)) {
@@ -175,7 +175,7 @@ public class AppointmentAlertManager implements EventTarget {
         }
     }
 
-    private void onAppointmentDeleted(AppointmentEvent event) {
+    private void onAppointmentDeleted(AppointmentSuccessEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         // XXX: Check to see if we need to get model, instead
         if (checkDelete(event.getDataAccessObject().getPrimaryKey())) {
@@ -188,9 +188,10 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized void start(boolean isInitial) {
-        eventHandlerManager.addEventFilter(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
-        eventHandlerManager.addEventFilter(AppointmentEvent.UPDATED_EVENT_TYPE, this::onAppointmentUpdated);
-        eventHandlerManager.addEventFilter(AppointmentEvent.DB_DELETE_EVENT_TYPE, this::onAppointmentDeleted);
+        // FIXME: Use separate event types
+        eventHandlerManager.addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
+        eventHandlerManager.addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentUpdated);
+        eventHandlerManager.addEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
         if (null != appointmentCheckTimer) {
             if (isInitial) {
                 return;
@@ -202,9 +203,10 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized boolean stop(boolean isPermanent) {
-        eventHandlerManager.removeEventFilter(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
-        eventHandlerManager.removeEventFilter(AppointmentEvent.UPDATED_EVENT_TYPE, this::onAppointmentUpdated);
-        eventHandlerManager.removeEventFilter(AppointmentEvent.DB_DELETE_EVENT_TYPE, this::onAppointmentDeleted);
+        // FIXME: Use separate event types
+        eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
+        eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentUpdated);
+        eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
         if (null == appointmentCheckTimer) {
             return false;
         }

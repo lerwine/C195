@@ -35,12 +35,11 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.events.CityEvent;
+import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
+import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
@@ -123,18 +122,15 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
-        addEventHandler(CountryEvent.INSERT_VALIDATION_EVENT_TYPE, this::onCountryUpdating);
-        addEventHandler(CountryEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onCountryUpdating);
-        addEventHandler(CountryEvent.DB_INSERT_EVENT_TYPE, this::onCountryInserted);
+        // FIXME: Use INSERT_SUCCESS
+        addEventHandler(CountrySuccessEvent.SAVE_SUCCESS, this::onCountryInserted);
     }
 
-    private void onCountryUpdating(CountryEvent event) {
-        if (event.getStatus() == EventEvaluationStatus.EVALUATING) {
-            model.setLocale(selectedLocale.get());
-        }
+    private void onCountryUpdating(CountrySuccessEvent event) {
+        model.setLocale(selectedLocale.get());
     }
 
-    private void onCountryInserted(CountryEvent event) {
+    private void onCountryInserted(CountrySuccessEvent event) {
         restoreNode(citiesLabel);
         restoreNode(citiesTableView);
         restoreNode(newButtonBar);
@@ -150,13 +146,13 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 case DELETE:
                     item = citiesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
+                        deleteItem(item);
                     }
                     break;
                 case ENTER:
                     item = citiesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
+                        editItem(item);
                     }
                     break;
             }
@@ -167,7 +163,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void onCityDeleteMenuItemAction(ActionEvent event) {
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
+            deleteItem(item);
         }
     }
 
@@ -175,36 +171,53 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void onCityEditMenuItemAction(ActionEvent event) {
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CityEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
+            editItem(item);
+        }
+    }
+
+    private void editItem(CityModel item) {
+        try {
+            EditCity.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
+
+    private void deleteItem(CityModel item) {
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            waitBorderPane.startNow(new CityDAO.DeleteTask(item, CityModel.FACTORY, false));
         }
     }
 
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CityEvent event) {
-        CityModel item;
-        if (event.isConsumed() || (null == (item = event.getModel()))) {
-            return;
-        }
-        switch (event.getOperation()) {
-            case EDIT_REQUEST:
-                try {
-                    EditCity.edit(item, getScene().getWindow());
-                } catch (IOException ex) {
-                    LOG.log(Level.SEVERE, "Error opening child window", ex);
-                }
-                event.consume();
-                break;
-            case DELETE_REQUEST:
-                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-                if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
-                }
-                event.consume();
-                break;
-        }
+//        CityModel item;
+//        if (event.isConsumed() || (null == (item = event.getModel()))) {
+//            return;
+//        }
+//        switch (event.getOperation()) {
+//            case EDIT_REQUEST:
+//                try {
+//                    EditCity.edit(item, getScene().getWindow());
+//                } catch (IOException ex) {
+//                    LOG.log(Level.SEVERE, "Error opening child window", ex);
+//                }
+//                event.consume();
+//                break;
+//            case DELETE_REQUEST:
+//                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+//                if (response.isPresent() && response.get() == ButtonType.YES) {
+//                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
+//                }
+//                event.consume();
+//                break;
+//        }
     }
 
     @FXML
@@ -264,14 +277,16 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
-        CityModel.FACTORY.addEventHandler(CityEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onCityAdded));
-        CityModel.FACTORY.addEventHandler(CityEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onCityUpdated));
-        CityModel.FACTORY.addEventHandler(CityEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onCityDeleted));
+        // FIXME: Use INSERT_SUCCESS
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCityAdded));
+        // FIXME: Use UPDATE_SUCCESS
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCityUpdated));
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCityDeleted));
     }
 
-    private void onCityAdded(CityEvent event) {
+    private void onCityAdded(CitySuccessEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        CityModel m = event.getModel();
+        CityModel m = event.getFxRecordModel();
         if (null == m) {
             CityDAO dao = event.getDataAccessObject();
             if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
@@ -282,9 +297,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
-    private void onCityUpdated(CityEvent event) {
+    private void onCityUpdated(CitySuccessEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
-        CityModel item = event.getModel();
+        CityModel item = event.getFxRecordModel();
         if (null == item) {
             CityDAO dao = event.getDataAccessObject();
             int pk = dao.getPrimaryKey();
@@ -348,6 +363,11 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @Override
     public FxRecordModel.ModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
         return CountryModel.FACTORY;
+    }
+
+    @Override
+    public void applyChanges() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#applyChanges
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {

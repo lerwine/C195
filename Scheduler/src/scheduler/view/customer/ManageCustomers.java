@@ -18,8 +18,8 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.events.CustomerEvent;
+import scheduler.events.CustomerSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
 import scheduler.model.ui.CustomerModel;
@@ -146,39 +146,40 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     }
 
     @Override
-    protected void onEditItem(CustomerEvent event) {
+    protected void onEditItem(CustomerModel item) {
         try {
-            CustomerModel m = event.getModel();
             Window w = getScene().getWindow();
-            EditCustomer.edit(m, w);
+            EditCustomer.edit(item, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
     @Override
-    protected void onDeleteItem(CustomerEvent event) {
+    protected void onDeleteItem(CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DataAccessObject.DeleteTaskOld<>(event));
+            MainController.startBusyTaskNow(new CustomerDAO.DeleteTask(item, CustomerModel.FACTORY, false));
         }
     }
 
     @Override
-    protected EventType<CustomerEvent> getInsertedEventType() {
-        return CustomerEvent.DB_INSERT_EVENT_TYPE;
+    protected EventType<CustomerSuccessEvent> getInsertedEventType() {
+        // FIXME: Use INSERT_SUCCESS
+        return CustomerSuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<CustomerEvent> getUpdatedEventType() {
-        return CustomerEvent.UPDATED_EVENT_TYPE;
+    protected EventType<CustomerSuccessEvent> getUpdatedEventType() {
+        // FIXME: Use UPDATE_SUCCESS
+        return CustomerSuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<CustomerEvent> getDeletedEventType() {
-        return CustomerEvent.DB_DELETE_EVENT_TYPE;
+    protected EventType<CustomerSuccessEvent> getDeletedEventType() {
+        return CustomerSuccessEvent.DELETE_SUCCESS;
     }
 
 }

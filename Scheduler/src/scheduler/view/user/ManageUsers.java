@@ -17,9 +17,9 @@ import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
 import scheduler.events.UserEvent;
+import scheduler.events.UserSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.User;
 import scheduler.model.ui.UserModel;
@@ -143,39 +143,40 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     }
 
     @Override
-    protected void onEditItem(UserEvent event) {
+    protected void onEditItem(UserModel model) {
         try {
-            UserModel m = event.getModel();
             Window w = getScene().getWindow();
-            EditUser.edit(m, w);
+            EditUser.edit(model, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
     @Override
-    protected void onDeleteItem(UserEvent event) {
+    protected void onDeleteItem(UserModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DataAccessObject.DeleteTaskOld<>(event));
+            MainController.startBusyTaskNow(new UserDAO.DeleteTask(item, UserModel.FACTORY, false));
         }
     }
 
     @Override
-    protected EventType<UserEvent> getInsertedEventType() {
-        return UserEvent.DB_INSERT_EVENT_TYPE;
+    protected EventType<UserSuccessEvent> getInsertedEventType() {
+        // FIXME: Use INSERT_SUCCESS
+        return UserSuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<UserEvent> getUpdatedEventType() {
-        return UserEvent.UPDATED_EVENT_TYPE;
+    protected EventType<UserSuccessEvent> getUpdatedEventType() {
+        // FIXME: Use UPDATE_SUCCESS
+        return UserSuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<UserEvent> getDeletedEventType() {
-        return UserEvent.DB_DELETE_EVENT_TYPE;
+    protected EventType<UserSuccessEvent> getDeletedEventType() {
+        return UserSuccessEvent.DELETE_SUCCESS;
     }
 
 }

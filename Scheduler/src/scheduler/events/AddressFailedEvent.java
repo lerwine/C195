@@ -7,6 +7,8 @@ import scheduler.model.ui.AddressModel;
 
 public final class AddressFailedEvent extends AddressEvent implements ModelFailedEvent<AddressDAO, AddressModel> {
 
+    private static final long serialVersionUID = 3057696288962212229L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_ADDRESS_FAILED_EVENT";
 
     /**

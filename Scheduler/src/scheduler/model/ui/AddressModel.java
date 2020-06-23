@@ -394,7 +394,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
         // Singleton
         private Factory() {
-            super(AddressEvent.ADDRESS_MODEL_EVENT_TYPE);
+            super(AddressEvent.ADDRESS_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -442,12 +442,24 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         @Override
         public AddressEvent createDbOperationEvent(AddressModel model, Object source, EventTarget target, DbOperationType operation) {
-            return new AddressEvent(model, source, target, operation);
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.fx.AddressModel.Factory#createDbOperationEvent
+//            return new AddressEvent(model, source, target);
         }
 
         @Override
         public EventType<AddressEvent> toEventType(DbOperationType operation) {
-            return AddressEvent.toEventType(operation);
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.fx.AddressModel.Factory#toEventType
+//            return AddressEvent.toEventType(operation);
+        }
+
+        @Override
+        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createSaveTask
+        }
+
+        @Override
+        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(AddressModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createDeleteTask
         }
 
     }

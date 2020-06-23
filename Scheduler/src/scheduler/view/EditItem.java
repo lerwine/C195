@@ -25,8 +25,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.events.DbOperationEvent;
-import scheduler.events.DbOperationType;
+import scheduler.events.ModelEvent;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
@@ -57,11 +56,11 @@ import scheduler.view.task.WaitBorderPane;
  * @param <T> The type of data access object that the model represents.
  * @param <U> The type of model being edited.
  * @param <S> The content node.
- * @param <E> The {@link DbOperationEvent} type.
+ * @param <E> The {@link ModelEvent} type.
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends DbOperationEvent<U, T>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
 
     private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
@@ -71,7 +70,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @param <T> The type of data access object.
      * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditor} control for editing the model properties.
-     * @param <E> The {@link DbOperationEvent} type.
+     * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window
      * @param editorRegion
      * @param model
@@ -79,7 +78,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends DbOperationEvent<U, T>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
@@ -101,7 +100,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @param <T> The type of data access object.
      * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditor} control for editing the model properties.
-     * @param <E> The {@link DbOperationEvent} type.
+     * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window
      * @param editorType
      * @param model
@@ -109,7 +108,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends DbOperationEvent<U, T>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -189,33 +188,65 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     void onDeleteButtonAction(ActionEvent event) {
-        FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
-        E deleteEvent = factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.DELETE_VALIDATION);
-        editorRegion.fireEvent(deleteEvent);
-        if (!deleteEvent.isConsumed()) {
-            Stage stage = (Stage) getScene().getWindow();
-            AlertHelper.showWarningAlert(stage, LOG,
-                    resources.getString(RESOURCEKEY_CONFIRMDELETE),
-                    resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
-                    .ifPresent((t) -> {
-                        if (t == ButtonType.YES) {
-                            waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(deleteEvent));
-                        }
-                    });
-        }
+        // FIXME: Make sure everyone's getting all events
+        Stage stage = (Stage) getScene().getWindow();
+        AlertHelper.showWarningAlert(stage, LOG,
+                resources.getString(RESOURCEKEY_CONFIRMDELETE),
+                resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
+                .ifPresent((t) -> {
+                    if (t == ButtonType.YES) {
+                        DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(model);
+                        task.setOnFinished((e) -> {
+                            // FIXME: Re-implement
+//                                switch (e.getStatus()) {
+//                                    case FAULTED:
+//                                        // FIXME: Not sure if this is being presented in the WaitBorderPane
+//                                        break;
+//                                    case INVALID:
+//                                        // FIXME: Not sure if this is being presented in the WaitBorderPane
+//                                        break;
+//                                    case SUCCEEDED:
+//                                        getScene().getWindow().hide();
+//                                        break;
+//                                }
+                        });
+
+                        waitBorderPane.startNow(task);
+                    }
+                });
     }
 
     @FXML
     void onSaveButtonAction(ActionEvent event) {
-        FxRecordModel.ModelFactory<T, U, E> factory = editorRegion.modelFactory();
-        // FIXME: Need to find a good way to ensure the model is updated after DAO is updated.. Perhaps passing event instead of DAO
-        E updateEvent = (model.isNewRow())
-                ? factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.INSERT_VALIDATION)
-                : factory.createDbOperationEvent(model, event.getSource(), editorRegion, DbOperationType.UPDATE_VALIDATION);
-        editorRegion.fireEvent(updateEvent);
-        if (!updateEvent.isConsumed()) {
-            waitBorderPane.startNow(new SaveTask(updateEvent));
-        }
+        editorRegion.applyChanges();
+        // FIXME: Make sure everyone's getting all events
+        DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(model);
+        task.setOnFinished((e) -> {
+            // FIXME: Re-implement
+//            switch (e.getStatus()) {
+//                case FAULTED:
+//                    // FIXME: Not sure if this is being presented in the WaitBorderPane
+//                    break;
+//                case INVALID:
+//                    // FIXME: Not sure if this is being presented in the WaitBorderPane
+//                    break;
+//                case SUCCEEDED:
+//                    switch (e.getOperation()) {
+//                        case DB_INSERT:
+//                            if (keepOpen) {
+//                                editorRegion.fireEvent(e);
+//                            } else {
+//                                getScene().getWindow().hide();
+//                            }
+//                            break;
+//                        case DB_UPDATE:
+//                            getScene().getWindow().hide();
+//                            break;
+//                    }
+//                    break;
+//            }
+        });
+        waitBorderPane.startNow(task);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -280,9 +311,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
      * @param <U> The {@link FxRecordModel} type.
-     * @param <E> The {@link DbOperationEvent} type.
+     * @param <E> The {@link ModelEvent} type.
      */
-    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends DbOperationEvent<U, T>> {
+    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends ModelEvent<T, U>> {
 
         /**
          * Gets the factory object for managing the current {@link FxRecordModel}.
@@ -321,42 +352,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
         ReadOnlyBooleanProperty modifiedProperty();
 
-    }
-
-    private class SaveTask extends DataAccessObject.SaveTaskOld<T, U, E> {
-
-        SaveTask(E event) {
-            super(event);
-        }
-
-        @Override
-        @SuppressWarnings("incomplete-switch")
-        protected void succeeded() {
-            super.succeeded();
-            E e = getCurrentEvent();
-            switch (e.getStatus()) {
-                case FAULTED:
-                    // FIXME: Not sure if this is being presented in the WaitBorderPane
-                    break;
-                case INVALID:
-                    // FIXME: Not sure if this is being presented in the WaitBorderPane
-                    break;
-                case SUCCEEDED:
-                    switch (e.getOperation()) {
-                        case DB_INSERT:
-                            if (keepOpen) {
-                                editorRegion.fireEvent(e);
-                            } else {
-                                getScene().getWindow().hide();
-                            }
-                            break;
-                        case DB_UPDATE:
-                            getScene().getWindow().hide();
-                            break;
-                    }
-                    break;
-            }
-        }
+        /**
+         * Applies changes to the underlying {@link FxRecordModel}.
+         */
+        void applyChanges();
     }
 
 }

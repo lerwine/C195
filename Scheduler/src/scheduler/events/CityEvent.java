@@ -7,6 +7,8 @@ import scheduler.model.ui.CityModel;
 
 public abstract class CityEvent extends ModelEvent<CityDAO, CityModel> {
 
+    private static final long serialVersionUID = -6996428374286059723L;
+
     /**
      * Base {@link EventType} for all {@code CityEvent}s.
      */

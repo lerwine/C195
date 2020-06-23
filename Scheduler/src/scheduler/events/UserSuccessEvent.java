@@ -7,6 +7,11 @@ import scheduler.model.ui.UserModel;
 
 public final class UserSuccessEvent extends UserEvent {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 8315764794660229474L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_USER_SUCCESS_EVENT";
 
     /**

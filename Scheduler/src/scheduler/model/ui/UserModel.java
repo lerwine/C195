@@ -9,12 +9,9 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
-import scheduler.events.DbOperationType;
 import scheduler.events.UserEvent;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -167,7 +164,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         // Singleton
         private Factory() {
-            super(UserEvent.USER_MODEL_EVENT_TYPE);
+            super(UserEvent.USER_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -194,13 +191,13 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public UserEvent createDbOperationEvent(UserModel model, Object source, EventTarget target, DbOperationType operation) {
-            return new UserEvent(model, source, target, operation);
+        public DataAccessObject.SaveDaoTask<UserDAO, UserModel, UserEvent> createSaveTask(UserModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#createSaveTask
         }
 
         @Override
-        public EventType<UserEvent> toEventType(DbOperationType operation) {
-            return UserEvent.toEventType(operation);
+        public DataAccessObject.DeleteDaoTask<UserDAO, UserModel, UserEvent> createDeleteTask(UserModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#createDeleteTask
         }
 
     }

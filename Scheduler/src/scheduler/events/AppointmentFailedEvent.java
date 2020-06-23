@@ -7,6 +7,8 @@ import scheduler.model.ui.AppointmentModel;
 
 public final class AppointmentFailedEvent extends AppointmentEvent implements ModelFailedEvent<AppointmentDAO, AppointmentModel> {
 
+    private static final long serialVersionUID = 1875761190733893550L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_APPOINTMENT_FAILED_EVENT";
 
     /**

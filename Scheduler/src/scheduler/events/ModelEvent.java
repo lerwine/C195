@@ -82,6 +82,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
 
     @Override
     public Event copyFor(Object newSource, EventTarget newTarget) {
+        @SuppressWarnings("unchecked")
         ModelEvent<D, M> copy = (ModelEvent<D, M>)super.copyFor(newSource, newTarget);
         copy.state = state;
         return copy;

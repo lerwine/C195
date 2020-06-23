@@ -329,21 +329,31 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
+        @Override
+        public SaveDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createSaveTask(UserDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.FactoryImpl#createSaveTask
+        }
+
+        @Override
+        public DeleteDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createDeleteTask(UserDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.FactoryImpl#createDeleteTask
+        }
+
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
 
         public SaveTask(UserModel fxRecordModel, FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         public SaveTask(UserDAO dataAccessObject, DaoFactory<UserDAO, UserEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected UserEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createSuccessEvent
         }
 
         @Override
@@ -387,22 +397,22 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 //            } else {
 //                event.setSucceeded();
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#validate
         }
 
         @Override
         protected UserEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected UserEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createCancelledEvent
         }
 
         @Override
         protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.SaveTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createValidationFailureEvent
         }
 
     }
@@ -410,16 +420,16 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
     public static class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
 
         public DeleteTask(UserModel fxRecordModel, FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         public DeleteTask(UserDAO dataAccessObject, DaoFactory<UserDAO, UserEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected UserEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createSuccessEvent
         }
 
         @Override
@@ -451,22 +461,22 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 //                    event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
 //                    break;
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#validate
         }
 
         @Override
         protected UserEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected UserEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createCancelledEvent
         }
 
         @Override
         protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.UserDAO.DeleteTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createValidationFailureEvent
         }
 
     }

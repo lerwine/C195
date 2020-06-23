@@ -16,13 +16,14 @@ import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.events.DbOperationType;
-import scheduler.events.DbOperationEvent;
+import scheduler.events.ModelEvent;
 import scheduler.util.LogHelper;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The target item type.
+ * @param <E> The event type.
  */
 public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelEvent<? extends DataAccessObject, T>>
         implements Callback<TableColumn<T, T>, TableCell<T, T>>, EventTarget {

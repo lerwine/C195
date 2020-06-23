@@ -7,6 +7,8 @@ import scheduler.model.ui.CountryModel;
 
 public final class CountryFailedEvent extends CountryEvent implements ModelFailedEvent<CountryDAO, CountryModel> {
 
+    private static final long serialVersionUID = 6771994729970121058L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_COUNTRY_FAILED_EVENT";
 
     /**

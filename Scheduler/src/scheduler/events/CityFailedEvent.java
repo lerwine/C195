@@ -7,6 +7,8 @@ import scheduler.model.ui.CityModel;
 
 public final class CityFailedEvent extends CityEvent implements ModelFailedEvent<CityDAO, CityModel> {
 
+    private static final long serialVersionUID = 4383081185660810957L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_CITY_FAILED_EVENT";
 
     /**

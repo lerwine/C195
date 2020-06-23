@@ -16,9 +16,9 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryEvent;
+import scheduler.events.CountrySuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
 import scheduler.model.ui.CountryModel;
@@ -105,39 +105,38 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     }
 
     @Override
-    protected void onEditItem(CountryEvent event) {
+    protected void onEditItem(CountryModel item) {
         try {
-            CountryModel m = event.getModel();
             Window w = getScene().getWindow();
-            EditCountry.edit(m, w);
+            EditCountry.edit(item, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
     @Override
-    protected void onDeleteItem(CountryEvent event) {
+    protected void onDeleteItem(CountryModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DataAccessObject.DeleteTaskOld<>(event));
+            MainController.startBusyTaskNow(new CountryDAO.DeleteTask(item, CountryModel.FACTORY, false));
         }
     }
 
     @Override
-    protected EventType<CountryEvent> getInsertedEventType() {
-        return CountryEvent.DB_INSERT_EVENT_TYPE;
+    protected EventType<CountrySuccessEvent> getInsertedEventType() {
+        return CountrySuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<CountryEvent> getUpdatedEventType() {
-        return CountryEvent.UPDATED_EVENT_TYPE;
+    protected EventType<CountrySuccessEvent> getUpdatedEventType() {
+        return CountrySuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<CountryEvent> getDeletedEventType() {
-        return CountryEvent.DB_DELETE_EVENT_TYPE;
+    protected EventType<CountrySuccessEvent> getDeletedEventType() {
+        return CountrySuccessEvent.DELETE_SUCCESS;
     }
 
 }

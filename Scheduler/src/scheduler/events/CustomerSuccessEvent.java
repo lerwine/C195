@@ -7,6 +7,8 @@ import scheduler.model.ui.CustomerModel;
 
 public final class CustomerSuccessEvent extends CustomerEvent {
 
+    private static final long serialVersionUID = -2592604437430298083L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_CUSTOMER_SUCCESS_EVENT";
 
     /**

@@ -1,6 +1,5 @@
 package scheduler.view.appointment;
 
-import scheduler.events.AppointmentEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,13 +33,14 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
@@ -484,39 +484,38 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected void onEditItem(AppointmentEvent event) {
+    protected void onEditItem(AppointmentModel item) {
         try {
-            AppointmentModel m = event.getModel();
             Window w = getScene().getWindow();
-            EditAppointment.edit(m, w);
+            EditAppointment.edit(item, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
     @Override
-    protected void onDeleteItem(AppointmentEvent event) {
+    protected void onDeleteItem(AppointmentModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new DataAccessObject.DeleteTaskOld<>(event));
+            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(item, AppointmentModel.FACTORY, false));
         }
     }
 
     @Override
-    protected EventType<AppointmentEvent> getInsertedEventType() {
-        return AppointmentEvent.DB_INSERT_EVENT_TYPE;
+    protected EventType<AppointmentSuccessEvent> getInsertedEventType() {
+        return AppointmentSuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<AppointmentEvent> getUpdatedEventType() {
-        return AppointmentEvent.UPDATED_EVENT_TYPE;
+    protected EventType<AppointmentSuccessEvent> getUpdatedEventType() {
+        return AppointmentSuccessEvent.SAVE_SUCCESS;
     }
 
     @Override
-    protected EventType<AppointmentEvent> getDeletedEventType() {
-        return AppointmentEvent.DB_DELETE_EVENT_TYPE;
+    protected EventType<AppointmentSuccessEvent> getDeletedEventType() {
+        return AppointmentSuccessEvent.DELETE_SUCCESS;
     }
 
 }

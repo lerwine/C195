@@ -49,7 +49,7 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
 import scheduler.events.AppointmentEvent;
-import scheduler.events.EventEvaluationStatus;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
@@ -225,20 +225,16 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        addEventHandler(AppointmentEvent.INSERT_VALIDATION_EVENT_TYPE, this::onAppointmentUpdating);
-        addEventHandler(AppointmentEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onAppointmentUpdating);
-        addEventHandler(AppointmentEvent.DB_INSERT_EVENT_TYPE, this::onAppointmentInserted);
+        // FIXME: Use INSERT_SUCCESS
+        addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
     }
 
-    private void onAppointmentUpdating(AppointmentEvent event) {
-        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-            return;
-        }
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
+    private void onAppointmentUpdating(AppointmentSuccessEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
     }
 
-    private void onAppointmentInserted(AppointmentEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.EditAppointment#onAppointmentInserted
+    private void onAppointmentInserted(AppointmentSuccessEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentInserted
     }
 
     @FXML
@@ -597,6 +593,11 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @Override
     public FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
         return AppointmentModel.FACTORY;
+    }
+
+    @Override
+    public void applyChanges() {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#applyChanges
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

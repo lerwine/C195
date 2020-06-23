@@ -118,19 +118,19 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         firePropertyChange(PROP_CITY, oldValue, this.city);
         if (null == city || city instanceof CityDAO) {
             if (null != cityChangeHandler) {
-                CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT, cityChangeHandler);
+                CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
                 cityChangeHandler = null;
             }
         } else if (null == cityChangeHandler) {
             cityChangeHandler = new WeakEventHandler<>(this::onCityEvent);
-            CityDAO.FACTORY.addEventHandler(CityEvent.OP_EVENT, cityChangeHandler);
+            CityDAO.FACTORY.addEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
         }
     }
 
     private void onCityEvent(CityEvent event) {
         ICityDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
-            CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT, cityChangeHandler);
+            CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
             cityChangeHandler = null;
             ICityDAO oldValue = city;
             city = newValue;
@@ -410,21 +410,31 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
+        @Override
+        public SaveDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createSaveTask(AddressDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.FactoryImpl#createSaveTask
+        }
+
+        @Override
+        public DeleteDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createDeleteTask(AddressDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.FactoryImpl#createDeleteTask
+        }
+
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
 
         public SaveTask(AddressModel fxRecordModel, FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         public SaveTask(AddressDAO dataAccessObject, DaoFactory<AddressDAO, AddressEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected AddressEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.SaveTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createSuccessEvent
         }
 
         @Override
@@ -533,22 +543,22 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 //                }
 //            }
 //            event.setSucceeded();
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.SaveTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#validate
         }
 
         @Override
         protected AddressEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.SaveTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected AddressEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.SaveTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createCancelledEvent
         }
 
         @Override
         protected AddressEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.SaveTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createValidationFailureEvent
         }
 
     }
@@ -556,16 +566,16 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     public static class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
 
         public DeleteTask(AddressModel fxRecordModel, FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         public DeleteTask(AddressDAO dataAccessObject, DaoFactory<AddressDAO, AddressEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected AddressEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.DeleteTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createSuccessEvent
         }
 
         @Override
@@ -592,22 +602,22 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 //                    event.setInvalid("Address in use", String.format("Address is referenced by %d other customers", count));
 //                    break;
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.DeleteTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#validate
         }
 
         @Override
         protected AddressEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.DeleteTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected AddressEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.DeleteTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createCancelledEvent
         }
 
         @Override
         protected AddressEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AddressDAO.DeleteTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createValidationFailureEvent
         }
 
     }
@@ -631,14 +641,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             this.phone = asNonNullAndWsNormalized(phone);
             if (!(null == city || city instanceof CityDAO)) {
                 cityChangeHandler = new WeakEventHandler<>(this::onCityEvent);
-                CityDAO.FACTORY.addEventHandler(CityEvent.OP_EVENT, cityChangeHandler);
+                CityDAO.FACTORY.addEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
             }
         }
 
         private void onCityEvent(CityEvent event) {
             ICityDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
-                CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT, cityChangeHandler);
+                CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
                 cityChangeHandler = null;
                 ICityDAO oldValue = city;
                 city = newValue;

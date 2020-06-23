@@ -95,19 +95,19 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
         if (null == country || country instanceof CountryDAO) {
             if (null != countryChangeHandler) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
+                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
                 countryChangeHandler = null;
             }
         } else if (null == countryChangeHandler) {
             countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-            CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
+            CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
         }
     }
 
     private void onCountryEvent(CountryEvent event) {
         ICountryDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-            CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
+            CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
             countryChangeHandler = null;
             ICountryDAO oldValue = country;
             country = newValue;
@@ -372,21 +372,31 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
+        @Override
+        public SaveDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createSaveTask(CityDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.FactoryImpl#createSaveTask
+        }
+
+        @Override
+        public DeleteDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createDeleteTask(CityDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.FactoryImpl#createDeleteTask
+        }
+
     }
 
     public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
 
         public SaveTask(CityModel fxRecordModel, FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         public SaveTask(CityDAO dataAccessObject, DaoFactory<CityDAO, CityEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CityEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createSuccessEvent
         }
 
         @Override
@@ -469,22 +479,22 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 //                        return;
 //                }
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#validate
         }
 
         @Override
         protected CityEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected CityEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createCancelledEvent
         }
 
         @Override
         protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.SaveTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createValidationFailureEvent
         }
 
     }
@@ -492,16 +502,16 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     public static class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
 
         public DeleteTask(CityModel fxRecordModel, FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         public DeleteTask(CityDAO dataAccessObject, DaoFactory<CityDAO, CityEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CityEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createSuccessEvent
         }
 
         @Override
@@ -528,22 +538,22 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 //                    event.setInvalid("City in use", ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
 //                    break;
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#validate
         }
 
         @Override
         protected CityEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected CityEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createCancelledEvent
         }
 
         @Override
         protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.CityDAO.DeleteTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createValidationFailureEvent
         }
 
     }
@@ -563,14 +573,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             this.timeZone = zoneId;
             if (!(null == country || country instanceof CountryDAO)) {
                 countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-                CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
+                CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
             }
         }
 
         private void onCountryEvent(CountryEvent event) {
             ICountryDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT, countryChangeHandler);
+                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
                 countryChangeHandler = null;
                 ICountryDAO oldValue = country;
                 country = newValue;

@@ -10,8 +10,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
@@ -20,7 +18,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.events.AppointmentEvent;
-import scheduler.events.DbOperationType;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.PredefinedData;
@@ -589,7 +586,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
-            super(AppointmentEvent.APPOINTMENT_MODEL_EVENT_TYPE);
+            super(AppointmentEvent.APPOINTMENT_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -616,13 +613,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public AppointmentEvent createDbOperationEvent(AppointmentModel model, Object source, EventTarget target, DbOperationType operation) {
-            return new AppointmentEvent(model, source, target, operation);
+        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(AppointmentModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#createSaveTask
         }
 
         @Override
-        public EventType<AppointmentEvent> toEventType(DbOperationType operation) {
-            return AppointmentEvent.toEventType(operation);
+        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(AppointmentModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#createDeleteTask
         }
 
     }

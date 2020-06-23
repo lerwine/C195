@@ -9,8 +9,6 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -21,7 +19,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CityEvent;
-import scheduler.events.DbOperationType;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
@@ -190,7 +187,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         // Singleton
         private Factory() {
-            super(CityEvent.CITY_MODEL_EVENT_TYPE);
+            super(CityEvent.CITY_EVENT_TYPE);
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }
@@ -237,13 +234,13 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public CityEvent createDbOperationEvent(CityModel model, Object source, EventTarget target, DbOperationType operation) {
-            return new CityEvent(model, source, target, operation);
+        public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(CityModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createSaveTask
         }
 
         @Override
-        public EventType<CityEvent> toEventType(DbOperationType operation) {
-            return CityEvent.toEventType(operation);
+        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(CityModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createDeleteTask
         }
 
     }

@@ -7,6 +7,8 @@ import scheduler.model.ui.CityModel;
 
 public final class CitySuccessEvent extends CityEvent {
 
+    private static final long serialVersionUID = -2487591420575876249L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_CITY_SUCCESS_EVENT";
 
     /**

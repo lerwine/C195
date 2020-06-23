@@ -7,6 +7,8 @@ import scheduler.model.ui.AppointmentModel;
 
 public final class AppointmentSuccessEvent extends AppointmentEvent {
 
+    private static final long serialVersionUID = 7958190140567903253L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_APPOINTMENT_SUCCESS_EVENT";
 
     /**

@@ -7,6 +7,8 @@ import scheduler.model.ui.AddressModel;
 
 public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> {
 
+    private static final long serialVersionUID = -3650516330020602507L;
+
     /**
      * Base {@link EventType} for all {@code AddressEvent}s.
      */

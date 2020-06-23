@@ -7,6 +7,8 @@ import scheduler.model.ui.AddressModel;
 
 public final class AddressSuccessEvent extends AddressEvent {
 
+    private static final long serialVersionUID = -4782268395905350399L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_ADDRESS_SUCCESS_EVENT";
 
     /**

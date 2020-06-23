@@ -41,14 +41,12 @@ import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.events.AddressEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
+import scheduler.events.AddressSuccessEvent;
+import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
@@ -187,15 +185,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
-        addEventHandler(AddressEvent.INSERT_VALIDATION_EVENT_TYPE, this::onAddressUpdating);
-        addEventHandler(AddressEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onAddressUpdating);
-        addEventHandler(AddressEvent.DB_INSERT_EVENT_TYPE, this::onAddressInserted);
+        // FIXME: Use INSERT_SUCCESS
+        addEventHandler(AddressSuccessEvent.SAVE_SUCCESS, this::onAddressInserted);
     }
 
-    private void onAddressUpdating(AddressEvent event) {
-        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-            return;
-        }
+    @Override
+    public void applyChanges() {
         model.setAddress1(normalizedAddress1.get());
         model.setAddress2(normalizedAddress2.get());
         model.setCity(selectedCity.get());
@@ -215,7 +210,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
+            onItemActionRequest(item, true);
         }
     }
 
@@ -223,7 +218,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onCustomerEditMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
+            onItemActionRequest(item, false);
         }
     }
 
@@ -236,13 +231,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
+                        onItemActionRequest(item, true);
                     }
                     break;
                 case ENTER:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new CustomerEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
+                        onItemActionRequest(item, false);
                     }
                     break;
             }
@@ -256,29 +251,20 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(CustomerEvent event) {
-        CustomerModel item;
-        if (event.isConsumed() || null == (item = event.getModel())) {
-            return;
-        }
-        switch (event.getOperation()) {
-            case EDIT_REQUEST:
-                try {
-                    EditCustomer.edit(item, getScene().getWindow());
-                } catch (IOException ex) {
-                    LOG.log(Level.SEVERE, "Error opening child window", ex);
-                }
-                event.consume();
-                break;
-            case DELETE_REQUEST:
-                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-                if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
-                }
-                event.consume();
-                break;
+    private void onItemActionRequest(CustomerModel item, boolean isDelete) {
+        if (isDelete) {
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new CustomerDAO.DeleteTask(item, CustomerModel.FACTORY, false));
+            }
+        } else {
+            try {
+                EditCustomer.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
         }
     }
 
@@ -387,10 +373,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         postalCodeTextField.setText(model.getPostalCode());
         phoneTextField.setText(model.getPhone());
 
-        CustomerModel.FACTORY.addEventHandler(CustomerEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerAdded));
-        CustomerModel.FACTORY.addEventHandler(CustomerEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerUpdated));
-        CustomerModel.FACTORY.addEventHandler(CustomerEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onCustomerDeleted));
-
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -410,9 +392,14 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
+        // FIXME: Use INSERT_SUCCESS
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCustomerAdded));
+        // FIXME: Use UPDATE_SUCCESS
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCustomerUpdated));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
     }
 
-    private void onCustomerAdded(CustomerEvent event) {
+    private void onCustomerAdded(CustomerSuccessEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
@@ -423,7 +410,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    private void onCustomerUpdated(CustomerEvent event) {
+    private void onCustomerUpdated(CustomerSuccessEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
@@ -440,7 +427,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    private void onCustomerDeleted(CustomerEvent event) {
+    private void onCustomerDeleted(CustomerSuccessEvent event) {
         LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();

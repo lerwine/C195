@@ -7,6 +7,8 @@ import scheduler.model.ui.UserModel;
 
 public final class UserFailedEvent extends UserEvent implements ModelFailedEvent<UserDAO, UserModel> {
 
+    private static final long serialVersionUID = -4551008464207593559L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_USER_FAILED_EVENT";
 
     /**

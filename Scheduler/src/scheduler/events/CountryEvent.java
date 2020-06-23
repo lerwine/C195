@@ -7,6 +7,8 @@ import scheduler.model.ui.CountryModel;
 
 public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> {
 
+    private static final long serialVersionUID = -6121391358660436488L;
+
     /**
      * Base {@link EventType} for all {@code CountryEvent}s.
      */

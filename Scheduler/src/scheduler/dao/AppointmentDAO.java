@@ -107,19 +107,19 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
         if (null == customer || customer instanceof CustomerDAO) {
             if (null != customerChangeHandler) {
-                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.OP_EVENT, customerChangeHandler);
+                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.OP_EVENT_TYPE, customerChangeHandler);
                 customerChangeHandler = null;
             }
         } else if (null == customerChangeHandler) {
             customerChangeHandler = new WeakEventHandler<>(this::onCustomerEvent);
-            CustomerDAO.FACTORY.addEventHandler(CustomerEvent.OP_EVENT, customerChangeHandler);
+            CustomerDAO.FACTORY.addEventHandler(CustomerEvent.OP_EVENT_TYPE, customerChangeHandler);
         }
     }
 
     private void onCustomerEvent(CustomerEvent event) {
         ICustomerDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
-            CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.OP_EVENT, customerChangeHandler);
+            CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.OP_EVENT_TYPE, customerChangeHandler);
             customerChangeHandler = null;
             ICustomerDAO oldValue = customer;
             customer = newValue;
@@ -143,19 +143,19 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         firePropertyChange(PROP_USER, oldValue, this.user);
         if (null == user || user instanceof UserDAO) {
             if (null != userChangeHandler) {
-                UserDAO.FACTORY.removeEventHandler(UserEvent.OP_EVENT, userChangeHandler);
+                UserDAO.FACTORY.removeEventHandler(UserEvent.OP_EVENT_TYPE, userChangeHandler);
                 userChangeHandler = null;
             }
         } else if (null == userChangeHandler) {
             userChangeHandler = new WeakEventHandler<>(this::onUserEvent);
-            UserDAO.FACTORY.addEventHandler(UserEvent.OP_EVENT, userChangeHandler);
+            UserDAO.FACTORY.addEventHandler(UserEvent.OP_EVENT_TYPE, userChangeHandler);
         }
     }
 
     private void onUserEvent(UserEvent event) {
         IUserDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
-            UserDAO.FACTORY.removeEventHandler(UserEvent.OP_EVENT, userChangeHandler);
+            UserDAO.FACTORY.removeEventHandler(UserEvent.OP_EVENT_TYPE, userChangeHandler);
             userChangeHandler = null;
             IUserDAO oldValue = user;
             user = newValue;
@@ -795,21 +795,31 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
+        @Override
+        public SaveDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createSaveTask(AppointmentDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.FactoryImpl#createSaveTask
+        }
+
+        @Override
+        public DeleteDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createDeleteTask(AppointmentDAO dao) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.FactoryImpl#createDeleteTask
+        }
+
     }
 
     public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         public SaveTask(AppointmentModel fxRecordModel, FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
         }
 
         public SaveTask(AppointmentDAO dataAccessObject, DaoFactory<AppointmentDAO, AppointmentEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected AppointmentEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#createSuccessEvent
         }
 
         @Override
@@ -883,22 +893,22 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 //                }
 //            }
 //            event.setSucceeded();
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#validate
         }
 
         @Override
         protected AppointmentEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected AppointmentEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#createCancelledEvent
         }
 
         @Override
         protected AppointmentEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.SaveTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#createValidationFailureEvent
         }
 
     }
@@ -906,36 +916,36 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     public static class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         public DeleteTask(AppointmentModel fxRecordModel, FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, alreadyValidated);
+            super(fxRecordModel, modelFactory, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
         }
 
         public DeleteTask(AppointmentDAO dataAccessObject, DaoFactory<AppointmentDAO, AppointmentEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, alreadyValidated);
+            super(dataAccessObject, daoFactory, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected AppointmentEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createSuccessEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.DeleteTask#createSuccessEvent
         }
 
         @Override
         protected void validate(Connection connection) throws Exception {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.DeleteTask#validate
         }
 
         @Override
         protected AppointmentEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createUnhandledExceptionEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.DeleteTask#createUnhandledExceptionEvent
         }
 
         @Override
         protected AppointmentEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createCancelledEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.DeleteTask#createCancelledEvent
         }
 
         @Override
         protected AppointmentEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.dao.AppointmentDAO.DeleteTask#createValidationFailureEvent
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.DeleteTask#createValidationFailureEvent
         }
 
     }

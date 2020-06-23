@@ -7,6 +7,8 @@ import scheduler.model.ui.CountryModel;
 
 public final class CountrySuccessEvent extends CountryEvent {
 
+    private static final long serialVersionUID = -2962871552359511026L;
+
     private static final String BASE_EVENT_NAME = "SCHEDULER_COUNTRY_SUCCESS_EVENT";
 
     /**

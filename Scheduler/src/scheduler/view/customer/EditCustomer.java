@@ -45,16 +45,15 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.EventEvaluationStatus;
+import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -212,15 +211,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-        addEventHandler(CustomerEvent.INSERT_VALIDATION_EVENT_TYPE, this::onCustomerUpdating);
-        addEventHandler(CustomerEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onCustomerUpdating);
-        addEventHandler(CustomerEvent.DB_INSERT_EVENT_TYPE, this::onCustomerInserted);
+        // FIXME: Use INSERT_SUCCESS
+        addEventHandler(CustomerSuccessEvent.SAVE_SUCCESS, this::onCustomerInserted);
     }
 
-    private void onCustomerUpdating(CustomerEvent event) {
-        if (event.getStatus() != EventEvaluationStatus.EVALUATING) {
-            return;
-        }
+    private void onCustomerUpdating(CustomerSuccessEvent event) {
         model.setName(nameTextField.getText().trim());
         if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
             AddressModel addr = selectedAddress.get();
@@ -234,7 +229,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         model.setActive(activeTrueRadioButton.isSelected());
     }
 
-    private void onCustomerInserted(CustomerEvent event) {
+    private void onCustomerInserted(CustomerSuccessEvent event) {
         restoreNode(appointmentFilterComboBox);
         restoreNode(appointmentsTableView);
         restoreNode(addAppointmentButtonBar);
@@ -262,13 +257,13 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 case DELETE:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
+                        deleteItem(item);
                     }
                     break;
                 case ENTER:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
+                        editItem(item);
                     }
                     break;
             }
@@ -279,7 +274,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.DELETE_REQUEST));
+            deleteItem(item);
         }
     }
 
@@ -287,36 +282,53 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private void onEditAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(new AppointmentEvent(item, event.getSource(), this, DbOperationType.EDIT_REQUEST));
+            editItem(item);
+        }
+    }
+
+    private void editItem(AppointmentModel item) {
+        try {
+            EditAppointment.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
+
+    private void deleteItem(AppointmentModel item) {
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(item, AppointmentModel.FACTORY, false));
         }
     }
 
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(AppointmentEvent event) {
-        AppointmentModel item;
-        if (event.isConsumed() || null == (item = event.getModel())) {
-            return;
-        }
-        switch (event.getOperation()) {
-            case EDIT_REQUEST:
-                try {
-                    EditAppointment.edit(item, getScene().getWindow());
-                } catch (IOException ex) {
-                    LOG.log(Level.SEVERE, "Error opening child window", ex);
-                }
-                event.consume();
-                break;
-            case DELETE_REQUEST:
-                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-                if (response.isPresent() && response.get() == ButtonType.YES) {
-                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
-                }
-                event.consume();
-                break;
-        }
+//        AppointmentModel item;
+//        if (event.isConsumed() || null == (item = event.getModel())) {
+//            return;
+//        }
+//        switch (event.getOperation()) {
+//            case EDIT_REQUEST:
+//                try {
+//                    EditAppointment.edit(item, getScene().getWindow());
+//                } catch (IOException ex) {
+//                    LOG.log(Level.SEVERE, "Error opening child window", ex);
+//                }
+//                event.consume();
+//                break;
+//            case DELETE_REQUEST:
+//                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+//                if (response.isPresent() && response.get() == ButtonType.YES) {
+//                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
+//                }
+//                event.consume();
+//                break;
+//        }
     }
 
     @FXML
@@ -455,10 +467,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
         onSelectedCityChanged(selectedCity, null, selectedCity.get());
 
-        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DB_INSERT_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentAdded));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.UPDATED_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentEvent.DB_DELETE_EVENT_TYPE, new WeakEventHandler<>(this::onAppointmentDeleted));
-
         WaitTitledPane pane = new WaitTitledPane();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -472,9 +480,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
-
-        addEventHandler(CustomerEvent.UPDATE_VALIDATION_EVENT_TYPE, this::onCustomerUpdate);
-        addEventHandler(CustomerEvent.INSERT_VALIDATION_EVENT_TYPE, this::onCustomerUpdate);
     }
 
     private void initializeEditMode() {
@@ -487,6 +492,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+        // FIXME: Use INSERT_SUCCESS
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
+        // FIXME: Use UPDATE_SUCCESS
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
     }
 
     private void onCustomerUpdate(CustomerEvent event) {
@@ -673,6 +683,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         cityComboBox.setOnAction((event) -> updateValidation());
         countryComboBox.setOnAction((event) -> updateValidation());
         updateValidation();
+    }
+
+    @Override
+    public void applyChanges() {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#applyChanges
     }
 
     private class AppointmentFilterItem {

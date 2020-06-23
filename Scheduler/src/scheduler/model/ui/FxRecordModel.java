@@ -27,7 +27,6 @@ import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.DbOperationEvent;
 import scheduler.events.DbOperationType;
 import scheduler.events.ModelEvent;
 import scheduler.model.ModelHelper;
@@ -215,7 +214,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     }
 
     /**
-     * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
      * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
@@ -226,9 +225,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     }
 
     /**
-     * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
-     * @param <E> The type of {@link DbOperationEvent}.
+     * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
      * @param eventFilter The event handler.
      */
@@ -237,9 +236,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     }
 
     /**
-     * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
-     * @param <E> The type of {@link DbOperationEvent}.
+     * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
      * @param eventHandler The event handler.
      */
@@ -248,9 +247,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     }
 
     /**
-     * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+     * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
      *
-     * @param <E> The type of {@link DbOperationEvent}.
+     * @param <E> The type of {@link ModelEvent}.
      * @param type The event type.
      * @param eventFilter The event handler.
      */
@@ -311,9 +310,17 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract E createDbOperationEvent(M model, Object source, EventTarget target, DbOperationType operation);
+        public E createDbOperationEvent(M model, Object source, EventTarget target, DbOperationType operation) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Remove or replace scheduler.fx.FxRecordModel.ModelFactory#createDbOperationEvent
+        }
+        
+        public EventType<E> toEventType(DbOperationType operation) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Remove or replace scheduler.fx.FxRecordModel.ModelFactory#toEventType
+        }
 
-        public abstract EventType<E> toEventType(DbOperationType operation);
+        public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(M model);
+
+        public abstract DataAccessObject.DeleteDaoTask<D, M, E> createDeleteTask(M model);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
@@ -321,47 +328,51 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        public final <T extends E> void addEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
         /**
-         * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
-         * @param eventHandler The event handler.
+         * @param eventFilter The event filter.
          */
-        public final void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
-            eventHandlerManager.addEventFilter(type, eventHandler);
+        public final <T extends E> void addEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+            eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+        public final <T extends E> void removeEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
         /**
-         * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
          * {@code DaoFactory}.
          *
+         * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
-         * @param eventHandler The event handler.
+         * @param eventFilter The event filter.
          */
-        public final void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
-            eventHandlerManager.removeEventFilter(type, eventHandler);
+        public final <T extends E> void removeEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+            eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 
     }
