@@ -375,12 +375,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public SaveDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createSaveTask(CustomerDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.FactoryImpl#createSaveTask
+            return new SaveTask(dao, false);
         }
 
         @Override
-        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.FactoryImpl#createDeleteTask
+        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO) {
+            return new DeleteTask(dao, false);
         }
 
     }
