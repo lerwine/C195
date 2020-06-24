@@ -404,7 +404,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public SaveDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createSaveTask(AddressDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.FactoryImpl#createSaveTask
+            return new SaveTask(dao, false);
         }
 
         @Override
