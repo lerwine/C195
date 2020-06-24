@@ -257,13 +257,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
-    private void onCountryUpdating(CountrySuccessEvent event) {
-        CountryModel m = event.getFxItemModel();
-        if (null != m && m == model) {
-            model.setLocale(selectedLocale.get());
-        }
-    }
-
     private void onCountryInserted(CountrySuccessEvent event) {
         CountryModel m = event.getFxItemModel();
         if (null != m && m == model) {
@@ -366,7 +359,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @Override
     public void applyChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.country.EditCountry#applyChanges
+        model.setLocale(selectedLocale.get());
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {
