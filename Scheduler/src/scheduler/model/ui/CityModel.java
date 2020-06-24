@@ -237,12 +237,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         @Override
         public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(CityModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createSaveTask
+            return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(CityModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createDeleteTask
+            return new AddressDAO.DeleteTask(model, false);
         }
 
         @Override
