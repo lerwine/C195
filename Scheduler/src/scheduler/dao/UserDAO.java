@@ -331,12 +331,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         public SaveDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createSaveTask(UserDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.FactoryImpl#createSaveTask
+            return new SaveTask(dao, false);
         }
 
         @Override
         public DeleteDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createDeleteTask(UserDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.FactoryImpl#createDeleteTask
+            return new DeleteTask(dao, false);
         }
 
     }
