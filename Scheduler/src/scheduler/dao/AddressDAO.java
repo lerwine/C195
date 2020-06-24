@@ -396,14 +396,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             throw new SQLException("Unexpected lack of results from database query");
         }
 
-//        @Override
-//        protected AddressEvent createDbOperationEvent(AddressEvent sourceEvent, DbOperationType operation) {
-//            AddressModel model = sourceEvent.getModel();
-//            if (null != model) {
-//                return new AddressEvent(model, sourceEvent.getSource(), this, operation);
-//            }
-//            return new AddressEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", AddressModel.FACTORY.getClass().getName()));
