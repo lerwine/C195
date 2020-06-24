@@ -184,12 +184,12 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
         @Override
         public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel, CountryEvent> createSaveTask(CountryModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#createSaveTask
+            return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> createDeleteTask(CountryModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#createDeleteTask
+            return new AddressDAO.DeleteTask(model, false);
         }
 
         @Override
