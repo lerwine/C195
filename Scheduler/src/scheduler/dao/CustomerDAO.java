@@ -371,7 +371,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO) {
+        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
             return new DeleteTask(dao, false);
         }
 
@@ -379,12 +379,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
 
-        public SaveTask(CustomerModel fxRecordModel, FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+        public SaveTask(CustomerModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
-        public SaveTask(CustomerDAO dataAccessObject, DaoFactory<CustomerDAO, CustomerEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+        public SaveTask(CustomerDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -499,12 +499,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     public static class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
 
-        public DeleteTask(CustomerModel fxRecordModel, FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CustomerModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
-        public DeleteTask(CustomerDAO dataAccessObject, DaoFactory<CustomerDAO, CustomerEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CustomerDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

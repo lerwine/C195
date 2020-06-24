@@ -499,7 +499,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(item, AppointmentModel.FACTORY, false));
+            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(item, false));
         }
     }
 

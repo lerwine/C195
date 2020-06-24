@@ -120,7 +120,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new CountryDAO.DeleteTask(item, CountryModel.FACTORY, false));
+            MainController.startBusyTaskNow(new CountryDAO.DeleteTask(item, false));
         }
     }
 

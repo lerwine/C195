@@ -420,7 +420,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             super(fxRecordModel, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
-        public SaveTask(AddressDAO dataAccessObject,  boolean alreadyValidated) {
+        public SaveTask(AddressDAO dataAccessObject, boolean alreadyValidated) {
             super(dataAccessObject, FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 

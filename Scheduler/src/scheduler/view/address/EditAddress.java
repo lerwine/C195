@@ -262,7 +262,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new CustomerDAO.DeleteTask(item, CustomerModel.FACTORY, false));
+            waitBorderPane.startNow(new CustomerDAO.DeleteTask(item, false));
         }
     }
 

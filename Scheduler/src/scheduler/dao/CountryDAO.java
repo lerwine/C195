@@ -294,12 +294,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
-        public SaveTask(CountryModel fxRecordModel, FxRecordModel.ModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+        public SaveTask(CountryModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
 
-        public SaveTask(CountryDAO dataAccessObject, DaoFactory<CountryDAO, CountryEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+        public SaveTask(CountryDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -386,12 +386,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     public static class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
-        public DeleteTask(CountryModel fxRecordModel, FxRecordModel.ModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CountryModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
 
-        public DeleteTask(CountryDAO dataAccessObject, DaoFactory<CountryDAO, CountryEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CountryDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

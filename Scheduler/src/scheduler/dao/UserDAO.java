@@ -343,12 +343,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
 
-        public SaveTask(UserModel fxRecordModel, FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public SaveTask(UserModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
-        public SaveTask(UserDAO dataAccessObject, DaoFactory<UserDAO, UserEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public SaveTask(UserDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -431,12 +431,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     public static class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
 
-        public DeleteTask(UserModel fxRecordModel, FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(UserModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
-        public DeleteTask(UserDAO dataAccessObject, DaoFactory<UserDAO, UserEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(UserDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

@@ -299,7 +299,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(item, AppointmentModel.FACTORY, false));
+            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(item, false));
         }
     }
 

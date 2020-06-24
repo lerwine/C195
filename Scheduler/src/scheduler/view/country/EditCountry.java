@@ -162,26 +162,23 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             editItem(item);
         }
     }
-    
+
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CityOpRequestEvent event) {
         if (event.isEdit()) {
             try {
-                    EditCity.edit(item, getScene().getWindow());
+                EditCity.edit(event.getFxRecordModel(), getScene().getWindow());
             } catch (IOException ex) {
-                    LOG.log(Level.SEVERE, "Error opening child window", ex);
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-                
-                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-                if (response.isPresent() && response.get() == ButtonType.YES) {
-                      waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
-                }
-                event.consume();
-                break;
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(new CityDAO.DeleteTask(event.getFxRecordModel(), false));
+            }
         }
     }
 
@@ -239,7 +236,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             waitBorderPane.startNow(pane, new ItemsLoadTask());
         }
     }
-    
+
     private void editItem(CityModel item) {
         try {
             EditCity.edit(item, getScene().getWindow());
@@ -253,12 +250,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new CityDAO.DeleteTask(item, CityModel.FACTORY, false));
+            waitBorderPane.startNow(new CityDAO.DeleteTask(item, false));
         }
     }
 
     private void onCountryInserted(CountrySuccessEvent event) {
-        CountryModel m = event.getFxItemModel();
+        CountryModel m = event.getFxRecordModel();
         if (null != m && m == model) {
             restoreNode(citiesLabel);
             restoreNode(citiesTableView);
@@ -267,7 +264,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             initializeEditMode();
         }
     }
-    
+
     private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));

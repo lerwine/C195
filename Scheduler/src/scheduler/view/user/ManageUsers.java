@@ -158,7 +158,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new UserDAO.DeleteTask(item, UserModel.FACTORY, false));
+            MainController.startBusyTaskNow(new UserDAO.DeleteTask(item, false));
         }
     }
 
