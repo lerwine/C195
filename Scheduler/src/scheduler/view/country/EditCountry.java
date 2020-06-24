@@ -195,29 +195,23 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CityOpRequestEvent event) {
-//        CityModel item;
-//        if (event.isConsumed() || (null == (item = event.getModel()))) {
-//            return;
-//        }
-//        switch (event.getOperation()) {
-//            case EDIT_REQUEST:
-//                try {
-//                    EditCity.edit(item, getScene().getWindow());
-//                } catch (IOException ex) {
-//                    LOG.log(Level.SEVERE, "Error opening child window", ex);
-//                }
-//                event.consume();
-//                break;
-//            case DELETE_REQUEST:
-//                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-//                if (response.isPresent() && response.get() == ButtonType.YES) {
-//                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
-//                }
-//                event.consume();
-//                break;
-//        }
+        if (event.isEdit()) {
+            try {
+                    EditCity.edit(item, getScene().getWindow());
+            } catch (IOException ex) {
+                    LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
+        } else {
+                
+                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+                if (response.isPresent() && response.get() == ButtonType.YES) {
+                      waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
+                }
+                event.consume();
+                break;
+        }
     }
 
     @FXML
