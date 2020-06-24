@@ -123,18 +123,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
-        addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
-    }
-
-    private void onCountryUpdating(CountrySuccessEvent event) {
-        model.setLocale(selectedLocale.get());
-    }
-
-    private void onCountryInserted(CountrySuccessEvent event) {
-        restoreNode(citiesLabel);
-        restoreNode(citiesTableView);
-        restoreNode(newButtonBar);
-        initializeEditMode();
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -174,24 +162,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             editItem(item);
         }
     }
-
-    private void editItem(CityModel item) {
-        try {
-            EditCity.edit(item, getScene().getWindow());
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error opening child window", ex);
-        }
-    }
-
-    private void deleteItem(CityModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new CityDAO.DeleteTask(item, CityModel.FACTORY, false));
-        }
-    }
-
+    
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CityOpRequestEvent event) {
@@ -259,6 +230,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             collapseNode(citiesTableView);
             collapseNode(newButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
+            addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
         } else {
             initializeEditMode();
             WaitTitledPane pane = new WaitTitledPane();
@@ -267,7 +239,42 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             waitBorderPane.startNow(pane, new ItemsLoadTask());
         }
     }
+    
+    private void editItem(CityModel item) {
+        try {
+            EditCity.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
 
+    private void deleteItem(CityModel item) {
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            waitBorderPane.startNow(new CityDAO.DeleteTask(item, CityModel.FACTORY, false));
+        }
+    }
+
+    private void onCountryUpdating(CountrySuccessEvent event) {
+        CountryModel m = event.getFxItemModel();
+        if (null != m && m == model) {
+            model.setLocale(selectedLocale.get());
+        }
+    }
+
+    private void onCountryInserted(CountrySuccessEvent event) {
+        CountryModel m = event.getFxItemModel();
+        if (null != m && m == model) {
+            restoreNode(citiesLabel);
+            restoreNode(citiesTableView);
+            restoreNode(newButtonBar);
+            removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
+            initializeEditMode();
+        }
+    }
+    
     private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
