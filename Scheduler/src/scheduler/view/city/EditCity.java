@@ -165,7 +165,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         timeZoneOptionList.addAll(allTimeZones);
         addressItemList = FXCollections.observableArrayList();
     }
-
     @FXML
     void onAddAddressButtonAction(ActionEvent event) {
         try {
@@ -349,6 +348,21 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             initializeEditMode();
         }
     }
+    
+    private void onCityInserted(CitySuccessEvent event) {
+        restoreNode(addressesLabel);
+        restoreNode(addressesTableView);
+        restoreNode(addCityButtonBar);
+        removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
+    }
+
+    private void editItem(AddressModel item) {
+        try {
+            EditAddress.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
 
     private void onCityInserted(CitySuccessEvent event) {
         restoreNode(addressesLabel);
@@ -395,6 +409,35 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAddressAdded));
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAddressUpdated));
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAddressDeleted));
+    }
+    
+    private void onZoneOptionChange(CountryModel country) {
+        if (null != country) {
+            Locale locale = country.getLocale();
+            if (null != locale && !showAllTimeZonesCheckBox.isSelected()) {
+                timeZoneListCellFactory.setCurrentCountry(null);
+                List<TimeZone> zonesForCountry = RegionTable.getZonesForCountry(locale.getCountry());
+                if (!zonesForCountry.isEmpty()) {
+                    TimeZone selTz = selectedTimeZone.get();
+                    timeZoneOptionList.setAll(zonesForCountry);
+                    if (null != selTz) {
+                        if (!timeZoneOptionList.contains(selTz)) {
+                            timeZoneOptionList.add(selTz);
+                        }
+                        timeZoneComboBox.getSelectionModel().select(selTz);
+                    }
+                    return;
+                }
+            }
+        }
+        timeZoneListCellFactory.setCurrentCountry(country);
+        if (timeZoneOptionList.size() != allTimeZones.size()) {
+            TimeZone selTz = selectedTimeZone.get();
+            timeZoneOptionList.setAll(allTimeZones);
+            if (null != selTz) {
+                timeZoneComboBox.getSelectionModel().select(selTz);
+            }
+        }
     }
 
     private void onZoneOptionChange(CountryModel country) {
