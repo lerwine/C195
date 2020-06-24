@@ -359,14 +359,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return CustomerDAO.class;
         }
 
-//        @Override
-//        protected CustomerEvent createModelEvent(CustomerEvent sourceEvent, DbOperationType operation) {
-//            CustomerModel model = sourceEvent.getModel();
-//            if (null != model) {
-//                return new CustomerEvent(model, sourceEvent.getSource(), this, operation);
-//            }
-//            return new CustomerEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", CustomerModel.FACTORY.getClass().getName()));
