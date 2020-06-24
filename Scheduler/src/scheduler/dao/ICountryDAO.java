@@ -9,6 +9,7 @@ import scheduler.model.Country;
  */
 public interface ICountryDAO extends DbObject, Country {
 
+    // FIXME: Throw ValidationFailureException, instead
     public static <T extends ICountryDAO> T assertValidCountry(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Country has already been deleted");

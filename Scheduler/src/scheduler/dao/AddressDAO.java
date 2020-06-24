@@ -31,6 +31,8 @@ import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.CityItem;
+import scheduler.model.ui.CityModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -434,111 +436,91 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected void validate(Connection connection) throws Exception {
-//            AddressEvent event = task.getValidationEvent();
-//            AddressDAO dao;
-//            try {
-//                dao = IAddressDAO.assertValidAddress(event.getDataAccessObject());
-//            } catch (IllegalArgumentException | IllegalStateException ex) {
-//                event.setFaulted("Invalid Address", ex.getMessage(), ex);
-//                return;
-//            }
-//            Connection connection = task.getConnection();
-//            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
-//                    .append(") FROM ").append(DbTable.ADDRESS.getDbName())
-//                    .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
-//            if (dao.address1.isEmpty()) {
-//                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS1.getDbName()).append(")=0");
-//            } else {
-//                sb.append(" AND LOWER(").append(DbColumn.ADDRESS1.getDbName()).append(")=?");
-//            }
-//            if (dao.address2.isEmpty()) {
-//                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS2.getDbName()).append(")=0");
-//            } else {
-//                sb.append(" AND LOWER(").append(DbColumn.ADDRESS2.getDbName()).append(")=?");
-//            }
-//            if (dao.postalCode.isEmpty()) {
-//                sb.append(" AND LENGTH(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=0");
-//            } else {
-//                sb.append(" AND LOWER(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=?");
-//            }
-//            if (dao.phone.isEmpty()) {
-//                sb.append(" AND LENGTH(").append(DbColumn.PHONE.getDbName()).append(")=0");
-//            } else {
-//                sb.append(" AND LOWER(").append(DbColumn.PHONE.getDbName()).append(")=?");
-//            }
-//            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-//                sb.append(" AND ").append(DbColumn.ADDRESS_ID.getDbName()).append("<>?");
-//            }
-//            String sql = sb.toString();
-//            int count;
-//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-//                ps.setInt(1, ModelHelper.getPrimaryKey(dao.getCity()));
-//                int index = 2;
-//                if (!dao.address1.isEmpty()) {
-//                    ps.setString(index++, dao.address1.toLowerCase());
-//                }
-//                if (!dao.address2.isEmpty()) {
-//                    ps.setString(index++, dao.address2.toLowerCase());
-//                }
-//                if (!dao.postalCode.isEmpty()) {
-//                    ps.setString(index++, dao.postalCode.toLowerCase());
-//                }
-//                if (!dao.phone.isEmpty()) {
-//                    ps.setString(index, dao.phone.toLowerCase());
-//                }
-//                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-//                    ps.setInt(index, dao.getPrimaryKey());
-//                }
-//                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-//                try (ResultSet rs = ps.executeQuery()) {
-//                    if (rs.next()) {
-//                        count = rs.getInt(1);
-//                    } else {
-//                        throw new SQLException("Unexpected lack of results from database query");
-//                    }
-//                    LogHelper.logWarnings(connection, LOG);
-//                }
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error checking address conflicts", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                return;
-//            }
-//            if (count > 0) {
-//                event.setInvalid("Address already exusts", "Another matching address exists");
-//                return;
-//            }
-//
-//            ICityDAO city = dao.getCity();
-//            if (city instanceof CityDAO) {
-//                CityEvent cityEvent;
-//                switch (city.getRowState()) {
-//                    case NEW:
-//                        cityEvent = event.createCityEvent(DbOperationType.DB_INSERT);
-//                        break;
-//                    case UNMODIFIED:
-//                        event.setSucceeded();
-//                        return;
-//                    default:
-//                        cityEvent = event.createCityEvent(DbOperationType.DB_UPDATE);
-//                        break;
-//                }
-//                new SaveTaskOld<>(cityEvent).run();
-//                switch (cityEvent.getStatus()) {
-//                    case SUCCEEDED:
-//                        break;
-//                    case FAULTED:
-//                        event.setFaulted(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage(), cityEvent.getFault());
-//                        return;
-//                    case INVALID:
-//                        event.setInvalid(cityEvent.getSummaryTitle(), cityEvent.getDetailMessage());
-//                        return;
-//                    default:
-//                        event.setCanceled();
-//                        return;
-//                }
-//            }
-//            event.setSucceeded();
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#validate
+            AddressDAO dao = IAddressDAO.assertValidAddress(getDataAccessObject());
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
+                    .append(") FROM ").append(DbTable.ADDRESS.getDbName())
+                    .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
+            if (dao.address1.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS1.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.ADDRESS1.getDbName()).append(")=?");
+            }
+            if (dao.address2.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.ADDRESS2.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.ADDRESS2.getDbName()).append(")=?");
+            }
+            if (dao.postalCode.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.POSTAL_CODE.getDbName()).append(")=?");
+            }
+            if (dao.phone.isEmpty()) {
+                sb.append(" AND LENGTH(").append(DbColumn.PHONE.getDbName()).append(")=0");
+            } else {
+                sb.append(" AND LOWER(").append(DbColumn.PHONE.getDbName()).append(")=?");
+            }
+            if (getOriginalRowState() != DataRowState.NEW) {
+                sb.append(" AND ").append(DbColumn.ADDRESS_ID.getDbName()).append("<>?");
+            }
+            String sql = sb.toString();
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, ModelHelper.getPrimaryKey(dao.getCity()));
+                int index = 2;
+                if (!dao.address1.isEmpty()) {
+                    ps.setString(index++, dao.address1.toLowerCase());
+                }
+                if (!dao.address2.isEmpty()) {
+                    ps.setString(index++, dao.address2.toLowerCase());
+                }
+                if (!dao.postalCode.isEmpty()) {
+                    ps.setString(index++, dao.postalCode.toLowerCase());
+                }
+                if (!dao.phone.isEmpty()) {
+                    ps.setString(index, dao.phone.toLowerCase());
+                }
+                if (getOriginalRowState() != DataRowState.NEW) {
+                    ps.setInt(index, dao.getPrimaryKey());
+                }
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, "Error checking address conflicts", ex);
+                throw new OperationFailureException("Error checking address conflicts", ex);
+            }
+            if (count > 0) {
+                throw new ValidationFailureException("Another matching address exists");
+            }
+
+            ICityDAO city = dao.getCity();
+
+            if (city instanceof CityDAO) {
+                switch (city.getRowState()) {
+                    case NEW:
+                    case MODIFIED:
+                        CityDAO.SaveTask cityTask;
+                        AddressModel model = getFxRecordModel();
+                        CityItem<? extends ICityDAO> cm;
+                        if (null != model && null != (cm = model.getCity()) && cm instanceof CityModel) {
+                            cityTask = new CityDAO.SaveTask((CityModel) cm, false);
+                        } else {
+                            cityTask = new CityDAO.SaveTask((CityDAO) city, false);
+                        }
+                        cityTask.run();
+                        cityTask.get();
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         @Override
@@ -558,7 +540,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected AddressEvent createValidationFailureEvent(ValidationFailureException ex) {
+        protected AddressEvent createValidationFailureEvent(ValidationFailureException ex
+        ) {
             if (getOriginalRowState() == DataRowState.NEW) {
                 return AddressEvent.createInsertInvalidEvent(this, this, ex);
             }
@@ -584,29 +567,22 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected void validate(Connection connection) throws Exception {
-//            AddressEvent event = task.getValidationEvent();
-//            Connection connection = task.getConnection();
-//            AddressDAO dao = task.getDataAccessObject();
-//            int count;
-//            try {
-//                count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                return;
-//            }
-//            switch (count) {
-//                case 0:
-//                    event.setSucceeded();
-//                    return;
-//                case 1:
-//                    event.setInvalid("Address in use", "Address is referenced by one customer.");
-//                    break;
-//                default:
-//                    event.setInvalid("Address in use", String.format("Address is referenced by %d other customers", count));
-//                    break;
-//            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#validate
+            AddressDAO dao = getDataAccessObject();
+            int count;
+            try {
+                count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, "Error checking dependencies", ex);
+                throw new OperationFailureException("Error checking dependencies", ex);
+            }
+            switch (count) {
+                case 0:
+                    break;
+                case 1:
+                    throw new ValidationFailureException("Address is referenced by one customer.");
+                default:
+                    throw new ValidationFailureException(String.format("Address is referenced by %d other customers", count));
+            }
         }
 
         @Override

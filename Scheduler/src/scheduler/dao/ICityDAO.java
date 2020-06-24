@@ -12,6 +12,7 @@ public interface ICityDAO extends DbObject, City {
 
     public static Pattern REGION_ID_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9~/._+-]+$", Pattern.CASE_INSENSITIVE);
 
+    // FIXME: Throw ValidationFailureException, instead
     public static <T extends ICityDAO> T assertValidCity(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("City has already been deleted");

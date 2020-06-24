@@ -8,6 +8,7 @@ import scheduler.model.User;
  */
 public interface IUserDAO extends DbObject, User {
 
+    // FIXME: Throw ValidationFailureException, instead
     public static <T extends IUserDAO> T assertValidUser(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Customer has already been deleted");

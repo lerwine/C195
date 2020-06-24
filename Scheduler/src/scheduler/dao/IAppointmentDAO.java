@@ -15,6 +15,7 @@ import scheduler.util.Values;
  */
 public interface IAppointmentDAO extends DbObject, Appointment<Timestamp> {
 
+    // FIXME: Throw ValidationFailureException, instead
     public static <T extends IAppointmentDAO> T assertValidAppointment(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Appointment has already been deleted");

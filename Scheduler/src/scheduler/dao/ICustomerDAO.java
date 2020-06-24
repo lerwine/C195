@@ -8,6 +8,7 @@ import scheduler.model.Customer;
  */
 public interface ICustomerDAO extends DbObject, Customer {
 
+    // FIXME: Throw ValidationFailureException, instead
     public static <T extends ICustomerDAO> T assertValidCustomer(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Customer has already been deleted");

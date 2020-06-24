@@ -35,7 +35,11 @@ import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.model.ui.CustomerItem;
+import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.UserItem;
+import scheduler.model.ui.UserModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -780,15 +784,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             toDAO.firePropertyChange(PROP_END, oldEnd, toDAO.end);
         }
 
-//        @Deprecated
-////        @Override
-//        protected AppointmentEvent createDbOperationEvent(AppointmentEvent sourceEvent, DbOperationType operation) {
-//            AppointmentModel model = sourceEvent.getModel();
-//            if (null != model) {
-//                return new AppointmentEvent(model, sourceEvent.getSource(), this, operation);
-//            }
-//            return new AppointmentEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", AppointmentModel.FACTORY.getClass().getName()));
@@ -809,6 +804,9 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
+        private CustomerDAO.SaveTask customerTask;
+        private UserDAO.SaveTask userTask;
+
         public SaveTask(AppointmentModel fxRecordModel, boolean alreadyValidated) {
             super(fxRecordModel, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
         }
@@ -827,76 +825,46 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected void validate(Connection connection) throws Exception {
-//            AppointmentEvent event = task.getValidationEvent();
-//            AppointmentDAO appointment;
-//            try {
-//                appointment = IAppointmentDAO.assertValidAppointment(event.getDataAccessObject());
-//            } catch (IllegalArgumentException | IllegalStateException ex) {
-//                event.setFaulted("Invalid Appointment", ex.getMessage(), ex);
-//                return;
-//            }
-//            ICustomerDAO c = appointment.customer;
-//            if (c instanceof CustomerDAO) {
-//                CustomerEvent customerEvent;
-//                switch (c.getRowState()) {
-//                    case NEW:
-//                        customerEvent = event.createCustomerEvent(DbOperationType.DB_INSERT);
-//                        break;
-//                    case MODIFIED:
-//                        customerEvent = event.createCustomerEvent(DbOperationType.DB_UPDATE);
-//                        break;
-//                    default:
-//                        customerEvent = null;
-//                        break;
-//                }
-//                if (null != customerEvent) {
-//                    new SaveTaskOld<>(customerEvent).run();
-//                    switch (customerEvent.getStatus()) {
-//                        case FAULTED:
-//                            event.setFaulted(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage(), customerEvent.getFault());
-//                            return;
-//                        case INVALID:
-//                            event.setInvalid(customerEvent.getSummaryTitle(), customerEvent.getDetailMessage());
-//                            return;
-//                        case SUCCEEDED:
-//                            break;
-//                        default:
-//                            event.setCanceled();
-//                            return;
-//                    }
-//                }
-//            }
-//            IUserDAO u = appointment.user;
-//            if (u instanceof UserDAO) {
-//                UserEvent userEvent;
-//                switch (u.getRowState()) {
-//                    case NEW:
-//                        userEvent = event.createUserEvent(DbOperationType.DB_INSERT);
-//                        break;
-//                    case MODIFIED:
-//                        userEvent = event.createUserEvent(DbOperationType.DB_UPDATE);
-//                        break;
-//                    default:
-//                        event.setSucceeded();
-//                        return;
-//                }
-//                new SaveTaskOld<>(userEvent).run();
-//                switch (userEvent.getStatus()) {
-//                    case FAULTED:
-//                        event.setFaulted(userEvent.getSummaryTitle(), userEvent.getDetailMessage(), userEvent.getFault());
-//                        return;
-//                    case INVALID:
-//                        event.setInvalid(userEvent.getSummaryTitle(), userEvent.getDetailMessage());
-//                        return;
-//                    case SUCCEEDED:
-//                        break;
-//                    default:
-//                        event.setCanceled();
-//                        return;
-//                }
-//            }
-//            event.setSucceeded();
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#validate
+            AppointmentDAO appointment = IAppointmentDAO.assertValidAppointment(getDataAccessObject());
+            ICustomerDAO c = appointment.customer;
+            if (c instanceof CustomerDAO) {
+                switch (c.getRowState()) {
+                    case NEW:
+                    case MODIFIED:
+                        AppointmentModel model = getFxRecordModel();
+                        CustomerItem<? extends ICustomerDAO> cm;
+                        if (null != model && null != (cm = model.getCustomer()) && cm instanceof CustomerModel) {
+                            customerTask = new CustomerDAO.SaveTask((CustomerModel) cm, false);
+                        } else {
+                            cm = null;
+                            customerTask = new CustomerDAO.SaveTask((CustomerDAO) c, false);
+                        }
+                        customerTask.run();
+                        customerTask.get();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            IUserDAO u = appointment.user;
+            if (u instanceof UserDAO) {
+                switch (u.getRowState()) {
+                    case NEW:
+                    case MODIFIED:
+                        AppointmentModel model = getFxRecordModel();
+                        UserItem<? extends IUserDAO> um;
+                        if (null != model && null != (um = model.getUser()) && um instanceof UserModel) {
+                            userTask = new UserDAO.SaveTask((UserModel) um, false);
+                        } else {
+                            userTask = new UserDAO.SaveTask((UserDAO) u, false);
+                        }
+                        userTask.run();
+                        userTask.get();
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         @Override
