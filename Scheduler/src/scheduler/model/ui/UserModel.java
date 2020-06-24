@@ -194,12 +194,12 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         @Override
         public DataAccessObject.SaveDaoTask<UserDAO, UserModel, UserEvent> createSaveTask(UserModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#createSaveTask
+            return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<UserDAO, UserModel, UserEvent> createDeleteTask(UserModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#createDeleteTask
+            return new AddressDAO.DeleteTask(model, false);
         }
 
         @Override
