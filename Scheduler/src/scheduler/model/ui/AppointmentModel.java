@@ -616,12 +616,12 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
         @Override
         public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(AppointmentModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#createSaveTask
+            return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(AppointmentModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#createDeleteTask
+            return new AddressDAO.DeleteTask(model, false);
         }
 
         @Override
