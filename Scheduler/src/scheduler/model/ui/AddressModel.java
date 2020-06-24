@@ -449,12 +449,12 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         @Override
         public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createSaveTask
+            return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(AddressModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createDeleteTask
+            return new AddressDAO.DeleteTask(model, false);
         }
 
         @Override
