@@ -164,21 +164,8 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         timeZoneOptionList = FXCollections.observableArrayList();
         timeZoneOptionList.addAll(allTimeZones);
         addressItemList = FXCollections.observableArrayList();
-        addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
     }
-
-    private void onCityUpdating(CitySuccessEvent event) {
-        model.setName(normalizedName.get());
-        model.setCountry(selectedCountry.get());
-        model.setTimeZone(selectedTimeZone.get());
-    }
-
-    private void onCityInserted(CitySuccessEvent event) {
-        restoreNode(addressesLabel);
-        restoreNode(addressesTableView);
-        restoreNode(addCityButtonBar);
-    }
-
+    
     @FXML
     void onAddAddressButtonAction(ActionEvent event) {
         try {
@@ -237,23 +224,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         onChange(nameTextField.getText());
     }
 
-    private void editItem(AddressModel item) {
-        try {
-            EditAddress.edit(item, getScene().getWindow());
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error opening child window", ex);
-        }
-    }
-
-    private void deleteItem(AddressModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AddressDAO.DeleteTask(item, AddressModel.FACTORY, false));
-        }
-    }
-
     @FXML
     @SuppressWarnings("incomplete-switch")
     void onItemActionRequest(AddressOpRequestEvent event) {
@@ -303,35 +273,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         CountryModel country = selectedCountry.get();
         if (null != country) {
             onZoneOptionChange(country);
-        }
-    }
-
-    private void onZoneOptionChange(CountryModel country) {
-        if (null != country) {
-            Locale locale = country.getLocale();
-            if (null != locale && !showAllTimeZonesCheckBox.isSelected()) {
-                timeZoneListCellFactory.setCurrentCountry(null);
-                List<TimeZone> zonesForCountry = RegionTable.getZonesForCountry(locale.getCountry());
-                if (!zonesForCountry.isEmpty()) {
-                    TimeZone selTz = selectedTimeZone.get();
-                    timeZoneOptionList.setAll(zonesForCountry);
-                    if (null != selTz) {
-                        if (!timeZoneOptionList.contains(selTz)) {
-                            timeZoneOptionList.add(selTz);
-                        }
-                        timeZoneComboBox.getSelectionModel().select(selTz);
-                    }
-                    return;
-                }
-            }
-        }
-        timeZoneListCellFactory.setCurrentCountry(country);
-        if (timeZoneOptionList.size() != allTimeZones.size()) {
-            TimeZone selTz = selectedTimeZone.get();
-            timeZoneOptionList.setAll(allTimeZones);
-            if (null != selTz) {
-                timeZoneComboBox.getSelectionModel().select(selTz);
-            }
         }
     }
 
@@ -402,12 +343,37 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             collapseNode(addressesTableView);
             collapseNode(addCityButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCITY));
+            addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
         } else {
             waitBorderPane.startNow(pane, new EditDataLoadTask());
             initializeEditMode();
         }
     }
+    
+    private void onCityInserted(CitySuccessEvent event) {
+        restoreNode(addressesLabel);
+        restoreNode(addressesTableView);
+        restoreNode(addCityButtonBar);
+        removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
+    }
 
+    private void editItem(AddressModel item) {
+        try {
+            EditAddress.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
+
+    private void deleteItem(AddressModel item) {
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            waitBorderPane.startNow(new AddressDAO.DeleteTask(item, AddressModel.FACTORY, false));
+        }
+    }
+        
     private void onChange(String cityName) {
         valid.set(Values.isNotNullWhiteSpaceOrEmpty(cityName) && null != selectedCountry.get() && null != selectedTimeZone.get());
         if (model.getRowState() != DataRowState.NEW) {
@@ -429,6 +395,35 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAddressAdded));
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAddressUpdated));
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAddressDeleted));
+    }
+    
+    private void onZoneOptionChange(CountryModel country) {
+        if (null != country) {
+            Locale locale = country.getLocale();
+            if (null != locale && !showAllTimeZonesCheckBox.isSelected()) {
+                timeZoneListCellFactory.setCurrentCountry(null);
+                List<TimeZone> zonesForCountry = RegionTable.getZonesForCountry(locale.getCountry());
+                if (!zonesForCountry.isEmpty()) {
+                    TimeZone selTz = selectedTimeZone.get();
+                    timeZoneOptionList.setAll(zonesForCountry);
+                    if (null != selTz) {
+                        if (!timeZoneOptionList.contains(selTz)) {
+                            timeZoneOptionList.add(selTz);
+                        }
+                        timeZoneComboBox.getSelectionModel().select(selTz);
+                    }
+                    return;
+                }
+            }
+        }
+        timeZoneListCellFactory.setCurrentCountry(country);
+        if (timeZoneOptionList.size() != allTimeZones.size()) {
+            TimeZone selTz = selectedTimeZone.get();
+            timeZoneOptionList.setAll(allTimeZones);
+            if (null != selTz) {
+                timeZoneComboBox.getSelectionModel().select(selTz);
+            }
+        }
     }
 
     private void onAddressAdded(AddressSuccessEvent event) {
@@ -532,7 +527,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @Override
     public void applyChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.city.EditCity#applyChanges
+        model.setName(normalizedName.get());
+        model.setCountry(selectedCountry.get());
+        model.setTimeZone(selectedTimeZone.get());
     }
 
     private class EditDataLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {
