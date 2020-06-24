@@ -797,7 +797,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         public SaveDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createSaveTask(AppointmentDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.FactoryImpl#createSaveTask
+            return new SaveTask(dao, false);
         }
 
         @Override
