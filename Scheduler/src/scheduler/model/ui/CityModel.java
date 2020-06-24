@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -19,6 +20,7 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CityEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
@@ -241,6 +243,31 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         @Override
         public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(CityModel model) {
             throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createDeleteTask
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CityDAO, CityModel>> T createEditRequestEvent(CityModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createEditRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CityDAO, CityModel>> T createDeleteRequestEvent(CityModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createDeleteRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CityDAO, CityModel>> EventType<T> getBaseRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#getBaseRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CityDAO, CityModel>> EventType<T> getEditRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#getEditRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CityDAO, CityModel>> EventType<T> getDeleteRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#getDeleteRequestEventType
         }
 
     }

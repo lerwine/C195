@@ -505,12 +505,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected EventType<AppointmentSuccessEvent> getInsertedEventType() {
-        return AppointmentSuccessEvent.SAVE_SUCCESS;
+        return AppointmentSuccessEvent.INSERT_SUCCESS;
     }
 
     @Override
     protected EventType<AppointmentSuccessEvent> getUpdatedEventType() {
-        return AppointmentSuccessEvent.SAVE_SUCCESS;
+        return AppointmentSuccessEvent.UPDATE_SUCCESS;
     }
 
     @Override

@@ -51,6 +51,7 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerSuccessEvent;
@@ -211,8 +212,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-        // FIXME: Use INSERT_SUCCESS
-        addEventHandler(CustomerSuccessEvent.SAVE_SUCCESS, this::onCustomerInserted);
+        addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, this::onCustomerInserted);
     }
 
     private void onCustomerUpdating(CustomerSuccessEvent event) {
@@ -305,7 +305,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(AppointmentEvent event) {
+    private void onItemActionRequest(AppointmentOpRequestEvent event) {
 //        AppointmentModel item;
 //        if (event.isConsumed() || null == (item = event.getModel())) {
 //            return;
@@ -492,10 +492,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-        // FIXME: Use INSERT_SUCCESS
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
-        // FIXME: Use UPDATE_SUCCESS
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
     }
 

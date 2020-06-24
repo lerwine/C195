@@ -225,8 +225,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        // FIXME: Use INSERT_SUCCESS
-        addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
+        addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
     }
 
     private void onAppointmentUpdating(AppointmentSuccessEvent event) {

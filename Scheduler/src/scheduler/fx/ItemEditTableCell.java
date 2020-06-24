@@ -6,6 +6,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
@@ -17,25 +18,27 @@ import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;
 import scheduler.events.DbOperationType;
 import scheduler.events.ModelEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.util.LogHelper;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The target item type.
+ * @param <D> The underlying {@link DataAccessObject} type.
+ * @param <M> The target item type.
  * @param <E> The event type.
  */
-public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelEvent<? extends DataAccessObject, T>>
-        extends TableCell<T, T> {
+public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRecordModel<D>, E extends OperationRequestEvent<D, M>>
+        extends TableCell<M, M> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
-    private final FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory;
+    private final FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> factory;
     private final HBox graphic;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
 
-    public ItemEditTableCell(FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory) {
+    public ItemEditTableCell(FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
         onItemActionRequest = new SimpleObjectProperty<>();
         this.factory = factory;
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));
@@ -45,10 +48,10 @@ public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAcces
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
             if (null != oldValue) {
-                removeEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), oldValue);
+                removeEventHandler(factory.getBaseRequestEventType(), oldValue);
             }
             if (null != newValue) {
-                addEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), newValue);
+                addEventHandler(factory.getBaseRequestEventType(), newValue);
             }
         });
     }
@@ -66,25 +69,25 @@ public final class ItemEditTableCell<T extends FxRecordModel<? extends DataAcces
     }
 
     private void onEditButtonAction(ActionEvent event) {
-        T item = getItem();
+        M item = getItem();
         if (null != item) {
-            E e = factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.EDIT_REQUEST);
+            E e = factory.createEditRequestEvent(item, event.getSource());
             LOG.fine(() -> String.format("Firing event %s", e.toString()));
             fireEvent(e);
         }
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
-        T item = getItem();
+        M item = getItem();
         if (null != item) {
-            E e = factory.createDbOperationEvent(item, event.getSource(), item.dataObject(), DbOperationType.DELETE_REQUEST);
+            E e = factory.createDeleteRequestEvent(item, event.getSource());
             LOG.fine(() -> String.format("Firing event %s", e.toString()));
             fireEvent(e);
         }
     }
 
     @Override
-    protected void updateItem(T item, boolean empty) {
+    protected void updateItem(M item, boolean empty) {
         super.updateItem(item, empty);
         if (empty || null == item) {
             setContentDisplay(ContentDisplay.TEXT_ONLY);

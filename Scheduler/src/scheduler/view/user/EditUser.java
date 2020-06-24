@@ -42,7 +42,7 @@ import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
-import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
@@ -150,8 +150,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
-        // FIXME: Use INSERT_SUCCESS
-        addEventHandler(UserSuccessEvent.SAVE_SUCCESS, this::onUserInserted);
+        addEventHandler(UserSuccessEvent.INSERT_SUCCESS, this::onUserInserted);
     }
 
     private void onUserUpdating(UserSuccessEvent event) {
@@ -228,7 +227,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(AppointmentEvent event) {
+    private void onItemActionRequest(AppointmentOpRequestEvent event) {
 //        AppointmentModel item;
 //        if (event.isConsumed() || null == (item = event.getModel())) {
 //            return;
@@ -363,10 +362,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                 AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-        // FIXME: Use INSERT_SUCCESS
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
-        // FIXME: Use UPDATE_SUCCESS
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
     }
 

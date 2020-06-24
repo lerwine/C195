@@ -1,9 +1,10 @@
 package scheduler.fx;
 
+import scheduler.dao.AppointmentDAO;
+import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.events.AppointmentEvent;
 
-public class AppointmentEditTableCellFactory extends ItemEditTableCellFactory<AppointmentModel, AppointmentEvent> {
+public class AppointmentEditTableCellFactory extends ItemEditTableCellFactory<AppointmentDAO, AppointmentModel, AppointmentOpRequestEvent> {
 
     @Override
     protected AppointmentModel.Factory getFactory() {

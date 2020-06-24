@@ -3,6 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.ValidationFailureException;
 import scheduler.model.ui.CountryModel;
 
 public final class CountryFailedEvent extends CountryEvent implements ModelFailedEvent<CountryDAO, CountryModel> {
@@ -10,6 +11,19 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
     private static final long serialVersionUID = 6771994729970121058L;
 
     private static final String BASE_EVENT_NAME = "SCHEDULER_COUNTRY_FAILED_EVENT";
+    private static final String SAVE_FAILED_EVENT_NAME = "SCHEDULER_COUNTRY_SAVE_FAILED";
+    private static final String INSERT_FAILED_EVENT_NAME = "SCHEDULER_COUNTRY_INSERT_FAILED";
+    private static final String UPDATE_FAILED_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATE_FAILED";
+    private static final String DELETE_FAILED_EVENT_NAME = "SCHEDULER_COUNTRY_DELETE_FAILED";
+    private static final String INSERT_FAULTED_EVENT_NAME = "SCHEDULER_COUNTRY_INSERT_FAULTED";
+    private static final String UPDATE_FAULTED_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATE_FAULTED";
+    private static final String DELETE_FAULTED_EVENT_NAME = "SCHEDULER_COUNTRY_DELETE_FAULTED";
+    private static final String INSERT_INVALID_EVENT_NAME = "SCHEDULER_COUNTRY_INSERT_INVALID";
+    private static final String UPDATE_INVALID_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATE_INVALID";
+    private static final String DELETE_INVALID_EVENT_NAME = "SCHEDULER_COUNTRY_DELETE_INVALID";
+    private static final String INSERT_CANCELED_EVENT_NAME = "SCHEDULER_COUNTRY_INSERT_CANCELED";
+    private static final String UPDATE_CANCELED_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATE_CANCELED";
+    private static final String DELETE_CANCELED_EVENT_NAME = "SCHEDULER_COUNTRY_DELETE_CANCELED";
 
     /**
      * Base {@link EventType} for all {@code CountryFailedEvent}s.
@@ -17,96 +31,226 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
     public static final EventType<CountryFailedEvent> FAILED_EVENT_TYPE = new EventType<>(OP_EVENT_TYPE, BASE_EVENT_NAME);
 
     /**
-     * {@link EventType} for save {@code CountryFailedEvent}s.
+     * Base {@link EventType} for save {@code CountryFailedEvent}s.
      */
-    public static final EventType<CountryFailedEvent> SAVE_FAILED = new EventType<>(FAILED_EVENT_TYPE, "SCHEDULER_COUNTRY_SAVE_FAILED");
+    public static final EventType<CountryFailedEvent> SAVE_FAILED = new EventType<>(FAILED_EVENT_TYPE, SAVE_FAILED_EVENT_NAME);
 
     /**
-     * {@link EventType} for delete {@code CountryFailedEvent}s.
+     * Base {@link EventType} for insert {@code CountryFailedEvent}s.
      */
-    public static final EventType<CountryFailedEvent> DELETE_FAILED = new EventType<>(FAILED_EVENT_TYPE, "SCHEDULER_COUNTRY_DELETE_FAILED");
+    public static final EventType<CountryFailedEvent> INSERT_FAILED = new EventType<>(SAVE_FAILED, INSERT_FAILED_EVENT_NAME);
 
-    private static EventType<CountryFailedEvent> assertValidEventType(EventType<CountryFailedEvent> eventType) {
-        if (eventType.getName().equals(BASE_EVENT_NAME)) {
-            throw new IllegalArgumentException();
+    /**
+     * Base {@link EventType} for update {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> UPDATE_FAILED = new EventType<>(SAVE_FAILED, UPDATE_FAILED_EVENT_NAME);
+
+    /**
+     * Base {@link EventType} for delete {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> DELETE_FAILED = new EventType<>(FAILED_EVENT_TYPE, DELETE_FAILED_EVENT_NAME);
+
+    /**
+     * {@link EventType} for insert fault {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> INSERT_FAULTED = new EventType<>(INSERT_FAILED, INSERT_FAULTED_EVENT_NAME);
+
+    /**
+     * {@link EventType} for update fault {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> UPDATE_FAULTED = new EventType<>(UPDATE_FAILED, UPDATE_FAULTED_EVENT_NAME);
+
+    /**
+     * {@link EventType} for delete fault {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> DELETE_FAULTED = new EventType<>(DELETE_FAILED, DELETE_FAULTED_EVENT_NAME);
+
+    /**
+     * {@link EventType} for insert invalid {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> INSERT_INVALID = new EventType<>(INSERT_FAILED, INSERT_INVALID_EVENT_NAME);
+
+    /**
+     * {@link EventType} for update invalid {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> UPDATE_INVALID = new EventType<>(UPDATE_FAILED, UPDATE_INVALID_EVENT_NAME);
+
+    /**
+     * {@link EventType} for delete invalid {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> DELETE_INVALID = new EventType<>(DELETE_FAILED, DELETE_INVALID_EVENT_NAME);
+
+    /**
+     * {@link EventType} for insert canceled {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> INSERT_CANCELED = new EventType<>(INSERT_FAILED, INSERT_CANCELED_EVENT_NAME);
+
+    /**
+     * {@link EventType} for update canceled {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> UPDATE_CANCELED = new EventType<>(UPDATE_FAILED, UPDATE_CANCELED_EVENT_NAME);
+
+    /**
+     * {@link EventType} for delete canceled {@code CountryFailedEvent}s.
+     */
+    public static final EventType<CountryFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
+
+    public static boolean isFaultedEvent(CountryFailedEvent event) {
+        switch (event.getEventType().getName()) {
+            case INSERT_FAULTED_EVENT_NAME:
+            case UPDATE_FAULTED_EVENT_NAME:
+            case DELETE_FAULTED_EVENT_NAME:
+                return true;
+            default:
+                return false;
         }
-        return eventType;
+    }
+
+    public static boolean isInvalidEvent(CountryFailedEvent event) {
+        switch (event.getEventType().getName()) {
+            case INSERT_INVALID_EVENT_NAME:
+            case UPDATE_INVALID_EVENT_NAME:
+            case DELETE_INVALID_EVENT_NAME:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static boolean isCanceledEvent(CountryFailedEvent event) {
+        switch (event.getEventType().getName()) {
+            case INSERT_CANCELED_EVENT_NAME:
+            case UPDATE_CANCELED_EVENT_NAME:
+            case DELETE_CANCELED_EVENT_NAME:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    @SuppressWarnings("incomplete-switch")
+    private static DbOperationType toDbOperationType(EventType<CountryFailedEvent> eventType, Throwable fault) {
+        switch (eventType.getName()) {
+            case INSERT_INVALID_EVENT_NAME:
+                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                    break;
+                }
+            case INSERT_FAULTED_EVENT_NAME:
+                return DbOperationType.DB_INSERT;
+            case INSERT_CANCELED_EVENT_NAME:
+                if (null == fault || fault instanceof InterruptedException) {
+                    return DbOperationType.DB_INSERT;
+                }
+                break;
+            case UPDATE_INVALID_EVENT_NAME:
+                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                    break;
+                }
+            case UPDATE_FAULTED_EVENT_NAME:
+                return DbOperationType.DB_UPDATE;
+            case UPDATE_CANCELED_EVENT_NAME:
+                if (null == fault || fault instanceof InterruptedException) {
+                    return DbOperationType.DB_UPDATE;
+                }
+                break;
+            case DELETE_INVALID_EVENT_NAME:
+                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                    break;
+                }
+            case DELETE_FAULTED_EVENT_NAME:
+                return DbOperationType.DB_DELETE;
+            case DELETE_CANCELED_EVENT_NAME:
+                if (null == fault || fault instanceof InterruptedException) {
+                    return DbOperationType.DB_DELETE;
+                }
+                break;
+        }
+        throw new IllegalArgumentException();
+    }
+
+    private static String ensureMessage(String message, Throwable fault, EventType<CountryFailedEvent> eventType) {
+        if (null == message || message.trim().isEmpty()) {
+            switch (eventType.getName()) {
+                case INSERT_INVALID_EVENT_NAME:
+                case UPDATE_INVALID_EVENT_NAME:
+                case DELETE_INVALID_EVENT_NAME:
+                    if (null != fault && fault instanceof ValidationFailureException && null != (message = fault.getMessage()) && !message.isEmpty()) {
+                        return message;
+                    }
+                    return "Validation failed.";
+                case INSERT_CANCELED_EVENT_NAME:
+                case UPDATE_CANCELED_EVENT_NAME:
+                case DELETE_CANCELED_EVENT_NAME:
+                    if (null != fault && fault instanceof InterruptedException && null != (message = fault.getMessage()) && !message.isEmpty()) {
+                        return message;
+                    }
+                    return "Operation canceled.";
+                default:
+                    return "An unexpected error has occured.";
+            }
+        }
+        return message;
     }
 
     private final String message;
     private final Throwable fault;
-    private final boolean canceled;
 
-    public CountryFailedEvent(CountryEvent event, String message, Throwable fault, Object source, EventTarget target, EventType<CountryFailedEvent> eventType) {
-        super(event, source, target, assertValidEventType(eventType));
-        if ((null == message || message.trim().isEmpty()) && (null == fault || null == (message = fault.getMessage()) || message.trim().isEmpty())) {
-            this.message = "Unknown error";
-        } else {
-            this.message = message;
-        }
+    /**
+     * Creates a new {@link CountryFailedEvent} from another {@link CountryEvent} object.
+     *
+     * @param event The {@link CountryEvent} object to copy from.
+     * @param message The new message text.
+     * @param fault The new fault object.
+     * @param source The object that fired the event or {@code null} to use the same source as the {@code event} parameter.
+     * @param eventType The new {@link EventType}.
+     * @param target The target of the event or {@code null} to use the same target as the {@code event} parameter.
+     */
+    public CountryFailedEvent(CountryEvent event, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType, EventTarget target) {
+        super(event, source, target, eventType, toDbOperationType(eventType, fault));
+        this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
-        canceled = false;
     }
 
-    public CountryFailedEvent(CountryEvent event, boolean canceled, Object source, EventTarget target, EventType<CountryFailedEvent> eventType) {
-        super(event, source, target, assertValidEventType(eventType));
-        message = (canceled) ? "Operation canceled" : "Unknown error";
+    public CountryFailedEvent(CountryEvent event, Object source, String message, EventType<CountryFailedEvent> eventType, EventTarget target) {
+        super(event, source, target, eventType, toDbOperationType(eventType, null));
+        this.message = ensureMessage(message, null, eventType);
         fault = null;
-        this.canceled = canceled;
     }
 
     public CountryFailedEvent(CountryEvent event, String message, Throwable fault, EventType<CountryFailedEvent> eventType) {
-        super(event, assertValidEventType(eventType));
-        if ((null == message || message.trim().isEmpty()) && (null == fault || null == (message = fault.getMessage()) || message.trim().isEmpty())) {
-            this.message = "Unknown error";
-        } else {
-            this.message = message;
-        }
+        super(event, eventType, toDbOperationType(eventType, fault));
+        this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
-        canceled = false;
     }
 
-    public CountryFailedEvent(CountryEvent event, boolean canceled, EventType<CountryFailedEvent> eventType) {
-        super(event, assertValidEventType(eventType));
-        message = (canceled) ? "Operation canceled" : "Unknown error";
+    public CountryFailedEvent(CountryEvent event, String message, EventType<CountryFailedEvent> eventType) {
+        super(event, eventType, toDbOperationType(eventType, null));
+        this.message = ensureMessage(message, null, eventType);
         fault = null;
-        this.canceled = canceled;
     }
 
-    public CountryFailedEvent(CountryModel fxRecordModel, String message, Throwable fault, Object source, EventTarget target, EventType<CountryFailedEvent> eventType) {
-        super(fxRecordModel, source, target, assertValidEventType(eventType));
-        if ((null == message || message.trim().isEmpty()) && (null == fault || null == (message = fault.getMessage()) || message.trim().isEmpty())) {
-            this.message = "Unknown error";
-        } else {
-            this.message = message;
-        }
+    public CountryFailedEvent(CountryModel target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType, fault));
+        this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
-        canceled = false;
     }
 
-    public CountryFailedEvent(CountryModel fxRecordModel, boolean canceled, Object source, EventTarget target, EventType<CountryFailedEvent> eventType) {
-        super(fxRecordModel, source, target, assertValidEventType(eventType));
-        message = (canceled) ? "Operation canceled" : "Unknown error";
+    public CountryFailedEvent(CountryModel target, Object source, String message, EventType<CountryFailedEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType, null));
+        this.message = ensureMessage(message, null, eventType);
         fault = null;
-        this.canceled = canceled;
     }
 
-    public CountryFailedEvent(CountryDAO dao, String message, Throwable fault, Object source, EventTarget target, EventType<CountryFailedEvent> eventType) {
-        super(dao, source, target, assertValidEventType(eventType));
-        if ((null == message || message.trim().isEmpty()) && (null == fault || null == (message = fault.getMessage()) || message.trim().isEmpty())) {
-            this.message = "Unknown error";
-        } else {
-            this.message = message;
-        }
+    public CountryFailedEvent(CountryDAO target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType, fault));
+        this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
-        canceled = false;
     }
 
-    public CountryFailedEvent(CountryDAO dao, boolean canceled, Object source, EventTarget target, EventType<CountryFailedEvent> eventType) {
-        super(dao, source, target, assertValidEventType(eventType));
-        message = (canceled) ? "Operation canceled" : "Unknown error";
+    public CountryFailedEvent(CountryDAO target, Object source, String message, EventType<CountryFailedEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType, null));
+        this.message = ensureMessage(message, null, eventType);
         fault = null;
-        this.canceled = canceled;
     }
 
     @Override
@@ -117,11 +261,6 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
     @Override
     public Throwable getFault() {
         return fault;
-    }
-
-    @Override
-    public boolean isCanceled() {
-        return canceled;
     }
 
 }

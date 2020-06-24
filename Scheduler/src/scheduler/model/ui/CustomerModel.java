@@ -10,11 +10,13 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.events.CustomerEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.AddressProperties;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -290,6 +292,31 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         @Override
         public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createDeleteTask(CustomerModel model) {
             throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#createDeleteTask
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> T createEditRequestEvent(CustomerModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#createEditRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> T createDeleteRequestEvent(CustomerModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#createDeleteRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> EventType<T> getBaseRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getBaseRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> EventType<T> getEditRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getEditRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> EventType<T> getDeleteRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getDeleteRequestEventType
         }
 
     }

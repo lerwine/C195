@@ -15,7 +15,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -27,6 +26,7 @@ import scheduler.AppResources;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.ModelEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -112,7 +112,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(Event event) {
+    private void onItemActionRequest(OperationRequestEvent<D, M> event) {
         // FIXME: Implement this
     }
 

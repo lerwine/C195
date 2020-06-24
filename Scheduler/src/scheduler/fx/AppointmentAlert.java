@@ -43,6 +43,7 @@ import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.ui.AppointmentModel;
@@ -59,7 +60,6 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.events.AppointmentSuccessEvent;
 
 /**
  * FXML Controller class
@@ -117,9 +117,8 @@ public class AppointmentAlert extends BorderPane {
             i = 2;
         }
         checkFrequency = i;
-        addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
-        // TODO: Create event to distinguish insert from update
-        addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentUpdated);
+        addEventFilter(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
+        addEventFilter(AppointmentSuccessEvent.UPDATE_SUCCESS, this::onAppointmentUpdated);
         addEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
     }
 

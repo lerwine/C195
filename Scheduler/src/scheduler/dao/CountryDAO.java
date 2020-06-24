@@ -295,7 +295,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         public DeleteDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createDeleteTask(CountryDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#createDeleteTask
+            return new DeleteTask(dao, false);
         }
 
     }
@@ -312,7 +312,10 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#createSuccessEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CountryEvent.createInsertSuccessEvent(this, this);
+            }
+            return CountryEvent.createUpdateSuccessEvent(this, this);
         }
 
         @Override
@@ -364,18 +367,27 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected CountryEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#createUnhandledExceptionEvent
+        protected CountryEvent createFailedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CountryEvent.createInsertFaultedEvent(this, this, getException());
+            }
+            return CountryEvent.createUpdateFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected CountryEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#createCancelledEvent
+        protected CountryEvent createCanceledEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CountryEvent.createInsertCanceledEvent(this, this);
+            }
+            return CountryEvent.createUpdateCanceledEvent(this, this);
         }
 
         @Override
         protected CountryEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#createValidationFailureEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CountryEvent.createInsertInvalidEvent(this, this, ex);
+            }
+            return CountryEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
@@ -392,9 +404,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.DeleteTask#createSuccessEvent
+            return CountryEvent.createDeleteSuccessEvent(this, this);
         }
-
+        
         @Override
         protected void validate(Connection connection) throws Exception {
 //            CountryEvent event = task.getValidationEvent();
@@ -423,18 +435,18 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected CountryEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.DeleteTask#createUnhandledExceptionEvent
+        protected CountryEvent createFailedEvent() {
+            return CountryEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected CountryEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.DeleteTask#createCancelledEvent
+        protected CountryEvent createCanceledEvent() {
+            return CountryEvent.createDeleteCanceledEvent(this, this);
         }
 
         @Override
         protected CountryEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.DeleteTask#createValidationFailureEvent
+            return CountryEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

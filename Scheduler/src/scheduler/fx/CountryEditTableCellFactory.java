@@ -1,9 +1,10 @@
 package scheduler.fx;
 
+import scheduler.dao.CountryDAO;
+import scheduler.events.CountryOpRequestEvent;
 import scheduler.model.ui.CountryModel;
-import scheduler.events.CountryEvent;
 
-public class CountryEditTableCellFactory extends ItemEditTableCellFactory<CountryModel, CountryEvent> {
+public class CountryEditTableCellFactory extends ItemEditTableCellFactory<CountryDAO, CountryModel, CountryOpRequestEvent> {
 
     @Override
     protected CountryModel.Factory getFactory() {

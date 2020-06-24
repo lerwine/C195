@@ -188,9 +188,8 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized void start(boolean isInitial) {
-        // FIXME: Use separate event types
-        eventHandlerManager.addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
-        eventHandlerManager.addEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentUpdated);
+        eventHandlerManager.addEventFilter(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
+        eventHandlerManager.addEventFilter(AppointmentSuccessEvent.UPDATE_SUCCESS, this::onAppointmentUpdated);
         eventHandlerManager.addEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
         if (null != appointmentCheckTimer) {
             if (isInitial) {
@@ -203,9 +202,8 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized boolean stop(boolean isPermanent) {
-        // FIXME: Use separate event types
-        eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentInserted);
-        eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.SAVE_SUCCESS, this::onAppointmentUpdated);
+        eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
+        eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.UPDATE_SUCCESS, this::onAppointmentUpdated);
         eventHandlerManager.removeEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
         if (null == appointmentCheckTimer) {
             return false;

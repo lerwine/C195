@@ -379,24 +379,27 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         public DeleteDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createDeleteTask(CityDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.FactoryImpl#createDeleteTask
+            return new DeleteTask(dao, false);
         }
 
     }
 
     public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
 
-        public SaveTask(CityModel fxRecordModel, FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public SaveTask(CityModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
-        public SaveTask(CityDAO dataAccessObject, DaoFactory<CityDAO, CityEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public SaveTask(CityDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CityEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createSuccessEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CityEvent.createInsertSuccessEvent(this, this);
+            }
+            return CityEvent.createUpdateSuccessEvent(this, this);
         }
 
         @Override
@@ -483,35 +486,44 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected CityEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createUnhandledExceptionEvent
+        protected CityEvent createFailedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CityEvent.createInsertFaultedEvent(this, this, getException());
+            }
+            return CityEvent.createUpdateFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected CityEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createCancelledEvent
+        protected CityEvent createCanceledEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CityEvent.createInsertCanceledEvent(this, this);
+            }
+            return CityEvent.createUpdateCanceledEvent(this, this);
         }
 
         @Override
         protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#createValidationFailureEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CityEvent.createInsertInvalidEvent(this, this, ex);
+            }
+            return CityEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
 
     public static class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
 
-        public DeleteTask(CityModel fxRecordModel, FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CityModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
-        public DeleteTask(CityDAO dataAccessObject, DaoFactory<CityDAO, CityEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CityDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CityEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createSuccessEvent
+            return CityEvent.createDeleteSuccessEvent(this, this);
         }
 
         @Override
@@ -542,18 +554,18 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected CityEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createUnhandledExceptionEvent
+        protected CityEvent createFailedEvent() {
+            return CityEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected CityEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createCancelledEvent
+        protected CityEvent createCanceledEvent() {
+            return CityEvent.createDeleteCanceledEvent(this, this);
         }
 
         @Override
         protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#createValidationFailureEvent
+            return CityEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

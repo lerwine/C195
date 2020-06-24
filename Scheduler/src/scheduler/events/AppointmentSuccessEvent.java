@@ -10,6 +10,10 @@ public final class AppointmentSuccessEvent extends AppointmentEvent {
     private static final long serialVersionUID = 7958190140567903253L;
 
     private static final String BASE_EVENT_NAME = "SCHEDULER_APPOINTMENT_SUCCESS_EVENT";
+    private static final String SAVE_SUCCESS_EVENT_NAME = "SCHEDULER_APPOINTMENT_SAVE_SUCCESS";
+    private static final String INSERT_EVENT_NAME = "SCHEDULER_APPOINTMENT_INSERT_SUCCESS";
+    private static final String UPDATE_EVENT_NAME = "SCHEDULER_APPOINTMENT_UPDATE_SUCCESS";
+    private static final String DELETE_EVENT_NAME = "SCHEDULER_APPOINTMENT_DELETE_SUCCESS";
 
     /**
      * Base {@link EventType} for all {@code AppointmentSuccessEvent}s.
@@ -19,34 +23,50 @@ public final class AppointmentSuccessEvent extends AppointmentEvent {
     /**
      * {@link EventType} for save {@code AppointmentSuccessEvent}s.
      */
-    public static final EventType<AppointmentSuccessEvent> SAVE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, "SCHEDULER_APPOINTMENT_SAVE_SUCCESS");
+    public static final EventType<AppointmentSuccessEvent> SAVE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, SAVE_SUCCESS_EVENT_NAME);
+
+    /**
+     * {@link EventType} for database insert {@code AppointmentSuccessEvent}s.
+     */
+    public static final EventType<AppointmentSuccessEvent> INSERT_SUCCESS = new EventType<>(SAVE_SUCCESS, INSERT_EVENT_NAME);
+
+    /**
+     * {@link EventType} for database update {@code AppointmentSuccessEvent}s.
+     */
+    public static final EventType<AppointmentSuccessEvent> UPDATE_SUCCESS = new EventType<>(SAVE_SUCCESS, UPDATE_EVENT_NAME);
 
     /**
      * {@link EventType} for delete {@code AppointmentSuccessEvent}s.
      */
-    public static final EventType<AppointmentSuccessEvent> DELETE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, "SCHEDULER_APPOINTMENT_DELETE_SUCCESS");
+    public static final EventType<AppointmentSuccessEvent> DELETE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, DELETE_EVENT_NAME);
 
-    private static EventType<AppointmentSuccessEvent> assertValidEventType(EventType<AppointmentSuccessEvent> eventType) {
-        if (eventType.getName().equals(BASE_EVENT_NAME)) {
-            throw new IllegalArgumentException();
+    private static DbOperationType toDbOperationType(EventType<AppointmentSuccessEvent> eventType) {
+        switch (eventType.getName()) {
+            case INSERT_EVENT_NAME:
+                return DbOperationType.DB_INSERT;
+            case UPDATE_EVENT_NAME:
+                return DbOperationType.DB_UPDATE;
+            case DELETE_EVENT_NAME:
+                return DbOperationType.DB_DELETE;
+            default:
+                throw new IllegalArgumentException();
         }
-        return eventType;
     }
 
     public AppointmentSuccessEvent(AppointmentEvent event, Object source, EventTarget target, EventType<AppointmentSuccessEvent> eventType) {
-        super(event, source, target, assertValidEventType(eventType));
+        super(event, source, target, eventType, toDbOperationType(eventType));
     }
 
     public AppointmentSuccessEvent(AppointmentEvent event, EventType<AppointmentSuccessEvent> eventType) {
-        super(event, assertValidEventType(eventType));
+        super(event, eventType, toDbOperationType(eventType));
     }
 
-    public AppointmentSuccessEvent(AppointmentModel fxRecordModel, Object source, EventTarget target, EventType<AppointmentSuccessEvent> eventType) {
-        super(fxRecordModel, source, target, assertValidEventType(eventType));
+    public AppointmentSuccessEvent(AppointmentModel target, Object source, EventType<AppointmentSuccessEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType));
     }
 
-    public AppointmentSuccessEvent(AppointmentDAO dao, Object source, EventTarget target, EventType<AppointmentSuccessEvent> eventType) {
-        super(dao, source, target, assertValidEventType(eventType));
+    public AppointmentSuccessEvent(AppointmentDAO target, Object source, EventType<AppointmentSuccessEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType));
     }
 
 }

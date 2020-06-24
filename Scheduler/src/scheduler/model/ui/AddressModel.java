@@ -22,6 +22,7 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.AddressEvent;
 import scheduler.events.DbOperationType;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
@@ -447,12 +448,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public EventType<AddressEvent> toEventType(DbOperationType operation) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.fx.AddressModel.Factory#toEventType
-//            return AddressEvent.toEventType(operation);
-        }
-
-        @Override
         public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
             throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createSaveTask
         }
@@ -460,6 +455,31 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         @Override
         public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(AddressModel model) {
             throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createDeleteTask
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> T createEditRequestEvent(AddressModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createEditRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> T createDeleteRequestEvent(AddressModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createDeleteRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> EventType<T> getBaseRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#getBaseRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> EventType<T> getEditRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#getEditRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> EventType<T> getDeleteRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#getDeleteRequestEventType
         }
 
     }

@@ -1,9 +1,10 @@
 package scheduler.fx;
 
+import scheduler.dao.AddressDAO;
+import scheduler.events.AddressOpRequestEvent;
 import scheduler.model.ui.AddressModel;
-import scheduler.events.AddressEvent;
 
-public class AddressEditTableCellFactory extends ItemEditTableCellFactory<AddressModel, AddressEvent> {
+public class AddressEditTableCellFactory extends ItemEditTableCellFactory<AddressDAO, AddressModel, AddressOpRequestEvent> {
 
     @Override
     protected AddressModel.Factory getFactory() {

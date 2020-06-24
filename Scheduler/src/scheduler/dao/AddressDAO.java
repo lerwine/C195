@@ -417,24 +417,27 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public DeleteDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createDeleteTask(AddressDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.FactoryImpl#createDeleteTask
+            return new DeleteTask(dao, false);
         }
 
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
 
-        public SaveTask(AddressModel fxRecordModel, FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+        public SaveTask(AddressModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
-        public SaveTask(AddressDAO dataAccessObject, DaoFactory<AddressDAO, AddressEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+        public SaveTask(AddressDAO dataAccessObject,  boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected AddressEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createSuccessEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return AddressEvent.createInsertSuccessEvent(this, this);
+            }
+            return AddressEvent.createUpdateSuccessEvent(this, this);
         }
 
         @Override
@@ -547,35 +550,44 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected AddressEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createUnhandledExceptionEvent
+        protected AddressEvent createFailedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return AddressEvent.createInsertFaultedEvent(this, this, getException());
+            }
+            return AddressEvent.createUpdateFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected AddressEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createCancelledEvent
+        protected AddressEvent createCanceledEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return AddressEvent.createInsertCanceledEvent(this, this);
+            }
+            return AddressEvent.createUpdateCanceledEvent(this, this);
         }
 
         @Override
         protected AddressEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#createValidationFailureEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return AddressEvent.createInsertInvalidEvent(this, this, ex);
+            }
+            return AddressEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
 
     public static class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
 
-        public DeleteTask(AddressModel fxRecordModel, FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(AddressModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
-        public DeleteTask(AddressDAO dataAccessObject, DaoFactory<AddressDAO, AddressEvent> daoFactory, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(AddressDAO dataAccessObject, boolean alreadyValidated) {
+            super(dataAccessObject, FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected AddressEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createSuccessEvent
+            return AddressEvent.createDeleteSuccessEvent(this, this);
         }
 
         @Override
@@ -606,18 +618,18 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected AddressEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createUnhandledExceptionEvent
+        protected AddressEvent createFailedEvent() {
+            return AddressEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected AddressEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createCancelledEvent
+        protected AddressEvent createCanceledEvent() {
+            return AddressEvent.createDeleteCanceledEvent(this, this);
         }
 
         @Override
         protected AddressEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.DeleteTask#createValidationFailureEvent
+            return AddressEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

@@ -126,12 +126,12 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected EventType<CountrySuccessEvent> getInsertedEventType() {
-        return CountrySuccessEvent.SAVE_SUCCESS;
+        return CountrySuccessEvent.INSERT_SUCCESS;
     }
 
     @Override
     protected EventType<CountrySuccessEvent> getUpdatedEventType() {
-        return CountrySuccessEvent.SAVE_SUCCESS;
+        return CountrySuccessEvent.UPDATE_SUCCESS;
     }
 
     @Override

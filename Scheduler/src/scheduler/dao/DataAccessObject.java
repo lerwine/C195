@@ -93,6 +93,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         originalValues = new OriginalValues();
     }
 
+    /**
+     * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s
+     * will be deferred while this is invoked.
+     */
     protected abstract void onAcceptChanges();
 
     private void acceptChanges() {
@@ -103,8 +107,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         originalValues.lastModifiedBy = lastModifiedBy;
     }
 
+    /**
+     * This gets called when property changes are rejected and are to be restored to their original values. {@link PropertyChangeEvent}s will be
+     * deferred while this is invoked.
+     */
     protected abstract void onRejectChanges();
 
+    /**
+     * Rejects property value changes changes and reverts them back to their original values.
+     */
     @SuppressWarnings("try")
     public void rejectChanges() {
         try (ChangeEventDeferral eventDeferral = deferChangeEvents()) {
@@ -237,7 +248,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    // FIXME: Switch to ModelEvent
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
@@ -250,7 +260,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    // FIXME: Switch to ModelEvent
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
@@ -263,7 +272,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    // FIXME: Switch to ModelEvent
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
@@ -276,7 +284,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    // FIXME: Switch to ModelEvent
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
@@ -338,7 +345,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
     }
 
-    public static class DataObjectCache<T extends DataObject> {
+    private static class DataObjectCache<T extends DataObject> {
 
         private final HashMap<Integer, WeakReference<T>> backingMap = new HashMap<>();
 
@@ -389,19 +396,19 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     }
 
-    // FIXME: Switch to ModelEvent
     /**
-     * Base factory class for {@link DataAccessObject} objects.
+     * Base factory class for CRUD operations on {@link DataAccessObject} objects. This maintains a {@link WeakReference} cache of loaded
+     * {@link DataAccessObject}s so that there will only ever be one instance of a {@link DataAccessObject} for each record in the database.
      *
-     * @param <T> The type of {@link DataAccessObject} object supported.
+     * @param <D> The type of {@link DataAccessObject} object supported.
      * @param <E> The {@link ModelEvent} type.
      */
-    public static abstract class DaoFactory<T extends DataAccessObject, E extends ModelEvent<T, ? extends FxRecordModel<T>>> implements EventTarget {
+    public static abstract class DaoFactory<D extends DataAccessObject, E extends ModelEvent<D, ? extends FxRecordModel<D>>> implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
         private final EventHandlerManager eventHandlerManager;
-        private final DataObjectCache<T> dataObjectCache = new DataObjectCache<>();
+        private final DataObjectCache<D> dataObjectCache = new DataObjectCache<>();
 
         protected DaoFactory() {
             eventHandlerManager = new EventHandlerManager(this);
@@ -415,7 +422,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return A list of items loaded.
          * @throws SQLException if unable to read data from the database.
          */
-        public final List<T> load(Connection connection, DaoFilter<T> filter) throws SQLException {
+        public final List<D> load(Connection connection, DaoFilter<D> filter) throws SQLException {
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build();
             if (null != filter && !filter.isEmpty()) {
@@ -425,7 +432,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     filter.appendJoinedDmlConditional(sb.append(" WHERE "));
                 }
             }
-            ArrayList<T> result = new ArrayList<>();
+            ArrayList<D> result = new ArrayList<>();
             String sql = sb.toString();
             LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -435,7 +442,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try (ResultSet rs = ps.executeQuery()) {
                     if (null != rs) {
                         while (rs.next()) {
-                            T item = fromResultSet(rs);
+                            D item = fromResultSet(rs);
                             result.add(item);
                         }
                     }
@@ -454,20 +461,20 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param onFail The {@link Consumer} to invoke if an exception is thrown.
          * @return The {@link Task} that has been started.
          */
-        public final Task<List<T>> loadAsync(WaitBorderPane waitBorderPane, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
-            LoadTask<T> task = new LoadTask<>(this, filter, onSuccess, onFail);
+        public final Task<List<D>> loadAsync(WaitBorderPane waitBorderPane, DaoFilter<D> filter, Consumer<List<D>> onSuccess, Consumer<Throwable> onFail) {
+            LoadTask<D> task = new LoadTask<>(this, filter, onSuccess, onFail);
             waitBorderPane.startNow(task);
             return task;
         }
 
-        public final Task<List<T>> loadAsync(DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
-            LoadTask<T> task = new LoadTask<>(this, filter, onSuccess, onFail);
+        public final Task<List<D>> loadAsync(DaoFilter<D> filter, Consumer<List<D>> onSuccess, Consumer<Throwable> onFail) {
+            LoadTask<D> task = new LoadTask<>(this, filter, onSuccess, onFail);
             MainController.startBusyTaskNow(task);
             return task;
         }
 
-        public final T createClone(T source, boolean asNew) {
-            T result = createNew();
+        public final D createClone(D source, boolean asNew) {
+            D result = createNew();
             if (asNew) {
                 onCloneProperties(source, result);
             } else {
@@ -483,15 +490,21 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param target The data access object to be updated.
          * @throws IllegalStateException if the two objects represent different records.
          */
-        public final void synchronize(T source, T target) {
+        public final void synchronize(D source, D target) {
             if (target.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW || target.getPrimaryKey() != source.getPrimaryKey())) {
                 throw new IllegalStateException();
             }
             cloneProperties(source, target);
         }
 
+        /**
+         * Clones the properties from one {@link DataAccessobject} to another.
+         *
+         * @param fromDAO The source {@link DataAccessobject} to be copied from.
+         * @param toDAO The target {@link DataAccessobject} to be copied to.
+         */
         @SuppressWarnings("try")
-        protected final void cloneProperties(T fromDAO, T toDAO) {
+        protected final void cloneProperties(D fromDAO, D toDAO) {
             if (Objects.equals(fromDAO, toDAO)) {
                 return;
             }
@@ -527,7 +540,14 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
         }
 
-        protected abstract void onCloneProperties(T fromDAO, T toDAO);
+        /**
+         * This gets called when the properties of one {@link DataAccessobject} are being copied to another. {@link PropertyChangeEvent}s will be
+         * deferred while this is invoked.
+         *
+         * @param fromDAO The source {@link DataAccessobject} to be copied from.
+         * @param toDAO The target {@link DataAccessobject} to be copied to.
+         */
+        protected abstract void onCloneProperties(D fromDAO, D toDAO);
 
         /**
          * Creates a new data access object from database query results.
@@ -537,10 +557,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @throws SQLException if unable to read values from the {@link ResultSet}.
          */
         @SuppressWarnings("try")
-        protected final T fromResultSet(ResultSet rs) throws SQLException {
+        protected final D fromResultSet(ResultSet rs) throws SQLException {
             int key = rs.getInt(getPrimaryKeyColumn().toString());
-            T dao = dataObjectCache.get(key, () -> {
-                T t = createNew();
+            D dao = dataObjectCache.get(key, () -> {
+                D t = createNew();
                 ((DataAccessObject) t).primaryKey = key;
                 return t;
             });
@@ -575,21 +595,33 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @return A newly constructed {@link DataAccessObject} object.
          */
-        public abstract T createNew();
+        public abstract D createNew();
 
-        public abstract SaveDaoTask<T, ? extends FxRecordModel<T>, E> createSaveTask(T dao);
+        /**
+         * Creates a new {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
+         *
+         * @param dao The {@link DataAccessobject} to be saved the database.
+         * @return A {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
+         */
+        public abstract SaveDaoTask<D, ? extends FxRecordModel<D>, E> createSaveTask(D dao);
 
-        public abstract DeleteDaoTask<T, ? extends FxRecordModel<T>, E> createDeleteTask(T dao);
+        /**
+         * Creates a new {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
+         *
+         * @param dao The {@link DataAccessobject} to be deleted from the database.
+         * @return A {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
+         */
+        public abstract DeleteDaoTask<D, ? extends FxRecordModel<D>, E> createDeleteTask(D dao);
 
         /**
          * Gets a {@link DaoFilter} for returning all items.
          *
          * @return A {@link DaoFilter} for returning all items.
          */
-        public abstract DaoFilter<T> getAllItemsFilter();
+        public abstract DaoFilter<D> getAllItemsFilter();
 
         /**
-         * Completes property initialization for a {@link DataAccessObject}.
+         * Completes property initialization for a {@link DataAccessObject}. {@link PropertyChangeEvent}s will be deferred while this is invoked.
          *
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
@@ -598,7 +630,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
-        protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(T dao, ResultSet rs) throws SQLException;
+        protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(D dao, ResultSet rs) throws SQLException;
 
         /**
          * Gets the {@link DbTable} for the supported {@link DataAccessObject}.
@@ -623,7 +655,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @return The {@link Class} for the target {@link DataAccessObject} type.
          */
-        public abstract Class<? extends T> getDaoClass();
+        public abstract Class<? extends D> getDaoClass();
 
         /**
          * Creates a {@link DmlSelectQueryBuilder} for a SQL SELECT statement.
@@ -641,7 +673,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param index The index at which to apply the value.
          * @throws java.sql.SQLException if not able to put the parameter value.
          */
-        protected abstract void applyColumnValue(T dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException;
+        protected abstract void applyColumnValue(D dao, DbColumn dbColumn, PreparedStatement ps, int index) throws SQLException;
 
         /**
          * Indicates whether {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables.
@@ -659,7 +691,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return An {@link Optional} {@link DataAccessObject} which will be empty if no match was found.
          * @throws SQLException If unable to perform the database operation.
          */
-        public final Optional<T> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
+        public final Optional<D> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
             Objects.requireNonNull(connection, "Connection cannot be null");
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build().append(" WHERE ");
@@ -679,7 +711,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        Optional<T> result = Optional.of(fromResultSet(rs));
+                        Optional<D> result = Optional.of(fromResultSet(rs));
                         LogHelper.logWarnings(connection, LOG);
                         return result;
                     }
@@ -712,7 +744,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        // FIXME: The type parameter T is hiding the type T
         public final <T extends E> void addEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
@@ -725,7 +756,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        // FIXME: The type parameter T is hiding the type T
         public final <T extends E> void addEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
             eventHandlerManager.addEventFilter(type, eventFilter);
         }
@@ -738,7 +768,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        // FIXME: The type parameter T is hiding the type T
         public final <T extends E> void removeEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
@@ -751,7 +780,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        // FIXME: The type parameter T is hiding the type T
         public final <T extends E> void removeEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
             eventHandlerManager.removeEventFilter(type, eventFilter);
         }
@@ -760,33 +788,70 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     /**
      * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on a
-     * {@link DataAccessObject}.
+     * {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link DaoTask} and the target {@link DataAccessObject}.
      *
      * @param <D> The target {@link DataAccessObject} type.
      * @param <M> The associated {@link FxRecordModel} type.
      * @param <E> The result {@link ModelEvent} type.
      */
-    public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends Task<E> {
+    public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends Task<E> implements IFxModelOptional<D, M> {
 
         private final ReadOnlyObjectWrapper<D> dataAccessObject;
         private final ReadOnlyObjectWrapper<M> fxRecordModel;
+        private final SimpleObjectProperty<EventHandler<E>> onFinished;
+        private final ReadOnlyObjectWrapper<E> finalEvent;
+        private final DataRowState originalRowState;
 
         /**
+         * Creates a new {@code DaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
          *
          * @param fxRecordModel The {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
          */
-        protected DaoTask(M fxRecordModel) {
+        protected DaoTask(M fxRecordModel, EventType<E> anyEventType) {
+            Objects.requireNonNull(anyEventType);
             dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", fxRecordModel.dataObject());
             this.fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", fxRecordModel);
+            originalRowState = dataAccessObject.get().getRowState();
+            finalEvent = new ReadOnlyObjectWrapper<>(null);
+            onFinished = new SimpleObjectProperty<>(null);
+            onFinished.addListener((observable, oldValue, newValue) -> {
+                try {
+                    if (null != oldValue) {
+                        removeEventHandler(anyEventType, oldValue);
+                    }
+                } finally {
+                    if (null != newValue) {
+                        addEventHandler(anyEventType, newValue);
+                    }
+                }
+            });
         }
 
         /**
+         * Creates a new {@code DaoTask} for a {@link DataAccessObject}.
          *
          * @param dataAccessObject The target {@link DataAccessObject}.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
          */
-        protected DaoTask(D dataAccessObject) {
+        protected DaoTask(D dataAccessObject, EventType<E> anyEventType) {
+            Objects.requireNonNull(anyEventType);
             this.dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", Objects.requireNonNull(dataAccessObject));
             fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", null);
+            originalRowState = dataAccessObject.getRowState();
+            finalEvent = new ReadOnlyObjectWrapper<>(null);
+            onFinished = new SimpleObjectProperty<>(null);
+            onFinished.addListener((observable, oldValue, newValue) -> {
+                try {
+                    if (null != oldValue) {
+                        removeEventHandler(anyEventType, oldValue);
+                    }
+                } finally {
+                    if (null != newValue) {
+                        addEventHandler(anyEventType, newValue);
+                    }
+                }
+            });
         }
 
         /**
@@ -794,6 +859,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @return The target {@link DataAccessObject}.
          */
+        @Override
         public D getDataAccessObject() {
             return dataAccessObject.get();
         }
@@ -808,6 +874,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return The {@link FxRecordModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target
          * {@link DataAccessObject} was provided to this task.
          */
+        @Override
         public M getFxRecordModel() {
             return fxRecordModel.get();
         }
@@ -817,16 +884,42 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
+         * Gets the original {@link DataAccessObject#rowState rowState} of the {@link DataAccessObject} when the {@code DaoTask} was created.
+         *
+         * @return The original {@link DataAccessObject#rowState rowState} of the {@link DataAccessObject} when the {@code DaoTask} was created.
+         */
+        protected final DataRowState getOriginalRowState() {
+            return originalRowState;
+        }
+
+        /**
+         * Gets the final {@link ModelEvent} after the {@code DaoTask} is finished.
+         *
+         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from
+         * {@link #createFailedEvent(java.lang.Throwable)}; otherwise, this will be set to the value obtained from {@link #createCanceledEvent()}.
+         */
+        public E getFinalEvent() {
+            return finalEvent.get();
+        }
+
+        public ReadOnlyObjectProperty<E> finalEventProperty() {
+            return finalEvent.getReadOnlyProperty();
+        }
+
+        /**
          * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
          *
          * @param connection The database {@link Connection}.
-         * @return The {@link ModelEvent} for a successful task completion.
+         * @return The {@link ModelEvent} for a successful task completion. This should never return a {@code null} value.
          * @throws Exception if an un-handled exception occurred during the task operation.
          */
         protected abstract E call(Connection connection) throws Exception;
 
         @Override
         protected E call() throws Exception {
+            if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
+                throw new IllegalStateException("Row state has changed");
+            }
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
@@ -837,7 +930,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     synchronized (dataAccessObject) {
                         E event = call(dbConnector.getConnection());
                         if (null == event && !isCancelled()) {
-                            throw new IllegalAccessException("No result event was produced");
+                            throw new NullPointerException("No result event was produced");
                         }
                         return event;
                     }
@@ -845,167 +938,73 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
         }
 
-    }
-
-    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends DaoTask<D, M, E> {
-
-        private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
-        private final ReadOnlyObjectWrapper<FxRecordModel.ModelFactory<D, M, E>> modelFactory;
-        private final ReadOnlyObjectWrapper<E> finalEvent;
-        private boolean validationSuccessful;
-        private DataRowState originalRowState;
-        private final ReadOnlyBooleanWrapper validationFailed;
-        private final SimpleObjectProperty<EventHandler<E>> onFinished;
-
-        // FIXME: ModelFactory needs to use same event type
-        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean alreadyValidated) {
-            super(fxRecordModel);
-            daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
-            this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
-            validationSuccessful = alreadyValidated;
-            validationFailed = new ReadOnlyBooleanWrapper(!alreadyValidated);
-            originalRowState = getDataAccessObject().getRowState();
-            finalEvent = new ReadOnlyObjectWrapper<>(null);
-            onFinished = new SimpleObjectProperty<>(null);
-            onFinished.addListener((observable, oldValue, newValue) -> {
-                try {
-                    if (null != oldValue) {
-                        removeEventHandler(anyEventType, oldValue);
-                    }
-                } finally {
-                    if (null != newValue) {
-                        addEventHandler(anyEventType, newValue);
-                    }
-                }
-            });
-        }
-
-        // FIXME: DaoFactory needs to use same event type
-        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean alreadyValidated) {
-            super(dataAccessObject);
-            originalRowState = getDataAccessObject().getRowState();
-            this.daoFactory = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(daoFactory));
-            this.modelFactory = new ReadOnlyObjectWrapper<>(null);
-            validationSuccessful = alreadyValidated;
-            validationFailed = new ReadOnlyBooleanWrapper(!alreadyValidated);
-            finalEvent = new ReadOnlyObjectWrapper<>(null);
-            onFinished = new SimpleObjectProperty<>(null);
-            onFinished.addListener((observable, oldValue, newValue) -> {
-                try {
-                    if (null != oldValue) {
-                        removeEventHandler(anyEventType, oldValue);
-                    }
-                } finally {
-                    if (null != newValue) {
-                        addEventHandler(anyEventType, newValue);
-                    }
-                }
-            });
-        }
-
-        public boolean isValidationFailed() {
-            return validationFailed.get();
-        }
-
-        public ReadOnlyBooleanProperty validationFailedProperty() {
-            return validationFailed.getReadOnlyProperty();
-        }
-
-        protected final DataRowState getOriginalRowState() {
-            return originalRowState;
-        }
-
-        public DaoFactory<D, E> getDaoFactory() {
-            return daoFactory.get();
-        }
-
-        public ReadOnlyObjectProperty<DaoFactory<D, E>> daoFactoryProperty() {
-            return daoFactory.getReadOnlyProperty();
-        }
-
-        public FxRecordModel.ModelFactory<D, M, E> getModelFactory() {
-            return modelFactory.get();
-        }
-
-        public ReadOnlyObjectProperty<FxRecordModel.ModelFactory<D, M, E>> modelFactoryProperty() {
-            return modelFactory.getReadOnlyProperty();
-        }
-
-        public E getFinalEvent() {
-            return finalEvent.get();
-        }
-
-        public ReadOnlyObjectProperty<E> finalEventProperty() {
-            return finalEvent.getReadOnlyProperty();
-        }
-
-        @Override
-        protected final E call() throws Exception {
-            if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
-                throw new IllegalStateException("Row state has changed");
-            }
-            return super.call();
-        }
-
-        @Override
-        protected final E call(Connection connection) throws Exception {
-            if (!validationSuccessful) {
-                validate(connection);
-                validationSuccessful = true;
-            }
-            return onValidated(connection);
-        }
+        /**
+         * This gets called to create the {@link #finalEvent} when the task has failed.
+         *
+         * @return A {@link ModelEvent} representing a failure or {@code null} if no event will be produced for that failure.
+         */
+        protected abstract E createFailedEvent();
 
         /**
-         * Validates the current {@link DataAccessObject}.
+         * This gets called to create the {@link #finalEvent} when the task is canceled.
          *
-         * @param connection
-         * @throws Exception if unable to perform validation.
+         * @return A {@link ModelEvent} representing a cancellation or {@code null} if no event will be produced for the cancellation.
          */
-        protected abstract void validate(Connection connection) throws Exception;
-
-        protected abstract E onValidated(Connection connection) throws Exception;
-
-        protected abstract E createUnhandledExceptionEvent(Throwable fault);
-
-        protected abstract E createCancelledEvent();
-
-        protected abstract E createValidationFailureEvent(ValidationFailureException ex);
+        protected abstract E createCanceledEvent();
 
         @Override
         protected void cancelled() {
             super.cancelled();
-            E event = createCancelledEvent();
-            finalEvent.set(event);
-            onFinished(event);
+            E event = createCanceledEvent();
+            if (null != event) {
+                try {
+                    finalEvent.set(event);
+                } finally {
+                    fireEvent(event);
+                }
+            }
         }
 
         @Override
         protected void failed() {
             super.failed();
-            Throwable ex = getException();
-            E event;
-            if (validationFailed.get() && ex instanceof ValidationFailureException) {
-                event = createValidationFailureEvent((ValidationFailureException) ex);
-            } else {
-                event = createUnhandledExceptionEvent(ex);
+            E event = createFailedEvent();
+            if (null != event) {
+                try {
+                    finalEvent.set(event);
+                } finally {
+                    fireEvent(event);
+                }
             }
-            finalEvent.set(event);
-            onFinished(event);
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
             E event = getValue();
-            finalEvent.set(event);
-            onFinished(event);
+            if (null != event) {
+                try {
+                    finalEvent.set(event);
+                } finally {
+                    fireEvent(event);
+                }
+            }
         }
 
+        /**
+         * Gets the {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
+         *
+         * @return The {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
+         */
         public final EventHandler<E> getOnFinished() {
             return onFinished.get();
         }
 
+        /**
+         * Sets the {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
+         *
+         * @param value The {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
+         */
         public final void setOnFinished(EventHandler<E> value) {
             onFinished.set(value);
         }
@@ -1014,27 +1013,204 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return onFinished;
         }
 
-        protected void onFinished(E event) {
-            fireEvent(event);
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            return super.buildEventDispatchChain(dataAccessObject.get().buildEventDispatchChain(tail));
         }
+
     }
 
+    /**
+     * A {@link DaoTask} that allows for validation before the actual operation is performed. This provides an opened database {@link Connection} and
+     * defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is
+     * fired on the {@link ValidatingDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for
+     * successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations.
+     *
+     * @param <D> The type of the target {@link DataAccessObject}.
+     * @param <M> The type of associated {@link FxRecordModel}, if applicable.
+     * @param <E> The type of result {@link ModelEvent} produced by this task.
+     */
+    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends DaoTask<D, M, E> {
+
+        private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
+        private final ReadOnlyObjectWrapper<FxRecordModel.ModelFactory<D, M, E>> modelFactory;
+        private boolean validationSuccessful;
+        private final ReadOnlyBooleanWrapper validationFailed;
+
+        /**
+         * Creates a new {@code ValidationDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
+         *
+         * @param fxRecordModel The {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
+         * @param modelFactory The {@link FxRecordModel.ModelFactory} associated with the source {@link FxRecordModel} type.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
+         * {@link #validate(Connection)} to perform validation.
+         */
+        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(fxRecordModel, anyEventType);
+            daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
+            this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
+            validationSuccessful = skipValidation;
+            validationFailed = new ReadOnlyBooleanWrapper(!skipValidation);
+        }
+
+        /**
+         * Creates a new {@code ValidationDaoTask} for a {@link DataAccessObject}.
+         *
+         * @param dataAccessObject The target {@link DataAccessObject}.
+         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
+         * {@link #validate(Connection)} to perform validation.
+         */
+        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(dataAccessObject, anyEventType);
+            this.daoFactory = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(daoFactory));
+            this.modelFactory = new ReadOnlyObjectWrapper<>(null);
+            validationSuccessful = skipValidation;
+            validationFailed = new ReadOnlyBooleanWrapper(false);
+        }
+
+        /**
+         * Gets a value indicating whether validation has failed.
+         *
+         * @return {@code true} if validation has failed; otherwise, {@code false}.
+         */
+        public boolean isValidationFailed() {
+            return validationFailed.get();
+        }
+
+        public ReadOnlyBooleanProperty validationFailedProperty() {
+            return validationFailed.getReadOnlyProperty();
+        }
+
+        /**
+         * Gets the {@link DaoFactory} associated with the target {@link DataAccessObject} type.
+         *
+         * @return The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
+         */
+        public DaoFactory<D, E> getDaoFactory() {
+            return daoFactory.get();
+        }
+
+        public ReadOnlyObjectProperty<DaoFactory<D, E>> daoFactoryProperty() {
+            return daoFactory.getReadOnlyProperty();
+        }
+
+        /**
+         * Gets the {@link FxRecordModel.ModelFactory} associated with the source {@link FxRecordModel} type.
+         *
+         * @return The {@link FxRecordModel.ModelFactory} associated with the source {@link FxRecordModel} type or {@code null} if a
+         * {@link FxRecordModel} was not specified in the constructor.
+         */
+        public FxRecordModel.ModelFactory<D, M, E> getModelFactory() {
+            return modelFactory.get();
+        }
+
+        public ReadOnlyObjectProperty<FxRecordModel.ModelFactory<D, M, E>> modelFactoryProperty() {
+            return modelFactory.getReadOnlyProperty();
+        }
+
+        @Override
+        protected final E call(Connection connection) throws Exception {
+            if (!validationSuccessful) {
+                try {
+                    validate(connection);
+                } catch (ValidationFailureException ex) {
+                    E event = createValidationFailureEvent(ex);
+                    if (null == event && !isCancelled()) {
+                        throw new NullPointerException("No result validation failure event was produced");
+                    }
+                    return event;
+                }
+                validationSuccessful = true;
+            }
+
+            return (isCancelled()) ? null : onValidated(connection);
+        }
+
+        /**
+         * This gets called to validate the current {@link DataAccessObject}. This should throw a {@link ValidationFailureException} for validation
+         * errors, to distinguish them from other {@link Exception}s.
+         *
+         * @param connection The opened database {@link Connection}.
+         * @throws Exception if unable to perform validation.
+         */
+        protected abstract void validate(Connection connection) throws Exception;
+
+        /**
+         * This gets called after validation is successful.
+         *
+         * @param connection The opened database {@link Connection}.
+         * @return A {@link ModelEvent} which will become the {@link DaoTask#finalEvent}, indicating successful completion. This should never return a
+         * {@code null} value.
+         * @throws Exception if unable to complete the operation.
+         */
+        protected abstract E onValidated(Connection connection) throws Exception;
+
+        /**
+         * This gets called to create the {@link ModelEvent} which will become the {@link DaoTask#finalEvent}, representing a validation failure.
+         *
+         * @param ex The {@link ValidationFailureException} for the validation error.
+         * @return A{@link ModelEvent} which will become the {@link DaoTask#finalEvent}, representing a validation failure. This should never return a
+         * {@code null} value.
+         */
+        protected abstract E createValidationFailureEvent(ValidationFailureException ex);
+
+    }
+
+    /**
+     * A {@link ValidationDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database
+     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
+     * {@link #finalEvent} is fired on the {@link SaveDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task
+     * will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations. If
+     * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#UNMODIFIED}.
+     *
+     * @param <D> The type of the target {@link DataAccessObject} to be saved.
+     * @param <M> The type of associated {@link FxRecordModel}, if applicable.
+     * @param <E> The type of result {@link ModelEvent} produced by this task.
+     */
     public static abstract class SaveDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
 
-        protected SaveDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, anyEventType, alreadyValidated);
+        /**
+         * Creates a new {@code SaveDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
+         *
+         * @param fxRecordModel The {@link FxRecordModel} that wraps the {@link DataAccessObject} to be saved.
+         * @param modelFactory The {@link FxRecordModel.ModelFactory} associated with the source {@link FxRecordModel} type.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
+         * {@link #validate(Connection)} to perform validation.
+         * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
+         */
+        protected SaveDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(fxRecordModel, modelFactory, anyEventType, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
-                throw new IllegalStateException("Record was already deleted");
+                throw new IllegalArgumentException("Record was already deleted");
             }
         }
 
-        protected SaveDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, anyEventType, alreadyValidated);
+        /**
+         * Creates a new {@code SaveDaoTask} for a {@link DataAccessObject}.
+         *
+         * @param dataAccessObject The {@link DataAccessObject} to be saved.
+         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
+         * {@link #validate(Connection)} to perform validation.
+         * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
+         */
+        protected SaveDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(dataAccessObject, daoFactory, anyEventType, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
-                throw new IllegalStateException("Record was already deleted");
+                throw new IllegalArgumentException("Record was already deleted");
             }
         }
 
+        /**
+         * This gets called to create the {@link ModelEvent} object that represents a successful insert or update.
+         *
+         * @return A {@link ModelEvent} object that represents a successful deletion. This should never return a {@code null} value.
+         */
         protected abstract E createSuccessEvent();
 
         @Override
@@ -1168,27 +1344,60 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     }
 
+    /**
+     * A {@link ValidationDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database
+     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
+     * {@link #finalEvent} is fired on the {@link DeleteDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task
+     * will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations. If
+     * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
+     *
+     * @param <D> The type of the target {@link DataAccessObject} to be saved.
+     * @param <M> The type of associated {@link FxRecordModel}, if applicable.
+     * @param <E> The type of result {@link ModelEvent} produced by this task.
+     */
     public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
 
+        /**
+         * Creates a new {@code DeleteDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
+         *
+         * @param fxRecordModel The {@link FxRecordModel} that wraps the {@link DataAccessObject} to be deleted.
+         * @param modelFactory The {@link FxRecordModel.ModelFactory} associated with the source {@link FxRecordModel} type.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
+         * {@link #validate(Connection)} to perform validation.
+         * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or
+         * {@link DataRowState#NEW}.
+         */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean alreadyValidated) {
-            super(fxRecordModel, modelFactory, anyEventType, alreadyValidated);
+        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.ModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(fxRecordModel, modelFactory, anyEventType, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:
-                    throw new IllegalStateException("Record was already deleted");
+                    throw new IllegalArgumentException("Record was already deleted");
                 case NEW:
-                    throw new IllegalStateException("Record was never saved");
+                    throw new IllegalArgumentException("Record was never saved");
             }
         }
 
+        /**
+         * Creates a new {@code DeleteDaoTask} for a {@link DataAccessObject}.
+         *
+         * @param dataAccessObject The {@link DataAccessObject} to be deleted.
+         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
+         * @param anyEventType The base {@link EventType} for all events that may be produced.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
+         * {@link #validate(Connection)} to perform validation.
+         * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or
+         * {@link DataRowState#NEW}.
+         */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean alreadyValidated) {
-            super(dataAccessObject, daoFactory, anyEventType, alreadyValidated);
+        protected DeleteDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(dataAccessObject, daoFactory, anyEventType, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:
-                    throw new IllegalStateException("Record was already deleted");
+                    throw new IllegalArgumentException("Record was already deleted");
                 case NEW:
-                    throw new IllegalStateException("Record was never saved");
+                    throw new IllegalArgumentException("Record was never saved");
             }
         }
 
@@ -1215,6 +1424,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return createSuccessEvent();
         }
 
+        /**
+         * This gets called to create the {@link ModelEvent} object that represents a successful deletion.
+         *
+         * @return A {@link ModelEvent} object that represents a successful deletion. This should never return a {@code null} value.
+         */
         protected abstract E createSuccessEvent();
 
         @Override

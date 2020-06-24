@@ -167,14 +167,12 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected EventType<CustomerSuccessEvent> getInsertedEventType() {
-        // FIXME: Use INSERT_SUCCESS
-        return CustomerSuccessEvent.SAVE_SUCCESS;
+        return CustomerSuccessEvent.INSERT_SUCCESS;
     }
 
     @Override
     protected EventType<CustomerSuccessEvent> getUpdatedEventType() {
-        // FIXME: Use UPDATE_SUCCESS
-        return CustomerSuccessEvent.SAVE_SUCCESS;
+        return CustomerSuccessEvent.UPDATE_SUCCESS;
     }
 
     @Override

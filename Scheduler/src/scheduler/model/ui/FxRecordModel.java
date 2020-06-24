@@ -29,6 +29,7 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.DbOperationType;
 import scheduler.events.ModelEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -257,7 +258,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         eventHandlerManager.removeEventFilter(type, eventFilter);
     }
 
-    // FIXME: Switch to ModelEvent
     public static abstract class ModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> implements EventTarget {
 
         private final EventHandlerManager eventHandlerManager;
@@ -313,10 +313,16 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         public E createDbOperationEvent(M model, Object source, EventTarget target, DbOperationType operation) {
             throw new UnsupportedOperationException("Not supported yet."); // FIXME: Remove or replace scheduler.fx.FxRecordModel.ModelFactory#createDbOperationEvent
         }
-        
-        public EventType<E> toEventType(DbOperationType operation) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Remove or replace scheduler.fx.FxRecordModel.ModelFactory#toEventType
-        }
+
+        public abstract <T extends OperationRequestEvent<D, M>> T createEditRequestEvent(M model, Object source);
+
+        public abstract <T extends OperationRequestEvent<D, M>> T createDeleteRequestEvent(M model, Object source);
+
+        public abstract <T extends OperationRequestEvent<D, M>> EventType<T> getBaseRequestEventType();
+
+        public abstract <T extends OperationRequestEvent<D, M>> EventType<T> getEditRequestEventType();
+
+        public abstract <T extends OperationRequestEvent<D, M>> EventType<T> getDeleteRequestEventType();
 
         public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(M model);
 

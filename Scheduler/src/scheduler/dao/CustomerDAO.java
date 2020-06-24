@@ -397,7 +397,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         protected CustomerEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createSuccessEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CustomerEvent.createInsertSuccessEvent(this, this);
+            }
+            return CustomerEvent.createUpdateSuccessEvent(this, this);
         }
 
         @Override
@@ -477,18 +480,27 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected CustomerEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createUnhandledExceptionEvent
+        protected CustomerEvent createFailedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CustomerEvent.createInsertFaultedEvent(this, this, getException());
+            }
+            return CustomerEvent.createUpdateFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected CustomerEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createCancelledEvent
+        protected CustomerEvent createCanceledEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CustomerEvent.createInsertCanceledEvent(this, this);
+            }
+            return CustomerEvent.createUpdateCanceledEvent(this, this);
         }
 
         @Override
         protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#createValidationFailureEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CustomerEvent.createInsertInvalidEvent(this, this, ex);
+            }
+            return CustomerEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
@@ -505,7 +517,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         protected CustomerEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createSuccessEvent
+            return CustomerEvent.createDeleteSuccessEvent(this, this);
         }
 
         @Override
@@ -536,18 +548,18 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected CustomerEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createUnhandledExceptionEvent
+        protected CustomerEvent createFailedEvent() {
+            return CustomerEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected CustomerEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createCancelledEvent
+        protected CustomerEvent createCanceledEvent() {
+            return CustomerEvent.createDeleteCanceledEvent(this, this);
         }
 
         @Override
         protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.DeleteTask#createValidationFailureEvent
+            return CustomerEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

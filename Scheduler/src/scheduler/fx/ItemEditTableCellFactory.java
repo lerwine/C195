@@ -14,19 +14,20 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.events.DbOperationType;
 import scheduler.events.ModelEvent;
+import scheduler.events.OperationRequestEvent;
+import scheduler.model.ui.FxRecordModel;
 import scheduler.util.LogHelper;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @param <T> The target item type.
+ * @param <D> The underlying {@link DataAccessObject} type.
+ * @param <M> The target item type.
  * @param <E> The event type.
  */
-public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends DataAccessObject>, E extends ModelEvent<? extends DataAccessObject, T>>
-        implements Callback<TableColumn<T, T>, TableCell<T, T>>, EventTarget {
+public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends OperationRequestEvent<D, M>>
+        implements Callback<TableColumn<M, M>, TableCell<M, M>>, EventTarget {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ItemEditTableCellFactory.class.getName());
@@ -38,12 +39,12 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>();
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
-            FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> factory = getFactory();
+            FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getFactory();
             if (null != oldValue) {
-                eventHandlerManager.removeEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), oldValue);
+                eventHandlerManager.removeEventHandler(factory.getBaseRequestEventType(), oldValue);
             }
             if (null != newValue) {
-                eventHandlerManager.addEventHandler(factory.toEventType(DbOperationType.EDIT_REQUEST), newValue);
+                eventHandlerManager.addEventHandler(factory.getBaseRequestEventType(), newValue);
             }
         });
     }
@@ -71,13 +72,13 @@ public abstract class ItemEditTableCellFactory<T extends FxRecordModel<? extends
     }
 
     @Override
-    public ItemEditTableCell<T, E> call(TableColumn<T, T> param) {
-        ItemEditTableCell<T, E> itemEditTableCell = new ItemEditTableCell<>(getFactory());
+    public ItemEditTableCell<D, M, E> call(TableColumn<M, M> param) {
+        ItemEditTableCell<D, M, E> itemEditTableCell = new ItemEditTableCell<>(getFactory());
         itemEditTableCell.setOnItemActionRequest(new WeakEventHandler<>(this::onItemActionRequest));
         return itemEditTableCell;
     }
 
-    protected abstract FxRecordModel.ModelFactory<? extends DataAccessObject, T, E> getFactory();
+    protected abstract FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> getFactory();
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

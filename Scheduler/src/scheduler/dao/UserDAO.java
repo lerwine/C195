@@ -353,7 +353,10 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createSuccessEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return UserEvent.createInsertSuccessEvent(this, this);
+            }
+            return UserEvent.createUpdateSuccessEvent(this, this);
         }
 
         @Override
@@ -401,18 +404,27 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createUnhandledExceptionEvent
+        protected UserEvent createFailedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return UserEvent.createInsertFaultedEvent(this, this, getException());
+            }
+            return UserEvent.createUpdateFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected UserEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createCancelledEvent
+        protected UserEvent createCanceledEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return UserEvent.createInsertCanceledEvent(this, this);
+            }
+            return UserEvent.createUpdateCanceledEvent(this, this);
         }
 
         @Override
         protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#createValidationFailureEvent
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return UserEvent.createInsertInvalidEvent(this, this, ex);
+            }
+            return UserEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
@@ -429,7 +441,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent createSuccessEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createSuccessEvent
+            return UserEvent.createDeleteSuccessEvent(this, this);
         }
 
         @Override
@@ -465,18 +477,18 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createUnhandledExceptionEvent(Throwable fault) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createUnhandledExceptionEvent
+        protected UserEvent createFailedEvent() {
+            return UserEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
-        protected UserEvent createCancelledEvent() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createCancelledEvent
+        protected UserEvent createCanceledEvent() {
+            return UserEvent.createDeleteCanceledEvent(this, this);
         }
 
         @Override
         protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#createValidationFailureEvent
+            return UserEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

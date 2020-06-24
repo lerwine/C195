@@ -43,7 +43,7 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
-import scheduler.events.AddressEvent;
+import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CitySuccessEvent;
@@ -164,8 +164,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         timeZoneOptionList = FXCollections.observableArrayList();
         timeZoneOptionList.addAll(allTimeZones);
         addressItemList = FXCollections.observableArrayList();
-        // FIXME: Use INSERT_SUCCESS
-        addEventHandler(CitySuccessEvent.SAVE_SUCCESS, this::onCityInserted);
+        addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
     }
 
     private void onCityUpdating(CitySuccessEvent event) {
@@ -257,7 +256,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    void onItemActionRequest(AddressEvent event) {
+    void onItemActionRequest(AddressOpRequestEvent event) {
 //        AddressModel item;
 //        if (event.isConsumed() || null == (item = event.getModel())) {
 //            return;
@@ -427,10 +426,8 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     private void initializeEditMode() {
         windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
-        // FIXME: Use INSERT_SUCCESS
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAddressAdded));
-        // FIXME: Use UPDATE_SUCCESS
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onAddressUpdated));
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAddressAdded));
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAddressUpdated));
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAddressDeleted));
     }
 

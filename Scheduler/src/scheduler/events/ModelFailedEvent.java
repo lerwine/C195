@@ -13,5 +13,4 @@ interface ModelFailedEvent<D extends DataAccessObject, M extends FxRecordModel<D
 
     Throwable getFault();
 
-    boolean isCanceled();
 }

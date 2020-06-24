@@ -46,6 +46,7 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
+import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.City;
 import scheduler.model.Country;
@@ -185,8 +186,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
-        // FIXME: Use INSERT_SUCCESS
-        addEventHandler(AddressSuccessEvent.SAVE_SUCCESS, this::onAddressInserted);
+        addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressInserted);
     }
 
     @Override
@@ -210,7 +210,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(item, true);
+            onDelete(item);
         }
     }
 
@@ -218,7 +218,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onCustomerEditMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onItemActionRequest(item, false);
+            onEdit(item);
         }
     }
 
@@ -231,13 +231,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(item, true);
+                        onDelete(item);
                     }
                     break;
                 case ENTER:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onItemActionRequest(item, false);
+                        onEdit(item);
                     }
                     break;
             }
@@ -249,21 +249,32 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         editingCity.set(true);
     }
 
+    private void onEdit(CustomerModel item) {
+        try {
+            EditCustomer.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
+
+    private void onDelete(CustomerModel item) {
+        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+        if (response.isPresent() && response.get() == ButtonType.YES) {
+            waitBorderPane.startNow(new CustomerDAO.DeleteTask(item, CustomerModel.FACTORY, false));
+        }
+    }
+
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(CustomerModel item, boolean isDelete) {
-        if (isDelete) {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new CustomerDAO.DeleteTask(item, CustomerModel.FACTORY, false));
-            }
-        } else {
-            try {
-                EditCustomer.edit(item, getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
+    private void onItemActionRequest(CustomerOpRequestEvent event) {
+        CustomerModel item = event.getFxRecordModel();
+        if (null != item) {
+            if (event.isEdit()) {
+                onEdit(item);
+            } else {
+                onDelete(item);
             }
         }
     }
@@ -392,10 +403,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
-        // FIXME: Use INSERT_SUCCESS
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCustomerAdded));
-        // FIXME: Use UPDATE_SUCCESS
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCustomerUpdated));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onCustomerAdded));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onCustomerUpdated));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
     }
 

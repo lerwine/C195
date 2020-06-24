@@ -7,6 +7,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -16,6 +17,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -188,6 +190,31 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         @Override
         public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> createDeleteTask(CountryModel model) {
             throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#createDeleteTask
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> T createEditRequestEvent(CountryModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#createEditRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> T createDeleteRequestEvent(CountryModel model, Object source) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#createDeleteRequestEvent
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> EventType<T> getBaseRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#getBaseRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> EventType<T> getEditRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#getEditRequestEventType
+        }
+
+        @Override
+        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> EventType<T> getDeleteRequestEventType() {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#getDeleteRequestEventType
         }
 
     }

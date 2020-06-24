@@ -1,9 +1,10 @@
 package scheduler.fx;
 
+import scheduler.dao.CityDAO;
+import scheduler.events.CityOpRequestEvent;
 import scheduler.model.ui.CityModel;
-import scheduler.events.CityEvent;
 
-public class CityEditTableCellFactory extends ItemEditTableCellFactory<CityModel, CityEvent> {
+public class CityEditTableCellFactory extends ItemEditTableCellFactory<CityDAO, CityModel, CityOpRequestEvent> {
 
     @Override
     protected CityModel.Factory getFactory() {

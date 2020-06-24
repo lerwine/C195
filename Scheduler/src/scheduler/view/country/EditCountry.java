@@ -37,6 +37,7 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
 import scheduler.events.CityEvent;
+import scheduler.events.CityOpRequestEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountrySuccessEvent;
@@ -122,8 +123,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
-        // FIXME: Use INSERT_SUCCESS
-        addEventHandler(CountrySuccessEvent.SAVE_SUCCESS, this::onCountryInserted);
+        addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
     }
 
     private void onCountryUpdating(CountrySuccessEvent event) {
@@ -194,7 +194,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(CityEvent event) {
+    private void onItemActionRequest(CityOpRequestEvent event) {
 //        CityModel item;
 //        if (event.isConsumed() || (null == (item = event.getModel()))) {
 //            return;
@@ -277,10 +277,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
-        // FIXME: Use INSERT_SUCCESS
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCityAdded));
-        // FIXME: Use UPDATE_SUCCESS
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.SAVE_SUCCESS, new WeakEventHandler<>(this::onCityUpdated));
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onCityAdded));
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onCityUpdated));
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCityDeleted));
     }
 

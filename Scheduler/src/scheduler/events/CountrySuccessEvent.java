@@ -10,6 +10,10 @@ public final class CountrySuccessEvent extends CountryEvent {
     private static final long serialVersionUID = -2962871552359511026L;
 
     private static final String BASE_EVENT_NAME = "SCHEDULER_COUNTRY_SUCCESS_EVENT";
+    private static final String SAVE_SUCCESS_EVENT_NAME = "SCHEDULER_COUNTRY_SAVE_SUCCESS";
+    private static final String INSERT_EVENT_NAME = "SCHEDULER_COUNTRY_INSERT_SUCCESS";
+    private static final String UPDATE_EVENT_NAME = "SCHEDULER_COUNTRY_UPDATE_SUCCESS";
+    private static final String DELETE_EVENT_NAME = "SCHEDULER_COUNTRY_DELETE_SUCCESS";
 
     /**
      * Base {@link EventType} for all {@code CountrySuccessEvent}s.
@@ -19,34 +23,50 @@ public final class CountrySuccessEvent extends CountryEvent {
     /**
      * {@link EventType} for save {@code CountrySuccessEvent}s.
      */
-    public static final EventType<CountrySuccessEvent> SAVE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, "SCHEDULER_COUNTRY_SAVE_SUCCESS");
+    public static final EventType<CountrySuccessEvent> SAVE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, SAVE_SUCCESS_EVENT_NAME);
+
+    /**
+     * {@link EventType} for database insert {@code CountrySuccessEvent}s.
+     */
+    public static final EventType<CountrySuccessEvent> INSERT_SUCCESS = new EventType<>(SAVE_SUCCESS, INSERT_EVENT_NAME);
+
+    /**
+     * {@link EventType} for database update {@code CountrySuccessEvent}s.
+     */
+    public static final EventType<CountrySuccessEvent> UPDATE_SUCCESS = new EventType<>(SAVE_SUCCESS, UPDATE_EVENT_NAME);
 
     /**
      * {@link EventType} for delete {@code CountrySuccessEvent}s.
      */
-    public static final EventType<CountrySuccessEvent> DELETE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, "SCHEDULER_COUNTRY_DELETE_SUCCESS");
+    public static final EventType<CountrySuccessEvent> DELETE_SUCCESS = new EventType<>(SUCCESS_EVENT_TYPE, DELETE_EVENT_NAME);
 
-    private static EventType<CountrySuccessEvent> assertValidEventType(EventType<CountrySuccessEvent> eventType) {
-        if (eventType.getName().equals(BASE_EVENT_NAME)) {
-            throw new IllegalArgumentException();
+    private static DbOperationType toDbOperationType(EventType<CountrySuccessEvent> eventType) {
+        switch (eventType.getName()) {
+            case INSERT_EVENT_NAME:
+                return DbOperationType.DB_INSERT;
+            case UPDATE_EVENT_NAME:
+                return DbOperationType.DB_UPDATE;
+            case DELETE_EVENT_NAME:
+                return DbOperationType.DB_DELETE;
+            default:
+                throw new IllegalArgumentException();
         }
-        return eventType;
     }
 
     public CountrySuccessEvent(CountryEvent event, Object source, EventTarget target, EventType<CountrySuccessEvent> eventType) {
-        super(event, source, target, assertValidEventType(eventType));
+        super(event, source, target, eventType, toDbOperationType(eventType));
     }
 
     public CountrySuccessEvent(CountryEvent event, EventType<CountrySuccessEvent> eventType) {
-        super(event, assertValidEventType(eventType));
+        super(event, eventType, toDbOperationType(eventType));
     }
 
-    public CountrySuccessEvent(CountryModel fxRecordModel, Object source, EventTarget target, EventType<CountrySuccessEvent> eventType) {
-        super(fxRecordModel, source, target, assertValidEventType(eventType));
+    public CountrySuccessEvent(CountryModel target, Object source, EventType<CountrySuccessEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType));
     }
 
-    public CountrySuccessEvent(CountryDAO dao, Object source, EventTarget target, EventType<CountrySuccessEvent> eventType) {
-        super(dao, source, target, assertValidEventType(eventType));
+    public CountrySuccessEvent(CountryDAO target, Object source, EventType<CountrySuccessEvent> eventType) {
+        super(target, source, eventType, toDbOperationType(eventType));
     }
 
 }

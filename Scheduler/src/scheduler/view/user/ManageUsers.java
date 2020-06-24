@@ -164,14 +164,12 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @Override
     protected EventType<UserSuccessEvent> getInsertedEventType() {
-        // FIXME: Use INSERT_SUCCESS
-        return UserSuccessEvent.SAVE_SUCCESS;
+        return UserSuccessEvent.INSERT_SUCCESS;
     }
 
     @Override
     protected EventType<UserSuccessEvent> getUpdatedEventType() {
-        // FIXME: Use UPDATE_SUCCESS
-        return UserSuccessEvent.SAVE_SUCCESS;
+        return UserSuccessEvent.UPDATE_SUCCESS;
     }
 
     @Override
