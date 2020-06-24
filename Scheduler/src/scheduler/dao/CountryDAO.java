@@ -274,14 +274,6 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return null;
         }
 
-//        @Override
-//        protected CountryEvent createDbOperationEvent(CountryEvent sourceEvent, DbOperationType operation) {
-//            CountryModel model = sourceEvent.getModel();
-//            if (null != model) {
-//                return new CountryEvent(model, sourceEvent.getSource(), this, operation);
-//            }
-//            return new CountryEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.fine(() -> String.format("Adding %s to dispatch chain", CountryModel.FACTORY.getClass().getName()));
@@ -290,7 +282,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         public SaveDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createSaveTask(CountryDAO dao) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.FactoryImpl#createSaveTask
+            return new SaveTask(dao, false);
         }
 
         @Override
