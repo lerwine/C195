@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
-import scheduler.dao.ValidationFailureException;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
 public final class CityFailedEvent extends CityEvent implements ModelFailedEvent<CityDAO, CityModel> {
@@ -132,7 +132,7 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
     private static DbOperationType toDbOperationType(EventType<CityFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case INSERT_FAULTED_EVENT_NAME:
@@ -143,7 +143,7 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
                 }
                 break;
             case UPDATE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case UPDATE_FAULTED_EVENT_NAME:
@@ -154,7 +154,7 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
                 }
                 break;
             case DELETE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case DELETE_FAULTED_EVENT_NAME:
@@ -174,9 +174,6 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
                 case INSERT_INVALID_EVENT_NAME:
                 case UPDATE_INVALID_EVENT_NAME:
                 case DELETE_INVALID_EVENT_NAME:
-                    if (null != fault && fault instanceof ValidationFailureException && null != (message = fault.getMessage()) && !message.isEmpty()) {
-                        return message;
-                    }
                     return "Validation failed.";
                 case INSERT_CANCELED_EVENT_NAME:
                 case UPDATE_CANCELED_EVENT_NAME:
@@ -194,53 +191,55 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
 
     private final String message;
     private final Throwable fault;
+    private final CountryFailedEvent countryEvent;
 
     public CityFailedEvent(CityEvent event, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
     }
 
     public CityFailedEvent(CityEvent event, Object source, String message, EventType<CityFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
     }
 
     public CityFailedEvent(CityEvent event, String message, Throwable fault, EventType<CityFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
     }
 
     public CityFailedEvent(CityEvent event, String message, EventType<CityFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
     }
 
-    public CityFailedEvent(CityModel target, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType) {
+    public CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        countryEvent = null;
     }
 
-    public CityFailedEvent(CityModel target, Object source, String message, EventType<CityFailedEvent> eventType) {
+    public CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, String message, EventType<CityFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        countryEvent = null;
     }
 
-    public CityFailedEvent(CityDAO target, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, fault));
-        this.message = ensureMessage(message, fault, eventType);
-        this.fault = fault;
-    }
-
-    public CityFailedEvent(CityDAO target, Object source, String message, EventType<CityFailedEvent> eventType) {
+    CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, EventType<CityFailedEvent> eventType, CountryFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
+        this.message = "Invalid country";
         fault = null;
+        countryEvent = event;
     }
 
     @Override
@@ -251,6 +250,10 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
     @Override
     public Throwable getFault() {
         return fault;
+    }
+
+    public CountryFailedEvent getCountryEvent() {
+        return countryEvent;
     }
 
 }

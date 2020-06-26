@@ -24,6 +24,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
+import scheduler.events.AddressFailedEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.model.Address;
 import scheduler.model.Customer;
@@ -398,7 +399,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
+        protected CustomerEvent validate(Connection connection) throws Exception {
+            // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
             CustomerDAO dao = ICustomerDAO.assertValidCustomer(getDataAccessObject());
             StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
                     .append(") FROM ").append(DbTable.CUSTOMER.getDbName()).append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME.getDbName()).append(")=?");
@@ -423,11 +425,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, "Error checking customer naming conflicts", ex);
-                throw new OperationFailureException("Error checking customer naming conflicts", ex);
+                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
+                throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             if (count > 0) {
-                throw new ValidationFailureException("Another customer has the same name");
+                if (getOriginalRowState() == DataRowState.NEW) {
+                    return CustomerEvent.createInsertInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
+                }
+                return CustomerEvent.createUpdateInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
             }
 
             IAddressDAO address = dao.getAddress();
@@ -436,24 +441,33 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                     case NEW:
                     case UNMODIFIED:
                         AddressDAO.SaveTask saveTask;
-                CustomerModel model = getFxRecordModel();
-                AddressItem<? extends IAddressDAO> am;
-                if (null != model && null != (am = model.getAddress()) && am instanceof AddressModel) {
-                    saveTask = new AddressDAO.SaveTask((AddressModel)am, false);
-                } else {
-                    saveTask = new AddressDAO.SaveTask((AddressDAO)address, false);
-                }
-                saveTask.run();
-                saveTask.get();
+                        CustomerModel model = getFxRecordModel();
+                        AddressItem<? extends IAddressDAO> am;
+                        if (null != model && null != (am = model.getAddress()) && am instanceof AddressModel) {
+                            saveTask = new AddressDAO.SaveTask((AddressModel) am, false);
+                        } else {
+                            saveTask = new AddressDAO.SaveTask((AddressDAO) address, false);
+                        }
+                        saveTask.run();
+                        AddressEvent event = saveTask.get();
+                        if (null != event && event instanceof AddressFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return CustomerEvent.createInsertInvalidEvent(this, this, (AddressFailedEvent) event);
+                            }
+                            return CustomerEvent.createUpdateInvalidEvent(this, this, (AddressFailedEvent) event);
+                        }
                         break;
                     default:
                         break;
                 }
             }
+            return null;
         }
+        private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
+        private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
         @Override
-        protected CustomerEvent createFailedEvent() {
+        protected CustomerEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
                 return CustomerEvent.createInsertFaultedEvent(this, this, getException());
             }
@@ -468,17 +482,13 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return CustomerEvent.createUpdateCanceledEvent(this, this);
         }
 
-        @Override
-        protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertInvalidEvent(this, this, ex);
-            }
-            return CustomerEvent.createUpdateInvalidEvent(this, this, ex);
-        }
-
     }
 
     public static class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+
+        private static final String REFERENCED_BY_ONE = "Customer is referenced by one appointment.";
+        private static final String REFERENCED_BY_N = "Customer is referenced by %d other appointments.";
+        private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
         public DeleteTask(CustomerModel fxRecordModel, boolean alreadyValidated) {
             super(fxRecordModel, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
@@ -494,38 +504,40 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
+        protected CustomerEvent validate(Connection connection) throws Exception {
             CustomerDAO dao = getDataAccessObject();
             int count;
             try {
                 count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, "Error checking dependencies", ex);
-                throw new OperationFailureException("Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
+                throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
             switch (count) {
                 case 0:
                     break;
                 case 1:
-                    throw new ValidationFailureException("Customer is referenced by one appointment.");
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return CustomerEvent.createInsertInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    }
+                    return CustomerEvent.createUpdateInvalidEvent(this, this, REFERENCED_BY_ONE);
                 default:
-                    throw new ValidationFailureException(String.format("Customer is referenced by %d other appointments", count));
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return CustomerEvent.createInsertInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    }
+                    return CustomerEvent.createUpdateInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
             }
+            return null;
         }
 
         @Override
-        protected CustomerEvent createFailedEvent() {
+        protected CustomerEvent createFaultedEvent() {
             return CustomerEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
         protected CustomerEvent createCanceledEvent() {
             return CustomerEvent.createDeleteCanceledEvent(this, this);
-        }
-
-        @Override
-        protected CustomerEvent createValidationFailureEvent(ValidationFailureException ex) {
-            return CustomerEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

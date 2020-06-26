@@ -3,9 +3,12 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
 public final class CountryOpRequestEvent extends OperationRequestEvent<CountryDAO, CountryModel> {
+
+    private static final long serialVersionUID = 2755073772787755720L;
 
     /**
      * Base {@link EventType} for all {@code CountryOpRequestEvent}s.
@@ -30,11 +33,11 @@ public final class CountryOpRequestEvent extends OperationRequestEvent<CountryDA
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public CountryOpRequestEvent(CountryModel target, Object source, boolean isDelete) {
+    public CountryOpRequestEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public CountryOpRequestEvent(CountryDAO target, Object source, boolean isDelete) {
+    public CountryOpRequestEvent(CountryModel target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 

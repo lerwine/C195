@@ -2,6 +2,7 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
+import scheduler.model.RecordModelContext;
 import scheduler.dao.UserDAO;
 import scheduler.model.ui.UserModel;
 
@@ -61,11 +62,7 @@ public final class UserSuccessEvent extends UserEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public UserSuccessEvent(UserModel target, Object source, EventType<UserSuccessEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType));
-    }
-
-    public UserSuccessEvent(UserDAO target, Object source, EventType<UserSuccessEvent> eventType) {
+    public UserSuccessEvent(RecordModelContext<UserDAO, UserModel> target, Object source, EventType<UserSuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

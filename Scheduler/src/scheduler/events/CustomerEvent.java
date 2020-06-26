@@ -3,9 +3,8 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.IFxModelOptional;
 import scheduler.dao.OperationFailureException;
-import scheduler.dao.ValidationFailureException;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
 public abstract class CustomerEvent extends ModelEvent<CustomerDAO, CustomerModel> {
@@ -38,184 +37,99 @@ public abstract class CustomerEvent extends ModelEvent<CustomerDAO, CustomerMode
         return event instanceof CustomerFailedEvent && CustomerFailedEvent.isFaultedEvent((CustomerFailedEvent) event);
     }
 
-    public static final CustomerEvent createInsertSuccessEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new CustomerSuccessEvent(target.getDataAccessObject(), source, CustomerSuccessEvent.INSERT_SUCCESS);
-        }
-        return new CustomerSuccessEvent(model, source, CustomerSuccessEvent.INSERT_SUCCESS);
+    public static final CustomerEvent createInsertSuccessEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source) {
+        return new CustomerSuccessEvent(target, source, CustomerSuccessEvent.INSERT_SUCCESS);
     }
 
-    public static final CustomerEvent createUpdateSuccessEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new CustomerSuccessEvent(target.getDataAccessObject(), source, CustomerSuccessEvent.UPDATE_SUCCESS);
-        }
-        return new CustomerSuccessEvent(model, source, CustomerSuccessEvent.UPDATE_SUCCESS);
+    public static final CustomerEvent createUpdateSuccessEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source) {
+        return new CustomerSuccessEvent(target, source, CustomerSuccessEvent.UPDATE_SUCCESS);
     }
 
-    public static final CustomerEvent createDeleteSuccessEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new CustomerSuccessEvent(target.getDataAccessObject(), source, CustomerSuccessEvent.DELETE_SUCCESS);
-        }
-        return new CustomerSuccessEvent(model, source, CustomerSuccessEvent.DELETE_SUCCESS);
+    public static final CustomerEvent createDeleteSuccessEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source) {
+        return new CustomerSuccessEvent(target, source, CustomerSuccessEvent.DELETE_SUCCESS);
     }
 
-    public static final CustomerEvent createInsertInvalidEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, ValidationFailureException ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_INVALID);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), null, null, source, CustomerFailedEvent.INSERT_INVALID);
-        }
-        if (null != ex) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_INVALID);
-        }
-        return new CustomerFailedEvent(model, null, null, source, CustomerFailedEvent.INSERT_INVALID);
+    public static final CustomerEvent createInsertInvalidEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, String message) {
+        return new CustomerFailedEvent(target, message, null, source, CustomerFailedEvent.INSERT_INVALID);
     }
 
-    public static final CustomerEvent createUpdateInvalidEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, ValidationFailureException ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_INVALID);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), null, null, source, CustomerFailedEvent.UPDATE_INVALID);
-        }
-        if (null != ex) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_INVALID);
-        }
-        return new CustomerFailedEvent(model, null, null, source, CustomerFailedEvent.UPDATE_INVALID);
+    public static final CustomerEvent createUpdateInvalidEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, String message) {
+        return new CustomerFailedEvent(target, message, null, source, CustomerFailedEvent.UPDATE_INVALID);
     }
 
-    public static final CustomerEvent createDeleteInvalidEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, ValidationFailureException ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_INVALID);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), null, null, source, CustomerFailedEvent.DELETE_INVALID);
-        }
-        if (null != ex) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_INVALID);
-        }
-        return new CustomerFailedEvent(model, null, null, source, CustomerFailedEvent.DELETE_INVALID);
+    public static final CustomerEvent createDeleteInvalidEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, String message) {
+        return new CustomerFailedEvent(target, message, null, source, CustomerFailedEvent.DELETE_INVALID);
     }
 
-    public static final CustomerEvent createInsertFaultedEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, Throwable ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_FAULTED);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), null, ex, source, CustomerFailedEvent.INSERT_INVALID);
-        }
+    public static final CustomerEvent createInsertFaultedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_FAULTED);
+            return new CustomerFailedEvent(target, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_FAULTED);
         }
-        return new CustomerFailedEvent(model, null, ex, source, CustomerFailedEvent.INSERT_INVALID);
+        return new CustomerFailedEvent(target, null, ex, source, CustomerFailedEvent.INSERT_INVALID);
     }
 
-    public static final CustomerEvent createUpdateFaultedEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, Throwable ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_FAULTED);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), null, ex, source, CustomerFailedEvent.UPDATE_FAULTED);
-        }
+    public static final CustomerEvent createUpdateFaultedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_FAULTED);
+            return new CustomerFailedEvent(target, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_FAULTED);
         }
-        return new CustomerFailedEvent(model, null, ex, source, CustomerFailedEvent.UPDATE_FAULTED);
+        return new CustomerFailedEvent(target, null, ex, source, CustomerFailedEvent.UPDATE_FAULTED);
     }
 
-    public static final CustomerEvent createDeleteFaultedEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, Throwable ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_FAULTED);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), null, ex, source, CustomerFailedEvent.DELETE_FAULTED);
-        }
+    public static final CustomerEvent createDeleteFaultedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_FAULTED);
+            return new CustomerFailedEvent(target, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_FAULTED);
         }
-        return new CustomerFailedEvent(model, null, ex, source, CustomerFailedEvent.DELETE_FAULTED);
+        return new CustomerFailedEvent(target, null, ex, source, CustomerFailedEvent.DELETE_FAULTED);
     }
 
-    public static final CustomerEvent createInsertCanceledEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, InterruptedException ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), null, null, source, CustomerFailedEvent.INSERT_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_CANCELED);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, CustomerFailedEvent.INSERT_CANCELED);
-        }
+    public static final CustomerEvent createInsertCanceledEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new CustomerFailedEvent(model, null, null, source, CustomerFailedEvent.INSERT_CANCELED);
+            return new CustomerFailedEvent(target, null, null, source, CustomerFailedEvent.INSERT_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_CANCELED);
+            return new CustomerFailedEvent(target, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.INSERT_CANCELED);
         }
-        return new CustomerFailedEvent(model, ex.getMessage(), ex, source, CustomerFailedEvent.INSERT_CANCELED);
+        return new CustomerFailedEvent(target, ex.getMessage(), ex, source, CustomerFailedEvent.INSERT_CANCELED);
     }
 
-    public static final CustomerEvent createUpdateCanceledEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, InterruptedException ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), null, null, source, CustomerFailedEvent.UPDATE_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_CANCELED);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, CustomerFailedEvent.UPDATE_CANCELED);
-        }
+    public static final CustomerEvent createUpdateCanceledEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new CustomerFailedEvent(model, null, null, source, CustomerFailedEvent.UPDATE_CANCELED);
+            return new CustomerFailedEvent(target, null, null, source, CustomerFailedEvent.UPDATE_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_CANCELED);
+            return new CustomerFailedEvent(target, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.UPDATE_CANCELED);
         }
-        return new CustomerFailedEvent(model, ex.getMessage(), ex, source, CustomerFailedEvent.UPDATE_CANCELED);
+        return new CustomerFailedEvent(target, ex.getMessage(), ex, source, CustomerFailedEvent.UPDATE_CANCELED);
     }
 
-    public static final CustomerEvent createDeleteCanceledEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source, InterruptedException ex) {
-        CustomerModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), null, null, source, CustomerFailedEvent.DELETE_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_CANCELED);
-            }
-            return new CustomerFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, CustomerFailedEvent.DELETE_CANCELED);
-        }
+    public static final CustomerEvent createDeleteCanceledEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new CustomerFailedEvent(model, null, null, source, CustomerFailedEvent.DELETE_CANCELED);
+            return new CustomerFailedEvent(target, null, null, source, CustomerFailedEvent.DELETE_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new CustomerFailedEvent(model, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_CANCELED);
+            return new CustomerFailedEvent(target, ex.getMessage(), ex.getCause(), source, CustomerFailedEvent.DELETE_CANCELED);
         }
-        return new CustomerFailedEvent(model, ex.getMessage(), ex, source, CustomerFailedEvent.DELETE_CANCELED);
+        return new CustomerFailedEvent(target, ex.getMessage(), ex, source, CustomerFailedEvent.DELETE_CANCELED);
     }
 
-    public static final CustomerEvent createInsertCanceledEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source) {
+    public static final CustomerEvent createInsertCanceledEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source) {
         return createInsertCanceledEvent(target, source, null);
     }
 
-    public static final CustomerEvent createUpdateCanceledEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source) {
-        return createInsertCanceledEvent(target, source, null);
+    public static final CustomerEvent createUpdateCanceledEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source) {
+        return createUpdateCanceledEvent(target, source, null);
     }
 
-    public static final CustomerEvent createDeleteCanceledEvent(IFxModelOptional<CustomerDAO, CustomerModel> target, Object source) {
-        return createInsertCanceledEvent(target, source, null);
+    public static final CustomerEvent createDeleteCanceledEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source) {
+        return createDeleteCanceledEvent(target, source, null);
+    }
+
+    public static CustomerEvent createInsertInvalidEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, AddressFailedEvent event) {
+        return new CustomerFailedEvent(target, source, CustomerFailedEvent.INSERT_INVALID, event);
+    }
+
+    public static CustomerEvent createUpdateInvalidEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, AddressFailedEvent event) {
+        return new CustomerFailedEvent(target, source, CustomerFailedEvent.UPDATE_INVALID, event);
     }
 
     protected CustomerEvent(CustomerEvent event, Object source, EventTarget target, EventType<? extends CustomerEvent> eventType, DbOperationType operation) {
@@ -226,11 +140,7 @@ public abstract class CustomerEvent extends ModelEvent<CustomerDAO, CustomerMode
         super(event, eventType, operation);
     }
 
-    protected CustomerEvent(CustomerModel target, Object source, EventType<? extends CustomerEvent> eventType, DbOperationType operation) {
-        super(target, source, eventType, operation);
-    }
-
-    protected CustomerEvent(CustomerDAO target, Object source, EventType<? extends CustomerEvent> eventType, DbOperationType operation) {
+    protected CustomerEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, EventType<? extends CustomerEvent> eventType, DbOperationType operation) {
         super(target, source, eventType, operation);
     }
 

@@ -360,7 +360,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
+        protected UserEvent validate(Connection connection) throws Exception {
 //            UserEvent event = task.getValidationEvent();
 //            UserDAO dao;
 //            try {
@@ -404,7 +404,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createFailedEvent() {
+        protected UserEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
                 return UserEvent.createInsertFaultedEvent(this, this, getException());
             }
@@ -417,14 +417,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 return UserEvent.createInsertCanceledEvent(this, this);
             }
             return UserEvent.createUpdateCanceledEvent(this, this);
-        }
-
-        @Override
-        protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertInvalidEvent(this, this, ex);
-            }
-            return UserEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
@@ -445,7 +437,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
+        protected UserEvent validate(Connection connection) throws Exception {
 //            UserEvent event = task.getValidationEvent();
 //            UserDAO dao = event.getDataAccessObject();
 //            if (dao == Scheduler.getCurrentUser()) {
@@ -477,18 +469,13 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createFailedEvent() {
+        protected UserEvent createFaultedEvent() {
             return UserEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
         protected UserEvent createCanceledEvent() {
             return UserEvent.createDeleteCanceledEvent(this, this);
-        }
-
-        @Override
-        protected UserEvent createValidationFailureEvent(ValidationFailureException ex) {
-            return UserEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

@@ -460,7 +460,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
+    protected FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 

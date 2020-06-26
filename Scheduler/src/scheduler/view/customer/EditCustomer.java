@@ -633,7 +633,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     @Override
-    public FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
         return CustomerModel.FACTORY;
     }
 

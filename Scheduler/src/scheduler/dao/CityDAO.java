@@ -30,16 +30,25 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.CityEvent;
 import scheduler.events.CountryEvent;
+import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
+import scheduler.model.ui.CountryItem;
+import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
+import scheduler.view.city.EditCity;
+import static scheduler.view.city.EditCityResourceKeys.RESOURCEKEY_CITYNAMEINUSE;
+import scheduler.view.country.EditCountry;
+import scheduler.view.country.EditCountryResourceKeys;
 
 /**
  * Data access object for the {@code city} database table.
@@ -386,6 +395,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
 
+        private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
+
         public SaveTask(CityModel fxRecordModel, boolean alreadyValidated) {
             super(fxRecordModel, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
@@ -403,90 +414,82 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
-//            CityEvent event = task.getValidationEvent();
-//            CityDAO dao;
-//            try {
-//                dao = ICityDAO.assertValidCity(event.getDataAccessObject());
-//            } catch (IllegalArgumentException | IllegalStateException ex) {
-//                event.setFaulted("Invalid City", ex.getMessage(), ex);
-//                return;
-//            }
-//            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
-//                    .append(") FROM ").append(DbTable.CITY.getDbName())
-//                    .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())
-//                    .append(" ON ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_COUNTRY.getDbName())
-//                    .append("=").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_ID.getDbName())
-//                    .append(" WHERE ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_NAME.getDbName())
-//                    .append(" LIKE ? AND ").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
-//            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-//                sb.append(" AND ").append(DbColumn.CITY_ID.getDbName()).append("<>?");
-//            }
+        protected CityEvent validate(Connection connection) throws Exception {
+            // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
+            CityDAO dao = ICityDAO.assertValidCity(getDataAccessObject());
+            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
+                    .append(") FROM ").append(DbTable.CITY.getDbName())
+                    .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())
+                    .append(" ON ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_COUNTRY.getDbName())
+                    .append("=").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_ID.getDbName())
+                    .append(" WHERE ").append(DbTable.CITY.getDbName()).append(".").append(DbColumn.CITY_NAME.getDbName())
+                    .append(" LIKE ? AND ").append(DbTable.COUNTRY.getDbName()).append(".").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
+            if (getOriginalRowState() != DataRowState.NEW) {
+                sb.append(" AND ").append(DbColumn.CITY_ID.getDbName()).append("<>?");
+            }
 
-//            String sql = sb.toString();
-//            int count;
-//            Connection connection = task.getConnection();
-//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-//                ps.setInt(1, dao.getCountry().getPrimaryKey());
-//                ps.setString(2, String.format("%s;*", DB.escapeWC(dao.name)));
-//                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-//                    ps.setInt(3, dao.getPrimaryKey());
-//                }
-//                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-//                try (ResultSet rs = ps.executeQuery()) {
-//                    if (rs.next()) {
-//                        count = rs.getInt(1);
-//                    } else {
-//                        LogHelper.logWarnings(connection, LOG);
-//                        throw new SQLException("Unexpected lack of results from database query");
-//                    }
-//                    LogHelper.logWarnings(connection, LOG);
-//                }
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error checking city naming conflicts", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                return;
-//            }
-//
-//            if (count > 0) {
-//                event.setInvalid("Name already in use", ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
-//                return;
-//            }
-//
-//            ICountryDAO c = dao.country;
-//            if (c instanceof CountryDAO) {
-//                CountryEvent countryEvent;
-//                switch (c.getRowState()) {
-//                    case NEW:
-//                        countryEvent = event.createCountryEvent(DbOperationType.DB_INSERT);
-//                        break;
-//                    case MODIFIED:
-//                        countryEvent = event.createCountryEvent(DbOperationType.DB_UPDATE);
-//                        break;
-//                    default:
-//                        event.setSucceeded();
-//                        return;
-//                }
-//                new SaveTaskOld<>(countryEvent).run();
-//                switch (countryEvent.getStatus()) {
-//                    case FAULTED:
-//                        event.setFaulted(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage(), countryEvent.getFault());
-//                        return;
-//                    case INVALID:
-//                        event.setInvalid(countryEvent.getSummaryTitle(), countryEvent.getDetailMessage());
-//                        return;
-//                    case SUCCEEDED:
-//                        break;
-//                    default:
-//                        event.setCanceled();
-//                        return;
-//                }
-//            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#validate
+            String sql = sb.toString();
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, dao.getCountry().getPrimaryKey());
+                ps.setString(2, String.format("%s;*", DB.escapeWC(dao.name)));
+                if (getOriginalRowState() != DataRowState.NEW) {
+                    ps.setInt(3, dao.getPrimaryKey());
+                }
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        LogHelper.logWarnings(connection, LOG);
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
+                throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
+            }
+
+            if (count > 0) {
+                if (getOriginalRowState() == DataRowState.NEW) {
+                    return CityEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                }
+                return CityEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+            }
+
+            ICountryDAO c = dao.country;
+            if (c instanceof CountryDAO) {
+                switch (c.getRowState()) {
+                    case NEW:
+                    case MODIFIED:
+                        CityModel model = getFxRecordModel();
+                        CountryItem<? extends ICountryDAO> cm;
+                        CountryDAO.SaveTask saveTask;
+                        if (null != model && null != (cm = model.getCountry()) && cm instanceof CountryModel) {
+                            saveTask = new CountryDAO.SaveTask((CountryModel) cm, false);
+                        } else {
+                            saveTask = new CountryDAO.SaveTask((CountryDAO) c, false);
+                        }
+                        saveTask.run();
+                        CountryEvent event = saveTask.get();
+                        if (null != event && event instanceof CountryFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return CityEvent.createInsertInvalidEvent(this, this, (CountryFailedEvent) event);
+                            }
+                            return CityEvent.createUpdateInvalidEvent(this, this, (CountryFailedEvent) event);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return null;
         }
 
         @Override
-        protected CityEvent createFailedEvent() {
+        protected CityEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
                 return CityEvent.createInsertFaultedEvent(this, this, getException());
             }
@@ -499,14 +502,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 return CityEvent.createInsertCanceledEvent(this, this);
             }
             return CityEvent.createUpdateCanceledEvent(this, this);
-        }
-
-        @Override
-        protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertInvalidEvent(this, this, ex);
-            }
-            return CityEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
@@ -527,45 +522,45 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
-//            CityEvent event = task.getValidationEvent();
-//            CityDAO dao = event.getDataAccessObject();
-//            Connection connection = task.getConnection();
-//            int count;
-//            try {
-//                count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                return;
-//            }
-//            switch (count) {
-//                case 0:
-//                    event.setSucceeded();
-//                    return;
-//                case 1:
-//                    event.setInvalid("City in use", ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
-//                    break;
-//                default:
-//                    event.setInvalid("City in use", ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
-//                    break;
-//            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.DeleteTask#validate
+        protected CityEvent validate(Connection connection) throws Exception {
+            CityDAO dao = getDataAccessObject();
+            int count;
+            try {
+                count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, "Error checking dependencies", ex);
+                throw new OperationFailureException("Error checking dependencies", ex);
+            }
+            switch (count) {
+                case 0:
+                    break;
+                case 1:
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return CityEvent.createInsertInvalidEvent(this, this,
+                                ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
+                    }
+                    return CityEvent.createUpdateInvalidEvent(this, this,
+                            ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
+                default:
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return CityEvent.createInsertInvalidEvent(this, this,
+                                ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
+                    }
+                    return CityEvent.createUpdateInvalidEvent(this, this,
+                            ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
+            }
+
+            return null;
         }
 
         @Override
-        protected CityEvent createFailedEvent() {
+        protected CityEvent createFaultedEvent() {
             return CityEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
         protected CityEvent createCanceledEvent() {
             return CityEvent.createDeleteCanceledEvent(this, this);
-        }
-
-        @Override
-        protected CityEvent createValidationFailureEvent(ValidationFailureException ex) {
-            return CityEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

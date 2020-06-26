@@ -1,10 +1,12 @@
 package scheduler.events;
 
 import java.util.Objects;
+import java.util.function.Function;
 import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 
 /**
@@ -23,6 +25,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     public static final EventType<ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>> MODEL_EVENT_TYPE
             = new EventType<>(ANY, "SCHEDULER_MODEL_EVENT");
 
+    @SuppressWarnings("unchecked")
     public static final String getMessage(ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>> event) {
         if (event instanceof ModelFailedEvent) {
             return ((ModelFailedEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>) event).getMessage();
@@ -30,6 +33,13 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         return "";
     }
 
+    public static final <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>, R> R withEvent(E event, Function<E, R> ifFailed,
+            R otherwise) {
+        if (null == event || event instanceof ModelFailedEvent)
+            return ifFailed.apply(event);
+        return otherwise;
+    }
+    
     private State state;
 
     /**
@@ -60,31 +70,31 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     }
 
     /**
-     * Creates a new {@link ModelEvent} from a {@link FxRecordModel} object.
+     * Creates a new {@link ModelEvent} from a {@link RecordModelContext} object.
      *
-     * @param target The {@link FxRecordModel} that wraps the {@link DataAccessObject} that is associated with the event.
+     * @param target The {@link RecordModelContext} that is associated with the event.
      * @param source The object which sent the event.
      * @param eventType The event type.
      * @param operation The database operation associated with the event.
      */
+    protected ModelEvent(RecordModelContext<D, M> target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
+        super(source, target.getDataAccessObject(), Objects.requireNonNull(eventType));
+        StateOriginal s = new StateOriginal(target.getDataAccessObject(), operation);
+        s.fxRecordModel = target.getFxRecordModel();
+        state = s;
+    }
+
     protected ModelEvent(M target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
-        super(source, target, Objects.requireNonNull(eventType));
+        super(source, target.dataObject(), Objects.requireNonNull(eventType));
         StateOriginal s = new StateOriginal(target.dataObject(), operation);
         s.fxRecordModel = target;
         state = s;
     }
 
-    /**
-     * Creates a new {@link ModelEvent} for a {@link DataAccessObject} object.
-     *
-     * @param target The {@link DataAccessObject} that is associated with the event.
-     * @param source The object which sent the event.
-     * @param eventType The event type.
-     * @param operation The database operation associated with the event.
-     */
     protected ModelEvent(D target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
         super(source, target, Objects.requireNonNull(eventType));
-        state = new StateOriginal(target, operation);
+        StateOriginal s = new StateOriginal(target, operation);
+        state = s;
     }
 
     @Override

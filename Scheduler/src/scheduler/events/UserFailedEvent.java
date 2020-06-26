@@ -2,8 +2,8 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
+import scheduler.model.RecordModelContext;
 import scheduler.dao.UserDAO;
-import scheduler.dao.ValidationFailureException;
 import scheduler.model.ui.UserModel;
 
 public final class UserFailedEvent extends UserEvent implements ModelFailedEvent<UserDAO, UserModel> {
@@ -132,7 +132,7 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
     private static DbOperationType toDbOperationType(EventType<UserFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case INSERT_FAULTED_EVENT_NAME:
@@ -143,7 +143,7 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
                 }
                 break;
             case UPDATE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case UPDATE_FAULTED_EVENT_NAME:
@@ -154,7 +154,7 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
                 }
                 break;
             case DELETE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case DELETE_FAULTED_EVENT_NAME:
@@ -174,9 +174,6 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
                 case INSERT_INVALID_EVENT_NAME:
                 case UPDATE_INVALID_EVENT_NAME:
                 case DELETE_INVALID_EVENT_NAME:
-                    if (null != fault && fault instanceof ValidationFailureException && null != (message = fault.getMessage()) && !message.isEmpty()) {
-                        return message;
-                    }
                     return "Validation failed.";
                 case INSERT_CANCELED_EVENT_NAME:
                 case UPDATE_CANCELED_EVENT_NAME:
@@ -219,25 +216,13 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
         fault = null;
     }
 
-    public UserFailedEvent(UserModel target, String message, Throwable fault, Object source, EventType<UserFailedEvent> eventType) {
+    public UserFailedEvent(RecordModelContext<UserDAO, UserModel> target, String message, Throwable fault, Object source, EventType<UserFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
     }
 
-    public UserFailedEvent(UserModel target, Object source, String message, EventType<UserFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-    }
-
-    public UserFailedEvent(UserDAO target, String message, Throwable fault, Object source, EventType<UserFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, fault));
-        this.message = ensureMessage(message, fault, eventType);
-        this.fault = fault;
-    }
-
-    public UserFailedEvent(UserDAO target, Object source, String message, EventType<UserFailedEvent> eventType) {
+    public UserFailedEvent(RecordModelContext<UserDAO, UserModel> target, Object source, String message, EventType<UserFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;

@@ -3,9 +3,12 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
 public final class AppointmentOpRequestEvent extends OperationRequestEvent<AppointmentDAO, AppointmentModel> {
+
+    private static final long serialVersionUID = -9002234106125075233L;
 
     /**
      * Base {@link EventType} for all {@code AppointmentOpRequestEvent}s.
@@ -30,11 +33,11 @@ public final class AppointmentOpRequestEvent extends OperationRequestEvent<Appoi
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public AppointmentOpRequestEvent(AppointmentModel target, Object source, boolean isDelete) {
+    public AppointmentOpRequestEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public AppointmentOpRequestEvent(AppointmentDAO target, Object source, boolean isDelete) {
+    public AppointmentOpRequestEvent(AppointmentModel target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 

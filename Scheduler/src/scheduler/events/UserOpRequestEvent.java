@@ -2,10 +2,13 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
+import scheduler.model.RecordModelContext;
 import scheduler.dao.UserDAO;
 import scheduler.model.ui.UserModel;
 
 public final class UserOpRequestEvent extends OperationRequestEvent<UserDAO, UserModel> {
+
+    private static final long serialVersionUID = -7155468722667631823L;
 
     /**
      * Base {@link EventType} for all {@code UserOpRequestEvent}s.
@@ -30,11 +33,11 @@ public final class UserOpRequestEvent extends OperationRequestEvent<UserDAO, Use
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public UserOpRequestEvent(UserModel target, Object source, boolean isDelete) {
+    public UserOpRequestEvent(RecordModelContext<UserDAO, UserModel> target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public UserOpRequestEvent(UserDAO target, Object source, boolean isDelete) {
+    public UserOpRequestEvent(UserModel target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 

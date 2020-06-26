@@ -11,13 +11,18 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventType;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
+import scheduler.events.AddressEvent;
+import scheduler.events.AddressFailedEvent;
 import scheduler.events.CustomerEvent;
-import scheduler.events.OperationRequestEvent;
+import scheduler.events.CustomerOpRequestEvent;
 import scheduler.model.AddressProperties;
+import static scheduler.model.Customer.MAX_LENGTH_NAME;
+import scheduler.model.RecordModelContext;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -255,7 +260,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
 
         private Factory() {
             super(CustomerEvent.CUSTOMER_EVENT_TYPE);
@@ -266,7 +271,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
         @Override
         public DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> getDaoFactory() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getDaoFactory
+            return CustomerDAO.FACTORY;
         }
 
         @Override
@@ -295,28 +300,95 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> T createEditRequestEvent(CustomerModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#createEditRequestEvent
+        protected CustomerEvent validateForSave(RecordModelContext<CustomerDAO, CustomerModel> target) {
+            CustomerDAO dao = target.getDataAccessObject();
+            String message;
+            if (dao.getRowState() == DataRowState.DELETED) {
+                message = "Customer has already been deleted";
+            } else {
+                String name = dao.getName();
+                if (name.isEmpty()) {
+                    message = "Customer name not defined";
+                } else if (name.length() > MAX_LENGTH_NAME) {
+                    message = "Name too long";
+                } else {
+                    CustomerModel fxRecordModel = target.getFxRecordModel();
+                    AddressEvent event;
+                    if (null != fxRecordModel) {
+                        AddressItem<? extends IAddressDAO> a = fxRecordModel.getAddress();
+                        if (null != a) {
+                            if (a instanceof AddressModel) {
+                                if (null == (event = AddressModel.FACTORY.validateForSave(RecordModelContext.of((AddressModel) a)))) {
+                                    return null;
+                                }
+                            } else {
+                                return null;
+                            }
+                        } else {
+                            event = null;
+                        }
+                    } else {
+                        IAddressDAO a = dao.getAddress();
+                        if (null != a) {
+                            if (a instanceof AddressDAO) {
+                                if (null == (event = AddressModel.FACTORY.validateForSave(RecordModelContext.of((AddressDAO) a)))) {
+                                    return null;
+                                }
+                            } else {
+                                return null;
+                            }
+                        } else {
+                            event = null;
+                        }
+                    }
+                    if (null != event) {
+                        if (event instanceof AddressFailedEvent) {
+                            if (dao.getRowState() == DataRowState.NEW) {
+                                return CustomerEvent.createInsertInvalidEvent(target, this, (AddressFailedEvent) event);
+                            }
+                            return CustomerEvent.createUpdateInvalidEvent(target, this, (AddressFailedEvent) event);
+                        }
+                        return null;
+                    }
+
+                    message = "Address not specified.";
+                }
+            }
+
+            if (dao.getRowState() == DataRowState.NEW) {
+                return CustomerEvent.createInsertInvalidEvent(target, this, message);
+            }
+            return CustomerEvent.createUpdateInvalidEvent(target, this, message);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> T createDeleteRequestEvent(CustomerModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#createDeleteRequestEvent
+        @SuppressWarnings("unchecked")
+        public CustomerOpRequestEvent createEditRequestEvent(CustomerModel model, Object source) {
+            return new CustomerOpRequestEvent(model, source, false);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> EventType<T> getBaseRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getBaseRequestEventType
+        @SuppressWarnings("unchecked")
+        public CustomerOpRequestEvent createDeleteRequestEvent(CustomerModel model, Object source) {
+            return new CustomerOpRequestEvent(model, source, true);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> EventType<T> getEditRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getEditRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<CustomerOpRequestEvent> getBaseRequestEventType() {
+            return CustomerOpRequestEvent.CUSTOMER_OP_REQUEST;
         }
 
         @Override
-        public <T extends OperationRequestEvent<CustomerDAO, CustomerModel>> EventType<T> getDeleteRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel.Factory#getDeleteRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<CustomerOpRequestEvent> getEditRequestEventType() {
+            return CustomerOpRequestEvent.EDIT_REQUEST;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public EventType<CustomerOpRequestEvent> getDeleteRequestEventType() {
+            return CustomerOpRequestEvent.DELETE_REQUEST;
         }
 
     }

@@ -15,16 +15,21 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CityEvent;
-import scheduler.events.OperationRequestEvent;
+import scheduler.events.CityOpRequestEvent;
+import scheduler.events.CountryEvent;
+import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
+import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
@@ -185,7 +190,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<CityDAO, CityModel, CityEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<CityDAO, CityModel, CityEvent> {
 
         // Singleton
         private Factory() {
@@ -246,28 +251,105 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public <T extends OperationRequestEvent<CityDAO, CityModel>> T createEditRequestEvent(CityModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createEditRequestEvent
+        protected CityEvent validateForSave(RecordModelContext<CityDAO, CityModel> target) {
+            CityDAO dao = target.getDataAccessObject();
+            String message;
+            if (dao.getRowState() == DataRowState.DELETED) {
+                message = "City has already been deleted";
+            } else {
+                String name = dao.getName();
+                if (name.isEmpty()) {
+                    message = "City name not defined";
+                } else {
+                    TimeZone zoneId = dao.getTimeZone();
+                    if (null == zoneId) {
+                        message = "Zone Id not defined";
+                    } else if ((name.length() + zoneId.toZoneId().getId().length() + 1) > MAX_LENGTH_NAME) {
+                        message = "Name too long";
+                    } else {
+                        ICountryDAO country = dao.getCountry();
+                        if (null == country) {
+                            message = "Country not specified";
+                        } else {
+                            CityModel fxRecordModel = target.getFxRecordModel();
+                            CountryEvent event;
+                            if (null != fxRecordModel) {
+                                CountryItem<? extends ICountryDAO> c = fxRecordModel.getCountry();
+                                if (null != c) {
+                                    if (c instanceof CountryModel) {
+                                        if (null == (event = CountryModel.FACTORY.validateForSave(RecordModelContext.of((CountryModel) c)))) {
+                                            return null;
+                                        }
+                                    } else {
+                                        return null;
+                                    }
+                                } else {
+                                    event = null;
+                                }
+                            } else {
+                                ICountryDAO c = dao.getCountry();
+                                if (null != c) {
+                                    if (c instanceof CountryDAO) {
+                                        if (null == (event = CountryModel.FACTORY.validateForSave(RecordModelContext.of((CountryDAO) c)))) {
+                                            return null;
+                                        }
+                                    } else {
+                                        return null;
+                                    }
+                                } else {
+                                    event = null;
+                                }
+                            }
+                            if (null != event) {
+                                if (event instanceof CountryFailedEvent) {
+                                    if (dao.getRowState() == DataRowState.NEW) {
+                                        return CityEvent.createInsertInvalidEvent(target, this, (CountryFailedEvent) event);
+                                    }
+                                    return CityEvent.createUpdateInvalidEvent(target, this, (CountryFailedEvent) event);
+                                }
+                                return null;
+                            }
+
+                            message = "City not specified.";
+                        }
+                    }
+                }
+            }
+
+            if (dao.getRowState() == DataRowState.NEW) {
+                return CityEvent.createInsertInvalidEvent(target, this, message);
+            }
+            return CityEvent.createUpdateInvalidEvent(target, this, message);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CityDAO, CityModel>> T createDeleteRequestEvent(CityModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#createDeleteRequestEvent
+        @SuppressWarnings("unchecked")
+        public CityOpRequestEvent createEditRequestEvent(CityModel model, Object source) {
+            return new CityOpRequestEvent(model, source, false);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CityDAO, CityModel>> EventType<T> getBaseRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#getBaseRequestEventType
+        @SuppressWarnings("unchecked")
+        public CityOpRequestEvent createDeleteRequestEvent(CityModel model, Object source) {
+            return new CityOpRequestEvent(model, source, true);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CityDAO, CityModel>> EventType<T> getEditRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#getEditRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<CityOpRequestEvent> getBaseRequestEventType() {
+            return CityOpRequestEvent.CITY_OP_REQUEST;
         }
 
         @Override
-        public <T extends OperationRequestEvent<CityDAO, CityModel>> EventType<T> getDeleteRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel.Factory#getDeleteRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<CityOpRequestEvent> getEditRequestEventType() {
+            return CityOpRequestEvent.EDIT_REQUEST;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public EventType<CityOpRequestEvent> getDeleteRequestEventType() {
+            return CityOpRequestEvent.DELETE_REQUEST;
         }
 
     }

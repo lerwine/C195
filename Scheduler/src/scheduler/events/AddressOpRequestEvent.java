@@ -3,9 +3,12 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
 public final class AddressOpRequestEvent extends OperationRequestEvent<AddressDAO, AddressModel> {
+
+    private static final long serialVersionUID = -4154574893417109831L;
 
     /**
      * Base {@link EventType} for all {@code AddressOpRequestEvent}s.
@@ -30,11 +33,11 @@ public final class AddressOpRequestEvent extends OperationRequestEvent<AddressDA
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public AddressOpRequestEvent(AddressModel target, Object source, boolean isDelete) {
+    public AddressOpRequestEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public AddressOpRequestEvent(AddressDAO target, Object source, boolean isDelete) {
+    public AddressOpRequestEvent(AddressModel target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 

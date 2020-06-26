@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.ValidationFailureException;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
 public final class CountryFailedEvent extends CountryEvent implements ModelFailedEvent<CountryDAO, CountryModel> {
@@ -132,7 +132,7 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
     private static DbOperationType toDbOperationType(EventType<CountryFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case INSERT_FAULTED_EVENT_NAME:
@@ -143,8 +143,7 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
                 }
                 break;
             case UPDATE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
-                    break;
+                if (null != fault) {
                 }
             case UPDATE_FAULTED_EVENT_NAME:
                 return DbOperationType.DB_UPDATE;
@@ -154,7 +153,7 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
                 }
                 break;
             case DELETE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case DELETE_FAULTED_EVENT_NAME:
@@ -174,9 +173,6 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
                 case INSERT_INVALID_EVENT_NAME:
                 case UPDATE_INVALID_EVENT_NAME:
                 case DELETE_INVALID_EVENT_NAME:
-                    if (null != fault && fault instanceof ValidationFailureException && null != (message = fault.getMessage()) && !message.isEmpty()) {
-                        return message;
-                    }
                     return "Validation failed.";
                 case INSERT_CANCELED_EVENT_NAME:
                 case UPDATE_CANCELED_EVENT_NAME:
@@ -229,25 +225,13 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
         fault = null;
     }
 
-    public CountryFailedEvent(CountryModel target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
+    public CountryFailedEvent(RecordModelContext<CountryDAO, CountryModel> target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
     }
 
-    public CountryFailedEvent(CountryModel target, Object source, String message, EventType<CountryFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-    }
-
-    public CountryFailedEvent(CountryDAO target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, fault));
-        this.message = ensureMessage(message, fault, eventType);
-        this.fault = fault;
-    }
-
-    public CountryFailedEvent(CountryDAO target, Object source, String message, EventType<CountryFailedEvent> eventType) {
+    public CountryFailedEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, String message, EventType<CountryFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;

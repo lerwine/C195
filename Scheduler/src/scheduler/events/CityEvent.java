@@ -3,9 +3,8 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
-import scheduler.dao.IFxModelOptional;
 import scheduler.dao.OperationFailureException;
-import scheduler.dao.ValidationFailureException;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
 public abstract class CityEvent extends ModelEvent<CityDAO, CityModel> {
@@ -38,184 +37,99 @@ public abstract class CityEvent extends ModelEvent<CityDAO, CityModel> {
         return event instanceof CityFailedEvent && CityFailedEvent.isFaultedEvent((CityFailedEvent) event);
     }
 
-    public static final CityEvent createInsertSuccessEvent(IFxModelOptional<CityDAO, CityModel> target, Object source) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new CitySuccessEvent(target.getDataAccessObject(), source, CitySuccessEvent.INSERT_SUCCESS);
-        }
-        return new CitySuccessEvent(model, source, CitySuccessEvent.INSERT_SUCCESS);
+    public static final CityEvent createInsertSuccessEvent(RecordModelContext<CityDAO, CityModel> target, Object source) {
+        return new CitySuccessEvent(target, source, CitySuccessEvent.INSERT_SUCCESS);
     }
 
-    public static final CityEvent createUpdateSuccessEvent(IFxModelOptional<CityDAO, CityModel> target, Object source) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new CitySuccessEvent(target.getDataAccessObject(), source, CitySuccessEvent.UPDATE_SUCCESS);
-        }
-        return new CitySuccessEvent(model, source, CitySuccessEvent.UPDATE_SUCCESS);
+    public static final CityEvent createUpdateSuccessEvent(RecordModelContext<CityDAO, CityModel> target, Object source) {
+        return new CitySuccessEvent(target, source, CitySuccessEvent.UPDATE_SUCCESS);
     }
 
-    public static final CityEvent createDeleteSuccessEvent(IFxModelOptional<CityDAO, CityModel> target, Object source) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new CitySuccessEvent(target.getDataAccessObject(), source, CitySuccessEvent.DELETE_SUCCESS);
-        }
-        return new CitySuccessEvent(model, source, CitySuccessEvent.DELETE_SUCCESS);
+    public static final CityEvent createDeleteSuccessEvent(RecordModelContext<CityDAO, CityModel> target, Object source) {
+        return new CitySuccessEvent(target, source, CitySuccessEvent.DELETE_SUCCESS);
     }
 
-    public static final CityEvent createInsertInvalidEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, ValidationFailureException ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_INVALID);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), null, null, source, CityFailedEvent.INSERT_INVALID);
-        }
-        if (null != ex) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_INVALID);
-        }
-        return new CityFailedEvent(model, null, null, source, CityFailedEvent.INSERT_INVALID);
+    public static final CityEvent createInsertInvalidEvent(RecordModelContext<CityDAO, CityModel> target, Object source, String message) {
+        return new CityFailedEvent(target, message, null, source, CityFailedEvent.INSERT_INVALID);
     }
 
-    public static final CityEvent createUpdateInvalidEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, ValidationFailureException ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_INVALID);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), null, null, source, CityFailedEvent.UPDATE_INVALID);
-        }
-        if (null != ex) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_INVALID);
-        }
-        return new CityFailedEvent(model, null, null, source, CityFailedEvent.UPDATE_INVALID);
+    public static final CityEvent createUpdateInvalidEvent(RecordModelContext<CityDAO, CityModel> target, Object source, String message) {
+        return new CityFailedEvent(target, message, null, source, CityFailedEvent.UPDATE_INVALID);
     }
 
-    public static final CityEvent createDeleteInvalidEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, ValidationFailureException ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_INVALID);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), null, null, source, CityFailedEvent.DELETE_INVALID);
-        }
-        if (null != ex) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_INVALID);
-        }
-        return new CityFailedEvent(model, null, null, source, CityFailedEvent.DELETE_INVALID);
+    public static final CityEvent createDeleteInvalidEvent(RecordModelContext<CityDAO, CityModel> target, Object source, String message) {
+        return new CityFailedEvent(target, message, null, source, CityFailedEvent.DELETE_INVALID);
     }
 
-    public static final CityEvent createInsertFaultedEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, Throwable ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_FAULTED);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), null, ex, source, CityFailedEvent.INSERT_INVALID);
-        }
+    public static final CityEvent createInsertFaultedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_FAULTED);
+            return new CityFailedEvent(target, ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_FAULTED);
         }
-        return new CityFailedEvent(model, null, ex, source, CityFailedEvent.INSERT_INVALID);
+        return new CityFailedEvent(target, null, ex, source, CityFailedEvent.INSERT_INVALID);
     }
 
-    public static final CityEvent createUpdateFaultedEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, Throwable ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_FAULTED);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), null, ex, source, CityFailedEvent.UPDATE_FAULTED);
-        }
+    public static final CityEvent createUpdateFaultedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_FAULTED);
+            return new CityFailedEvent(target, ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_FAULTED);
         }
-        return new CityFailedEvent(model, null, ex, source, CityFailedEvent.UPDATE_FAULTED);
+        return new CityFailedEvent(target, null, ex, source, CityFailedEvent.UPDATE_FAULTED);
     }
 
-    public static final CityEvent createDeleteFaultedEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, Throwable ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_FAULTED);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), null, ex, source, CityFailedEvent.DELETE_FAULTED);
-        }
+    public static final CityEvent createDeleteFaultedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_FAULTED);
+            return new CityFailedEvent(target, ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_FAULTED);
         }
-        return new CityFailedEvent(model, null, ex, source, CityFailedEvent.DELETE_FAULTED);
+        return new CityFailedEvent(target, null, ex, source, CityFailedEvent.DELETE_FAULTED);
     }
 
-    public static final CityEvent createInsertCanceledEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, InterruptedException ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new CityFailedEvent(target.getDataAccessObject(), null, null, source, CityFailedEvent.INSERT_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_CANCELED);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, CityFailedEvent.INSERT_CANCELED);
-        }
+    public static final CityEvent createInsertCanceledEvent(RecordModelContext<CityDAO, CityModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new CityFailedEvent(model, null, null, source, CityFailedEvent.INSERT_CANCELED);
+            return new CityFailedEvent(target, null, null, source, CityFailedEvent.INSERT_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_CANCELED);
+            return new CityFailedEvent(target, ex.getMessage(), ex.getCause(), source, CityFailedEvent.INSERT_CANCELED);
         }
-        return new CityFailedEvent(model, ex.getMessage(), ex, source, CityFailedEvent.INSERT_CANCELED);
+        return new CityFailedEvent(target, ex.getMessage(), ex, source, CityFailedEvent.INSERT_CANCELED);
     }
 
-    public static final CityEvent createUpdateCanceledEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, InterruptedException ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new CityFailedEvent(target.getDataAccessObject(), null, null, source, CityFailedEvent.UPDATE_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_CANCELED);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, CityFailedEvent.UPDATE_CANCELED);
-        }
+    public static final CityEvent createUpdateCanceledEvent(RecordModelContext<CityDAO, CityModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new CityFailedEvent(model, null, null, source, CityFailedEvent.UPDATE_CANCELED);
+            return new CityFailedEvent(target, null, null, source, CityFailedEvent.UPDATE_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_CANCELED);
+            return new CityFailedEvent(target, ex.getMessage(), ex.getCause(), source, CityFailedEvent.UPDATE_CANCELED);
         }
-        return new CityFailedEvent(model, ex.getMessage(), ex, source, CityFailedEvent.UPDATE_CANCELED);
+        return new CityFailedEvent(target, ex.getMessage(), ex, source, CityFailedEvent.UPDATE_CANCELED);
     }
 
-    public static final CityEvent createDeleteCanceledEvent(IFxModelOptional<CityDAO, CityModel> target, Object source, InterruptedException ex) {
-        CityModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new CityFailedEvent(target.getDataAccessObject(), null, null, source, CityFailedEvent.DELETE_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_CANCELED);
-            }
-            return new CityFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, CityFailedEvent.DELETE_CANCELED);
-        }
+    public static final CityEvent createDeleteCanceledEvent(RecordModelContext<CityDAO, CityModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new CityFailedEvent(model, null, null, source, CityFailedEvent.DELETE_CANCELED);
+            return new CityFailedEvent(target, null, null, source, CityFailedEvent.DELETE_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new CityFailedEvent(model, ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_CANCELED);
+            return new CityFailedEvent(target, ex.getMessage(), ex.getCause(), source, CityFailedEvent.DELETE_CANCELED);
         }
-        return new CityFailedEvent(model, ex.getMessage(), ex, source, CityFailedEvent.DELETE_CANCELED);
+        return new CityFailedEvent(target, ex.getMessage(), ex, source, CityFailedEvent.DELETE_CANCELED);
     }
 
-    public static final CityEvent createInsertCanceledEvent(IFxModelOptional<CityDAO, CityModel> target, Object source) {
+    public static final CityEvent createInsertCanceledEvent(RecordModelContext<CityDAO, CityModel> target, Object source) {
         return createInsertCanceledEvent(target, source, null);
     }
 
-    public static final CityEvent createUpdateCanceledEvent(IFxModelOptional<CityDAO, CityModel> target, Object source) {
-        return createInsertCanceledEvent(target, source, null);
+    public static final CityEvent createUpdateCanceledEvent(RecordModelContext<CityDAO, CityModel> target, Object source) {
+        return createUpdateCanceledEvent(target, source, null);
     }
 
-    public static final CityEvent createDeleteCanceledEvent(IFxModelOptional<CityDAO, CityModel> target, Object source) {
-        return createInsertCanceledEvent(target, source, null);
+    public static final CityEvent createDeleteCanceledEvent(RecordModelContext<CityDAO, CityModel> target, Object source) {
+        return createDeleteCanceledEvent(target, source, null);
+    }
+
+    public static CityEvent createInsertInvalidEvent(RecordModelContext<CityDAO, CityModel> target, Object source, CountryFailedEvent event) {
+        return new CityFailedEvent(target, source, CityFailedEvent.INSERT_INVALID, event);
+    }
+
+    public static CityEvent createUpdateInvalidEvent(RecordModelContext<CityDAO, CityModel> target, Object source, CountryFailedEvent event) {
+        return new CityFailedEvent(target, source, CityFailedEvent.UPDATE_INVALID, event);
     }
 
     protected CityEvent(CityEvent event, Object source, EventTarget target, EventType<? extends CityEvent> eventType, DbOperationType operation) {
@@ -226,11 +140,7 @@ public abstract class CityEvent extends ModelEvent<CityDAO, CityModel> {
         super(event, eventType, operation);
     }
 
-    protected CityEvent(CityModel target, Object source, EventType<? extends CityEvent> eventType, DbOperationType operation) {
-        super(target, source, eventType, operation);
-    }
-
-    protected CityEvent(CityDAO target, Object source, EventType<? extends CityEvent> eventType, DbOperationType operation) {
+    protected CityEvent(RecordModelContext<CityDAO, CityModel> target, Object source, EventType<? extends CityEvent> eventType, DbOperationType operation) {
         super(target, source, eventType, operation);
     }
 

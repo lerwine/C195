@@ -27,6 +27,7 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.CityEvent;
+import scheduler.events.CityFailedEvent;
 import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
@@ -435,7 +436,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
+        protected AddressEvent validate(Connection connection) throws Exception {
+            // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
             AddressDAO dao = IAddressDAO.assertValidAddress(getDataAccessObject());
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
                     .append(") FROM ").append(DbTable.ADDRESS.getDbName())
@@ -493,11 +495,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                     LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, "Error checking address conflicts", ex);
-                throw new OperationFailureException("Error checking address conflicts", ex);
+                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
+                throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             if (count > 0) {
-                throw new ValidationFailureException("Another matching address exists");
+                if (getOriginalRowState() == DataRowState.NEW) {
+                    return AddressEvent.createInsertInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
+                }
+                return AddressEvent.createUpdateInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
             }
 
             ICityDAO city = dao.getCity();
@@ -506,25 +511,35 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 switch (city.getRowState()) {
                     case NEW:
                     case MODIFIED:
-                        CityDAO.SaveTask cityTask;
+                        CityDAO.SaveTask saveTask;
                         AddressModel model = getFxRecordModel();
                         CityItem<? extends ICityDAO> cm;
                         if (null != model && null != (cm = model.getCity()) && cm instanceof CityModel) {
-                            cityTask = new CityDAO.SaveTask((CityModel) cm, false);
+                            saveTask = new CityDAO.SaveTask((CityModel) cm, false);
                         } else {
-                            cityTask = new CityDAO.SaveTask((CityDAO) city, false);
+                            saveTask = new CityDAO.SaveTask((CityDAO) city, false);
                         }
-                        cityTask.run();
-                        cityTask.get();
+                        saveTask.run();
+                        CityEvent event = saveTask.get();
+                        if (null != event && event instanceof CityFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return AddressEvent.createInsertInvalidEvent(this, this, (CityFailedEvent) event);
+                            }
+                            return AddressEvent.createUpdateInvalidEvent(this, this, (CityFailedEvent) event);
+                        }
                         break;
                     default:
                         break;
                 }
             }
+
+            return null;
         }
+        private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
+        private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
 
         @Override
-        protected AddressEvent createFailedEvent() {
+        protected AddressEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
                 return AddressEvent.createInsertFaultedEvent(this, this, getException());
             }
@@ -539,18 +554,13 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return AddressEvent.createUpdateCanceledEvent(this, this);
         }
 
-        @Override
-        protected AddressEvent createValidationFailureEvent(ValidationFailureException ex
-        ) {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertInvalidEvent(this, this, ex);
-            }
-            return AddressEvent.createUpdateInvalidEvent(this, this, ex);
-        }
-
     }
 
     public static class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
+
+        private static final String REFERENCED_BY_N = "Address is referenced by %d other customers";
+        private static final String REFERENCED_BY_ONE = "Address is referenced by one customer.";
+        private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
         public DeleteTask(AddressModel fxRecordModel, boolean alreadyValidated) {
             super(fxRecordModel, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
@@ -566,38 +576,41 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
+        protected AddressEvent validate(Connection connection) throws Exception {
             AddressDAO dao = getDataAccessObject();
             int count;
             try {
                 count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, "Error checking dependencies", ex);
-                throw new OperationFailureException("Error checking dependencies", ex);
+                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
+                throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
             switch (count) {
                 case 0:
                     break;
                 case 1:
-                    throw new ValidationFailureException("Address is referenced by one customer.");
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return AddressEvent.createInsertInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    }
+                    return AddressEvent.createUpdateInvalidEvent(this, this, REFERENCED_BY_ONE);
                 default:
-                    throw new ValidationFailureException(String.format("Address is referenced by %d other customers", count));
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return AddressEvent.createInsertInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    }
+                    return AddressEvent.createUpdateInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
             }
+
+            return null;
         }
 
         @Override
-        protected AddressEvent createFailedEvent() {
+        protected AddressEvent createFaultedEvent() {
             return AddressEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
         protected AddressEvent createCanceledEvent() {
             return AddressEvent.createDeleteCanceledEvent(this, this);
-        }
-
-        @Override
-        protected AddressEvent createValidationFailureEvent(ValidationFailureException ex) {
-            return AddressEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

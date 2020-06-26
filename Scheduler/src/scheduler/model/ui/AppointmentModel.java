@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
@@ -14,15 +15,23 @@ import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
+import scheduler.dao.UserDAO;
 import scheduler.events.AppointmentEvent;
-import scheduler.events.OperationRequestEvent;
+import scheduler.events.AppointmentOpRequestEvent;
+import scheduler.events.CustomerEvent;
+import scheduler.events.CustomerFailedEvent;
+import scheduler.events.UserEvent;
+import scheduler.events.UserFailedEvent;
+import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.PredefinedData;
+import scheduler.model.RecordModelContext;
 import scheduler.model.UserStatus;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -585,7 +594,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
             super(AppointmentEvent.APPOINTMENT_EVENT_TYPE);
@@ -625,28 +634,143 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public <T extends OperationRequestEvent<AppointmentDAO, AppointmentModel>> T createEditRequestEvent(AppointmentModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#createEditRequestEvent
+        protected AppointmentEvent validateForSave(RecordModelContext<AppointmentDAO, AppointmentModel> target) {
+            AppointmentDAO dao = target.getDataAccessObject();
+            String message;
+            String s;
+            if (dao.getRowState() == DataRowState.DELETED) {
+                message = "Appointment has already been deleted";
+            } else if ((s = dao.getTitle()).isEmpty()) {
+                message = "Title not defined";
+            } else if (s.length() > MAX_LENGTH_TITLE) {
+                message = "Title too long";
+            } else {
+                Timestamp start = dao.getStart();
+                Timestamp end;
+                if (null == start) {
+                    message = "Start date/time not defined";
+                } else if (null == (end = dao.getEnd())) {
+                    message = "End date/time not defined";
+                } else if (start.compareTo(end) > 0) {
+                    message = "Start is after end date/time";
+                } else {
+                    message = null;
+                    switch (dao.getType()) {
+                        case CORPORATE_LOCATION:
+                            s = dao.getLocation();
+                            if (s.isEmpty()) {
+                                message = "Location not defined";
+                            } else if (!PredefinedData.getCorporateAddressMap().containsKey(s)) {
+                                message = "Invalid corporate location key";
+                            }
+                            break;
+                        case VIRTUAL:
+                            if (Values.isNullWhiteSpaceOrEmpty(dao.getUrl())) {
+                                message = "URL not defined";
+                            }
+                            break;
+                        case CUSTOMER_SITE:
+                            if (Values.isNullWhiteSpaceOrEmpty(dao.getContact())) {
+                                message = "Contact not defined";
+                            }
+                            break;
+                        default:
+                            if (Values.isNullWhiteSpaceOrEmpty(dao.getLocation())) {
+                                message = "Location not defined";
+                            }
+                            break;
+                    }
+                    if (null == message) {
+                        AppointmentModel fxRecordModel = target.getFxRecordModel();
+                        CustomerEvent customerEvent = null;
+                        UserEvent userEvent = null;
+                        if (null != fxRecordModel) {
+                            CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
+                            if (null == customer) {
+                                message = "Customer not specified";
+                            } else if (customer instanceof CustomerModel) {
+                                customerEvent = CustomerModel.FACTORY.validateForSave(RecordModelContext.of((CustomerModel) customer));
+                                if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
+                                    customerEvent = null;
+                                    UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
+                                    if (null == user) {
+                                        message = "User not specified";
+                                    } else if (user instanceof UserModel) {
+                                        userEvent = UserModel.FACTORY.validateForSave(RecordModelContext.of((UserModel) user));
+                                    }
+                                }
+                            }
+                        } else {
+                            ICustomerDAO customer = dao.getCustomer();
+                            if (null == customer) {
+                                message = "Customer not specified";
+                            } else if (customer instanceof CustomerDAO) {
+                                customerEvent = CustomerModel.FACTORY.validateForSave(RecordModelContext.of((CustomerDAO) customer));
+                                if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
+                                    customerEvent = null;
+                                    IUserDAO user = dao.getUser();
+                                    if (null == user) {
+                                        message = "User not specified";
+                                    } else if (user instanceof UserDAO) {
+                                        userEvent = UserModel.FACTORY.validateForSave(RecordModelContext.of((UserDAO) user));
+                                    }
+                                }
+                            }
+                        }
+
+                        if (null == message) {
+                            if (null != customerEvent) {
+                                if (dao.getRowState() == DataRowState.NEW) {
+                                    return AppointmentEvent.createInsertInvalidEvent(target, this, (CustomerFailedEvent) customerEvent);
+                                }
+                                return AppointmentEvent.createUpdateInvalidEvent(target, this, (CustomerFailedEvent) customerEvent);
+                            }
+                            if (null != userEvent && userEvent instanceof UserFailedEvent) {
+                                if (dao.getRowState() == DataRowState.NEW) {
+                                    return AppointmentEvent.createInsertInvalidEvent(target, this, (UserFailedEvent) userEvent);
+                                }
+                                return AppointmentEvent.createUpdateInvalidEvent(target, this, (UserFailedEvent) userEvent);
+                            }
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            if (dao.getRowState() == DataRowState.NEW) {
+                return AppointmentEvent.createInsertInvalidEvent(target, this, message);
+            }
+            return AppointmentEvent.createUpdateInvalidEvent(target, this, message);
         }
 
         @Override
-        public <T extends OperationRequestEvent<AppointmentDAO, AppointmentModel>> T createDeleteRequestEvent(AppointmentModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#createDeleteRequestEvent
+        @SuppressWarnings("unchecked")
+        public AppointmentOpRequestEvent createEditRequestEvent(AppointmentModel model, Object source) {
+            return new AppointmentOpRequestEvent(model, source, false);
         }
 
         @Override
-        public <T extends OperationRequestEvent<AppointmentDAO, AppointmentModel>> EventType<T> getBaseRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#getBaseRequestEventType
+        @SuppressWarnings("unchecked")
+        public AppointmentOpRequestEvent createDeleteRequestEvent(AppointmentModel model, Object source) {
+            return new AppointmentOpRequestEvent(model, source, true);
         }
 
         @Override
-        public <T extends OperationRequestEvent<AppointmentDAO, AppointmentModel>> EventType<T> getEditRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#getEditRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<AppointmentOpRequestEvent> getBaseRequestEventType() {
+            return AppointmentOpRequestEvent.APPOINTMENT_OP_REQUEST;
         }
 
         @Override
-        public <T extends OperationRequestEvent<AppointmentDAO, AppointmentModel>> EventType<T> getDeleteRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel.Factory#getDeleteRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<AppointmentOpRequestEvent> getEditRequestEventType() {
+            return AppointmentOpRequestEvent.EDIT_REQUEST;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public EventType<AppointmentOpRequestEvent> getDeleteRequestEventType() {
+            return AppointmentOpRequestEvent.DELETE_REQUEST;
         }
 
     }

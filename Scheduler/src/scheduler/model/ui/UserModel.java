@@ -13,8 +13,11 @@ import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
-import scheduler.events.OperationRequestEvent;
 import scheduler.events.UserEvent;
+import scheduler.events.UserOpRequestEvent;
+import scheduler.model.RecordModelContext;
+import static scheduler.model.User.MAX_LENGTH_PASSWORD;
+import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -162,7 +165,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<UserDAO, UserModel, UserEvent> {
 
         // Singleton
         private Factory() {
@@ -203,28 +206,64 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public <T extends OperationRequestEvent<UserDAO, UserModel>> T createEditRequestEvent(UserModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#createEditRequestEvent
+        protected UserEvent validateForSave(RecordModelContext<UserDAO, UserModel> target) {
+            UserDAO dao = target.getDataAccessObject();
+            String message;
+            if (dao.getRowState() == DataRowState.DELETED) {
+                message = "User has already been deleted";
+            } else {
+                String userName = dao.getUserName();
+                if (userName.isEmpty()) {
+                    message = "User name not defined";
+                } else if (userName.length() > MAX_LENGTH_USERNAME) {
+                    message = "User name too long";
+                } else if (dao instanceof UserDAO) {
+                    String password = ((UserDAO) dao).getPassword();
+                    if (password.isEmpty()) {
+                        message = "Password not defined";
+                    } else if (password.length() > MAX_LENGTH_PASSWORD) {
+                        message = "Password length too long";
+                    } else {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            }
+            if (dao.getRowState() == DataRowState.NEW) {
+                return UserEvent.createInsertInvalidEvent(target, this, message);
+            }
+            return UserEvent.createUpdateInvalidEvent(target, this, message);
         }
 
         @Override
-        public <T extends OperationRequestEvent<UserDAO, UserModel>> T createDeleteRequestEvent(UserModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#createDeleteRequestEvent
+        @SuppressWarnings("unchecked")
+        public UserOpRequestEvent createEditRequestEvent(UserModel model, Object source) {
+            return new UserOpRequestEvent(model, source, false);
         }
 
         @Override
-        public <T extends OperationRequestEvent<UserDAO, UserModel>> EventType<T> getBaseRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#getBaseRequestEventType
+        @SuppressWarnings("unchecked")
+        public UserOpRequestEvent createDeleteRequestEvent(UserModel model, Object source) {
+            return new UserOpRequestEvent(model, source, true);
         }
 
         @Override
-        public <T extends OperationRequestEvent<UserDAO, UserModel>> EventType<T> getEditRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#getEditRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<UserOpRequestEvent> getBaseRequestEventType() {
+            return UserOpRequestEvent.USER_OP_REQUEST;
         }
 
         @Override
-        public <T extends OperationRequestEvent<UserDAO, UserModel>> EventType<T> getDeleteRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel.Factory#getDeleteRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<UserOpRequestEvent> getEditRequestEventType() {
+            return UserOpRequestEvent.EDIT_REQUEST;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public EventType<UserOpRequestEvent> getDeleteRequestEventType() {
+            return UserOpRequestEvent.DELETE_REQUEST;
         }
 
     }

@@ -3,9 +3,8 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.IFxModelOptional;
 import scheduler.dao.OperationFailureException;
-import scheduler.dao.ValidationFailureException;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
 public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> {
@@ -38,184 +37,99 @@ public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> 
         return event instanceof AddressFailedEvent && AddressFailedEvent.isFaultedEvent((AddressFailedEvent) event);
     }
 
-    public static final AddressEvent createInsertSuccessEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new AddressSuccessEvent(target.getDataAccessObject(), source, AddressSuccessEvent.INSERT_SUCCESS);
-        }
-        return new AddressSuccessEvent(model, source, AddressSuccessEvent.INSERT_SUCCESS);
+    public static final AddressEvent createInsertSuccessEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source) {
+        return new AddressSuccessEvent(target, source, AddressSuccessEvent.INSERT_SUCCESS);
     }
 
-    public static final AddressEvent createUpdateSuccessEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new AddressSuccessEvent(target.getDataAccessObject(), source, AddressSuccessEvent.UPDATE_SUCCESS);
-        }
-        return new AddressSuccessEvent(model, source, AddressSuccessEvent.UPDATE_SUCCESS);
+    public static final AddressEvent createUpdateSuccessEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source) {
+        return new AddressSuccessEvent(target, source, AddressSuccessEvent.UPDATE_SUCCESS);
     }
 
-    public static final AddressEvent createDeleteSuccessEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            return new AddressSuccessEvent(target.getDataAccessObject(), source, AddressSuccessEvent.DELETE_SUCCESS);
-        }
-        return new AddressSuccessEvent(model, source, AddressSuccessEvent.DELETE_SUCCESS);
+    public static final AddressEvent createDeleteSuccessEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source) {
+        return new AddressSuccessEvent(target, source, AddressSuccessEvent.DELETE_SUCCESS);
     }
 
-    public static final AddressEvent createInsertInvalidEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, ValidationFailureException ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_INVALID);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), null, null, source, AddressFailedEvent.INSERT_INVALID);
-        }
-        if (null != ex) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_INVALID);
-        }
-        return new AddressFailedEvent(model, null, null, source, AddressFailedEvent.INSERT_INVALID);
+    public static final AddressEvent createInsertInvalidEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, String message) {
+        return new AddressFailedEvent(target, message, null, source, AddressFailedEvent.INSERT_INVALID);
     }
 
-    public static final AddressEvent createUpdateInvalidEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, ValidationFailureException ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_INVALID);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), null, null, source, AddressFailedEvent.UPDATE_INVALID);
-        }
-        if (null != ex) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_INVALID);
-        }
-        return new AddressFailedEvent(model, null, null, source, AddressFailedEvent.UPDATE_INVALID);
+    public static final AddressEvent createUpdateInvalidEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, String message) {
+        return new AddressFailedEvent(target, message, null, source, AddressFailedEvent.UPDATE_INVALID);
     }
 
-    public static final AddressEvent createDeleteInvalidEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, ValidationFailureException ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_INVALID);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), null, null, source, AddressFailedEvent.DELETE_INVALID);
-        }
-        if (null != ex) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_INVALID);
-        }
-        return new AddressFailedEvent(model, null, null, source, AddressFailedEvent.DELETE_INVALID);
+    public static final AddressEvent createDeleteInvalidEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, String message) {
+        return new AddressFailedEvent(target, message, null, source, AddressFailedEvent.DELETE_INVALID);
     }
 
-    public static final AddressEvent createInsertFaultedEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, Throwable ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_FAULTED);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), null, ex, source, AddressFailedEvent.INSERT_INVALID);
-        }
+    public static final AddressEvent createInsertFaultedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_FAULTED);
+            return new AddressFailedEvent(target, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_FAULTED);
         }
-        return new AddressFailedEvent(model, null, ex, source, AddressFailedEvent.INSERT_INVALID);
+        return new AddressFailedEvent(target, null, ex, source, AddressFailedEvent.INSERT_INVALID);
     }
 
-    public static final AddressEvent createUpdateFaultedEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, Throwable ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_FAULTED);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), null, ex, source, AddressFailedEvent.UPDATE_FAULTED);
-        }
+    public static final AddressEvent createUpdateFaultedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_FAULTED);
+            return new AddressFailedEvent(target, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_FAULTED);
         }
-        return new AddressFailedEvent(model, null, ex, source, AddressFailedEvent.UPDATE_FAULTED);
+        return new AddressFailedEvent(target, null, ex, source, AddressFailedEvent.UPDATE_FAULTED);
     }
 
-    public static final AddressEvent createDeleteFaultedEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, Throwable ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null != ex && ex instanceof OperationFailureException) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_FAULTED);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), null, ex, source, AddressFailedEvent.DELETE_FAULTED);
-        }
+    public static final AddressEvent createDeleteFaultedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_FAULTED);
+            return new AddressFailedEvent(target, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_FAULTED);
         }
-        return new AddressFailedEvent(model, null, ex, source, AddressFailedEvent.DELETE_FAULTED);
+        return new AddressFailedEvent(target, null, ex, source, AddressFailedEvent.DELETE_FAULTED);
     }
 
-    public static final AddressEvent createInsertCanceledEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, InterruptedException ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new AddressFailedEvent(target.getDataAccessObject(), null, null, source, AddressFailedEvent.INSERT_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_CANCELED);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, AddressFailedEvent.INSERT_CANCELED);
-        }
+    public static final AddressEvent createInsertCanceledEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new AddressFailedEvent(model, null, null, source, AddressFailedEvent.INSERT_CANCELED);
+            return new AddressFailedEvent(target, null, null, source, AddressFailedEvent.INSERT_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_CANCELED);
+            return new AddressFailedEvent(target, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.INSERT_CANCELED);
         }
-        return new AddressFailedEvent(model, ex.getMessage(), ex, source, AddressFailedEvent.INSERT_CANCELED);
+        return new AddressFailedEvent(target, ex.getMessage(), ex, source, AddressFailedEvent.INSERT_CANCELED);
     }
 
-    public static final AddressEvent createUpdateCanceledEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, InterruptedException ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new AddressFailedEvent(target.getDataAccessObject(), null, null, source, AddressFailedEvent.UPDATE_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_CANCELED);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, AddressFailedEvent.UPDATE_CANCELED);
-        }
+    public static final AddressEvent createUpdateCanceledEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new AddressFailedEvent(model, null, null, source, AddressFailedEvent.UPDATE_CANCELED);
+            return new AddressFailedEvent(target, null, null, source, AddressFailedEvent.UPDATE_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_CANCELED);
+            return new AddressFailedEvent(target, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.UPDATE_CANCELED);
         }
-        return new AddressFailedEvent(model, ex.getMessage(), ex, source, AddressFailedEvent.UPDATE_CANCELED);
+        return new AddressFailedEvent(target, ex.getMessage(), ex, source, AddressFailedEvent.UPDATE_CANCELED);
     }
 
-    public static final AddressEvent createDeleteCanceledEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source, InterruptedException ex) {
-        AddressModel model = target.getFxRecordModel();
-        if (null == model) {
-            if (null == ex) {
-                return new AddressFailedEvent(target.getDataAccessObject(), null, null, source, AddressFailedEvent.DELETE_CANCELED);
-            }
-            if (null != ex.getCause()) {
-                return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_CANCELED);
-            }
-            return new AddressFailedEvent(target.getDataAccessObject(), ex.getMessage(), ex, source, AddressFailedEvent.DELETE_CANCELED);
-        }
+    public static final AddressEvent createDeleteCanceledEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, InterruptedException ex) {
         if (null == ex) {
-            return new AddressFailedEvent(model, null, null, source, AddressFailedEvent.DELETE_CANCELED);
+            return new AddressFailedEvent(target, null, null, source, AddressFailedEvent.DELETE_CANCELED);
         }
         if (null != ex.getCause()) {
-            return new AddressFailedEvent(model, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_CANCELED);
+            return new AddressFailedEvent(target, ex.getMessage(), ex.getCause(), source, AddressFailedEvent.DELETE_CANCELED);
         }
-        return new AddressFailedEvent(model, ex.getMessage(), ex, source, AddressFailedEvent.DELETE_CANCELED);
+        return new AddressFailedEvent(target, ex.getMessage(), ex, source, AddressFailedEvent.DELETE_CANCELED);
     }
 
-    public static final AddressEvent createInsertCanceledEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source) {
+    public static final AddressEvent createInsertCanceledEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source) {
         return createInsertCanceledEvent(target, source, null);
     }
 
-    public static final AddressEvent createUpdateCanceledEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source) {
-        return createInsertCanceledEvent(target, source, null);
+    public static final AddressEvent createUpdateCanceledEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source) {
+        return createUpdateCanceledEvent(target, source, null);
     }
 
-    public static final AddressEvent createDeleteCanceledEvent(IFxModelOptional<AddressDAO, AddressModel> target, Object source) {
-        return createInsertCanceledEvent(target, source, null);
+    public static final AddressEvent createDeleteCanceledEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source) {
+        return createDeleteCanceledEvent(target, source, null);
+    }
+
+    public static AddressEvent createInsertInvalidEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, CityFailedEvent event) {
+        return new AddressFailedEvent(target, source, AddressFailedEvent.INSERT_INVALID, event);
+    }
+
+    public static AddressEvent createUpdateInvalidEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, CityFailedEvent event) {
+        return new AddressFailedEvent(target, source, AddressFailedEvent.UPDATE_INVALID, event);
     }
 
     protected AddressEvent(AddressEvent event, Object source, EventTarget target, EventType<? extends AddressEvent> eventType, DbOperationType operation) {
@@ -226,12 +140,8 @@ public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> 
         super(event, eventType, operation);
     }
 
-    protected AddressEvent(AddressModel fxRecordModel, Object source, EventType<? extends AddressEvent> eventType, DbOperationType operation) {
-        super(fxRecordModel, source, eventType, operation);
-    }
-
-    protected AddressEvent(AddressDAO dao, Object source, EventType<? extends AddressEvent> eventType, DbOperationType operation) {
-        super(dao, source, eventType, operation);
+    protected AddressEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, EventType<? extends AddressEvent> eventType, DbOperationType operation) {
+        super(target, source, eventType, operation);
     }
 
 }

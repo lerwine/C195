@@ -469,7 +469,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
         return AddressModel.FACTORY;
     }
 

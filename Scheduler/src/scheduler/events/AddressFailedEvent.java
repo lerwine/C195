@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.ValidationFailureException;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
 public final class AddressFailedEvent extends AddressEvent implements ModelFailedEvent<AddressDAO, AddressModel> {
@@ -132,7 +132,7 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
     private static DbOperationType toDbOperationType(EventType<AddressFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case INSERT_FAULTED_EVENT_NAME:
@@ -143,7 +143,7 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
                 }
                 break;
             case UPDATE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case UPDATE_FAULTED_EVENT_NAME:
@@ -154,7 +154,7 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
                 }
                 break;
             case DELETE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case DELETE_FAULTED_EVENT_NAME:
@@ -174,9 +174,6 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
                 case INSERT_INVALID_EVENT_NAME:
                 case UPDATE_INVALID_EVENT_NAME:
                 case DELETE_INVALID_EVENT_NAME:
-                    if (null != fault && fault instanceof ValidationFailureException && null != (message = fault.getMessage()) && !message.isEmpty()) {
-                        return message;
-                    }
                     return "Validation failed.";
                 case INSERT_CANCELED_EVENT_NAME:
                 case UPDATE_CANCELED_EVENT_NAME:
@@ -194,53 +191,55 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
 
     private final String message;
     private final Throwable fault;
+    private final CityFailedEvent cityEvent;
 
     public AddressFailedEvent(AddressEvent event, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
     }
 
     public AddressFailedEvent(AddressEvent event, Object source, String message, EventType<AddressFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
     }
 
     public AddressFailedEvent(AddressEvent event, String message, Throwable fault, EventType<AddressFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
     }
 
     public AddressFailedEvent(AddressEvent event, String message, EventType<AddressFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
     }
 
-    public AddressFailedEvent(AddressModel target, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType) {
+    public AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        cityEvent = null;
     }
 
-    public AddressFailedEvent(AddressModel target, Object source, String message, EventType<AddressFailedEvent> eventType) {
+    public AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, String message, EventType<AddressFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        cityEvent = null;
     }
 
-    public AddressFailedEvent(AddressDAO target, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, fault));
-        this.message = ensureMessage(message, fault, eventType);
-        this.fault = fault;
-    }
-
-    public AddressFailedEvent(AddressDAO target, Object source, String message, EventType<AddressFailedEvent> eventType) {
+    AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, EventType<AddressFailedEvent> eventType, CityFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
+        this.message = "Invalid city";
         fault = null;
+        cityEvent = event;
     }
 
     @Override
@@ -251,6 +250,10 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
     @Override
     public Throwable getFault() {
         return fault;
+    }
+
+    public CityFailedEvent getCityEvent() {
+        return cityEvent;
     }
 
 }

@@ -3,6 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
 public final class CountrySuccessEvent extends CountryEvent {
@@ -61,11 +62,7 @@ public final class CountrySuccessEvent extends CountryEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public CountrySuccessEvent(CountryModel target, Object source, EventType<CountrySuccessEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType));
-    }
-
-    public CountrySuccessEvent(CountryDAO target, Object source, EventType<CountrySuccessEvent> eventType) {
+    public CountrySuccessEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, EventType<CountrySuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

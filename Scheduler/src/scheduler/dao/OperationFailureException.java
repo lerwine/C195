@@ -11,6 +11,8 @@ package scheduler.dao;
  */
 public class OperationFailureException extends Exception {
 
+    private static final long serialVersionUID = -2306473162719264646L;
+
     public OperationFailureException(String message) {
         super((null == message || message.trim().isEmpty()) ? "Unknown validation failure" : message);
     }

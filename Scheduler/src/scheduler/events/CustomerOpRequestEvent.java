@@ -3,9 +3,12 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
 public final class CustomerOpRequestEvent extends OperationRequestEvent<CustomerDAO, CustomerModel> {
+
+    private static final long serialVersionUID = -8689654096247827717L;
 
     /**
      * Base {@link EventType} for all {@code CustomerOpRequestEvent}s.
@@ -30,11 +33,11 @@ public final class CustomerOpRequestEvent extends OperationRequestEvent<Customer
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public CustomerOpRequestEvent(CustomerModel target, Object source, boolean isDelete) {
+    public CustomerOpRequestEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
-    public CustomerOpRequestEvent(CustomerDAO target, Object source, boolean isDelete) {
+    public CustomerOpRequestEvent(CustomerModel target, Object source, boolean isDelete) {
         super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 

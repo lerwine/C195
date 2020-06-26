@@ -3,6 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
 public final class AddressSuccessEvent extends AddressEvent {
@@ -61,11 +62,7 @@ public final class AddressSuccessEvent extends AddressEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public AddressSuccessEvent(AddressModel target, Object source, EventType<AddressSuccessEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType));
-    }
-
-    public AddressSuccessEvent(AddressDAO target, Object source, EventType<AddressSuccessEvent> eventType) {
+    public AddressSuccessEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, EventType<AddressSuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

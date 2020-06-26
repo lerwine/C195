@@ -320,7 +320,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
          *
          * @return The factory object for managing the current {@link FxRecordModel}.
          */
-        FxRecordModel.ModelFactory<T, U, E> modelFactory();
+        FxRecordModel.FxModelFactory<T, U, E> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.

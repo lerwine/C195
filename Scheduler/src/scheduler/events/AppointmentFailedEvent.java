@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.ValidationFailureException;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
 public final class AppointmentFailedEvent extends AppointmentEvent implements ModelFailedEvent<AppointmentDAO, AppointmentModel> {
@@ -132,7 +132,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
     private static DbOperationType toDbOperationType(EventType<AppointmentFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case INSERT_FAULTED_EVENT_NAME:
@@ -143,7 +143,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
                 }
                 break;
             case UPDATE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case UPDATE_FAULTED_EVENT_NAME:
@@ -154,7 +154,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
                 }
                 break;
             case DELETE_INVALID_EVENT_NAME:
-                if (!(null == fault || fault instanceof ValidationFailureException)) {
+                if (null != fault) {
                     break;
                 }
             case DELETE_FAULTED_EVENT_NAME:
@@ -174,9 +174,6 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
                 case INSERT_INVALID_EVENT_NAME:
                 case UPDATE_INVALID_EVENT_NAME:
                 case DELETE_INVALID_EVENT_NAME:
-                    if (null != fault && fault instanceof ValidationFailureException && null != (message = fault.getMessage()) && !message.isEmpty()) {
-                        return message;
-                    }
                     return "Validation failed.";
                 case INSERT_CANCELED_EVENT_NAME:
                 case UPDATE_CANCELED_EVENT_NAME:
@@ -194,53 +191,95 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
 
     private final String message;
     private final Throwable fault;
+    private final CustomerFailedEvent customerEvent;
+    private final UserFailedEvent userEvent;
 
     public AppointmentFailedEvent(AppointmentEvent event, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        if (event instanceof AppointmentFailedEvent) {
+            AppointmentFailedEvent fe = (AppointmentFailedEvent) event;
+            customerEvent = fe.customerEvent;
+            userEvent = fe.userEvent;
+        } else {
+            customerEvent = null;
+            userEvent = null;
+        }
     }
 
     public AppointmentFailedEvent(AppointmentEvent event, Object source, String message, EventType<AppointmentFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        if (event instanceof AppointmentFailedEvent) {
+            AppointmentFailedEvent fe = (AppointmentFailedEvent) event;
+            customerEvent = fe.customerEvent;
+            userEvent = fe.userEvent;
+        } else {
+            customerEvent = null;
+            userEvent = null;
+        }
     }
 
     public AppointmentFailedEvent(AppointmentEvent event, String message, Throwable fault, EventType<AppointmentFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        if (event instanceof AppointmentFailedEvent) {
+            AppointmentFailedEvent fe = (AppointmentFailedEvent) event;
+            customerEvent = fe.customerEvent;
+            userEvent = fe.userEvent;
+        } else {
+            customerEvent = null;
+            userEvent = null;
+        }
     }
 
     public AppointmentFailedEvent(AppointmentEvent event, String message, EventType<AppointmentFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        if (event instanceof AppointmentFailedEvent) {
+            AppointmentFailedEvent fe = (AppointmentFailedEvent) event;
+            customerEvent = fe.customerEvent;
+            userEvent = fe.userEvent;
+        } else {
+            customerEvent = null;
+            userEvent = null;
+        }
     }
 
-    public AppointmentFailedEvent(AppointmentModel target, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType) {
+    public AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        customerEvent = null;
+        userEvent = null;
     }
 
-    public AppointmentFailedEvent(AppointmentModel target, Object source, String message, EventType<AppointmentFailedEvent> eventType) {
+    public AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, String message, EventType<AppointmentFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = ensureMessage(message, null, eventType);
         fault = null;
+        customerEvent = null;
+        userEvent = null;
     }
 
-    public AppointmentFailedEvent(AppointmentDAO target, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, fault));
-        this.message = ensureMessage(message, fault, eventType);
-        this.fault = fault;
-    }
-
-    public AppointmentFailedEvent(AppointmentDAO target, Object source, String message, EventType<AppointmentFailedEvent> eventType) {
+    AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<AppointmentFailedEvent> eventType, CustomerFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
+        this.message = "Invalid address";
         fault = null;
+        customerEvent = event;
+        userEvent = null;
+    }
+
+    AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<AppointmentFailedEvent> eventType, UserFailedEvent event) {
+        super(target, source, eventType, toDbOperationType(eventType, null));
+        this.message = "Invalid address";
+        fault = null;
+        customerEvent = null;
+        userEvent = event;
     }
 
     @Override
@@ -251,6 +290,14 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
     @Override
     public Throwable getFault() {
         return fault;
+    }
+
+    public CustomerFailedEvent getCustomerEvent() {
+        return customerEvent;
+    }
+
+    public UserFailedEvent getUserEvent() {
+        return userEvent;
     }
 
 }

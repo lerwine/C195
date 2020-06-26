@@ -311,9 +311,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         }
 
         @Override
-        protected void validate(Connection connection) throws Exception {
-//            CountryEvent event = task.getValidationEvent();
-//            Connection connection = task.getConnection();
+        protected CountryEvent validate(Connection connection) throws Exception {
 //            CountryDAO dao;
 //            try {
 //                dao = ICountryDAO.assertValidCountry(event.getDataAccessObject());
@@ -355,11 +353,11 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 //            } else {
 //                event.setSucceeded();
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#validateForSave
         }
 
         @Override
-        protected CountryEvent createFailedEvent() {
+        protected CountryEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
                 return CountryEvent.createInsertFaultedEvent(this, this, getException());
             }
@@ -372,14 +370,6 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 return CountryEvent.createInsertCanceledEvent(this, this);
             }
             return CountryEvent.createUpdateCanceledEvent(this, this);
-        }
-
-        @Override
-        protected CountryEvent createValidationFailureEvent(ValidationFailureException ex) {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertInvalidEvent(this, this, ex);
-            }
-            return CountryEvent.createUpdateInvalidEvent(this, this, ex);
         }
 
     }
@@ -398,9 +388,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         protected CountryEvent createSuccessEvent() {
             return CountryEvent.createDeleteSuccessEvent(this, this);
         }
-        
+
         @Override
-        protected void validate(Connection connection) throws Exception {
+        protected CountryEvent validate(Connection connection) throws Exception {
 //            CountryEvent event = task.getValidationEvent();
 //            Connection connection = task.getConnection();
 //            CountryDAO dao = task.getDataAccessObject();
@@ -423,22 +413,17 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 //                    event.setInvalid("Country in use", ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
 //                    break;
 //            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.DeleteTask#validate
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.DeleteTask#validateForSave
         }
 
         @Override
-        protected CountryEvent createFailedEvent() {
+        protected CountryEvent createFaultedEvent() {
             return CountryEvent.createDeleteFaultedEvent(this, this, getException());
         }
 
         @Override
         protected CountryEvent createCanceledEvent() {
             return CountryEvent.createDeleteCanceledEvent(this, this);
-        }
-
-        @Override
-        protected CountryEvent createValidationFailureEvent(ValidationFailureException ex) {
-            return CountryEvent.createDeleteInvalidEvent(this, this, ex);
         }
 
     }

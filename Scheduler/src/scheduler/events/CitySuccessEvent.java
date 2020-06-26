@@ -3,6 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
 public final class CitySuccessEvent extends CityEvent {
@@ -61,11 +62,7 @@ public final class CitySuccessEvent extends CityEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public CitySuccessEvent(CityModel target, Object source, EventType<CitySuccessEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType));
-    }
-
-    public CitySuccessEvent(CityDAO target, Object source, EventType<CitySuccessEvent> eventType) {
+    public CitySuccessEvent(RecordModelContext<CityDAO, CityModel> target, Object source, EventType<CitySuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

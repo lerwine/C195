@@ -189,7 +189,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getModelFactory();
+            FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -214,7 +214,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         D dao = event.getDataAccessObject();
         // XXX: Check to see if we need to get/update model
-        FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
+        FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
@@ -242,7 +242,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract Comparator<? super D> getComparator();
 
-    protected abstract FxRecordModel.ModelFactory<D, M, E> getModelFactory();
+    protected abstract FxRecordModel.FxModelFactory<D, M, E> getModelFactory();
 
     protected abstract String getLoadingTitle();
 

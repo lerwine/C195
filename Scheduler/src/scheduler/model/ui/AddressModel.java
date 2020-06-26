@@ -9,24 +9,30 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventTarget;
 import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
+import scheduler.dao.CityDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.AddressEvent;
-import scheduler.events.DbOperationType;
-import scheduler.events.OperationRequestEvent;
+import scheduler.events.AddressOpRequestEvent;
+import scheduler.events.CityEvent;
+import scheduler.events.CityFailedEvent;
+import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS1;
+import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS2;
+import static scheduler.model.AddressProperties.MAX_LENGTH_PHONE;
+import static scheduler.model.AddressProperties.MAX_LENGTH_POSTALCODE;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
 import scheduler.model.DataObject;
+import scheduler.model.RecordModelContext;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -97,8 +103,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
      * Formats address as a multi-line string.
      *
      * @param address A 1 or 2 line white-space-normalized string, usually formatted using {@link #calculateAddressLines(String, String)}.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
-     * {@link #calculateCityZipCountry(String, String, String)}.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
      * @param phone The phone number string which will be normalized in this method.
      * @return A multi-line white-space-normalized address string.
      */
@@ -124,8 +129,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
      *
      * @param address1 The first line of the street address which will be normalized by this method.
      * @param address2 The second line of the street address which will be normalized by this method.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
-     * {@link #calculateCityZipCountry(String, String, String)}.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
      * @param phone The phone number string which will be normalized in this method.
      * @return The address formatted as a single line white-space-normalized string.
      */
@@ -390,7 +394,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<AddressDAO, AddressModel, AddressEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> {
 
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
         // Singleton
@@ -442,12 +446,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public AddressEvent createDbOperationEvent(AddressModel model, Object source, EventTarget target, DbOperationType operation) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.fx.AddressModel.Factory#createDbOperationEvent
-//            return new AddressEvent(model, source, target);
-        }
-
-        @Override
         public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
             return new AddressDAO.SaveTask(model, false);
         }
@@ -458,28 +456,102 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> T createEditRequestEvent(AddressModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createEditRequestEvent
+        protected AddressEvent validateForSave(RecordModelContext<AddressDAO, AddressModel> target) {
+            AddressDAO dao = target.getDataAccessObject();
+            String message;
+            if (dao.getRowState() == DataRowState.DELETED) {
+                message = "Address has already been deleted";
+            } else {
+                String a = dao.getAddress1();
+                String s = dao.getAddress2();
+                if (Values.isNullWhiteSpaceOrEmpty(a) && Values.isNullWhiteSpaceOrEmpty(s)) {
+                    message = "Street address not defined";
+                } else if (a.length() > MAX_LENGTH_ADDRESS1) {
+                    message = "First address line too long";
+                } else if (s.length() > MAX_LENGTH_ADDRESS2) {
+                    message = "Second address line too long";
+                } else if (dao.getPostalCode().length() > MAX_LENGTH_POSTALCODE) {
+                    message = "Postal code too long";
+                } else if (dao.getPhone().length() > MAX_LENGTH_PHONE) {
+                    message = "Phone number too long";
+                } else {
+                    AddressModel fxRecordModel = target.getFxRecordModel();
+                    CityEvent event;
+                    if (null != fxRecordModel) {
+                        CityItem<? extends ICityDAO> c = fxRecordModel.getCity();
+                        if (null != c) {
+                            if (c instanceof CityModel) {
+                                if (null == (event = CityModel.FACTORY.validateForSave(RecordModelContext.of((CityModel) c)))) {
+                                    return null;
+                                }
+                            } else {
+                                return null;
+                            }
+                        } else {
+                            event = null;
+                        }
+                    } else {
+                        ICityDAO c = dao.getCity();
+                        if (null != c) {
+                            if (c instanceof CityDAO) {
+                                if (null == (event = CityModel.FACTORY.validateForSave(RecordModelContext.of((CityDAO) c)))) {
+                                    return null;
+                                }
+                            } else {
+                                return null;
+                            }
+                        } else {
+                            event = null;
+                        }
+                    }
+                    if (null != event) {
+                        if (event instanceof CityFailedEvent) {
+                            if (dao.getRowState() == DataRowState.NEW) {
+                                return AddressEvent.createInsertInvalidEvent(target, this, (CityFailedEvent) event);
+                            }
+                            return AddressEvent.createUpdateInvalidEvent(target, this, (CityFailedEvent) event);
+                        }
+                        return null;
+                    }
+
+                    message = "City not specified.";
+                }
+            }
+
+            if (dao.getRowState() == DataRowState.NEW) {
+                return AddressEvent.createInsertInvalidEvent(target, this, message);
+            }
+            return AddressEvent.createUpdateInvalidEvent(target, this, message);
         }
 
         @Override
-        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> T createDeleteRequestEvent(AddressModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createDeleteRequestEvent
+        @SuppressWarnings("unchecked")
+        public AddressOpRequestEvent createEditRequestEvent(AddressModel model, Object source) {
+            return new AddressOpRequestEvent(model, source, false);
         }
 
         @Override
-        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> EventType<T> getBaseRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#getBaseRequestEventType
+        @SuppressWarnings("unchecked")
+        public AddressOpRequestEvent createDeleteRequestEvent(AddressModel model, Object source) {
+            return new AddressOpRequestEvent(model, source, true);
         }
 
         @Override
-        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> EventType<T> getEditRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#getEditRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<AddressOpRequestEvent> getBaseRequestEventType() {
+            return AddressOpRequestEvent.ADDRESS_OP_REQUEST;
         }
 
         @Override
-        public <T extends OperationRequestEvent<AddressDAO, AddressModel>> EventType<T> getDeleteRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#getDeleteRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<AddressOpRequestEvent> getEditRequestEventType() {
+            return AddressOpRequestEvent.EDIT_REQUEST;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public EventType<AddressOpRequestEvent> getDeleteRequestEventType() {
+            return AddressOpRequestEvent.DELETE_REQUEST;
         }
 
     }

@@ -3,6 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
 public final class CustomerSuccessEvent extends CustomerEvent {
@@ -61,11 +62,7 @@ public final class CustomerSuccessEvent extends CustomerEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public CustomerSuccessEvent(CustomerModel target, Object source, EventType<CustomerSuccessEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType));
-    }
-
-    public CustomerSuccessEvent(CustomerDAO target, Object source, EventType<CustomerSuccessEvent> eventType) {
+    public CustomerSuccessEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, EventType<CustomerSuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

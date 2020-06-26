@@ -34,11 +34,11 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
-    private final FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> factory;
+    private final FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory;
     private final HBox graphic;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
 
-    public ItemEditTableCell(FxRecordModel.ModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
+    public ItemEditTableCell(FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
         onItemActionRequest = new SimpleObjectProperty<>();
         this.factory = factory;
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));

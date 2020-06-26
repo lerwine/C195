@@ -9,7 +9,7 @@ import scheduler.util.Values;
  */
 public interface IAddressDAO extends DbObject, Address {
 
-    // FIXME: Throw ValidationFailureException, instead
+    // FIXME: 0 - Replace with validator
     public static <T extends IAddressDAO> T assertValidAddress(T target) {
         if (target.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException("Address has already been deleted");

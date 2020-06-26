@@ -350,7 +350,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @Override
-    public FxRecordModel.ModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
         return CountryModel.FACTORY;
     }
 

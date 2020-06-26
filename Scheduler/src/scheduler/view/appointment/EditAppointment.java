@@ -590,7 +590,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
-    public FxRecordModel.ModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
         return AppointmentModel.FACTORY;
     }
 

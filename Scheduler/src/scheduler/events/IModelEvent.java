@@ -2,8 +2,8 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.IFxModelOptional;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.model.RecordModelContext;
 
 /**
  *
@@ -11,7 +11,7 @@ import scheduler.model.ui.FxRecordModel;
  * @param <D> The target {@link DataAccessObject} type.
  * @param <M> The associated {@link FxRecordModel} type.
  */
-interface IModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends IFxModelOptional<D, M>, Cloneable, java.io.Serializable {
+interface IModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends RecordModelContext<D, M>, Cloneable, java.io.Serializable {
 
     Object getSource();
 

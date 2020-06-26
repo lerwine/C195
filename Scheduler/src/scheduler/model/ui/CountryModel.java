@@ -17,10 +17,12 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryEvent;
-import scheduler.events.OperationRequestEvent;
+import scheduler.events.CountryOpRequestEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
+import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
@@ -132,7 +134,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.ModelFactory<CountryDAO, CountryModel, CountryEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<CountryDAO, CountryModel, CountryEvent> {
 
         // Singleton
         private Factory() {
@@ -193,28 +195,65 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> T createEditRequestEvent(CountryModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#createEditRequestEvent
+        protected CountryEvent validateForSave(RecordModelContext<CountryDAO, CountryModel> target) {
+            CountryDAO dao = target.getDataAccessObject();
+            String message;
+            if (dao.getRowState() == DataRowState.DELETED) {
+                message = "Country has already been deleted";
+            } else {
+                String name = dao.getName();
+                if (name.isEmpty()) {
+                    message = "Country name not defined";
+                } else if (name.length() > MAX_LENGTH_NAME) {
+                    message = "Name too long";
+                } else {
+                    Locale locale = dao.getLocale();
+                    if (null == locale) {
+                        message = "Locale not defined";
+                    } else if (locale.getDisplayCountry().isEmpty()) {
+                        message = "Locale does not specify a country";
+                    } else if (locale.getDisplayLanguage().isEmpty()) {
+                        message = "Locale does not specify a language";
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+            if (dao.getRowState() == DataRowState.NEW) {
+                return CountryEvent.createInsertInvalidEvent(target, this, message);
+            }
+            return CountryEvent.createUpdateInvalidEvent(target, this, message);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> T createDeleteRequestEvent(CountryModel model, Object source) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#createDeleteRequestEvent
+        @SuppressWarnings("unchecked")
+        public CountryOpRequestEvent createEditRequestEvent(CountryModel model, Object source) {
+            return new CountryOpRequestEvent(model, source, false);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> EventType<T> getBaseRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#getBaseRequestEventType
+        @SuppressWarnings("unchecked")
+        public CountryOpRequestEvent createDeleteRequestEvent(CountryModel model, Object source) {
+            return new CountryOpRequestEvent(model, source, true);
         }
 
         @Override
-        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> EventType<T> getEditRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#getEditRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<CountryOpRequestEvent> getBaseRequestEventType() {
+            return CountryOpRequestEvent.COUNTRY_OP_REQUEST;
         }
 
         @Override
-        public <T extends OperationRequestEvent<CountryDAO, CountryModel>> EventType<T> getDeleteRequestEventType() {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel.Factory#getDeleteRequestEventType
+        @SuppressWarnings("unchecked")
+        public EventType<CountryOpRequestEvent> getEditRequestEventType() {
+            return CountryOpRequestEvent.EDIT_REQUEST;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public EventType<CountryOpRequestEvent> getDeleteRequestEventType() {
+            return CountryOpRequestEvent.DELETE_REQUEST;
         }
 
     }

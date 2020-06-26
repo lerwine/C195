@@ -438,7 +438,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @Override
-    public FxRecordModel.ModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
         return UserModel.FACTORY;
     }
 
