@@ -29,6 +29,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.CityEvent;
+import scheduler.events.CityFailedEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
@@ -412,8 +413,11 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected CityEvent validate(Connection connection) throws Exception {
-            // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
-            CityDAO dao = ICityDAO.assertValidCity(getDataAccessObject());
+            CityEvent saveEvent = CityModel.FACTORY.validateForSave(this);
+            if (null != saveEvent && saveEvent instanceof CityFailedEvent) {
+                return saveEvent;
+            }
+            CityDAO dao = getDataAccessObject();
             StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CITY_ID.getDbName())
                     .append(") FROM ").append(DbTable.CITY.getDbName())
                     .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())

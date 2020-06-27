@@ -26,6 +26,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
+import scheduler.events.AddressFailedEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
 import scheduler.model.Address;
@@ -419,6 +420,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
+        private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
+        private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
 
         public SaveTask(RecordModelContext<AddressDAO, AddressModel> target, boolean alreadyValidated) {
             super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
@@ -434,8 +437,11 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected AddressEvent validate(Connection connection) throws Exception {
-            // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
-            AddressDAO dao = IAddressDAO.assertValidAddress(getDataAccessObject());
+            AddressEvent saveEvent = AddressModel.FACTORY.validateForSave(this);
+            if (null != saveEvent && saveEvent instanceof AddressFailedEvent) {
+                return saveEvent;
+            }
+            AddressDAO dao = getDataAccessObject();
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
                     .append(") FROM ").append(DbTable.ADDRESS.getDbName())
                     .append(" WHERE ").append(DbColumn.ADDRESS_CITY.getDbName()).append("=?");
@@ -532,8 +538,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
             return null;
         }
-        private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
-        private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
 
         @Override
         protected AddressEvent createFaultedEvent() {

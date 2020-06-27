@@ -26,6 +26,7 @@ import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
 import scheduler.events.CustomerEvent;
+import scheduler.events.CustomerFailedEvent;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
@@ -382,6 +383,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     }
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
@@ -398,9 +400,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        protected CustomerEvent validate(Connection connection) throws Exception {
-            // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
-            CustomerDAO dao = ICustomerDAO.assertValidCustomer(getDataAccessObject());
+        public CustomerEvent validate(Connection connection) throws Exception {
+            CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(this);
+            if (null != saveEvent && saveEvent instanceof CustomerFailedEvent) {
+                return saveEvent;
+            }
+            CustomerDAO dao = getDataAccessObject();
             StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
                     .append(") FROM ").append(DbTable.CUSTOMER.getDbName()).append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME.getDbName()).append(")=?");
             if (getOriginalRowState() != DataRowState.NEW) {
