@@ -21,6 +21,7 @@ import scheduler.events.CountryEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -120,7 +121,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new CountryDAO.DeleteTask(item, false));
+            MainController.startBusyTaskNow(new CountryDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

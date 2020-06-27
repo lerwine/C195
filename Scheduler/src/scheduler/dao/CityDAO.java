@@ -34,6 +34,7 @@ import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
@@ -383,12 +384,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         public SaveDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createSaveTask(CityDAO dao) {
-            return new SaveTask(dao, false);
+            return new SaveTask(RecordModelContext.of(dao), false);
         }
 
         @Override
         public DeleteDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createDeleteTask(CityDAO dao) {
-            return new DeleteTask(dao, false);
+            return new DeleteTask(RecordModelContext.of(dao), false);
         }
 
     }
@@ -397,12 +398,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
 
-        public SaveTask(CityModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
-        }
-
-        public SaveTask(CityDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public SaveTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
+            super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -467,9 +464,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                         CountryItem<? extends ICountryDAO> cm;
                         CountryDAO.SaveTask saveTask;
                         if (null != model && null != (cm = model.getCountry()) && cm instanceof CountryModel) {
-                            saveTask = new CountryDAO.SaveTask((CountryModel) cm, false);
+                            saveTask = new CountryDAO.SaveTask(RecordModelContext.of((CountryModel) cm), false);
                         } else {
-                            saveTask = new CountryDAO.SaveTask((CountryDAO) c, false);
+                            saveTask = new CountryDAO.SaveTask(RecordModelContext.of((CountryDAO) c), false);
                         }
                         saveTask.run();
                         CountryEvent event = saveTask.get();
@@ -508,12 +505,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     public static class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
 
-        public DeleteTask(CityModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
-        }
-
-        public DeleteTask(CityDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
+            super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

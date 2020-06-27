@@ -26,6 +26,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.UserEvent;
@@ -35,6 +36,7 @@ import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerItem;
@@ -794,12 +796,12 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         public SaveDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createSaveTask(AppointmentDAO dao) {
-            return new SaveTask(dao, false);
+            return new SaveTask(RecordModelContext.of(dao), false);
         }
 
         @Override
         public DeleteDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createDeleteTask(AppointmentDAO dao) {
-            return new DeleteTask(dao, false);
+            return new DeleteTask(RecordModelContext.of(dao), false);
         }
 
     }
@@ -808,12 +810,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
 //        private CustomerDAO.SaveTask customerTask;
 //        private UserDAO.SaveTask userTask;
-        public SaveTask(AppointmentModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
-        }
-
-        public SaveTask(AppointmentDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
+        public SaveTask(RecordModelContext<AppointmentDAO, AppointmentModel> target, boolean alreadyValidated) {
+            super(target, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -826,8 +824,12 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected AppointmentEvent validate(Connection connection) throws Exception {
+            AppointmentEvent event = AppointmentModel.FACTORY.validateForSave(this);
+            if (null != event && event instanceof AppointmentFailedEvent) {
+                return event;
+            }
             // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
-            AppointmentDAO appointment = IAppointmentDAO.assertValidAppointment(getDataAccessObject());
+            AppointmentDAO appointment = getDataAccessObject();
             ICustomerDAO c = appointment.customer;
             if (c instanceof CustomerDAO) {
                 switch (c.getRowState()) {
@@ -837,18 +839,18 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                         CustomerItem<? extends ICustomerDAO> cm;
                         CustomerDAO.SaveTask saveTask;
                         if (null != model && null != (cm = model.getCustomer()) && cm instanceof CustomerModel) {
-                            saveTask = new CustomerDAO.SaveTask((CustomerModel) cm, false);
+                            saveTask = new CustomerDAO.SaveTask(RecordModelContext.of((CustomerModel) cm), false);
                         } else {
                             cm = null;
-                            saveTask = new CustomerDAO.SaveTask((CustomerDAO) c, false);
+                            saveTask = new CustomerDAO.SaveTask(RecordModelContext.of((CustomerDAO) c), false);
                         }
                         saveTask.run();
-                        CustomerEvent event = saveTask.get();
-                        if (null != event && event instanceof CustomerFailedEvent) {
+                        CustomerEvent customerEvent = saveTask.get();
+                        if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
-                                return AppointmentEvent.createInsertInvalidEvent(this, this, (CustomerFailedEvent) event);
+                                return AppointmentEvent.createInsertInvalidEvent(this, this, (CustomerFailedEvent) customerEvent);
                             }
-                            return AppointmentEvent.createUpdateInvalidEvent(this, this, (CustomerFailedEvent) event);
+                            return AppointmentEvent.createUpdateInvalidEvent(this, this, (CustomerFailedEvent) customerEvent);
                         }
                         break;
                     default:
@@ -864,17 +866,17 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                         UserItem<? extends IUserDAO> um;
                         UserDAO.SaveTask saveTask;
                         if (null != model && null != (um = model.getUser()) && um instanceof UserModel) {
-                            saveTask = new UserDAO.SaveTask((UserModel) um, false);
+                            saveTask = new UserDAO.SaveTask(RecordModelContext.of((UserModel) um), false);
                         } else {
-                            saveTask = new UserDAO.SaveTask((UserDAO) u, false);
+                            saveTask = new UserDAO.SaveTask(RecordModelContext.of((UserDAO) u), false);
                         }
                         saveTask.run();
-                        UserEvent event = saveTask.get();
-                        if (null != event && event instanceof UserFailedEvent) {
+                        UserEvent userEvent = saveTask.get();
+                        if (null != userEvent && userEvent instanceof UserFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
-                                return AppointmentEvent.createInsertInvalidEvent(this, this, (UserFailedEvent) event);
+                                return AppointmentEvent.createInsertInvalidEvent(this, this, (UserFailedEvent) userEvent);
                             }
-                            return AppointmentEvent.createUpdateInvalidEvent(this, this, (UserFailedEvent) event);
+                            return AppointmentEvent.createUpdateInvalidEvent(this, this, (UserFailedEvent) userEvent);
                         }
                         break;
                     default:
@@ -905,12 +907,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     public static class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
-        public DeleteTask(AppointmentModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
-        }
-
-        public DeleteTask(AppointmentDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(RecordModelContext<AppointmentDAO, AppointmentModel> target, boolean alreadyValidated) {
+            super(target, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

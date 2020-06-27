@@ -22,6 +22,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.UserEvent;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.FxRecordModel;
@@ -331,24 +332,20 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         public SaveDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createSaveTask(UserDAO dao) {
-            return new SaveTask(dao, false);
+            return new SaveTask(RecordModelContext.of(dao), false);
         }
 
         @Override
         public DeleteDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createDeleteTask(UserDAO dao) {
-            return new DeleteTask(dao, false);
+            return new DeleteTask(RecordModelContext.of(dao), false);
         }
 
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
 
-        public SaveTask(UserModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
-        }
-
-        public SaveTask(UserDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public SaveTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
+            super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -423,12 +420,8 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     public static class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
 
-        public DeleteTask(UserModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
-        }
-
-        public DeleteTask(UserDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
+            super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

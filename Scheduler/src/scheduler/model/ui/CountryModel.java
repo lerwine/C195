@@ -186,16 +186,16 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
         @Override
         public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel, CountryEvent> createSaveTask(CountryModel model) {
-            return new CountryDAO.SaveTask(model, false);
+            return new CountryDAO.SaveTask(RecordModelContext.of(model), false);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> createDeleteTask(CountryModel model) {
-            return new CountryDAO.DeleteTask(model, false);
+            return new CountryDAO.DeleteTask(RecordModelContext.of(model), false);
         }
 
         @Override
-        protected CountryEvent validateForSave(RecordModelContext<CountryDAO, CountryModel> target) {
+        public CountryEvent validateForSave(RecordModelContext<CountryDAO, CountryModel> target) {
             CountryDAO dao = target.getDataAccessObject();
             String message;
             if (dao.getRowState() == DataRowState.DELETED) {

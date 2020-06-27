@@ -30,6 +30,7 @@ import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
@@ -370,24 +371,22 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public SaveDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createSaveTask(CustomerDAO dao) {
-            return new SaveTask(dao, false);
+            return new SaveTask(RecordModelContext.of(dao), false);
         }
 
         @Override
         public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
-            return new DeleteTask(dao, false);
+            return new DeleteTask(RecordModelContext.of(dao), false);
         }
 
     }
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+        private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
+        private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
-        public SaveTask(CustomerModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
-        }
-
-        public SaveTask(CustomerDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+        public SaveTask(RecordModelContext<CustomerDAO, CustomerModel> target, boolean alreadyValidated) {
+            super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -444,9 +443,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                         CustomerModel model = getFxRecordModel();
                         AddressItem<? extends IAddressDAO> am;
                         if (null != model && null != (am = model.getAddress()) && am instanceof AddressModel) {
-                            saveTask = new AddressDAO.SaveTask((AddressModel) am, false);
+                            saveTask = new AddressDAO.SaveTask(RecordModelContext.of((AddressModel) am), false);
                         } else {
-                            saveTask = new AddressDAO.SaveTask((AddressDAO) address, false);
+                            saveTask = new AddressDAO.SaveTask(RecordModelContext.of((AddressDAO) address), false);
                         }
                         saveTask.run();
                         AddressEvent event = saveTask.get();
@@ -463,8 +462,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             }
             return null;
         }
-        private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
-        private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
         @Override
         protected CustomerEvent createFaultedEvent() {
@@ -490,12 +487,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private static final String REFERENCED_BY_N = "Customer is referenced by %d other appointments.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(CustomerModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
-        }
-
-        public DeleteTask(CustomerDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(RecordModelContext<CustomerDAO, CustomerModel> target, boolean alreadyValidated) {
+            super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

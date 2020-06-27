@@ -42,6 +42,7 @@ import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
@@ -177,7 +178,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
             if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(new CityDAO.DeleteTask(event.getFxRecordModel(), false));
+                waitBorderPane.startNow(new CityDAO.DeleteTask(event, false));
             }
         }
     }
@@ -250,7 +251,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new CityDAO.DeleteTask(item, false));
+            waitBorderPane.startNow(new CityDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

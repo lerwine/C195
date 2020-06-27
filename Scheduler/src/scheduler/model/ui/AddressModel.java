@@ -447,16 +447,16 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         @Override
         public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
-            return new AddressDAO.SaveTask(model, false);
+            return new AddressDAO.SaveTask(RecordModelContext.of(model), false);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(AddressModel model) {
-            return new AddressDAO.DeleteTask(model, false);
+            return new AddressDAO.DeleteTask(RecordModelContext.of(model), false);
         }
 
         @Override
-        protected AddressEvent validateForSave(RecordModelContext<AddressDAO, AddressModel> target) {
+        public AddressEvent validateForSave(RecordModelContext<AddressDAO, AddressModel> target) {
             AddressDAO dao = target.getDataAccessObject();
             String message;
             if (dao.getRowState() == DataRowState.DELETED) {

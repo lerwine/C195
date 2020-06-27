@@ -58,6 +58,7 @@ import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
@@ -215,6 +216,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, this::onCustomerInserted);
     }
 
+    // FIXME: The method onCustomerUpdating(CustomerSuccessEvent) from the type EditCustomer is never used locally
     private void onCustomerUpdating(CustomerSuccessEvent event) {
         model.setName(nameTextField.getText().trim());
         if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
@@ -299,7 +301,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(item, false));
+            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 
@@ -497,6 +499,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
     }
 
+    // FIXME: The method onCustomerUpdate(CustomerEvent) from the type EditCustomer is never used locally
     private void onCustomerUpdate(CustomerEvent event) {
         AddressModel address = selectedAddress.get();
         int existingCount = addressCustomerCount.get();
@@ -881,7 +884,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     }
 
-    // See if this class should be moved or deleted
+    // FIXME: The type EditCustomer.AddressCustomerLoadTask is never used locally
     private class AddressCustomerLoadTask extends Task<Integer> {
 
         private final IAddressDAO address;

@@ -2,30 +2,8 @@ package scheduler.model;
 
 import java.util.Objects;
 import java.util.function.Function;
-import scheduler.dao.AddressDAO;
-import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CityDAO;
-import scheduler.dao.CountryDAO;
-import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICountryDAO;
-import scheduler.dao.ICustomerDAO;
-import scheduler.dao.IUserDAO;
-import scheduler.dao.UserDAO;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryItem;
-import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
-import scheduler.model.ui.UserItem;
-import scheduler.model.ui.UserModel;
 
 /**
  * An object that specifies a {@link DataAccessObject} and may also specify the associated {@link FxRecordModel}.
@@ -56,12 +34,14 @@ public interface RecordModelContext<D extends DataAccessObject, M extends FxReco
     public static <D extends DataAccessObject, M extends FxRecordModel<D>> RecordModelContext<D, M> of(D dataAccessObject) {
         return () -> dataAccessObject;
     }
+
     /**
      * Gets the target {@link DataAccessObject}.
      *
      * @return The target {@link DataAccessObject}.
      */
     D getDataAccessObject();
+
     /**
      * Gets the {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
      *
@@ -70,6 +50,7 @@ public interface RecordModelContext<D extends DataAccessObject, M extends FxReco
     default M getFxRecordModel() {
         return null;
     }
+
     default <T> T applyModel(Function<M, T> ifModelPresent, Function<D, T> otherwise) {
         M m = getFxRecordModel();
         if (null == m) {

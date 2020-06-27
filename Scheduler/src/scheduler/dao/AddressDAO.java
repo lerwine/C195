@@ -31,6 +31,7 @@ import scheduler.events.CityFailedEvent;
 import scheduler.model.Address;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
@@ -407,24 +408,20 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public SaveDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createSaveTask(AddressDAO dao) {
-            return new SaveTask(dao, false);
+            return new SaveTask(RecordModelContext.of(dao), false);
         }
 
         @Override
         public DeleteDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createDeleteTask(AddressDAO dao) {
-            return new DeleteTask(dao, false);
+            return new DeleteTask(RecordModelContext.of(dao), false);
         }
 
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
 
-        public SaveTask(AddressModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
-        }
-
-        public SaveTask(AddressDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+        public SaveTask(RecordModelContext<AddressDAO, AddressModel> target, boolean alreadyValidated) {
+            super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -515,9 +512,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                         AddressModel model = getFxRecordModel();
                         CityItem<? extends ICityDAO> cm;
                         if (null != model && null != (cm = model.getCity()) && cm instanceof CityModel) {
-                            saveTask = new CityDAO.SaveTask((CityModel) cm, false);
+                            saveTask = new CityDAO.SaveTask(RecordModelContext.of((CityModel) cm), false);
                         } else {
-                            saveTask = new CityDAO.SaveTask((CityDAO) city, false);
+                            saveTask = new CityDAO.SaveTask(RecordModelContext.of((CityDAO) city), false);
                         }
                         saveTask.run();
                         CityEvent event = saveTask.get();
@@ -562,12 +559,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private static final String REFERENCED_BY_ONE = "Address is referenced by one customer.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(AddressModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
-        }
-
-        public DeleteTask(AddressDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(RecordModelContext<AddressDAO, AddressModel> target, boolean alreadyValidated) {
+            super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

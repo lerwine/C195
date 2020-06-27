@@ -22,6 +22,7 @@ import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.AlertHelper;
 import static scheduler.util.NodeUtil.bindExtents;
@@ -161,7 +162,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new CustomerDAO.DeleteTask(item, false));
+            MainController.startBusyTaskNow(new CustomerDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

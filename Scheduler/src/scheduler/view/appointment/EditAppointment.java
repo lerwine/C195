@@ -228,6 +228,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
     }
 
+    // FIXME: The method onAppointmentUpdating(AppointmentSuccessEvent) from the type EditAppointment is never used locally
     private void onAppointmentUpdating(AppointmentSuccessEvent event) {
         throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
     }

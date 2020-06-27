@@ -798,16 +798,16 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Creates a new {@code DaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
          *
-         * @param fxRecordModel The {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
+         * @param target The {@link RecordModelContext} that contains the target {@link DataAccessObject}.
          * @param anyEventType The base {@link EventType} for all events that may be produced.
          */
-        protected DaoTask(M fxRecordModel, EventType<E> anyEventType) {
+        protected DaoTask(RecordModelContext<D, M> target, EventType<E> anyEventType) {
             Objects.requireNonNull(anyEventType);
-            dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", fxRecordModel.dataObject());
-            this.fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", fxRecordModel);
+            dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", target.getDataAccessObject());
+            this.fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", target.getFxRecordModel());
             originalRowState = dataAccessObject.get().getRowState();
-            finalEvent = new ReadOnlyObjectWrapper<>(null);
-            onFinished = new SimpleObjectProperty<>(null);
+            finalEvent = new ReadOnlyObjectWrapper<>(this, "finalEvent", null);
+            onFinished = new SimpleObjectProperty<>(this, "onFinished", null);
             onFinished.addListener((observable, oldValue, newValue) -> {
                 try {
                     if (null != oldValue) {
@@ -821,31 +821,31 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             });
         }
 
-        /**
-         * Creates a new {@code DaoTask} for a {@link DataAccessObject}.
-         *
-         * @param dataAccessObject The target {@link DataAccessObject}.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
-         */
-        protected DaoTask(D dataAccessObject, EventType<E> anyEventType) {
-            Objects.requireNonNull(anyEventType);
-            this.dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", Objects.requireNonNull(dataAccessObject));
-            fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", null);
-            originalRowState = dataAccessObject.getRowState();
-            finalEvent = new ReadOnlyObjectWrapper<>(null);
-            onFinished = new SimpleObjectProperty<>(null);
-            onFinished.addListener((observable, oldValue, newValue) -> {
-                try {
-                    if (null != oldValue) {
-                        removeEventHandler(anyEventType, oldValue);
-                    }
-                } finally {
-                    if (null != newValue) {
-                        addEventHandler(anyEventType, newValue);
-                    }
-                }
-            });
-        }
+//        /**
+//         * Creates a new {@code DaoTask} for a {@link DataAccessObject}.
+//         *
+//         * @param dataAccessObject The target {@link DataAccessObject}.
+//         * @param anyEventType The base {@link EventType} for all events that may be produced.
+//         */
+//        protected DaoTask(D dataAccessObject, EventType<E> anyEventType) {
+//            Objects.requireNonNull(anyEventType);
+//            this.dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", Objects.requireNonNull(dataAccessObject));
+//            fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", null);
+//            originalRowState = dataAccessObject.getRowState();
+//            finalEvent = new ReadOnlyObjectWrapper<>(null);
+//            onFinished = new SimpleObjectProperty<>(null);
+//            onFinished.addListener((observable, oldValue, newValue) -> {
+//                try {
+//                    if (null != oldValue) {
+//                        removeEventHandler(anyEventType, oldValue);
+//                    }
+//                } finally {
+//                    if (null != newValue) {
+//                        addEventHandler(anyEventType, newValue);
+//                    }
+//                }
+//            });
+//        }
 
         /**
          * Gets the target {@link DataAccessObject}.
@@ -1032,36 +1032,36 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Creates a new {@code ValidationDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
          *
-         * @param fxRecordModel The {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
+         * @param target The {@link RecordModelContext} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
          * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
          * perform validation.
          */
-        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(fxRecordModel, anyEventType);
+        protected ValidatingDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(target, anyEventType);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
             validationSuccessful = skipValidation;
             validationFailed = new ReadOnlyBooleanWrapper(!skipValidation);
         }
 
-        /**
-         * Creates a new {@code ValidationDaoTask} for a {@link DataAccessObject}.
-         *
-         * @param dataAccessObject The target {@link DataAccessObject}.
-         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
-         * perform validation.
-         */
-        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(dataAccessObject, anyEventType);
-            this.daoFactory = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(daoFactory));
-            this.modelFactory = new ReadOnlyObjectWrapper<>(null);
-            validationSuccessful = skipValidation;
-            validationFailed = new ReadOnlyBooleanWrapper(false);
-        }
+//        /**
+//         * Creates a new {@code ValidationDaoTask} for a {@link DataAccessObject}.
+//         *
+//         * @param dataAccessObject The target {@link DataAccessObject}.
+//         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
+//         * @param anyEventType The base {@link EventType} for all events that may be produced.
+//         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
+//         * perform validation.
+//         */
+//        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
+//            super(dataAccessObject, anyEventType);
+//            this.daoFactory = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(daoFactory));
+//            this.modelFactory = new ReadOnlyObjectWrapper<>(null);
+//            validationSuccessful = skipValidation;
+//            validationFailed = new ReadOnlyBooleanWrapper(false);
+//        }
 
         /**
          * Gets a value indicating whether validation has failed.
@@ -1152,32 +1152,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Creates a new {@code SaveDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
          *
-         * @param fxRecordModel The {@link FxRecordModel} that wraps the {@link DataAccessObject} to be saved.
+         * @param target The {@link RecordModelContext} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
          * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
          * perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(fxRecordModel, modelFactory, anyEventType, skipValidation);
-            if (getOriginalRowState() == DataRowState.DELETED) {
-                throw new IllegalArgumentException("Record was already deleted");
-            }
-        }
-
-        /**
-         * Creates a new {@code SaveDaoTask} for a {@link DataAccessObject}.
-         *
-         * @param dataAccessObject The {@link DataAccessObject} to be saved.
-         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
-         * perform validation.
-         * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
-         */
-        protected SaveDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(dataAccessObject, daoFactory, anyEventType, skipValidation);
+        protected SaveDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(target, modelFactory, anyEventType, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
             }
@@ -1336,7 +1319,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Creates a new {@code DeleteDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
          *
-         * @param fxRecordModel The {@link FxRecordModel} that wraps the {@link DataAccessObject} to be deleted.
+         * @param target The {@link RecordModelContext} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
          * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
@@ -1344,29 +1327,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(fxRecordModel, modelFactory, anyEventType, skipValidation);
-            switch (getOriginalRowState()) {
-                case DELETED:
-                    throw new IllegalArgumentException("Record was already deleted");
-                case NEW:
-                    throw new IllegalArgumentException("Record was never saved");
-            }
-        }
-
-        /**
-         * Creates a new {@code DeleteDaoTask} for a {@link DataAccessObject}.
-         *
-         * @param dataAccessObject The {@link DataAccessObject} to be deleted.
-         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
-         * perform validation.
-         * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or {@link DataRowState#NEW}.
-         */
-        @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(dataAccessObject, daoFactory, anyEventType, skipValidation);
+        protected DeleteDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+            super(target, modelFactory, anyEventType, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:
                     throw new IllegalArgumentException("Record was already deleted");

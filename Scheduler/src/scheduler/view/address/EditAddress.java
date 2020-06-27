@@ -52,6 +52,7 @@ import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
@@ -262,7 +263,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new CustomerDAO.DeleteTask(item, false));
+            waitBorderPane.startNow(new CustomerDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

@@ -50,6 +50,7 @@ import scheduler.events.CitySuccessEvent;
 import scheduler.fx.TimeZoneListCellFactory;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
@@ -370,7 +371,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AddressDAO.DeleteTask(item, false));
+            waitBorderPane.startNow(new AddressDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

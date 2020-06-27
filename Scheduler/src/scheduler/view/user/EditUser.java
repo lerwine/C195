@@ -46,6 +46,7 @@ import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
+import scheduler.model.RecordModelContext;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;
@@ -221,7 +222,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(item, false));
+            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

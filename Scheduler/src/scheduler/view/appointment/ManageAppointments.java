@@ -44,6 +44,7 @@ import scheduler.events.AppointmentSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityItem;
@@ -499,7 +500,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(item, false));
+            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

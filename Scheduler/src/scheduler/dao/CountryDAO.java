@@ -24,6 +24,7 @@ import scheduler.events.CountryEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
@@ -282,24 +283,20 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         public SaveDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createSaveTask(CountryDAO dao) {
-            return new SaveTask(dao, false);
+            return new SaveTask(RecordModelContext.of(dao), false);
         }
 
         @Override
         public DeleteDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createDeleteTask(CountryDAO dao) {
-            return new DeleteTask(dao, false);
+            return new DeleteTask(RecordModelContext.of(dao), false);
         }
 
     }
 
     public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
-        public SaveTask(CountryModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
-        }
-
-        public SaveTask(CountryDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+        public SaveTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
+            super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
@@ -376,12 +373,8 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     public static class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
-        public DeleteTask(CountryModel fxRecordModel, boolean alreadyValidated) {
-            super(fxRecordModel, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
-        }
-
-        public DeleteTask(CountryDAO dataAccessObject, boolean alreadyValidated) {
-            super(dataAccessObject, FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
+            super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override

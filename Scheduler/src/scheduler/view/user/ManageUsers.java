@@ -21,6 +21,7 @@ import scheduler.dao.UserDAO;
 import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.fx.MainListingControl;
+import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
@@ -158,7 +159,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new UserDAO.DeleteTask(item, false));
+            MainController.startBusyTaskNow(new UserDAO.DeleteTask(RecordModelContext.of(item), false));
         }
     }
 

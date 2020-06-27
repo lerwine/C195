@@ -27,7 +27,6 @@ import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.DbOperationType;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.model.ModelHelper;
@@ -310,10 +309,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public E createDbOperationEvent(M model, Object source, EventTarget target, DbOperationType operation) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Remove or replace scheduler.fx.FxRecordModel.FxModelFactory#createDbOperationEvent
-        }
-
         public abstract <T extends OperationRequestEvent<D, M>> T createEditRequestEvent(M model, Object source);
 
         public abstract <T extends OperationRequestEvent<D, M>> T createDeleteRequestEvent(M model, Object source);
@@ -383,7 +378,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @param target The {@link RecordModelContext} containing the {@link DataAccessObject} being inserted or updated in the database.
          * @return The {@link ModelEvent} representing the validation results, which may be {@code null} if there are no validation errors.
          */
-        protected abstract ModelEvent<D, M> validateForSave(RecordModelContext<D, M> target);
+        public abstract ModelEvent<D, M> validateForSave(RecordModelContext<D, M> target);
 
     }
 
