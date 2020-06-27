@@ -420,6 +420,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
+
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
 

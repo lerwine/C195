@@ -30,6 +30,7 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 
@@ -373,10 +374,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     public static class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
+
+        private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
+        
         public DeleteTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
             super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
-
         @Override
         protected CountryEvent createSuccessEvent() {
             return CountryEvent.createDeleteSuccessEvent(this, this);
@@ -384,29 +387,29 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent validate(Connection connection) throws Exception {
-//            CountryEvent event = task.getValidationEvent();
-//            Connection connection = task.getConnection();
-//            CountryDAO dao = task.getDataAccessObject();
-//            int count;
-//            try {
-//                count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                return;
-//            }
-//            switch (count) {
-//                case 0:
-//                    event.setSucceeded();
-//                    return;
-//                case 1:
-//                    event.setInvalid("Country in use", ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
-//                    break;
-//                default:
-//                    event.setInvalid("Country in use", ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
-//                    break;
-//            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.DeleteTask#validateForSave
+            CountryDAO dao = getDataAccessObject();
+            int count;
+            try {
+                count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
+                throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
+            }
+            switch (count) {
+                case 0:
+                    break;
+                case 1:
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return CountryEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                    }
+                    return CountryEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                default:
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return CountryEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+                    }
+                    return CountryEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+            }
+            return null;
         }
 
         @Override

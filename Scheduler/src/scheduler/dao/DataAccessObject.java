@@ -1045,24 +1045,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             validationSuccessful = skipValidation;
             validationFailed = new ReadOnlyBooleanWrapper(!skipValidation);
         }
-
-//        /**
-//         * Creates a new {@code ValidationDaoTask} for a {@link DataAccessObject}.
-//         *
-//         * @param dataAccessObject The target {@link DataAccessObject}.
-//         * @param daoFactory The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
-//         * @param anyEventType The base {@link EventType} for all events that may be produced.
-//         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
-//         * perform validation.
-//         */
-//        protected ValidatingDaoTask(D dataAccessObject, DaoFactory<D, E> daoFactory, EventType<E> anyEventType, boolean skipValidation) {
-//            super(dataAccessObject, anyEventType);
-//            this.daoFactory = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(daoFactory));
-//            this.modelFactory = new ReadOnlyObjectWrapper<>(null);
-//            validationSuccessful = skipValidation;
-//            validationFailed = new ReadOnlyBooleanWrapper(false);
-//        }
-
+        
         /**
          * Gets a value indicating whether validation has failed.
          *

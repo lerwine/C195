@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -21,6 +22,7 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.UserEvent;
+import scheduler.events.UserFailedEvent;
 import scheduler.model.ModelHelper;
 import scheduler.model.RecordModelContext;
 import scheduler.model.User;
@@ -343,6 +345,8 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
+        private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
+        private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
 
         public SaveTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
             super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
@@ -358,46 +362,42 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
-//            UserEvent event = task.getValidationEvent();
-//            UserDAO dao;
-//            try {
-//                dao = IUserDAO.assertValidUser(event.getDataAccessObject());
-//            } catch (IllegalArgumentException | IllegalStateException ex) {
-//                event.setFaulted("Invalid User", ex.getMessage(), ex);
-//                return;
-//            }
-//            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
-//                    .append(") FROM ").append(DbTable.USER.getDbName()).append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?");
-//            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-//                sb.append(" AND ").append(DbColumn.USER_ID.getDbName()).append("<>?");
-//            }
-//            int count;
-//            String sql = sb.toString();
-//            Connection connection = task.getConnection();
-//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-//                ps.setString(1, dao.getUserName());
-//                ps.setInt(2, dao.getPrimaryKey());
-//                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-//                try (ResultSet rs = ps.executeQuery()) {
-//                    if (rs.next()) {
-//                        count = rs.getInt(1);
-//                    } else {
-//                        LogHelper.logWarnings(connection, LOG);
-//                        throw new SQLException("Unexpected lack of results from database query");
-//                    }
-//                    LogHelper.logWarnings(connection, LOG);
-//                }
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error user naming conflicts", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                return;
-//            }
-//            if (count > 0) {
-//                event.setInvalid("User name already in use", "Another user has the same name");
-//            } else {
-//                event.setSucceeded();
-//            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#validate
+            UserEvent saveEvent = UserModel.FACTORY.validateForSave(this);
+            if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
+                return saveEvent;
+            }
+            UserDAO dao = getDataAccessObject();
+            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
+                    .append(") FROM ").append(DbTable.USER.getDbName()).append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?");
+            if (getOriginalRowState() != DataRowState.NEW) {
+                sb.append(" AND ").append(DbColumn.USER_ID.getDbName()).append("<>?");
+            }
+            int count;
+            String sql = sb.toString();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, dao.getUserName());
+                ps.setInt(2, dao.getPrimaryKey());
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        LogHelper.logWarnings(connection, LOG);
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
+                throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
+            }
+            if (count > 0) {
+                if (getOriginalRowState() == DataRowState.NEW) {
+                    return UserEvent.createInsertInvalidEvent(this, this, ANOTHER_USER_HAS_SAME_NAME);
+                }
+                return UserEvent.createUpdateInvalidEvent(this, this, ANOTHER_USER_HAS_SAME_NAME);
+            }
+            return null;
         }
 
         @Override
@@ -420,6 +420,11 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     public static class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
 
+        private static final String CANNOT_DELETE_YOUR_OWN_ACCOUNT = "Cannot delete your own account";
+        private static final String REFERENCED_BY_N = "Address is referenced by %d other appointments";
+        private static final String REFERENCED_BY_ONE = "Address is referenced by one appointment.";
+        private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
+
         public DeleteTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
             super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
@@ -431,34 +436,36 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
-//            UserEvent event = task.getValidationEvent();
-//            UserDAO dao = event.getDataAccessObject();
-//            if (dao == Scheduler.getCurrentUser()) {
-//                event.setInvalid("Self-delete", "Cannot delete the current user");
-//                return;
-//            }
-//
-//            int count;
-//            try {
-//                count = AppointmentDAO.FACTORY.countByUser(task.getConnection(), dao.getPrimaryKey(), null, null);
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error checking dependencies", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                Platform.runLater(() -> Event.fireEvent(dao, event));
-//                return;
-//            }
-//            switch (count) {
-//                case 0:
-//                    event.setSucceeded();
-//                    return;
-//                case 1:
-//                    event.setInvalid("User in use", "User is referenced by one appointment.");
-//                    break;
-//                default:
-//                    event.setInvalid("User in use", String.format("User is referenced by %d other appointments", count));
-//                    break;
-//            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.DeleteTask#validate
+            UserDAO dao = getDataAccessObject();
+            if (dao == Scheduler.getCurrentUser()) {
+                if (getOriginalRowState() == DataRowState.NEW) {
+                    return UserEvent.createInsertInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
+                }
+                return UserEvent.createUpdateInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
+            }
+
+            int count;
+            try {
+                count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
+                throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
+            }
+            switch (count) {
+                case 0:
+                    break;
+                case 1:
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return UserEvent.createInsertInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    }
+                    return UserEvent.createUpdateInvalidEvent(this, this, REFERENCED_BY_ONE);
+                default:
+                    if (getOriginalRowState() == DataRowState.NEW) {
+                        return UserEvent.createInsertInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    }
+                    return UserEvent.createUpdateInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+            }
+            return null;
         }
 
         @Override

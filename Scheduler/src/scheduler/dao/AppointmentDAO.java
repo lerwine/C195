@@ -828,7 +828,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             if (null != event && event instanceof AppointmentFailedEvent) {
                 return event;
             }
-            // FIXME: Replace #validateForSave and assertValid* with common validation method that returns event
+
             AppointmentDAO appointment = getDataAccessObject();
             ICustomerDAO c = appointment.customer;
             if (c instanceof CustomerDAO) {
@@ -918,7 +918,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected AppointmentEvent validate(Connection connection) throws Exception {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.DeleteTask#validateForSave
+            return null;
         }
 
         @Override
