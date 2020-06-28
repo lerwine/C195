@@ -198,7 +198,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                     if (t == ButtonType.YES) {
                         DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(RecordModelContext.of(model));
                         task.setOnSucceeded((e) -> {
-                            if (e instanceof ModelFailedEvent) {
+                            E result = task.getValue();
+                            if (result instanceof ModelFailedEvent) {
                                 // FIXME: need to display message to user.
                             } else {
                                 getScene().getWindow().hide();
@@ -211,34 +212,28 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     }
 
     @FXML
+    @SuppressWarnings("incomplete-switch")
     void onSaveButtonAction(ActionEvent event) {
         editorRegion.applyChanges();
-        // FIXME: Make sure everyone's getting all events
         DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(RecordModelContext.of(model));
-        task.setOnFinished((e) -> {
-            // FIXME: Re-implement scheduler.view.EditItem#onSaveButtonAction
-//            switch (e.getStatus()) {
-//                case FAULTED:
-//                    // FIXME: Not sure if this is being presented in the WaitBorderPane
-//                    break;
-//                case INVALID:
-//                    // FIXME: Not sure if this is being presented in the WaitBorderPane
-//                    break;
-//                case SUCCEEDED:
-//                    switch (e.getOperation()) {
-//                        case DB_INSERT:
-//                            if (keepOpen) {
-//                                editorRegion.fireEvent(e);
-//                            } else {
-//                                getScene().getWindow().hide();
-//                            }
-//                            break;
-//                        case DB_UPDATE:
-//                            getScene().getWindow().hide();
-//                            break;
-//                    }
-//                    break;
-//            }
+        task.setOnSucceeded((e) -> {
+            E result = task.getValue();
+            if (result instanceof ModelFailedEvent) {
+                // FIXME: need to display message to user.
+            } else {
+                switch (result.getOperation()) {
+                    case DB_INSERT:
+                        if (keepOpen) {
+                            editorRegion.fireEvent(e);
+                        } else {
+                            getScene().getWindow().hide();
+                        }
+                        break;
+                    case DB_UPDATE:
+                        getScene().getWindow().hide();
+                        break;
+                }
+            }
         });
         waitBorderPane.startNow(task);
     }

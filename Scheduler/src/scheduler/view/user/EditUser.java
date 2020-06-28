@@ -142,6 +142,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
+    private WeakEventHandler<UserSuccessEvent> insertedHandler;
 
     public EditUser() {
         windowTitle = new ReadOnlyStringWrapper(this, "", "");
@@ -151,16 +152,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
-        // FIXME: Add weak listeners to model, instead
-        addEventHandler(UserSuccessEvent.INSERT_SUCCESS, this::onUserInserted);
-    }
-
-    private void onUserInserted(UserSuccessEvent event) {
-        changePasswordCheckBox.setDisable(false);
-        changePasswordCheckBox.setSelected(false);
-        restoreNode(appointmentsFilterComboBox);
-        restoreNode(appointmentsTableView);
-        initEditMode();
     }
 
     @FXML
@@ -308,11 +299,22 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             collapseNode(appointmentsFilterComboBox);
             collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
+            insertedHandler = new WeakEventHandler<>(this::onUserInserted);
+            model.addEventFilter(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
         } else {
             waitBorderPane.startNow(pane, new InitialLoadTask());
             initEditMode();
         }
         changePasswordCheckBoxChanged(changePasswordCheckBox.selectedProperty(), false, changePasswordCheckBox.isSelected());
+    }
+
+    private void onUserInserted(UserSuccessEvent event) {
+        model.removeEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        changePasswordCheckBox.setDisable(false);
+        changePasswordCheckBox.setSelected(false);
+        restoreNode(appointmentsFilterComboBox);
+        restoreNode(appointmentsTableView);
+        initEditMode();
     }
 
     private void updateValidation() {

@@ -200,6 +200,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML // fx:id="addAppointmentButtonBar"
     private ButtonBar addAppointmentButtonBar; // Value injected by FXMLLoader
+    private WeakEventHandler<CustomerSuccessEvent> insertedHandler;
 
     public EditCustomer() {
         addressCustomerCount = new ReadOnlyIntegerWrapper(this, "addressCustomerCount", 0);
@@ -213,8 +214,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-        // FIXME: Add weak listeners to model, instead
-        addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, this::onCustomerInserted);
     }
 
     // FIXME: The method onCustomerUpdating(CustomerSuccessEvent) from the type EditCustomer is never used locally
@@ -233,6 +232,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onCustomerInserted(CustomerSuccessEvent event) {
+        model.removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
         restoreNode(appointmentFilterComboBox);
         restoreNode(appointmentsTableView);
         restoreNode(addAppointmentButtonBar);
@@ -310,33 +310,19 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(AppointmentOpRequestEvent event) {
         if (event.isEdit()) {
-            // FIXME: Implement edit for scheduler.view.customer.EditCustomer#onItemActionRequest
+            try {
+                EditAppointment.edit(event.getFxRecordModel(), getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
         } else {
-            // FIXME: Implement delete for scheduler.view.customer.EditCustomer#onItemActionRequest
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(AppointmentModel.FACTORY.createDeleteTask(event));
+            }
         }
-//        AppointmentModel item;
-//        if (event.isConsumed() || null == (item = event.getModel())) {
-//            return;
-//        }
-//        switch (event.getOperation()) {
-//            case EDIT_REQUEST:
-//                try {
-//                    EditAppointment.edit(item, getScene().getWindow());
-//                } catch (IOException ex) {
-//                    LOG.log(Level.SEVERE, "Error opening child window", ex);
-//                }
-//                event.consume();
-//                break;
-//            case DELETE_REQUEST:
-//                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-//                if (response.isPresent() && response.get() == ButtonType.YES) {
-//                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
-//                }
-//                event.consume();
-//                break;
-//        }
     }
 
     @FXML
@@ -484,6 +470,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             collapseNode(addAppointmentButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
+            insertedHandler = new WeakEventHandler<>(this::onCustomerInserted);
+            model.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
         } else {
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());

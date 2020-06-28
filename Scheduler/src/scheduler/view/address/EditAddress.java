@@ -177,6 +177,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
     private BooleanBinding showEditCityControls;
+    private WeakEventHandler<AddressSuccessEvent> insertedHandler;
 
     public EditAddress() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -187,8 +188,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
-        // FIXME: Add weak listeners to model from init, instead
-        addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressInserted);
     }
 
     @Override
@@ -198,14 +197,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         model.setCity(selectedCity.get());
         model.setPostalCode(normalizedPostalCode.get());
         model.setPhone(normalizedPhone.get());
-    }
-
-    private void onAddressInserted(AddressEvent event) {
-        editingCity.set(false);
-        restoreNode(customersHeadingLabel);
-        restoreNode(customersTableView);
-        restoreNode(newCustomerButtonBar);
-        initializeEditMode();
     }
 
     @FXML
@@ -259,7 +250,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    // FIXME: Change arg type
     private void onDelete(RecordModelContext<CustomerDAO, CustomerModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
@@ -395,10 +385,21 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             editingCity.set(true);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
+            insertedHandler = new WeakEventHandler<>(this::onAddressInserted);
+            model.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
         } else {
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
         }
+    }
+
+    private void onAddressInserted(AddressSuccessEvent event) {
+        model.removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        editingCity.set(false);
+        restoreNode(customersHeadingLabel);
+        restoreNode(customersTableView);
+        restoreNode(newCustomerButtonBar);
+        initializeEditMode();
     }
 
     private void initializeEditMode() {

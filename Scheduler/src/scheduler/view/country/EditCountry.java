@@ -114,6 +114,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML // fx:id="newButtonBar"
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
+    private WeakEventHandler<CountrySuccessEvent> insertedHandler;
 
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper(this, "", "");
@@ -228,8 +229,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             collapseNode(citiesTableView);
             collapseNode(newButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
-            // FIXME: Add weak listeners to model, instead
-            addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
+            insertedHandler = new WeakEventHandler<>(this::onCountryInserted);
+            model.addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, insertedHandler);
         } else {
             initializeEditMode();
             WaitTitledPane pane = new WaitTitledPane();
@@ -257,15 +258,11 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCountryInserted(CountrySuccessEvent event) {
-        CountryModel m = event.getFxRecordModel();
-        if (null != m && m == model) {
-            restoreNode(citiesLabel);
-            restoreNode(citiesTableView);
-            restoreNode(newButtonBar);
-            // TODO: Use weak listeners on model, instead
-            removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
-            initializeEditMode();
-        }
+        model.removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, insertedHandler);
+        restoreNode(citiesLabel);
+        restoreNode(citiesTableView);
+        restoreNode(newButtonBar);
+        initializeEditMode();
     }
 
     private void initializeEditMode() {

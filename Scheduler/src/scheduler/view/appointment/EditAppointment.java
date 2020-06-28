@@ -20,6 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -41,6 +42,7 @@ import scheduler.Scheduler;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICustomerDAO;
@@ -50,6 +52,8 @@ import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentSuccessEvent;
+import scheduler.events.CustomerSuccessEvent;
+import scheduler.events.UserSuccessEvent;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
@@ -213,6 +217,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML // fx:id="dropdownOptionsAllRadioButton"
     private RadioButton dropdownOptionsAllRadioButton; // Value injected by FXMLLoader
+    private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
 
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -225,12 +230,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        // FIXME: Add weak listeners to model from init, instead
-        addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
-    }
-
-    private void onAppointmentInserted(AppointmentSuccessEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentInserted
     }
 
     @FXML
@@ -458,6 +457,44 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
         urlTextField.setText(model.getUrl());
         descriptionTextArea.setText(model.getDescription());
+        if (model.isNewRow()) {
+            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
+            insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
+            model.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        } else {
+            initializeEditMode();
+        }
+    }
+
+    private void onAppointmentInserted(AppointmentSuccessEvent event) {
+        model.removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        initializeEditMode();
+    }
+
+    private void initializeEditMode() {
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
+        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onUserDeleted));
+    }
+
+    private void onCustomerDeleted(CustomerSuccessEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        if (model.getRowState() != DataRowState.NEW) {
+            CustomerDAO dao = event.getDataAccessObject();
+            // XXX: See if we need to get/set model
+            int pk = dao.getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+        }
+    }
+
+    private void onUserDeleted(UserSuccessEvent event) {
+        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        if (model.getRowState() != DataRowState.NEW) {
+            UserDAO dao = event.getDataAccessObject();
+            // XXX: See if we need to get/set model
+            int pk = dao.getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+        }
     }
 
     public boolean applyChangesToModel() {
