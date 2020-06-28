@@ -154,12 +154,12 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     }
 
     @Override
-    protected void onDeleteItem(UserModel item) {
+    protected void onDeleteItem(RecordModelContext<UserDAO, UserModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new UserDAO.DeleteTask(RecordModelContext.of(item), false));
+            MainController.startBusyTaskNow(new UserDAO.DeleteTask(item, false));
         }
     }
 

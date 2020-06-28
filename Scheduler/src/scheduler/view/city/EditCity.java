@@ -228,6 +228,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML
     @SuppressWarnings("incomplete-switch")
     void onItemActionRequest(AddressOpRequestEvent event) {
+        if (event.isEdit()) {
+            // FIXME: Implement edit for scheduler.view.city.EditCity#onItemActionRequest
+        } else {
+            // FIXME: Implement delete for scheduler.view.city.EditCity#onItemActionRequest
+        }
 //        AddressModel item;
 //        if (event.isConsumed() || null == (item = event.getModel())) {
 //            return;
@@ -344,6 +349,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             collapseNode(addressesTableView);
             collapseNode(addCityButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCITY));
+            // FIXME: Add weak listeners to model, instead
             addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
         } else {
             waitBorderPane.startNow(pane, new EditDataLoadTask());
@@ -355,6 +361,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         restoreNode(addressesLabel);
         restoreNode(addressesTableView);
         restoreNode(addCityButtonBar);
+        // FIXME: Use weak listeners, instead
         removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
     }
 

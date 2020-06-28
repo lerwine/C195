@@ -26,6 +26,8 @@ import javafx.stage.Window;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.events.ModelEvent;
+import scheduler.events.ModelFailedEvent;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
@@ -43,10 +45,9 @@ import scheduler.view.task.WaitBorderPane;
 /**
  * The parent FXML custom control for editing {@link FxRecordModel} items in a new modal window.
  * <p>
- * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
- * values for the {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and
- * {@link FxRecordModel#getLastModifiedDate()} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child
- * {@link EditItem.ModelEditor} custom control.</p>
+ * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the values for the
+ * {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and {@link FxRecordModel#getLastModifiedDate()}
+ * properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child {@link EditItem.ModelEditor} custom control.</p>
  * <p>
  * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method.</p>
  * <p>
@@ -195,20 +196,13 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                 resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
                 .ifPresent((t) -> {
                     if (t == ButtonType.YES) {
-                        DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(model);
-                        task.setOnFinished((e) -> {
-                            // FIXME: Re-implement
-//                                switch (e.getStatus()) {
-//                                    case FAULTED:
-//                                        // FIXME: Not sure if this is being presented in the WaitBorderPane
-//                                        break;
-//                                    case INVALID:
-//                                        // FIXME: Not sure if this is being presented in the WaitBorderPane
-//                                        break;
-//                                    case SUCCEEDED:
-//                                        getScene().getWindow().hide();
-//                                        break;
-//                                }
+                        DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(RecordModelContext.of(model));
+                        task.setOnSucceeded((e) -> {
+                            if (e instanceof ModelFailedEvent) {
+                                // FIXME: need to display message to user.
+                            } else {
+                                getScene().getWindow().hide();
+                            }
                         });
 
                         waitBorderPane.startNow(task);
@@ -220,9 +214,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     void onSaveButtonAction(ActionEvent event) {
         editorRegion.applyChanges();
         // FIXME: Make sure everyone's getting all events
-        DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(model);
+        DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(RecordModelContext.of(model));
         task.setOnFinished((e) -> {
-            // FIXME: Re-implement
+            // FIXME: Re-implement scheduler.view.EditItem#onSaveButtonAction
 //            switch (e.getStatus()) {
 //                case FAULTED:
 //                    // FIXME: Not sure if this is being presented in the WaitBorderPane
@@ -306,8 +300,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     /**
      * Base class for editing specific {@link FxRecordModel} items. Derived controls are intended to be instantiated through the
-     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent
-     * {@code EditItem} control.
+     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent {@code EditItem} control.
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
      * @param <U> The {@link FxRecordModel} type.
@@ -330,11 +323,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         String getWindowTitle();
 
         /**
-         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()}
-         * of the parent {@link Stage}.
+         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent {@link Stage}.
          *
-         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the
-         * {@link Stage#titleProperty()} of the parent {@link Stage}.
+         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent
+         * {@link Stage}.
          */
         ReadOnlyStringProperty windowTitleProperty();
 
@@ -343,8 +335,8 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         /**
          * The inverse value of this property is bound to the {@link Button#disableProperty()} of the {@link EditItem#saveChangesButton}.
          *
-         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled,
-         * otherwise {@code true} if it is to be enabled.
+         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled, otherwise {@code true} if it
+         * is to be enabled.
          */
         ReadOnlyBooleanProperty validProperty();
 

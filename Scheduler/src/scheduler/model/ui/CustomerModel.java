@@ -290,13 +290,13 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createSaveTask(CustomerModel model) {
-            return new CustomerDAO.SaveTask(RecordModelContext.of(model), false);
+        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createSaveTask(RecordModelContext<CustomerDAO, CustomerModel> model) {
+            return new CustomerDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createDeleteTask(CustomerModel model) {
-            return new CustomerDAO.DeleteTask(RecordModelContext.of(model), false);
+        public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createDeleteTask(RecordModelContext<CustomerDAO, CustomerModel> model) {
+            return new CustomerDAO.DeleteTask(model, false);
         }
 
         @Override

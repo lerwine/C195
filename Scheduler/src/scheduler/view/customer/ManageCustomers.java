@@ -157,12 +157,12 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     }
 
     @Override
-    protected void onDeleteItem(CustomerModel item) {
+    protected void onDeleteItem(RecordModelContext<CustomerDAO, CustomerModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new CustomerDAO.DeleteTask(RecordModelContext.of(item), false));
+            MainController.startBusyTaskNow(new CustomerDAO.DeleteTask(item, false));
         }
     }
 

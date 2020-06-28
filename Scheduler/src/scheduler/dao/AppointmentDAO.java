@@ -794,15 +794,15 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-        @Override
-        public SaveDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createSaveTask(AppointmentDAO dao) {
-            return new SaveTask(RecordModelContext.of(dao), false);
-        }
-
-        @Override
-        public DeleteDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createDeleteTask(AppointmentDAO dao) {
-            return new DeleteTask(RecordModelContext.of(dao), false);
-        }
+//        @Override
+//        public SaveDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createSaveTask(AppointmentDAO dao) {
+//            return new SaveTask(RecordModelContext.of(dao), false);
+//        }
+//
+//        @Override
+//        public DeleteDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createDeleteTask(AppointmentDAO dao) {
+//            return new DeleteTask(RecordModelContext.of(dao), false);
+//        }
 
     }
 

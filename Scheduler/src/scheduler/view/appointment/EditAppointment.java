@@ -225,12 +225,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
+        // FIXME: Add weak listeners to model from init, instead
         addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
-    }
-
-    // FIXME: The method onAppointmentUpdating(AppointmentSuccessEvent) from the type EditAppointment is never used locally
-    private void onAppointmentUpdating(AppointmentSuccessEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentUpdating
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {

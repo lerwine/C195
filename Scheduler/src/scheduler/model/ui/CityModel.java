@@ -241,13 +241,13 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(CityModel model) {
-            return new CityDAO.SaveTask(RecordModelContext.of(model), false);
+        public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(RecordModelContext<CityDAO, CityModel> model) {
+            return new CityDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(CityModel model) {
-            return new CityDAO.DeleteTask(RecordModelContext.of(model), false);
+        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(RecordModelContext<CityDAO, CityModel> model) {
+            return new CityDAO.DeleteTask(model, false);
         }
 
         @Override

@@ -27,6 +27,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -98,7 +99,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onDeleteMenuItemAction(ActionEvent event) {
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDeleteItem(item);
+            onDeleteItem(RecordModelContext.of(item));
         }
     }
 
@@ -111,9 +112,12 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     @FXML
-    @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(OperationRequestEvent<D, M> event) {
-        // FIXME: Implement this
+        if (event.isEdit()) {
+            onEditItem(event.getFxRecordModel());
+        } else {
+            onDeleteItem(event);
+        }
     }
 
     @FXML
@@ -125,7 +129,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 case DELETE:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDeleteItem(item);
+                        onDeleteItem(RecordModelContext.of(item));
                     }
                     break;
                 case ENTER:
@@ -252,7 +256,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract void onEditItem(M item);
 
-    protected abstract void onDeleteItem(M item);
+    protected abstract void onDeleteItem(RecordModelContext<D, M> item);
 
     protected abstract EventType<? extends E> getInsertedEventType();
 

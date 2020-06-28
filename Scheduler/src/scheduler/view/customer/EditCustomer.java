@@ -213,6 +213,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
+        // FIXME: Add weak listeners to model, instead
         addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, this::onCustomerInserted);
     }
 
@@ -308,6 +309,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(AppointmentOpRequestEvent event) {
+        if (event.isEdit()) {
+            // FIXME: Implement edit for scheduler.view.customer.EditCustomer#onItemActionRequest
+        } else {
+            // FIXME: Implement delete for scheduler.view.customer.EditCustomer#onItemActionRequest
+        }
 //        AppointmentModel item;
 //        if (event.isConsumed() || null == (item = event.getModel())) {
 //            return;

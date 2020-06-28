@@ -446,13 +446,13 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
-            return new AddressDAO.SaveTask(RecordModelContext.of(model), false);
+        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(RecordModelContext<AddressDAO, AddressModel> model) {
+            return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(AddressModel model) {
-            return new AddressDAO.DeleteTask(RecordModelContext.of(model), false);
+        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(RecordModelContext<AddressDAO, AddressModel> model) {
+            return new AddressDAO.DeleteTask(model, false);
         }
 
         @Override

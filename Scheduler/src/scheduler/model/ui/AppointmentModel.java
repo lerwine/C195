@@ -624,13 +624,13 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(AppointmentModel model) {
-            return new AppointmentDAO.SaveTask(RecordModelContext.of(model), false);
+        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+            return new AppointmentDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(AppointmentModel model) {
-            return new AppointmentDAO.DeleteTask(RecordModelContext.of(model), false);
+        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+            return new AppointmentDAO.DeleteTask(model, false);
         }
 
         @Override

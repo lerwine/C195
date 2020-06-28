@@ -228,6 +228,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             collapseNode(citiesTableView);
             collapseNode(newButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
+            // FIXME: Add weak listeners to model, instead
             addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
         } else {
             initializeEditMode();
@@ -261,6 +262,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             restoreNode(citiesLabel);
             restoreNode(citiesTableView);
             restoreNode(newButtonBar);
+            // TODO: Use weak listeners on model, instead
             removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
             initializeEditMode();
         }

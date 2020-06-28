@@ -407,15 +407,15 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-        @Override
-        public SaveDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createSaveTask(AddressDAO dao) {
-            return new SaveTask(RecordModelContext.of(dao), false);
-        }
-
-        @Override
-        public DeleteDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createDeleteTask(AddressDAO dao) {
-            return new DeleteTask(RecordModelContext.of(dao), false);
-        }
+//        @Override
+//        public SaveDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createSaveTask(AddressDAO dao) {
+//            return new SaveTask(RecordModelContext.of(dao), false);
+//        }
+//
+//        @Override
+//        public DeleteDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createDeleteTask(AddressDAO dao) {
+//            return new DeleteTask(RecordModelContext.of(dao), false);
+//        }
 
     }
 

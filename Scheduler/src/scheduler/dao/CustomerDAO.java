@@ -370,15 +370,15 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-        @Override
-        public SaveDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createSaveTask(CustomerDAO dao) {
-            return new SaveTask(RecordModelContext.of(dao), false);
-        }
-
-        @Override
-        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
-            return new DeleteTask(RecordModelContext.of(dao), false);
-        }
+//        @Override
+//        public SaveDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createSaveTask(CustomerDAO dao) {
+//            return new SaveTask(RecordModelContext.of(dao), false);
+//        }
+//
+//        @Override
+//        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
+//            return new DeleteTask(RecordModelContext.of(dao), false);
+//        }
 
     }
 

@@ -596,21 +596,21 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          */
         public abstract D createNew();
 
-        /**
-         * Creates a new {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
-         *
-         * @param dao The {@link DataAccessobject} to be saved the database.
-         * @return A {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
-         */
-        public abstract SaveDaoTask<D, ? extends FxRecordModel<D>, E> createSaveTask(D dao);
-
-        /**
-         * Creates a new {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
-         *
-         * @param dao The {@link DataAccessobject} to be deleted from the database.
-         * @return A {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
-         */
-        public abstract DeleteDaoTask<D, ? extends FxRecordModel<D>, E> createDeleteTask(D dao);
+//        /**
+//         * Creates a new {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
+//         *
+//         * @param target The {@link RecordModelContext} that contains the {@link DataAccessobject} to be saved the database.
+//         * @return A {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
+//         */
+//        public abstract SaveDaoTask<D, ? extends FxRecordModel<D>, E> createSaveTask(RecordModelContext<D, ? extends FxRecordModel<D>> target);
+//
+//        /**
+//         * Creates a new {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
+//         *
+//         * @param target The {@link RecordModelContext} that contains the {@link DataAccessobject} to be saved the database.
+//         * @return A {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
+//         */
+//        public abstract DeleteDaoTask<D, ? extends FxRecordModel<D>, E> createDeleteTask(RecordModelContext<D, ? extends FxRecordModel<D>> target);
 
         /**
          * Gets a {@link DaoFilter} for returning all items.

@@ -495,12 +495,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected void onDeleteItem(AppointmentModel item) {
+    protected void onDeleteItem(RecordModelContext<AppointmentDAO, AppointmentModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(RecordModelContext.of(item), false));
+            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(item, false));
         }
     }
 

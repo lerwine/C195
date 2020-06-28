@@ -187,6 +187,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
+        // FIXME: Add weak listeners to model from init, instead
         addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressInserted);
     }
 
@@ -211,7 +212,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDelete(item);
+            onDelete(RecordModelContext.of(item));
         }
     }
 
@@ -232,7 +233,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDelete(item);
+                        onDelete(RecordModelContext.of(item));
                     }
                     break;
                 case ENTER:
@@ -258,25 +259,23 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    private void onDelete(CustomerModel item) {
+    // FIXME: Change arg type
+    private void onDelete(RecordModelContext<CustomerDAO, CustomerModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new CustomerDAO.DeleteTask(RecordModelContext.of(item), false));
+            waitBorderPane.startNow(new CustomerDAO.DeleteTask(item, false));
         }
     }
 
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CustomerOpRequestEvent event) {
-        CustomerModel item = event.getFxRecordModel();
-        if (null != item) {
-            if (event.isEdit()) {
-                onEdit(item);
-            } else {
-                onDelete(item);
-            }
+        if (event.isEdit()) {
+            onEdit(event.getFxRecordModel());
+        } else {
+            onDelete(event);
         }
     }
 

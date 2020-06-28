@@ -21,6 +21,7 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.CountryEvent;
+import scheduler.events.CountryFailedEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -33,6 +34,8 @@ import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
+import scheduler.view.country.EditCountry;
+import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECONFLICTMESSAGE;
 
 /**
  * Data access object for the {@code country} database table.
@@ -282,19 +285,20 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-        @Override
-        public SaveDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createSaveTask(CountryDAO dao) {
-            return new SaveTask(RecordModelContext.of(dao), false);
-        }
-
-        @Override
-        public DeleteDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createDeleteTask(CountryDAO dao) {
-            return new DeleteTask(RecordModelContext.of(dao), false);
-        }
+//        @Override
+//        public SaveDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createSaveTask(CountryDAO dao) {
+//            return new SaveTask(RecordModelContext.of(dao), false);
+//        }
+//
+//        @Override
+//        public DeleteDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createDeleteTask(CountryDAO dao) {
+//            return new DeleteTask(RecordModelContext.of(dao), false);
+//        }
 
     }
 
     public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel, CountryEvent> {
+        private static final String ERROR_CHECKING_CONFLICTS = "Error checking country naming conflicts";
 
         public SaveTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
             super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
@@ -310,48 +314,46 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent validate(Connection connection) throws Exception {
-//            CountryDAO dao;
-//            try {
-//                dao = ICountryDAO.assertValidCountry(event.getDataAccessObject());
-//            } catch (IllegalArgumentException | IllegalStateException ex) {
-//                event.setFaulted("Invalid Country", ex.getMessage(), ex);
-//                return;
-//            }
-//            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())
-//                    .append(") FROM ").append(DbTable.COUNTRY.getDbName()).append(" WHERE ").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
-//            if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-//                sb.append(" AND ").append(DbColumn.COUNTRY_ID.getDbName()).append("<>?");
-//            }
-//            String sql = sb.toString();
-//            String lt = dao.locale.toLanguageTag();
-//            int count;
-//            try (PreparedStatement ps = connection.prepareStatement(sql)) {
-//                ps.setString(1, lt);
-//                if (event.getOperation() != DbOperationType.INSERT_VALIDATION) {
-//                    ps.setInt(2, dao.getPrimaryKey());
-//                }
-//                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
-//                try (ResultSet rs = ps.executeQuery()) {
-//                    if (rs.next()) {
-//                        count = rs.getInt(1);
-//                    } else {
-//                        LogHelper.logWarnings(connection, LOG);
-//                        throw new SQLException("Unexpected lack of results from database query");
-//                    }
-//                    LogHelper.logWarnings(connection, LOG);
-//                }
-//            } catch (SQLException ex) {
-//                event.setFaulted("Unexpected error", "Error checking country naming conflicts", ex);
-//                LOG.log(Level.SEVERE, event.getDetailMessage(), ex);
-//                return;
-//            }
-//
-//            if (count > 0) {
-//                event.setInvalid("Name in use", ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
-//            } else {
-//                event.setSucceeded();
-//            }
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#validateForSave
+            CountryEvent saveEvent = CountryModel.FACTORY.validateForSave(this);
+            if (null != saveEvent && saveEvent instanceof CountryFailedEvent) {
+                return saveEvent;
+            }
+            CountryDAO dao = getDataAccessObject();
+            StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())
+                    .append(") FROM ").append(DbTable.COUNTRY.getDbName()).append(" WHERE ").append(DbColumn.COUNTRY_NAME.getDbName()).append("=?");
+            if (getOriginalRowState() != DataRowState.NEW) {
+                sb.append(" AND ").append(DbColumn.COUNTRY_ID.getDbName()).append("<>?");
+            }
+            String sql = sb.toString();
+            String lt = dao.locale.toLanguageTag();
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, lt);
+                if (getOriginalRowState() != DataRowState.NEW) {
+                    ps.setInt(2, dao.getPrimaryKey());
+                }
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        count = rs.getInt(1);
+                    } else {
+                        LogHelper.logWarnings(connection, LOG);
+                        throw new SQLException("Unexpected lack of results from database query");
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+            } catch (SQLException ex) {
+                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
+                throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
+            }
+
+            if (count > 0) {
+                if (getOriginalRowState() == DataRowState.NEW) {
+                    return CountryEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                }
+                return CountryEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+            }
+            return null;
         }
 
         @Override
@@ -374,12 +376,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     public static class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
-
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
-        
+
         public DeleteTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
             super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
+
         @Override
         protected CountryEvent createSuccessEvent() {
             return CountryEvent.createDeleteSuccessEvent(this, this);

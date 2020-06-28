@@ -383,15 +383,15 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-        @Override
-        public SaveDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createSaveTask(CityDAO dao) {
-            return new SaveTask(RecordModelContext.of(dao), false);
-        }
-
-        @Override
-        public DeleteDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createDeleteTask(CityDAO dao) {
-            return new DeleteTask(RecordModelContext.of(dao), false);
-        }
+//        @Override
+//        public SaveDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createSaveTask(CityDAO dao) {
+//            return new SaveTask(RecordModelContext.of(dao), false);
+//        }
+//
+//        @Override
+//        public DeleteDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createDeleteTask(CityDAO dao) {
+//            return new DeleteTask(RecordModelContext.of(dao), false);
+//        }
 
     }
 

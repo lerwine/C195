@@ -319,9 +319,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         public abstract <T extends OperationRequestEvent<D, M>> EventType<T> getDeleteRequestEventType();
 
-        public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(M model);
+        public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(RecordModelContext<D, M> model);
 
-        public abstract DataAccessObject.DeleteDaoTask<D, M, E> createDeleteTask(M model);
+        public abstract DataAccessObject.DeleteDaoTask<D, M, E> createDeleteTask(RecordModelContext<D, M> model);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

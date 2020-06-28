@@ -151,16 +151,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
+        // FIXME: Add weak listeners to model, instead
         addEventHandler(UserSuccessEvent.INSERT_SUCCESS, this::onUserInserted);
-    }
-
-    private void onUserUpdating(UserSuccessEvent event) {
-        model.setUserName(userNameTextField.getText());
-        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
-        if (changePasswordCheckBox.isSelected()) {
-            PwHash pw = new PwHash(passwordField.getText(), true);
-            model.setPassword(pw.getEncodedHash());
-        }
     }
 
     private void onUserInserted(UserSuccessEvent event) {
@@ -229,29 +221,20 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(AppointmentOpRequestEvent event) {
-//        AppointmentModel item;
-//        if (event.isConsumed() || null == (item = event.getModel())) {
-//            return;
-//        }
-//        switch (event.getOperation()) {
-//            case EDIT_REQUEST:
-//                try {
-//                    EditAppointment.edit(item, getScene().getWindow());
-//                } catch (IOException ex) {
-//                    LOG.log(Level.SEVERE, "Error opening child window", ex);
-//                }
-//                event.consume();
-//                break;
-//            case DELETE_REQUEST:
-//                Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-//                        AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-//                if (response.isPresent() && response.get() == ButtonType.YES) {
-//                    waitBorderPane.startNow(new DataAccessObject.DeleteTaskOld<>(event));
-//                }
-//                event.consume();
-//                break;
-//        }
+        if (event.isEdit()) {
+            try {
+                EditAppointment.edit(event.getFxRecordModel(), getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
+        } else {
+            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
+            if (response.isPresent() && response.get() == ButtonType.YES) {
+                waitBorderPane.startNow(AppointmentModel.FACTORY.createDeleteTask(event));
+            }
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -460,7 +443,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @Override
     public void applyChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.user.EditUser#applyChanges
+        model.setUserName(userNameTextField.getText());
+        model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
+        if (changePasswordCheckBox.isSelected()) {
+            PwHash pw = new PwHash(passwordField.getText(), true);
+            model.setPassword(pw.getEncodedHash());
+        }
     }
 
     private class AppointmentFilterItem {
