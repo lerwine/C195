@@ -29,6 +29,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
@@ -611,7 +612,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 //         * @return A {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
 //         */
 //        public abstract DeleteDaoTask<D, ? extends FxRecordModel<D>, E> createDeleteTask(RecordModelContext<D, ? extends FxRecordModel<D>> target);
-
         /**
          * Gets a {@link DaoFilter} for returning all items.
          *
@@ -821,32 +821,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             });
         }
 
-//        /**
-//         * Creates a new {@code DaoTask} for a {@link DataAccessObject}.
-//         *
-//         * @param dataAccessObject The target {@link DataAccessObject}.
-//         * @param anyEventType The base {@link EventType} for all events that may be produced.
-//         */
-//        protected DaoTask(D dataAccessObject, EventType<E> anyEventType) {
-//            Objects.requireNonNull(anyEventType);
-//            this.dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", Objects.requireNonNull(dataAccessObject));
-//            fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", null);
-//            originalRowState = dataAccessObject.getRowState();
-//            finalEvent = new ReadOnlyObjectWrapper<>(null);
-//            onFinished = new SimpleObjectProperty<>(null);
-//            onFinished.addListener((observable, oldValue, newValue) -> {
-//                try {
-//                    if (null != oldValue) {
-//                        removeEventHandler(anyEventType, oldValue);
-//                    }
-//                } finally {
-//                    if (null != newValue) {
-//                        addEventHandler(anyEventType, newValue);
-//                    }
-//                }
-//            });
-//        }
-
         /**
          * Gets the target {@link DataAccessObject}.
          *
@@ -952,7 +926,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try {
                     finalEvent.set(event);
                 } finally {
-                    fireEvent(event);
+                    try {
+                        fireEvent(event);
+                    } finally {
+                        Event.fireEvent(getDataAccessObject(), event);
+                    }
                 }
             }
         }
@@ -965,7 +943,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try {
                     finalEvent.set(event);
                 } finally {
-                    fireEvent(event);
+                    try {
+                        fireEvent(event);
+                    } finally {
+                        Event.fireEvent(getDataAccessObject(), event);
+                    }
                 }
             }
         }
@@ -978,7 +960,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try {
                     finalEvent.set(event);
                 } finally {
-                    fireEvent(event);
+                    try {
+                        fireEvent(event);
+                    } finally {
+                        Event.fireEvent(getDataAccessObject(), event);
+                    }
                 }
             }
         }
@@ -1003,11 +989,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         public final ObjectProperty<EventHandler<E>> onFinishedProperty() {
             return onFinished;
-        }
-
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            return super.buildEventDispatchChain(dataAccessObject.get().buildEventDispatchChain(tail));
         }
 
     }
@@ -1045,7 +1026,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             validationSuccessful = skipValidation;
             validationFailed = new ReadOnlyBooleanWrapper(!skipValidation);
         }
-        
+
         /**
          * Gets a value indicating whether validation has failed.
          *
