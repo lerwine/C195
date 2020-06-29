@@ -6,6 +6,54 @@ import scheduler.dao.AddressDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
+/**
+ * Represents a failed {@link AppointmentEvent}.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_ADDRESS_FAILED_EVENT"} &lArr; {@link #OP_EVENT_TYPE "SCHEDULER_ADDRESS_OP_EVENT"} &lArr;
+ * {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_SAVE_FAILED</dt>
+ * <dd>&rarr; {@link #SAVE_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_INSERT_FAILED</dt>
+ * <dd>&rarr; {@link #INSERT_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_INSERT_FAULTED</dt>
+ * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_INSERT_INVALID</dt>
+ * <dd>&rarr; {@link #INSERT_INVALID}</dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_INSERT_CANCELED</dt>
+ * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
+ * </dl></dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_UPDATE_FAILED</dt>
+ * <dd>&rarr; {@link #UPDATE_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_UPDATE_FAULTED</dt>
+ * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_UPDATE_INVALID</dt>
+ * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_UPDATE_CANCELED</dt>
+ * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
+ * </dl></dd>
+ * </dl></dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_DELETE_FAILED</dt>
+ * <dd>&rarr; {@link #DELETE_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_DELETE_FAULTED</dt>
+ * <dd>&rarr; {@link #DELETE_FAULTED}</dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_DELETE_INVALID</dt>
+ * <dd>&rarr; {@link #DELETE_INVALID}</dd>
+ * <dt>&#x21B3; SCHEDULER_ADDRESS_DELETE_CANCELED</dt>
+ * <dd>&rarr; {@link #DELETE_CANCELED}</dd>
+ * </dl></dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public final class AddressFailedEvent extends AddressEvent implements ModelFailedEvent<AddressDAO, AddressModel> {
 
     private static final long serialVersionUID = 3057696288962212229L;

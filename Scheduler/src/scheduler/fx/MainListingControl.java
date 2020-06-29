@@ -38,6 +38,50 @@ import scheduler.view.ModelFilter;
 
 /**
  * Base class for item list management.
+ * <h3>Event handling</h3>
+ * <h4>SCHEDULER_OP_REQUEST_EVENT</h4>
+ * <dl>
+ * <dt>{@link #listingTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link OperationRequestEvent} &#123;</dt>
+ * <dd> {@link javafx.event.Event#eventType} = {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
+ * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * </dd>
+ * </dl>
+ * &#125; &#x26A1; {@link #onItemActionRequest(OperationRequestEvent)}
+ * <dl>
+ * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#NONE} &#125;</dt>
+ * <dd>&rarr; {@link #onEditItem(FxRecordModel) onEditItem}({@link ModelEvent#getFxRecordModel()})
+ * <dl>
+ * <dt>&#x2BA1; {@link scheduler.events.AppointmentOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST "SCHEDULER_APPOINTMENT_EDIT_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.appointment.ManageAppointments}</dd>
+ * <dt>&#x2BA1; {@link scheduler.events.CountryOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.CountryOpRequestEvent#EDIT_REQUEST "SCHEDULER_COUNTRY_EDIT_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.country.ManageCountries}</dd>
+ * <dt>&#x2BA1; {@link scheduler.events.CustomerOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.CustomerOpRequestEvent#EDIT_REQUEST "SCHEDULER_CUSTOMER_EDIT_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.customer.ManageCustomers}</dd>
+ * <dt>&#x2BA1; {@link scheduler.events.UserOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.UserOpRequestEvent#EDIT_REQUEST "SCHEDULER_USER_EDIT_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.user.ManageUsers}</dd>
+ * </dl>
+ * </dd>
+ * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}} &#125;</dt>
+ * <dd>&rarr; {@link #onDeleteItem(RecordModelContext) onDeleteItem}({@link OperationRequestEvent})
+ * <dl>
+ * <dt>&#x2BA1; {@link scheduler.events.AppointmentOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#DELETE_REQUEST "SCHEDULER_APPOINTMENT_DELETE_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.appointment.ManageAppointments}</dd>
+ * <dt>&#x2BA1; {@link scheduler.events.CountryOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.CountryOpRequestEvent#DELETE_REQUEST "SCHEDULER_COUNTRY_DELETE_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.country.ManageCountries}</dd>
+ * <dt>&#x2BA1; {@link scheduler.events.CustomerOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.CustomerOpRequestEvent#DELETE_REQUEST "SCHEDULER_CUSTOMER_DELETE_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.customer.ManageCustomers}</dd>
+ * <dt>&#x2BA1; {@link scheduler.events.UserOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.UserOpRequestEvent#DELETE_REQUEST "SCHEDULER_USER_DELETE_REQUEST"} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.view.user.ManageUsers}</dd>
+ * </dl></dd>
+ * </dl>
  *
  * @param <D> Data access object type wrapped by the model.
  * @param <M> The FX model type.

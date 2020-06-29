@@ -7,6 +7,28 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
+/**
+ * Base {@link ModelEvent} for appointment events.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link CitySuccessEvent#BASE_EVENT_NAME "SCHEDULER_CITY_SUCCESS_EVENT"}</dt>
+ * <dd>&rarr; {@link CitySuccessEvent}</dd>
+ * <dt>&#x21B3; {@link CityFailedEvent#BASE_EVENT_NAME "SCHEDULER_CITY_FAILED_EVENT"}</dt>
+ * <dd>&rarr; {@link CityFailedEvent}</dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public abstract class CityEvent extends ModelEvent<CityDAO, CityModel> {
 
     private static final long serialVersionUID = -6996428374286059723L;

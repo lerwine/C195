@@ -10,6 +10,29 @@ import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 
 /**
+ * Base class for {@code Event}s that affect {@link DataAccessObject}s and can also include an associated {@link FxRecordModel}.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #MODEL_EVENT_TYPE MODEL_EVENT_TYPE} = {@code "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"}</dt>
+ * <dd>&rarr; {@link OperationRequestEvent}</dd>
+ * <dt>&#x21B3; {@link AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"}</dt>
+ * <dd>&rarr; {@link AppointmentEvent}</dd>
+ * <dt>&#x21B3; {@link CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"}</dt>
+ * <dd>&rarr; {@link CustomerEvent}</dd>
+ * <dt>&#x21B3; {@link AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"}</dt>
+ * <dd>&rarr; {@link AddressEvent}</dd>
+ * <dt>&#x21B3; {@link CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"}</dt>
+ * <dd>&rarr; {@link CityEvent}</dd>
+ * <dt>&#x21B3; {@link CountryEvent#COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"}</dt>
+ * <dd>&rarr; {@link CountryEvent}</dd>
+ * <dt>&#x21B3; {@link UserEvent#USER_EVENT_TYPE "SCHEDULER_USER_EVENT"}</dt>
+ * <dd>&rarr; {@link UserEvent}</dd>
+ * </dl>
+ * </dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <D> The type of {@link DataAccessObject}.
@@ -35,11 +58,12 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
 
     public static final <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>, R> R withEvent(E event, Function<E, R> ifFailed,
             R otherwise) {
-        if (null == event || event instanceof ModelFailedEvent)
+        if (null == event || event instanceof ModelFailedEvent) {
             return ifFailed.apply(event);
+        }
         return otherwise;
     }
-    
+
     private State state;
 
     /**

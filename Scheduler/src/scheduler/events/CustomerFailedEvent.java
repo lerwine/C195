@@ -6,6 +6,54 @@ import scheduler.dao.CustomerDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
+/**
+ * Represents a failed {@link AppointmentEvent}.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CUSTOMER_FAILED_EVENT"} &lArr; {@link #OP_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"} &lArr;
+ * {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_SAVE_FAILED</dt>
+ * <dd>&rarr; {@link #SAVE_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAILED</dt>
+ * <dd>&rarr; {@link #INSERT_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
+ * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
+ * <dd>&rarr; {@link #INSERT_INVALID}</dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
+ * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
+ * </dl></dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAILED</dt>
+ * <dd>&rarr; {@link #UPDATE_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
+ * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
+ * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
+ * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
+ * </dl></dd>
+ * </dl></dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_FAILED</dt>
+ * <dd>&rarr; {@link #DELETE_FAILED}
+ * <dl>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_FAULTED</dt>
+ * <dd>&rarr; {@link #DELETE_FAULTED}</dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_INVALID</dt>
+ * <dd>&rarr; {@link #DELETE_INVALID}</dd>
+ * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_CANCELED</dt>
+ * <dd>&rarr; {@link #DELETE_CANCELED}</dd>
+ * </dl></dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public final class CustomerFailedEvent extends CustomerEvent implements ModelFailedEvent<CustomerDAO, CustomerModel> {
 
     private static final long serialVersionUID = -7166159668722232485L;
@@ -32,21 +80,67 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
 
     /**
      * Base {@link EventType} for save {@code CustomerFailedEvent}s.
+     * <dl>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAILED</dt>
+     * <dd>&rarr; {@link #INSERT_FAILED}
+     * <dl>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
+     * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
+     * <dd>&rarr; {@link #INSERT_INVALID}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
+     * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
+     * </dl></dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAILED</dt>
+     * <dd>&rarr; {@link #UPDATE_FAILED}
+     * <dl>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
+     * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
+     * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
+     * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
+     * </dl></dd>
+     * </dl>
      */
     public static final EventType<CustomerFailedEvent> SAVE_FAILED = new EventType<>(FAILED_EVENT_TYPE, SAVE_FAILED_EVENT_NAME);
 
     /**
      * {Base @link EventType} for insert {@code CustomerFailedEvent}s.
+     * <dl>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
+     * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
+     * <dd>&rarr; {@link #INSERT_INVALID}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
+     * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
+     * </dl>
      */
     public static final EventType<CustomerFailedEvent> INSERT_FAILED = new EventType<>(SAVE_FAILED, INSERT_FAILED_EVENT_NAME);
 
     /**
      * Base {@link EventType} for update {@code CustomerFailedEvent}s.
+     * <dl>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
+     * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
+     * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
+     * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
+     * </dl>
      */
     public static final EventType<CustomerFailedEvent> UPDATE_FAILED = new EventType<>(SAVE_FAILED, UPDATE_FAILED_EVENT_NAME);
 
     /**
      * Base {@link EventType} for delete {@code CustomerFailedEvent}s.
+     * <dl>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_FAULTED</dt>
+     * <dd>&rarr; {@link #DELETE_FAULTED}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_INVALID</dt>
+     * <dd>&rarr; {@link #DELETE_INVALID}</dd>
+     * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_CANCELED</dt>
+     * <dd>&rarr; {@link #DELETE_CANCELED}</dd>
+     * </dl>
      */
     public static final EventType<CustomerFailedEvent> DELETE_FAILED = new EventType<>(FAILED_EVENT_TYPE, DELETE_FAILED_EVENT_NAME);
 

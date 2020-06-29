@@ -7,6 +7,28 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
+/**
+ * Base {@link ModelEvent} for appointment events.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link CountrySuccessEvent#BASE_EVENT_NAME "SCHEDULER_COUNTRY_SUCCESS_EVENT"}</dt>
+ * <dd>&rarr; {@link CountrySuccessEvent}</dd>
+ * <dt>&#x21B3; {@link CountryFailedEvent#BASE_EVENT_NAME "SCHEDULER_COUNTRY_FAILED_EVENT"}</dt>
+ * <dd>&rarr; {@link CountryFailedEvent}</dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> {
 
     private static final long serialVersionUID = -6121391358660436488L;

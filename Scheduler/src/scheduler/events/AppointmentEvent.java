@@ -7,6 +7,29 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
+/**
+ * Base {@link ModelEvent} for appointment events.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link #OP_EVENT_TYPE "SCHEDULER_APPOINTMENT_OP_EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link AppointmentSuccessEvent#BASE_EVENT_NAME "SCHEDULER_APPOINTMENT_SUCCESS_EVENT"}</dt>
+ * <dd>&rarr; {@link AppointmentSuccessEvent}</dd>
+ * <dt>&#x21B3; {@link AppointmentFailedEvent#BASE_EVENT_NAME "SCHEDULER_APPOINTMENT_FAILED_EVENT"}</dt>
+ * <dd>&rarr; {@link AppointmentFailedEvent}</dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, AppointmentModel> {
 
     private static final long serialVersionUID = -3677443789026319836L;

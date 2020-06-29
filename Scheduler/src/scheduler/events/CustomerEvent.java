@@ -7,17 +7,38 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
+/**
+ * Base {@link ModelEvent} for appointment events.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link CustomerSuccessEvent#BASE_EVENT_NAME "SCHEDULER_CUSTOMER_SUCCESS_EVENT"}</dt>
+ * <dd>&rarr; {@link CustomerSuccessEvent}</dd>
+ * <dt>&#x21B3; {@link CustomerFailedEvent#BASE_EVENT_NAME "SCHEDULER_CUSTOMER_FAILED_EVENT"}</dt>
+ * <dd>&rarr; {@link CustomerFailedEvent}</dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public abstract class CustomerEvent extends ModelEvent<CustomerDAO, CustomerModel> {
 
     private static final long serialVersionUID = -6549414287990595572L;
 
     /**
-     * Base {@link EventType} for all {@code AppointmentEvent}s.
+     * Base {@link EventType} for all {@code CustomerEvent}s.
      */
     public static final EventType<CustomerEvent> CUSTOMER_EVENT_TYPE = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_CUSTOMER_EVENT");
 
     /**
-     * Base {@link EventType} for all operational {@code AppointmentEvent}s.
+     * Base {@link EventType} for all operational {@code CustomerEvent}s.
      */
     public static final EventType<CustomerEvent> OP_EVENT_TYPE = new EventType<>(CUSTOMER_EVENT_TYPE, "SCHEDULER_CUSTOMER_OP_EVENT");
 

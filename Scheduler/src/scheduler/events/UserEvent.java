@@ -7,6 +7,27 @@ import scheduler.model.RecordModelContext;
 import scheduler.dao.UserDAO;
 import scheduler.model.ui.UserModel;
 
+/**
+ * Base {@link ModelEvent} for user events.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link #OP_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link UserSuccessEvent#BASE_EVENT_NAME "SCHEDULER_USER_SUCCESS_EVENT"}</dt>
+ * <dd>&rarr; {@link UserSuccessEvent}</dd>
+ * <dt>&#x21B3; {@link UserFailedEvent#BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"}</dt>
+ * <dd>&rarr; {@link UserFailedEvent}</dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public abstract class UserEvent extends ModelEvent<UserDAO, UserModel> {
 
     private static final long serialVersionUID = -4220071150094259420L;

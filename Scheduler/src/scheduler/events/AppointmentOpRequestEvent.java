@@ -6,6 +6,11 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
+/**
+ * Events representing a request to edit or delete an {@link AppointmentDAO} from the database, which may include a related {@link AppointmentModel}.
+ * 
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public final class AppointmentOpRequestEvent extends OperationRequestEvent<AppointmentDAO, AppointmentModel> {
 
     private static final long serialVersionUID = -9002234106125075233L;

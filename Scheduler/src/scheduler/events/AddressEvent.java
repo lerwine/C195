@@ -7,6 +7,28 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
+/**
+ * Base {@link ModelEvent} for appointment events.
+ * <h3>Event Registration</h3>
+ * <dl>
+ * <dt>{@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_OP_EVENT"}</dt>
+ * <dd>
+ * <dl>
+ * <dt>&#x21B3; {@link AddressSuccessEvent#BASE_EVENT_NAME "SCHEDULER_ADDRESS_SUCCESS_EVENT"}</dt>
+ * <dd>&rarr; {@link AddressSuccessEvent}</dd>
+ * <dt>&#x21B3; {@link AddressFailedEvent#BASE_EVENT_NAME "SCHEDULER_ADDRESS_FAILED_EVENT"}</dt>
+ * <dd>&rarr; {@link AddressFailedEvent}</dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ * </dd>
+ * </dl>
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ */
 public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> {
 
     private static final long serialVersionUID = -3650516330020602507L;
