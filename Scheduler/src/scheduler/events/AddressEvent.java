@@ -14,12 +14,12 @@ import scheduler.model.ui.AddressModel;
  * <dt>{@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_OP_EVENT"}</dt>
+ * <dt>(inherit) {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_OP_EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link AddressSuccessEvent#BASE_EVENT_NAME "SCHEDULER_ADDRESS_SUCCESS_EVENT"}</dt>
+ * <dt>(inherit) {@link AddressSuccessEvent#BASE_EVENT_NAME "SCHEDULER_ADDRESS_SUCCESS_EVENT"}</dt>
  * <dd>&rarr; {@link AddressSuccessEvent}</dd>
- * <dt>&#x21B3; {@link AddressFailedEvent#BASE_EVENT_NAME "SCHEDULER_ADDRESS_FAILED_EVENT"}</dt>
+ * <dt>(inherit) {@link AddressFailedEvent#BASE_EVENT_NAME "SCHEDULER_ADDRESS_FAILED_EVENT"}</dt>
  * <dd>&rarr; {@link AddressFailedEvent}</dd>
  * </dl>
  * </dd>
@@ -39,9 +39,9 @@ public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> 
     public static final EventType<AddressEvent> ADDRESS_EVENT_TYPE = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_ADDRESS_EVENT");
 
     /**
-     * Base {@link EventType} for all operational {@code AddressEvent}s.
+     * Base {@link EventType} for all change {@code AddressEvent}s.
      */
-    public static final EventType<AddressEvent> OP_EVENT_TYPE = new EventType<>(ADDRESS_EVENT_TYPE, "SCHEDULER_ADDRESS_OP_EVENT");
+    public static final EventType<AddressEvent> CHANGE_EVENT_TYPE = new EventType<>(ADDRESS_EVENT_TYPE, "SCHEDULER_ADDRESS_CHANGE_EVENT");
 
     public static final boolean isSuccess(AddressEvent event) {
         return event instanceof AddressSuccessEvent;

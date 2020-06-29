@@ -95,21 +95,21 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link AppointmentOpRequestEvent} &#123;</dt>
+ * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link AppointmentOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
  * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
- * &#125; &#x26A1; {@link #onItemActionRequest(AppointmentOpRequestEvent)}
+ * &#125; (fires) {@link #onItemActionRequest(AppointmentOpRequestEvent)}
  * <dl>
  * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
- * {@link javafx.stage.Window}) &#x21DD; {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
+ * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
  * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST}
  * &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
- * {@code false}) &#x21DD; {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
+ * {@code false}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
  * </dl>
  *
@@ -160,6 +160,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @ModelEditor
     private CustomerModel model;
+
+    @ModelEditor
+    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -234,17 +237,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-    }
-
-    private void onCustomerInserted(CustomerSuccessEvent event) {
-        model.removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
-        restoreNode(appointmentFilterComboBox);
-        restoreNode(appointmentsTableView);
-        restoreNode(addAppointmentButtonBar);
-        windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-        initializeEditMode();
-        appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
-        updateValidation();
     }
 
     @FXML
@@ -477,8 +469,10 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             collapseNode(addAppointmentButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
-            insertedHandler = new WeakEventHandler<>(this::onCustomerInserted);
-            model.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            if (keepOpen) {
+                insertedHandler = new WeakEventHandler<>(this::onCustomerInserted);
+                model.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            }
         } else {
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
@@ -498,6 +492,17 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
+    }
+
+    private void onCustomerInserted(CustomerSuccessEvent event) {
+        model.removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        restoreNode(appointmentFilterComboBox);
+        restoreNode(appointmentsTableView);
+        restoreNode(addAppointmentButtonBar);
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+        initializeEditMode();
+        appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
+        updateValidation();
     }
 
     private void onAppointmentAdded(AppointmentEvent event) {

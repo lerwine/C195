@@ -318,7 +318,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
 //        @Override
-//        protected UserEvent createDbOperationEvent(UserEvent sourceEvent, DbOperationType operation) {
+//        protected UserEvent createOperationRequestEvent(UserEvent sourceEvent, DbOperationType operation) {
 //            UserModel model = sourceEvent.getModel();
 //            if (null != model) {
 //                return new UserEvent(model, sourceEvent.getSource(), this, operation);

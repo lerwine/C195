@@ -122,19 +122,19 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         firePropertyChange(PROP_CITY, oldValue, this.city);
         if (null == city || city instanceof CityDAO) {
             if (null != cityChangeHandler) {
-                CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
+                CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
                 cityChangeHandler = null;
             }
         } else if (null == cityChangeHandler) {
             cityChangeHandler = new WeakEventHandler<>(this::onCityEvent);
-            CityDAO.FACTORY.addEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
+            CityDAO.FACTORY.addEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
         }
     }
 
     private void onCityEvent(CityEvent event) {
         ICityDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
-            CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
+            CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
             cityChangeHandler = null;
             ICityDAO oldValue = city;
             city = newValue;
@@ -630,14 +630,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             this.phone = asNonNullAndWsNormalized(phone);
             if (!(null == city || city instanceof CityDAO)) {
                 cityChangeHandler = new WeakEventHandler<>(this::onCityEvent);
-                CityDAO.FACTORY.addEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
+                CityDAO.FACTORY.addEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
             }
         }
 
         private void onCityEvent(CityEvent event) {
             ICityDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
-                CityDAO.FACTORY.removeEventHandler(CityEvent.OP_EVENT_TYPE, cityChangeHandler);
+                CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
                 cityChangeHandler = null;
                 ICityDAO oldValue = city;
                 city = newValue;

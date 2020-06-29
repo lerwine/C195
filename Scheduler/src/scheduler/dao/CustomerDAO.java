@@ -106,19 +106,19 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
         if (null == address || address instanceof AddressDAO) {
             if (null != addressChangeHandler) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
                 addressChangeHandler = null;
             }
         } else if (null == addressChangeHandler) {
             addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
-            AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
+            AddressDAO.FACTORY.addEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
         }
     }
 
     private void onAddressEvent(AddressEvent event) {
         IAddressDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-            AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
+            AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
             addressChangeHandler = null;
             IAddressDAO oldValue = address;
             address = newValue;
@@ -553,14 +553,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             this.active = active;
             if (!(null == address || address instanceof AddressDAO)) {
                 addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
-                AddressDAO.FACTORY.addEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
+                AddressDAO.FACTORY.addEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
             }
         }
 
         private void onAddressEvent(AddressEvent event) {
             IAddressDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.OP_EVENT_TYPE, addressChangeHandler);
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
                 addressChangeHandler = null;
                 IAddressDAO oldValue = address;
                 address = newValue;

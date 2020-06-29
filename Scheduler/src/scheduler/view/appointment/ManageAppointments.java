@@ -72,13 +72,13 @@ import scheduler.view.export.TsvDataExporter;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #listingTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link scheduler.events.AppointmentOpRequestEvent}
+ * <dt>{@link #listingTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link scheduler.events.AppointmentOpRequestEvent}
  * &#123;</dt>
  * <dd> {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
  * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
- * &#125; &#x26A1; {@link #onItemActionRequest(OperationRequestEvent) onItemActionRequest}({@link scheduler.events.AppointmentOpRequestEvent})
+ * &#125; (fires) {@link #onItemActionRequest(OperationRequestEvent) onItemActionRequest}({@link scheduler.events.AppointmentOpRequestEvent})
  * <dl>
  * <dt>{@link scheduler.events.AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link #onEditItem(AppointmentModel) onEditItem}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()}</dd>

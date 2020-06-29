@@ -132,6 +132,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private AppointmentModel model;
 
     @ModelEditor
+    private boolean keepOpen;
+
+    @ModelEditor
     private WaitBorderPane waitBorderPane;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -459,8 +462,10 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         descriptionTextArea.setText(model.getDescription());
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
-            insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
-            model.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            if (keepOpen) {
+                insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
+                model.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            }
         } else {
             initializeEditMode();
         }

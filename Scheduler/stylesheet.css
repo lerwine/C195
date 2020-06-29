@@ -304,6 +304,7 @@ Page layout container styles
 List styles
 */
 ul.horizontal li {
+    color: red;
     display:inline;
     font-size:0.9em;
 }

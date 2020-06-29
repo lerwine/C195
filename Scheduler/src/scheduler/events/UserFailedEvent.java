@@ -9,43 +9,49 @@ import scheduler.model.ui.UserModel;
 /**
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
+ * <ul class="inheritance">
+ * <li>{@link javafx.event.Event#ANY "EVENT"}
+ * <ul class="inheritance">
+ * <li>{@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}</li>
+ * </ul></li>
+ * </ul>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"} &lArr; {@link #OP_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr; {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr;
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr; {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr;
  * {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; SCHEDULER_USER_SAVE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_USER_SAVE_FAILED</dt>
  * <dd>&rarr; {@link #SAVE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_USER_INSERT_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_USER_INSERT_FAILED</dt>
  * <dd>&rarr; {@link #INSERT_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_USER_INSERT_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_USER_INSERT_FAULTED</dt>
  * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_USER_INSERT_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_USER_INSERT_INVALID</dt>
  * <dd>&rarr; {@link #INSERT_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_USER_INSERT_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_USER_INSERT_CANCELED</dt>
  * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
  * </dl></dd>
- * <dt>&#x21B3; SCHEDULER_USER_UPDATE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_USER_UPDATE_FAILED</dt>
  * <dd>&rarr; {@link #UPDATE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_USER_UPDATE_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_USER_UPDATE_FAULTED</dt>
  * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_USER_UPDATE_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_USER_UPDATE_INVALID</dt>
  * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_USER_UPDATE_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_USER_UPDATE_CANCELED</dt>
  * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
  * </dl></dd>
  * </dl></dd>
- * <dt>&#x21B3; SCHEDULER_USER_DELETE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_USER_DELETE_FAILED</dt>
  * <dd>&rarr; {@link #DELETE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_USER_DELETE_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_USER_DELETE_FAULTED</dt>
  * <dd>&rarr; {@link #DELETE_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_USER_DELETE_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_USER_DELETE_INVALID</dt>
  * <dd>&rarr; {@link #DELETE_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_USER_DELETE_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_USER_DELETE_CANCELED</dt>
  * <dd>&rarr; {@link #DELETE_CANCELED}</dd>
  * </dl></dd>
  * </dl>
@@ -76,7 +82,7 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
     /**
      * Base {@link EventType} for all {@code UserFailedEvent}s.
      */
-    public static final EventType<UserFailedEvent> FAILED_EVENT_TYPE = new EventType<>(OP_EVENT_TYPE, BASE_EVENT_NAME);
+    public static final EventType<UserFailedEvent> FAILED_EVENT_TYPE = new EventType<>(CHANGE_EVENT_TYPE, BASE_EVENT_NAME);
 
     /**
      * Base {@link EventType} for save {@code UserFailedEvent}s.

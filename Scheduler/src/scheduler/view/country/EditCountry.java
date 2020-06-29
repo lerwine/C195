@@ -67,19 +67,19 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_CITY_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link CityOpRequestEvent} &#123;</dt>
+ * <dt>{@link #citiesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CityOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#CITY_OP_REQUEST "SCHEDULER_CITY_OP_REQUEST"} &larr;
  * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
- * &#125; &#x26A1; {@link #onItemActionRequest(CityOpRequestEvent)}
+ * &#125; (fires) {@link #onItemActionRequest(CityOpRequestEvent)}
  * <dl>
  * <dt>SCHEDULER_CITY_EDIT_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditCity#edit(CityModel, javafx.stage.Window) EditCity.edit}(({@link CityModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
- * {@link javafx.stage.Window}) &#x21DD; {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.ui.CityModel.Factory}</dd>
+ * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.ui.CityModel.Factory}</dd>
  * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
- * {@code false}) &#x21DD; {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.ui.CityModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.ui.CityModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -109,6 +109,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @ModelEditor
     private CountryModel model;
+
+    @ModelEditor
+    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -240,8 +243,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             collapseNode(citiesTableView);
             collapseNode(newButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
-            insertedHandler = new WeakEventHandler<>(this::onCountryInserted);
-            model.addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, insertedHandler);
+            if (keepOpen) {
+                insertedHandler = new WeakEventHandler<>(this::onCountryInserted);
+                model.addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, insertedHandler);
+            }
         } else {
             initializeEditMode();
             WaitTitledPane pane = new WaitTitledPane();

@@ -15,12 +15,12 @@ import scheduler.model.ui.AppointmentModel;
  * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link #OP_EVENT_TYPE "SCHEDULER_APPOINTMENT_OP_EVENT"}</dt>
+ * <dt>(inherit) {@link #CHANGE_EVENT_TYPE "SCHEDULER_APPOINTMENT_OP_EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link AppointmentSuccessEvent#BASE_EVENT_NAME "SCHEDULER_APPOINTMENT_SUCCESS_EVENT"}</dt>
+ * <dt>(inherit) {@link AppointmentSuccessEvent#BASE_EVENT_NAME "SCHEDULER_APPOINTMENT_SUCCESS_EVENT"}</dt>
  * <dd>&rarr; {@link AppointmentSuccessEvent}</dd>
- * <dt>&#x21B3; {@link AppointmentFailedEvent#BASE_EVENT_NAME "SCHEDULER_APPOINTMENT_FAILED_EVENT"}</dt>
+ * <dt>(inherit) {@link AppointmentFailedEvent#BASE_EVENT_NAME "SCHEDULER_APPOINTMENT_FAILED_EVENT"}</dt>
  * <dd>&rarr; {@link AppointmentFailedEvent}</dd>
  * </dl>
  * </dd>
@@ -40,9 +40,9 @@ public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, Appoin
     public static final EventType<AppointmentEvent> APPOINTMENT_EVENT_TYPE = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_APPOINTMENT_EVENT");
 
     /**
-     * Base {@link EventType} for all operational {@code AppointmentEvent}s.
+     * Base {@link EventType} for all change {@code AppointmentEvent}s.
      */
-    public static final EventType<AppointmentEvent> OP_EVENT_TYPE = new EventType<>(APPOINTMENT_EVENT_TYPE, "SCHEDULER_APPOINTMENT_OP_EVENT");
+    public static final EventType<AppointmentEvent> CHANGE_EVENT_TYPE = new EventType<>(APPOINTMENT_EVENT_TYPE, "SCHEDULER_APPOINTMENT_CHANGE_EVENT");
 
     public static final boolean isSuccess(AppointmentEvent event) {
         return event instanceof AppointmentSuccessEvent;

@@ -85,6 +85,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         ViewControllerLoader.initializeCustomControl(result);
         try {
             AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
+            AnnotationHelper.injectModelEditorField(keepOpen, "keepOpen", editorRegion);
             AnnotationHelper.injectModelEditorField(result.waitBorderPane, "waitBorderPane", editorRegion);
         } catch (IllegalAccessException ex) {
             throw new IOException("Error injecting fields", ex);
@@ -211,14 +212,14 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     }
 
     @FXML
-    @SuppressWarnings({ "incomplete-switch", "unchecked" })
+    @SuppressWarnings({"incomplete-switch", "unchecked"})
     void onSaveButtonAction(ActionEvent event) {
         editorRegion.applyChanges();
         DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(RecordModelContext.of(model));
         task.setOnSucceeded((e) -> {
             E result = task.getValue();
             if (result instanceof ModelFailedEvent) {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Change Failure", ((ModelFailedEvent<T, U>)result).getMessage(), ButtonType.OK);
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
             } else {
                 switch (result.getOperation()) {
                     case DB_INSERT:

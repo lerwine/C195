@@ -14,12 +14,12 @@ import scheduler.model.ui.CityModel;
  * <dt>{@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"}</dt>
+ * <dt>(inherit) {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link CitySuccessEvent#BASE_EVENT_NAME "SCHEDULER_CITY_SUCCESS_EVENT"}</dt>
+ * <dt>(inherit) {@link CitySuccessEvent#BASE_EVENT_NAME "SCHEDULER_CITY_SUCCESS_EVENT"}</dt>
  * <dd>&rarr; {@link CitySuccessEvent}</dd>
- * <dt>&#x21B3; {@link CityFailedEvent#BASE_EVENT_NAME "SCHEDULER_CITY_FAILED_EVENT"}</dt>
+ * <dt>(inherit) {@link CityFailedEvent#BASE_EVENT_NAME "SCHEDULER_CITY_FAILED_EVENT"}</dt>
  * <dd>&rarr; {@link CityFailedEvent}</dd>
  * </dl>
  * </dd>
@@ -39,9 +39,9 @@ public abstract class CityEvent extends ModelEvent<CityDAO, CityModel> {
     public static final EventType<CityEvent> CITY_EVENT_TYPE = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_CITY_EVENT");
 
     /**
-     * Base {@link EventType} for all operational {@code CityEvent}s.
+     * Base {@link EventType} for all change {@code CityEvent}s.
      */
-    public static final EventType<CityEvent> OP_EVENT_TYPE = new EventType<>(CITY_EVENT_TYPE, "SCHEDULER_CITY_OP_EVENT");
+    public static final EventType<CityEvent> CHANGE_EVENT_TYPE = new EventType<>(CITY_EVENT_TYPE, "SCHEDULER_CITY_CHANGE_EVENT");
 
     public static final boolean isSuccess(CityEvent event) {
         return event instanceof CitySuccessEvent;

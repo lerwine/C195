@@ -10,42 +10,42 @@ import scheduler.model.ui.CountryModel;
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_COUNTRY_FAILED_EVENT"} &lArr; {@link #OP_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"} &lArr;
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_COUNTRY_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"} &lArr;
  * {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_SAVE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_SAVE_FAILED</dt>
  * <dd>&rarr; {@link #SAVE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_INSERT_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_INSERT_FAILED</dt>
  * <dd>&rarr; {@link #INSERT_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_INSERT_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_INSERT_FAULTED</dt>
  * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_INSERT_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_INSERT_INVALID</dt>
  * <dd>&rarr; {@link #INSERT_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_INSERT_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_INSERT_CANCELED</dt>
  * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
  * </dl></dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_UPDATE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_UPDATE_FAILED</dt>
  * <dd>&rarr; {@link #UPDATE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_UPDATE_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_UPDATE_FAULTED</dt>
  * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_UPDATE_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_UPDATE_INVALID</dt>
  * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_UPDATE_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_UPDATE_CANCELED</dt>
  * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
  * </dl></dd>
  * </dl></dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_DELETE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_DELETE_FAILED</dt>
  * <dd>&rarr; {@link #DELETE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_DELETE_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_DELETE_FAULTED</dt>
  * <dd>&rarr; {@link #DELETE_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_DELETE_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_DELETE_INVALID</dt>
  * <dd>&rarr; {@link #DELETE_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_COUNTRY_DELETE_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_COUNTRY_DELETE_CANCELED</dt>
  * <dd>&rarr; {@link #DELETE_CANCELED}</dd>
  * </dl></dd>
  * </dl>
@@ -76,7 +76,7 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
     /**
      * Base {@link EventType} for all {@code CountryFailedEvent}s.
      */
-    public static final EventType<CountryFailedEvent> FAILED_EVENT_TYPE = new EventType<>(OP_EVENT_TYPE, BASE_EVENT_NAME);
+    public static final EventType<CountryFailedEvent> FAILED_EVENT_TYPE = new EventType<>(CHANGE_EVENT_TYPE, BASE_EVENT_NAME);
 
     /**
      * Base {@link EventType} for save {@code CountryFailedEvent}s.

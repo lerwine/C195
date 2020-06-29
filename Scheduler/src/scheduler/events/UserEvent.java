@@ -14,12 +14,12 @@ import scheduler.model.ui.UserModel;
  * <dt>{@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link #OP_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"}</dt>
+ * <dt>(inherit) {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link UserSuccessEvent#BASE_EVENT_NAME "SCHEDULER_USER_SUCCESS_EVENT"}</dt>
+ * <dt>(inherit) {@link UserSuccessEvent#BASE_EVENT_NAME "SCHEDULER_USER_SUCCESS_EVENT"}</dt>
  * <dd>&rarr; {@link UserSuccessEvent}</dd>
- * <dt>&#x21B3; {@link UserFailedEvent#BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"}</dt>
+ * <dt>(inherit) {@link UserFailedEvent#BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"}</dt>
  * <dd>&rarr; {@link UserFailedEvent}</dd>
  * </dl>
  * </dd>
@@ -38,9 +38,9 @@ public abstract class UserEvent extends ModelEvent<UserDAO, UserModel> {
     public static final EventType<UserEvent> USER_EVENT_TYPE = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_USER_EVENT");
 
     /**
-     * Base {@link EventType} for all operational {@code UserEvent}s.
+     * Base {@link EventType} for all change {@code UserEvent}s.
      */
-    public static final EventType<UserEvent> OP_EVENT_TYPE = new EventType<>(USER_EVENT_TYPE, "SCHEDULER_USER_OP_EVENT");
+    public static final EventType<UserEvent> CHANGE_EVENT_TYPE = new EventType<>(USER_EVENT_TYPE, "SCHEDULER_USER_CHANGE_EVENT");
 
     public static final boolean isSuccess(UserEvent event) {
         return event instanceof UserSuccessEvent;

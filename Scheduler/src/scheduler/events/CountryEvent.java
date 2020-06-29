@@ -14,12 +14,12 @@ import scheduler.model.ui.CountryModel;
  * <dt>{@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"}</dt>
+ * <dt>(inherit) {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link CountrySuccessEvent#BASE_EVENT_NAME "SCHEDULER_COUNTRY_SUCCESS_EVENT"}</dt>
+ * <dt>(inherit) {@link CountrySuccessEvent#BASE_EVENT_NAME "SCHEDULER_COUNTRY_SUCCESS_EVENT"}</dt>
  * <dd>&rarr; {@link CountrySuccessEvent}</dd>
- * <dt>&#x21B3; {@link CountryFailedEvent#BASE_EVENT_NAME "SCHEDULER_COUNTRY_FAILED_EVENT"}</dt>
+ * <dt>(inherit) {@link CountryFailedEvent#BASE_EVENT_NAME "SCHEDULER_COUNTRY_FAILED_EVENT"}</dt>
  * <dd>&rarr; {@link CountryFailedEvent}</dd>
  * </dl>
  * </dd>
@@ -39,9 +39,9 @@ public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> 
     public static final EventType<CountryEvent> COUNTRY_EVENT_TYPE = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_COUNTRY_EVENT");
 
     /**
-     * Base {@link EventType} for all operational {@code CountryEvent}s.
+     * Base {@link EventType} for all change {@code CountryEvent}s.
      */
-    public static final EventType<CountryEvent> OP_EVENT_TYPE = new EventType<>(COUNTRY_EVENT_TYPE, "SCHEDULER_COUNTRY_OP_EVENT");
+    public static final EventType<CountryEvent> CHANGE_EVENT_TYPE = new EventType<>(COUNTRY_EVENT_TYPE, "SCHEDULER_COUNTRY_CHANGE_EVENT");
 
     public static final boolean isSuccess(CountryEvent event) {
         return event instanceof CountrySuccessEvent;

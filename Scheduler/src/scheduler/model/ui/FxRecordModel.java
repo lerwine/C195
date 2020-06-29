@@ -263,10 +263,10 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         protected FxModelFactory(EventType<E> anyEventType) {
             eventHandlerManager = new EventHandlerManager(this);
-            eventHandlerManager.addEventHandler(anyEventType, this::handleDbOperationEvent);
+            eventHandlerManager.addEventHandler(anyEventType, this::handleOperationRequestEvent);
         }
 
-        private void handleDbOperationEvent(E event) {
+        private void handleOperationRequestEvent(E event) {
             if (!event.isConsumed()) {
                 M model = event.getFxRecordModel();
                 if (null != model) {

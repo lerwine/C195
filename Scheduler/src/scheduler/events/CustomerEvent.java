@@ -14,12 +14,12 @@ import scheduler.model.ui.CustomerModel;
  * <dt>{@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"}</dt>
+ * <dt>(inherit) {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; {@link CustomerSuccessEvent#BASE_EVENT_NAME "SCHEDULER_CUSTOMER_SUCCESS_EVENT"}</dt>
+ * <dt>(inherit) {@link CustomerSuccessEvent#BASE_EVENT_NAME "SCHEDULER_CUSTOMER_SUCCESS_EVENT"}</dt>
  * <dd>&rarr; {@link CustomerSuccessEvent}</dd>
- * <dt>&#x21B3; {@link CustomerFailedEvent#BASE_EVENT_NAME "SCHEDULER_CUSTOMER_FAILED_EVENT"}</dt>
+ * <dt>(inherit) {@link CustomerFailedEvent#BASE_EVENT_NAME "SCHEDULER_CUSTOMER_FAILED_EVENT"}</dt>
  * <dd>&rarr; {@link CustomerFailedEvent}</dd>
  * </dl>
  * </dd>
@@ -38,9 +38,9 @@ public abstract class CustomerEvent extends ModelEvent<CustomerDAO, CustomerMode
     public static final EventType<CustomerEvent> CUSTOMER_EVENT_TYPE = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_CUSTOMER_EVENT");
 
     /**
-     * Base {@link EventType} for all operational {@code CustomerEvent}s.
+     * Base {@link EventType} for all change {@code CustomerEvent}s.
      */
-    public static final EventType<CustomerEvent> OP_EVENT_TYPE = new EventType<>(CUSTOMER_EVENT_TYPE, "SCHEDULER_CUSTOMER_OP_EVENT");
+    public static final EventType<CustomerEvent> CHANGE_EVENT_TYPE = new EventType<>(CUSTOMER_EVENT_TYPE, "SCHEDULER_CUSTOMER_CHANGE_EVENT");
 
     public static final boolean isSuccess(CustomerEvent event) {
         return event instanceof CustomerSuccessEvent;

@@ -416,7 +416,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Loads items from the database. {@link #save(scheduler.events.ModelEvent, java.sql.Connection, boolean)}
+         * Loads items from the database.
          *
          * @param connection An opened database connection.
          * @param filter The {@link DaoFilter} that is used to build the WHERE clause of the SQL query.
@@ -499,10 +499,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * Clones the properties from one {@link DataAccessobject} to another.
+         * Clones the properties from one {@link DataAccessObject} to another.
          *
-         * @param fromDAO The source {@link DataAccessobject} to be copied from.
-         * @param toDAO The target {@link DataAccessobject} to be copied to.
+         * @param fromDAO The source {@link DataAccessObject} to be copied from.
+         * @param toDAO The target {@link DataAccessObject} to be copied to.
          */
         @SuppressWarnings("try")
         protected final void cloneProperties(D fromDAO, D toDAO) {
@@ -542,10 +542,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * This gets called when the properties of one {@link DataAccessobject} are being copied to another. {@link PropertyChangeEvent}s will be deferred while this is invoked.
+         * This gets called when the properties of one {@link DataAccessObject} are being copied to another. {@link PropertyChangeEvent}s will be deferred while this is invoked.
          *
-         * @param fromDAO The source {@link DataAccessobject} to be copied from.
-         * @param toDAO The target {@link DataAccessobject} to be copied to.
+         * @param fromDAO The source {@link DataAccessObject} to be copied from.
+         * @param toDAO The target {@link DataAccessObject} to be copied to.
          */
         protected abstract void onCloneProperties(D fromDAO, D toDAO);
 
@@ -598,18 +598,18 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         public abstract D createNew();
 
 //        /**
-//         * Creates a new {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
+//         * Creates a new {@link SaveDaoTask} for saving changes to a {@link DataAccessObject} to the database.
 //         *
-//         * @param target The {@link RecordModelContext} that contains the {@link DataAccessobject} to be saved the database.
-//         * @return A {@link SaveDaoTask} for saving changes to a {@link DataAccessobject} to the database.
+//         * @param target The {@link RecordModelContext} that contains the {@link DataAccessObject} to be saved the database.
+//         * @return A {@link SaveDaoTask} for saving changes to a {@link DataAccessObject} to the database.
 //         */
 //        public abstract SaveDaoTask<D, ? extends FxRecordModel<D>, E> createSaveTask(RecordModelContext<D, ? extends FxRecordModel<D>> target);
 //
 //        /**
-//         * Creates a new {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
+//         * Creates a new {@link SaveDaoTask} for deleting a {@link DataAccessObject} from the database.
 //         *
-//         * @param target The {@link RecordModelContext} that contains the {@link DataAccessobject} to be saved the database.
-//         * @return A {@link SaveDaoTask} for deleting a {@link DataAccessobject} from the database.
+//         * @param target The {@link RecordModelContext} that contains the {@link DataAccessObject} to be saved the database.
+//         * @return A {@link SaveDaoTask} for deleting a {@link DataAccessObject} from the database.
 //         */
 //        public abstract DeleteDaoTask<D, ? extends FxRecordModel<D>, E> createDeleteTask(RecordModelContext<D, ? extends FxRecordModel<D>> target);
         /**
@@ -862,7 +862,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * Gets the final {@link ModelEvent} after the {@code DaoTask} is finished.
          *
          * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from
-         * {@link #createFailedEvent(java.lang.Throwable)}; otherwise, this will be set to the value obtained from {@link #createCanceledEvent()}.
+         * {@link #createFaultedEvent()}; otherwise, this will be set to the value obtained from {@link #createCanceledEvent()}.
          */
         public E getFinalEvent() {
             return finalEvent.get();
@@ -1011,7 +1011,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         private final ReadOnlyBooleanWrapper validationFailed;
 
         /**
-         * Creates a new {@code ValidationDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
+         * Creates a new {@code ValidatingDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
          *
          * @param target The {@link RecordModelContext} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
@@ -1081,8 +1081,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * This gets called to validateForSave the current {@link DataAccessObject}. This should throw a {@link ValidationFailureException} for validation errors, to distinguish
-         * them from other {@link Exception}s.
+         * This gets called to validateForSave the current {@link DataAccessObject}.
          *
          * @param connection The opened database {@link Connection}.
          * @return The validation event, which can be {@code null} if the target {@link DataAccessObject} is valid.
@@ -1102,7 +1101,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * A {@link ValidationDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database {@link Connection} and defers the firing of
+     * A {@link ValidatingDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database {@link Connection} and defers the firing of
      * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link SaveDaoTask} and the target
      * {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced
      * for task failures and cancellations. If successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#UNMODIFIED}.
@@ -1269,7 +1268,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * A {@link ValidationDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database {@link Connection} and defers the firing of
+     * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database {@link Connection} and defers the firing of
      * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link DeleteDaoTask} and the target
      * {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced
      * for task failures and cancellations. If successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.

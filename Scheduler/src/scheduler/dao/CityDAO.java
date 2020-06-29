@@ -105,19 +105,19 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
         if (null == country || country instanceof CountryDAO) {
             if (null != countryChangeHandler) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
+                CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
                 countryChangeHandler = null;
             }
         } else if (null == countryChangeHandler) {
             countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-            CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
+            CountryDAO.FACTORY.addEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
         }
     }
 
     private void onCountryEvent(CountryEvent event) {
         ICountryDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-            CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
+            CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
             countryChangeHandler = null;
             ICountryDAO oldValue = country;
             country = newValue;
@@ -369,7 +369,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
 //        @Override
-//        protected CityEvent createDbOperationEvent(CityEvent sourceEvent, DbOperationType operation) {
+//        protected CityEvent createOperationRequestEvent(CityEvent sourceEvent, DbOperationType operation) {
 //            CityModel model = sourceEvent.getModel();
 //            if (null != model) {
 //                return new CityEvent(model, sourceEvent.getSource(), this, operation);
@@ -575,14 +575,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             this.timeZone = zoneId;
             if (!(null == country || country instanceof CountryDAO)) {
                 countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-                CountryDAO.FACTORY.addEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
+                CountryDAO.FACTORY.addEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
             }
         }
 
         private void onCountryEvent(CountryEvent event) {
             ICountryDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.OP_EVENT_TYPE, countryChangeHandler);
+                CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
                 countryChangeHandler = null;
                 ICountryDAO oldValue = country;
                 country = newValue;

@@ -85,20 +85,20 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_CUSTOMER_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link CustomerOpRequestEvent} &#123;</dt>
+ * <dt>{@link #customersTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CustomerOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#CUSTOMER_OP_REQUEST "SCHEDULER_CUSTOMER_OP_REQUEST"} &larr;
  * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
- * &#125; &#x26A1; {@link #onItemActionRequest(CustomerOpRequestEvent)}
+ * &#125; (fires) {@link #onItemActionRequest(CustomerOpRequestEvent)}
  * <dl>
  * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditCustomer#edit(CustomerModel, javafx.stage.Window) EditCustomer.edit}(({@link CustomerModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
- * {@link javafx.stage.Window}) &#x21DD; {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
+ * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
  * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
  * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
- * {@code false}) &#x21DD; {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr; {@link scheduler.model.ui.CustomerModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr; {@link scheduler.model.ui.CustomerModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -143,6 +143,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @ModelEditor
     private AddressModel model;
+
+    @ModelEditor
+    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -410,8 +413,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             editingCity.set(true);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
-            insertedHandler = new WeakEventHandler<>(this::onAddressInserted);
-            model.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            if (keepOpen) {
+                insertedHandler = new WeakEventHandler<>(this::onAddressInserted);
+                model.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            }
         } else {
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());

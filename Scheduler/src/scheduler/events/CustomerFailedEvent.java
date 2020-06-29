@@ -10,42 +10,42 @@ import scheduler.model.ui.CustomerModel;
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CUSTOMER_FAILED_EVENT"} &lArr; {@link #OP_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"} &lArr;
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CUSTOMER_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"} &lArr;
  * {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_SAVE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_SAVE_FAILED</dt>
  * <dd>&rarr; {@link #SAVE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_FAILED</dt>
  * <dd>&rarr; {@link #INSERT_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
  * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
  * <dd>&rarr; {@link #INSERT_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
  * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
  * </dl></dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_FAILED</dt>
  * <dd>&rarr; {@link #UPDATE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
  * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
  * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
  * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
  * </dl></dd>
  * </dl></dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_FAILED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_DELETE_FAILED</dt>
  * <dd>&rarr; {@link #DELETE_FAILED}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_FAULTED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_DELETE_FAULTED</dt>
  * <dd>&rarr; {@link #DELETE_FAULTED}</dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_INVALID</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_DELETE_INVALID</dt>
  * <dd>&rarr; {@link #DELETE_INVALID}</dd>
- * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_CANCELED</dt>
+ * <dt>(inherit) SCHEDULER_CUSTOMER_DELETE_CANCELED</dt>
  * <dd>&rarr; {@link #DELETE_CANCELED}</dd>
  * </dl></dd>
  * </dl>
@@ -76,29 +76,29 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
     /**
      * Base {@link EventType} for all {@code CustomerFailedEvent}s.
      */
-    public static final EventType<CustomerFailedEvent> FAILED_EVENT_TYPE = new EventType<>(OP_EVENT_TYPE, BASE_EVENT_NAME);
+    public static final EventType<CustomerFailedEvent> FAILED_EVENT_TYPE = new EventType<>(CHANGE_EVENT_TYPE, BASE_EVENT_NAME);
 
     /**
      * Base {@link EventType} for save {@code CustomerFailedEvent}s.
      * <dl>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAILED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_FAILED</dt>
      * <dd>&rarr; {@link #INSERT_FAILED}
      * <dl>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
      * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
      * <dd>&rarr; {@link #INSERT_INVALID}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
      * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
      * </dl></dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAILED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_FAILED</dt>
      * <dd>&rarr; {@link #UPDATE_FAILED}
      * <dl>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
      * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
      * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
      * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
      * </dl></dd>
      * </dl>
@@ -108,11 +108,11 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
     /**
      * {Base @link EventType} for insert {@code CustomerFailedEvent}s.
      * <dl>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_FAULTED</dt>
      * <dd>&rarr; {@link #INSERT_FAULTED}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_INVALID</dt>
      * <dd>&rarr; {@link #INSERT_INVALID}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_INSERT_CANCELED</dt>
      * <dd>&rarr; {@link #INSERT_CANCELED}</dd>
      * </dl>
      */
@@ -121,11 +121,11 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
     /**
      * Base {@link EventType} for update {@code CustomerFailedEvent}s.
      * <dl>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_FAULTED</dt>
      * <dd>&rarr; {@link #UPDATE_FAULTED}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_INVALID</dt>
      * <dd>&rarr; {@link #UPDATE_INVALID}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_UPDATE_CANCELED</dt>
      * <dd>&rarr; {@link #UPDATE_CANCELED}</dd>
      * </dl>
      */
@@ -134,11 +134,11 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
     /**
      * Base {@link EventType} for delete {@code CustomerFailedEvent}s.
      * <dl>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_FAULTED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_DELETE_FAULTED</dt>
      * <dd>&rarr; {@link #DELETE_FAULTED}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_INVALID</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_DELETE_INVALID</dt>
      * <dd>&rarr; {@link #DELETE_INVALID}</dd>
-     * <dt>&#x21B3; SCHEDULER_CUSTOMER_DELETE_CANCELED</dt>
+     * <dt>(inherit) SCHEDULER_CUSTOMER_DELETE_CANCELED</dt>
      * <dd>&rarr; {@link #DELETE_CANCELED}</dd>
      * </dl>
      */

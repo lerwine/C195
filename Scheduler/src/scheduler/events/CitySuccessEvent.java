@@ -10,19 +10,19 @@ import scheduler.model.ui.CityModel;
  * Represents a successful {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_SUCCESS_EVENT"} &lArr; {@link #OP_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr;
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr;
  * {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
- * <dt>&#x21B3; SCHEDULER_CITY_SAVE_SUCCESS</dt>
+ * <dt>(inherit) SCHEDULER_CITY_SAVE_SUCCESS</dt>
  * <dd>&rarr; {@link #SAVE_SUCCESS}
  * <dl>
- * <dt>&#x21B3; SCHEDULER_CITY_INSERT_SUCCESS</dt>
+ * <dt>(inherit) SCHEDULER_CITY_INSERT_SUCCESS</dt>
  * <dd>&rarr; {@link #INSERT_SUCCESS}</dd>
- * <dt>&#x21B3; SCHEDULER_CITY_UPDATE_SUCCESS</dt>
+ * <dt>(inherit) SCHEDULER_CITY_UPDATE_SUCCESS</dt>
  * <dd>&rarr; {@link #UPDATE_SUCCESS}</dd>
  * </dl></dd>
- * <dt>&#x21B3; SCHEDULER_CITY_DELETE_SUCCESS</dt>
+ * <dt>(inherit) SCHEDULER_CITY_DELETE_SUCCESS</dt>
  * <dd>&rarr; {@link #DELETE_SUCCESS}</dd>
  * </dl>
  * </dd>
@@ -43,7 +43,7 @@ public final class CitySuccessEvent extends CityEvent {
     /**
      * Base {@link EventType} for all {@code CitySuccessEvent}s.
      */
-    public static final EventType<CitySuccessEvent> SUCCESS_EVENT_TYPE = new EventType<>(OP_EVENT_TYPE, BASE_EVENT_NAME);
+    public static final EventType<CitySuccessEvent> SUCCESS_EVENT_TYPE = new EventType<>(CHANGE_EVENT_TYPE, BASE_EVENT_NAME);
 
     /**
      * {@link EventType} for save {@code CitySuccessEvent}s.

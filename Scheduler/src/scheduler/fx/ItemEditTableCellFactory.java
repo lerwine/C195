@@ -86,8 +86,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Registers a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Registers a {@link OperationRequestEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.
@@ -97,8 +96,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Registers a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Registers a {@link OperationRequestEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.
@@ -108,8 +106,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Unregisters a {@link DbOperationEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Unregisters a {@link OperationRequestEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.
@@ -119,8 +116,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Unregisters a {@link DbOperationEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Unregisters a {@link OperationRequestEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.
