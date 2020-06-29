@@ -188,6 +188,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     }
 
     @FXML
+    @SuppressWarnings("unchecked")
     void onDeleteButtonAction(ActionEvent event) {
         Stage stage = (Stage) getScene().getWindow();
         AlertHelper.showWarningAlert(stage, LOG,
@@ -210,7 +211,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     }
 
     @FXML
-    @SuppressWarnings("incomplete-switch")
+    @SuppressWarnings({ "incomplete-switch", "unchecked" })
     void onSaveButtonAction(ActionEvent event) {
         editorRegion.applyChanges();
         DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(RecordModelContext.of(model));

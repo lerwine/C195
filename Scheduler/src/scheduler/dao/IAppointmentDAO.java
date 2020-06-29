@@ -5,9 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import scheduler.model.Appointment;
-import scheduler.model.PredefinedData;
 import scheduler.util.DB;
-import scheduler.util.Values;
 
 /**
  *
