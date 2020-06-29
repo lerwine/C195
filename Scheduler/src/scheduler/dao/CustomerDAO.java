@@ -35,7 +35,6 @@ import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -379,7 +378,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 //        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
 //            return new DeleteTask(RecordModelContext.of(dao), false);
 //        }
-
     }
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
@@ -486,7 +484,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     }
 
-    public static class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
 
         private static final String REFERENCED_BY_ONE = "Customer is referenced by one appointment.";
         private static final String REFERENCED_BY_N = "Customer is referenced by %d other appointments.";

@@ -39,7 +39,6 @@ import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -392,7 +391,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 //        public DeleteDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createDeleteTask(CityDAO dao) {
 //            return new DeleteTask(RecordModelContext.of(dao), false);
 //        }
-
     }
 
     public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
@@ -507,7 +505,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     }
 
-    public static class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
 
         public DeleteTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
             super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);

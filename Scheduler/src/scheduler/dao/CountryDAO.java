@@ -27,7 +27,6 @@ import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -294,10 +293,10 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 //        public DeleteDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createDeleteTask(CountryDAO dao) {
 //            return new DeleteTask(RecordModelContext.of(dao), false);
 //        }
-
     }
 
     public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel, CountryEvent> {
+
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking country naming conflicts";
 
         public SaveTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
@@ -374,7 +373,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     }
 
-    public static class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 

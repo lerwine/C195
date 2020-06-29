@@ -41,7 +41,6 @@ import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import scheduler.model.ui.UserModel;
 import scheduler.util.DB;
@@ -803,7 +802,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 //        public DeleteDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createDeleteTask(AppointmentDAO dao) {
 //            return new DeleteTask(RecordModelContext.of(dao), false);
 //        }
-
     }
 
     public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
@@ -905,7 +903,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     }
 
-    public static class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         public DeleteTask(RecordModelContext<AppointmentDAO, AppointmentModel> target, boolean alreadyValidated) {
             super(target, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);

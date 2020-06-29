@@ -36,7 +36,6 @@ import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -416,7 +415,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 //        public DeleteDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createDeleteTask(AddressDAO dao) {
 //            return new DeleteTask(RecordModelContext.of(dao), false);
 //        }
-
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
@@ -558,7 +556,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     }
 
-    public static class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
 
         private static final String REFERENCED_BY_N = "Address is referenced by %d other customers";
         private static final String REFERENCED_BY_ONE = "Address is referenced by one customer.";

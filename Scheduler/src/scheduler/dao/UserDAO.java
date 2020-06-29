@@ -27,7 +27,6 @@ import scheduler.model.ModelHelper;
 import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -341,10 +340,10 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 //        public DeleteDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createDeleteTask(UserDAO dao) {
 //            return new DeleteTask(RecordModelContext.of(dao), false);
 //        }
-
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
+
         private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
         private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
 
@@ -418,7 +417,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     }
 
-    public static class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
 
         private static final String CANNOT_DELETE_YOUR_OWN_ACCOUNT = "Cannot delete your own account";
         private static final String REFERENCED_BY_N = "Address is referenced by %d other appointments";
