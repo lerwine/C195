@@ -19,6 +19,7 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.UserDAO;
 import scheduler.events.UserEvent;
+import scheduler.events.UserFailedEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.RecordModelContext;
@@ -34,8 +35,6 @@ import static scheduler.view.user.ManageUsersResourceKeys.*;
 
 /**
  * FXML Controller class for viewing a list of {@link UserModel} items.
- * <p>
- * The associated view is {@code /resources/scheduler/view/user/ManageUsers.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -159,7 +158,14 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new UserDAO.DeleteTask(item, false));
+            UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
+            task.setOnSucceeded((e) -> {
+                UserEvent result = task.getValue();
+                if (result instanceof UserFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((UserFailedEvent) result).getMessage(), ButtonType.OK);
+                }
+            });
+            MainController.startBusyTaskNow(task);
         }
     }
 

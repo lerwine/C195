@@ -45,12 +45,14 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerEvent;
@@ -90,8 +92,26 @@ import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing a {@link CustomerModel}.
- * <p>
- * The associated view is {@code /resources/scheduler/view/customer/EditCustomer.fxml}.</p>
+ * <h3>Event Handling</h3>
+ * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
+ * <dl>
+ * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link AppointmentOpRequestEvent} &#123;</dt>
+ * <dd>{@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * </dd>
+ * </dl>
+ * &#125; &#x26A1; {@link #onItemActionRequest(AppointmentOpRequestEvent)}
+ * <dl>
+ * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dd>&rarr; {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * {@link javafx.stage.Window}) &#x21DD; {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
+ * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST}
+ * &#125;</dt>
+ * <dd>&rarr; {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
+ * {@code false}) &#x21DD; {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
+ * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -216,21 +236,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCountries = FXCollections.observableArrayList();
     }
 
-    // FIXME: The method onCustomerUpdating(CustomerSuccessEvent) from the type EditCustomer is never used locally
-    private void onCustomerUpdating(CustomerSuccessEvent event) {
-        model.setName(nameTextField.getText().trim());
-        if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
-            AddressModel addr = selectedAddress.get();
-            addr.setAddress1(normalizedAddress1.get());
-            addr.setAddress2(normalizedAddress2.get());
-            addr.setCity(selectedCity.get());
-            addr.setPostalCode(normalizedPostalCode.get());
-            addr.setPhone(normalizedPhone.get());
-            model.setAddress(selectedAddress.get());
-        }
-        model.setActive(activeTrueRadioButton.isSelected());
-    }
-
     private void onCustomerInserted(CustomerSuccessEvent event) {
         model.removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
         restoreNode(appointmentFilterComboBox);
@@ -260,7 +265,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 case DELETE:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteItem(item);
+                        deleteItem(RecordModelContext.of(item));
                     }
                     break;
                 case ENTER:
@@ -277,7 +282,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            deleteItem(item);
+            deleteItem(RecordModelContext.of(item));
         }
     }
 
@@ -297,12 +302,19 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         }
     }
 
-    private void deleteItem(AppointmentModel item) {
+    private void deleteItem(RecordModelContext<AppointmentDAO, AppointmentModel> target) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(RecordModelContext.of(item), false));
+            DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
+            task.setOnSucceeded((e) -> {
+                AppointmentEvent result = task.getValue();
+                if (result instanceof AppointmentFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((AppointmentFailedEvent) result).getMessage(), ButtonType.OK);
+                }
+            });
+            waitBorderPane.startNow(task);
         }
     }
 
@@ -316,12 +328,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(AppointmentModel.FACTORY.createDeleteTask(event));
-            }
+            deleteItem(event);
         }
     }
 
@@ -493,49 +500,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
     }
 
-    // FIXME: The method onCustomerUpdate(CustomerEvent) from the type EditCustomer is never used locally
-    private void onCustomerUpdate(CustomerEvent event) {
-        AddressModel address = selectedAddress.get();
-        int existingCount = addressCustomerCount.get();
-        if (address.getRowState() != DataRowState.NEW) {
-            IAddressDAO originalAddress = model.dataObject().getAddress();
-            if (null != originalAddress && originalAddress.getRowState() != DataRowState.NEW
-                    && address.getPrimaryKey() == originalAddress.getPrimaryKey()) {
-                if (existingCount < 2) {
-                    return;
-                }
-                existingCount--;
-            } else if (existingCount < 1) {
-                return;
-            }
-        } else if (existingCount < 1) {
-            return;
-        }
-        Stage stage = (Stage) getScene().getWindow();
-        StringBuilder message = new StringBuilder();
-        if (existingCount == 1) {
-            message.append("is 1 other customer that shares");
-        } else {
-            message.append("are ").append(existingCount).append(" other customers that share");
-        }
-
-        Optional<ButtonType> response = AlertHelper.showWarningAlert(stage, LOG,
-                "Multiple Customers Affected",
-                String.format("There %s the same address."
-                        + "%nChange address for all customers?%nSelect \"No\" to create a new address for the current customer or "
-                        + "\"Cancel\" to abort the save operation.", message), ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-        if (response.isPresent()) {
-            if (response.get() == ButtonType.YES) {
-                return;
-            }
-            if (response.get() == ButtonType.NO) {
-                selectedAddress.set(new AddressModel(new AddressDAO()));
-                return;
-            }
-        }
-        event.consume();
-    }
-
     private void onAppointmentAdded(AppointmentEvent event) {
         LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
         if (model.getRowState() != DataRowState.NEW) {
@@ -682,7 +646,17 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @Override
     public void applyChanges() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.customer.EditCustomer#applyChanges
+        model.setName(nameTextField.getText().trim());
+        if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
+            AddressModel addr = selectedAddress.get();
+            addr.setAddress1(normalizedAddress1.get());
+            addr.setAddress2(normalizedAddress2.get());
+            addr.setCity(selectedCity.get());
+            addr.setPostalCode(normalizedPostalCode.get());
+            addr.setPhone(normalizedPhone.get());
+            model.setAddress(selectedAddress.get());
+        }
+        model.setActive(activeTrueRadioButton.isSelected());
     }
 
     private class AppointmentFilterItem {

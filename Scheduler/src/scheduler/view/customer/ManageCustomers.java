@@ -19,6 +19,7 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
 import scheduler.events.CustomerEvent;
+import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
@@ -35,8 +36,6 @@ import static scheduler.view.customer.ManageCustomersResourceKeys.*;
 
 /**
  * FXML Controller class for viewing a list of {@link CustomerModel} items.
- * <p>
- * The associated view is {@code /resources/scheduler/view/customer/ManageCustomers.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -162,7 +161,14 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new CustomerDAO.DeleteTask(item, false));
+            CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
+            task.setOnSucceeded((e) -> {
+                CustomerEvent result = task.getValue();
+                if (result instanceof CustomerFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((CustomerFailedEvent) result).getMessage(), ButtonType.OK);
+                }
+            });
+            MainController.startBusyTaskNow(task);
         }
     }
 

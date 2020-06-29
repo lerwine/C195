@@ -189,7 +189,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     void onDeleteButtonAction(ActionEvent event) {
-        // FIXME: Make sure everyone's getting all events
         Stage stage = (Stage) getScene().getWindow();
         AlertHelper.showWarningAlert(stage, LOG,
                 resources.getString(RESOURCEKEY_CONFIRMDELETE),
@@ -200,12 +199,11 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                         task.setOnSucceeded((e) -> {
                             E result = task.getValue();
                             if (result instanceof ModelFailedEvent) {
-                                // FIXME: need to display message to user.
+                                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
                             } else {
                                 getScene().getWindow().hide();
                             }
                         });
-
                         waitBorderPane.startNow(task);
                     }
                 });
@@ -219,7 +217,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         task.setOnSucceeded((e) -> {
             E result = task.getValue();
             if (result instanceof ModelFailedEvent) {
-                // FIXME: need to display message to user.
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Change Failure", ((ModelFailedEvent<T, U>)result).getMessage(), ButtonType.OK);
             } else {
                 switch (result.getOperation()) {
                     case DB_INSERT:

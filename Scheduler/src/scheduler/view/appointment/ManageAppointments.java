@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -40,7 +41,9 @@ import scheduler.dao.IUserDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentSuccessEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
@@ -67,8 +70,22 @@ import scheduler.view.export.TsvDataExporter;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
- * <p>
- * The associated view is {@code /resources/scheduler/view/appointment/ManageAppointments.fxml}.</p>
+ * <h3>Event Handling</h3>
+ * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
+ * <dl>
+ * <dt>{@link #listingTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link scheduler.events.AppointmentOpRequestEvent}
+ * &#123;</dt>
+ * <dd> {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * </dd>
+ * </dl>
+ * &#125; &#x26A1; {@link #onItemActionRequest(OperationRequestEvent) onItemActionRequest}({@link scheduler.events.AppointmentOpRequestEvent})
+ * <dl>
+ * <dt>{@link scheduler.events.AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dd>&rarr; {@link #onEditItem(AppointmentModel) onEditItem}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()}</dd>
+ * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}} &#125;</dt>
+ * <dd>&rarr; {@link #onDeleteItem(RecordModelContext) onDeleteItem}({@link scheduler.events.AppointmentOpRequestEvent})</dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -500,7 +517,14 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            MainController.startBusyTaskNow(new AppointmentDAO.DeleteTask(item, false));
+            AppointmentDAO.DeleteTask task = new AppointmentDAO.DeleteTask(item, false);
+            task.setOnSucceeded((e) -> {
+                AppointmentEvent result = task.getValue();
+                if (result instanceof AppointmentFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((AppointmentFailedEvent)result).getMessage(), ButtonType.OK);
+                }
+            });
+            MainController.startBusyTaskNow(task);
         }
     }
 

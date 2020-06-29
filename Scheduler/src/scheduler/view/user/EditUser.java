@@ -40,8 +40,11 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.UserEvent;
@@ -71,8 +74,26 @@ import static scheduler.view.user.EditUserResourceKeys.*;
 
 /**
  * FXML Controller class for editing a {@link UserModel}.
- * <p>
- * The associated view is {@code /resources/scheduler/view/user/EditUser.fxml}.</p>
+ * <h3>Event Handling</h3>
+ * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
+ * <dl>
+ * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link AppointmentOpRequestEvent} &#123;</dt>
+ * <dd>{@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * </dd>
+ * </dl>
+ * &#125; &#x26A1; {@link #onItemActionRequest(AppointmentOpRequestEvent)}
+ * <dl>
+ * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dd>&rarr; null {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * {@link javafx.stage.Window}) &#x21DD; {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
+ * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST}
+ * &#125;</dt>
+ * <dd>&rarr; null {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
+ * {@code false}) &#x21DD; {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
+ * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -163,7 +184,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 case DELETE:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteAppointment(item);
+                        deleteAppointment(RecordModelContext.of(item));
                     }
                     break;
                 case ENTER:
@@ -180,7 +201,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            deleteAppointment(item);
+            deleteAppointment(RecordModelContext.of(item));
         }
     }
 
@@ -200,12 +221,19 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
     }
 
-    private void deleteAppointment(AppointmentModel item) {
+    private void deleteAppointment(RecordModelContext<AppointmentDAO, AppointmentModel> target) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AppointmentDAO.DeleteTask(RecordModelContext.of(item), false));
+            DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
+            task.setOnSucceeded((e) -> {
+                AppointmentEvent result = task.getValue();
+                if (result instanceof AppointmentFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((AppointmentFailedEvent) result).getMessage(), ButtonType.OK);
+                }
+            });
+            waitBorderPane.startNow(task);
         }
     }
 
@@ -219,12 +247,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(AppointmentModel.FACTORY.createDeleteTask(event));
-            }
+            deleteAppointment(event);
         }
     }
 

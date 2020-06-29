@@ -41,8 +41,11 @@ import scheduler.ZoneIdMappings;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
+import scheduler.events.AddressEvent;
+import scheduler.events.AddressFailedEvent;
 import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
@@ -76,8 +79,24 @@ import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
- * <p>
- * The associated view is {@code /resources/scheduler/view/city/EditCity.fxml}.</p>
+ * <h3>Event Handling</h3>
+ * <h4>SCHEDULER_ADDRESS_OP_REQUEST</h4>
+ * <dl>
+ * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; &#x21DD; {@link AddressOpRequestEvent} &#123;</dt>
+ * <dd>{@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#ADDRESS_OP_REQUEST "SCHEDULER_ADDRESS_OP_REQUEST"} &larr;
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * </dd>
+ * </dl>
+ * &#125; &#x26A1; {@link #onItemActionRequest(AddressOpRequestEvent)}
+ * <dl>
+ * <dt>SCHEDULER_ADDRESS_EDIT_REQUEST {@link AddressOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dd>&rarr; {@link EditAddress#edit(AddressModel, javafx.stage.Window) EditAddress.edit}(({@link AddressModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * {@link javafx.stage.Window}) &#x21DD; {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
+ * {@link scheduler.model.ui.AddressModel.Factory}</dd>
+ * <dt>SCHEDULER_ADDRESS_DELETE_REQUEST {@link AddressOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * <dd>&rarr; {@link scheduler.dao.AddressDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AddressDAO.DeleteTask}({@link AddressOpRequestEvent},
+ * {@code false}) &#x21DD; {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr; {@link scheduler.model.ui.AddressModel.Factory}</dd>
+ * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -181,7 +200,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     void onAddressDeleteMenuItemAction(ActionEvent event) {
         AddressModel item = addressesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            deleteItem(item);
+            deleteItem(RecordModelContext.of(item));
         }
     }
 
@@ -202,7 +221,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 case DELETE:
                     item = addressesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteItem(item);
+                        deleteItem(RecordModelContext.of(item));
                     }
                     break;
                 case ENTER:
@@ -236,12 +255,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-            if (response.isPresent() && response.get() == ButtonType.YES) {
-                waitBorderPane.startNow(AddressModel.FACTORY.createDeleteTask(event));
-            }
+            deleteItem(event);
         }
     }
 
@@ -359,12 +373,19 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
-    private void deleteItem(AddressModel item) {
+    private void deleteItem(RecordModelContext<AddressDAO, AddressModel> target) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            waitBorderPane.startNow(new AddressDAO.DeleteTask(RecordModelContext.of(item), false));
+            DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> task = AddressModel.FACTORY.createDeleteTask(target);
+            task.setOnSucceeded((e) -> {
+                AddressEvent result = task.getValue();
+                if (result instanceof AddressFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((AddressFailedEvent) result).getMessage(), ButtonType.OK);
+                }
+            });
+            waitBorderPane.startNow(task);
         }
     }
 

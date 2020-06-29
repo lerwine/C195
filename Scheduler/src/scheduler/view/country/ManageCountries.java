@@ -18,6 +18,7 @@ import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryEvent;
+import scheduler.events.CountryFailedEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
@@ -34,8 +35,6 @@ import static scheduler.view.country.ManageCountriesResourceKeys.*;
 
 /**
  * FXML Controller class for viewing a list of {@link CountryModel} items.
- * <p>
- * The associated view is {@code /resources/scheduler/view/country/ManageCountries.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -121,6 +120,13 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
+            CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
+            task.setOnSucceeded((e) -> {
+                CountryEvent result = task.getValue();
+                if (result instanceof CountryFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((CountryFailedEvent) result).getMessage(), ButtonType.OK);
+                }
+            });
             MainController.startBusyTaskNow(new CountryDAO.DeleteTask(item, false));
         }
     }
