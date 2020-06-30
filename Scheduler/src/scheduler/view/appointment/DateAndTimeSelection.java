@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -116,9 +117,30 @@ public class DateAndTimeSelection extends PropertyBindable implements Comparable
         return DateAndTimeSelection.of(localDateTime);
     }
 
+    AppointmentDuration until(DateAndTimeSelection end) {
+        return AppointmentDuration.of(Duration.between(toLocalDateTime(), end.toLocalDateTime()));
+    }
+
     @Override
     public int compareTo(DateAndTimeSelection o) {
         return ZonedDateAndTimeSelection.compare(this, o);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(getClass().getName());
+        if (null == date) {
+            if (null == time) {
+                return sb.append("[]").toString();
+            }
+            return sb.append("[time=").append(time).append("]").toString();
+        } else {
+            sb.append("[date=").append(date);
+        }
+        if (null == time) {
+            return sb.append("]").toString();
+        }
+        return sb.append("; time=").append(time).append("]").toString();
     }
 
 }

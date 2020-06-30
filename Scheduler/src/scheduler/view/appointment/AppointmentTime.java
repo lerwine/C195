@@ -121,4 +121,9 @@ public class AppointmentTime extends HourAndMinute implements Comparable<Appoint
         return (result == 0) ? getMinutes() - o.getMinutes() : result;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getName() + "[hours=" + getHours() + "; minutes=" + getMinutes() + "; pm=" + ((pm) ? "true" : "false") + "]";
+    }
+
 }

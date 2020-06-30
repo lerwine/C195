@@ -146,4 +146,56 @@ public class ZonedAppointmentTimeSpan extends AppointmentTimeSpan {
         return ZonedDateTime.of(super.getEnd().toLocalDateTime(), zone);
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 19 * hash + Objects.hashCode(getStart());
+        hash = 19 * hash + Objects.hashCode(getDuration());
+        hash = 19 * hash + Objects.hashCode(getEnd());
+        hash = 19 * hash + Objects.hashCode(zone);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ZonedAppointmentTimeSpan other = (ZonedAppointmentTimeSpan) obj;
+        return Objects.equals(zone, other.zone) && super.equals(obj);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(getClass().getName());
+        if (null == getStart()) {
+            if (null == getEnd()) {
+                if (null == getDuration()) {
+                    if (null == zone)
+                        return sb.append("[]").toString();
+                    return sb.append("[zone=").append(zone.getId()).append("]").toString();
+                }
+                sb.append("[duration=").append(getDuration());
+                if (null == zone)
+                    return sb.append("]").toString();
+            }
+            sb.append("[end=").append(getEnd());
+        } else {
+            sb.append("[start=").append(getStart());
+            if (null != getEnd())
+                sb.append("; end=").append(getEnd());
+        }
+        if (null != getDuration())
+            sb.append("; duration=").append(getDuration());
+        if (null == zone)
+            return sb.append("]").toString();
+        return sb.append("; zone=").append(zone.getId()).append("]").toString();
+    }
+
 }

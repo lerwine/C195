@@ -118,4 +118,9 @@ public class AppointmentDuration extends HourAndMinute implements Comparable<App
         return result;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getName() + "[days=" + days + "; hours=" + getHours() + "; minutes=" + getMinutes() + "]";
+    }
+
 }

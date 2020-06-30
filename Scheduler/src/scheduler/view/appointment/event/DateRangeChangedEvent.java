@@ -34,4 +34,46 @@ public final class DateRangeChangedEvent extends AppointmentEditEvent {
         return event;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 43 * hash + Objects.hashCode(getSource());
+        hash = 43 * hash + Objects.hashCode(getTarget());
+        hash = 43 * hash + Objects.hashCode(getEventType().getName());
+        hash = 43 * hash + Objects.hashCode(zonedAppointmentTimeSpan);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final DateRangeChangedEvent other = (DateRangeChangedEvent) obj;
+        return Objects.equals(zonedAppointmentTimeSpan, other.zonedAppointmentTimeSpan) && super.equals(obj);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(getClass().getName()).append("[type=").append(getEventType().getName());
+        if (null != zonedAppointmentTimeSpan) {
+            sb.append("; zonedAppointmentTimeSpan=").append(zonedAppointmentTimeSpan);
+        }
+        if (isConsumed()) {
+            sb.append("; consumed=true");
+        }
+        EventTarget t = getTarget();
+        if (null != t) {
+            sb.append("; target=").append(t);
+        }
+        Object s = getSource();
+        if (null != s) {
+            return sb.append("; source=").append(s).append("]").toString();
+        }
+        return sb.append("]").toString();
+    }
+
 }

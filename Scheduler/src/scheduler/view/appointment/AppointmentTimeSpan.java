@@ -40,9 +40,12 @@ public class AppointmentTimeSpan extends PropertyBindable implements Comparable<
      */
     protected void setStart(DateAndTimeSelection value) {
         DateAndTimeSelection oldValue = this.start;
-        this.start = Objects.requireNonNull(value);
+        start = Objects.requireNonNull(value);
         if (!oldValue.equals(value)) {
-            firePropertyChange(PROP_START, oldValue, value);
+            AppointmentDuration oldDuration = duration;
+            duration = start.until(end);
+            try { firePropertyChange(PROP_START, oldValue, start); }
+            finally { firePropertyChange(PROP_DURATION, oldDuration, duration); }
         }
     }
 
@@ -62,9 +65,12 @@ public class AppointmentTimeSpan extends PropertyBindable implements Comparable<
      */
     protected void setDuration(AppointmentDuration value) {
         AppointmentDuration oldValue = this.duration;
-        this.duration = Objects.requireNonNull(value);
+        duration = Objects.requireNonNull(value);
         if (!oldValue.equals(value)) {
-            firePropertyChange(PROP_DURATION, oldValue, value);
+            DateAndTimeSelection oldEnd = end;
+            end = start.plus(duration);
+            try { firePropertyChange(PROP_DURATION, oldValue, duration); }
+            finally { firePropertyChange(PROP_END, oldEnd, end); }
         }
     }
 
@@ -85,8 +91,10 @@ public class AppointmentTimeSpan extends PropertyBindable implements Comparable<
     protected void setEnd(DateAndTimeSelection value) {
         DateAndTimeSelection oldValue = this.end;
         if (!oldValue.equals(Objects.requireNonNull(value))) {
-
-            firePropertyChange(PROP_END, oldValue, value);
+            AppointmentDuration oldDuration = duration;
+            duration = start.until(end);
+            try { firePropertyChange(PROP_END, oldValue, end); }
+            finally { firePropertyChange(PROP_DURATION, oldDuration, duration); }
         }
     }
 
@@ -101,6 +109,53 @@ public class AppointmentTimeSpan extends PropertyBindable implements Comparable<
 
     public boolean isInRange(DateAndTimeSelection dataAndTime) {
         return ZonedAppointmentTimeSpan.isInRange(dataAndTime, this);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 37 * hash + Objects.hashCode(start);
+        hash = 37 * hash + Objects.hashCode(duration);
+        hash = 37 * hash + Objects.hashCode(end);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AppointmentTimeSpan other = (AppointmentTimeSpan) obj;
+        return Objects.equals(this.start, other.start) && Objects.equals(duration, other.duration) && Objects.equals(end, other.end);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(getClass().getName());
+        if (null == start) {
+            if (null == end) {
+                if (null == duration) {
+                    return sb.append("[]").toString();
+                }
+                return sb.append("[duration=").append(duration).append("]").toString();
+            }
+            sb.append("[end=").append(end);
+        } else {
+            sb.append("[start=").append(start);
+            if (null != end) {
+                sb.append("; end=").append(end);
+            }
+        }
+        if (null == duration) {
+            return sb.append("]").toString();
+        }
+        return sb.append("; duration=").append(duration).append("]").toString();
     }
 
 }

@@ -105,4 +105,9 @@ public abstract class HourAndMinute extends PropertyBindable {
         return hours == other.hours && minutes == other.minutes;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getName() + "[hours=" + hours + "; minutes=" + minutes + "]";
+    }
+
 }

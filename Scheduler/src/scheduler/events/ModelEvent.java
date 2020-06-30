@@ -8,6 +8,7 @@ import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.LogHelper;
 
 /**
  * Base class for {@code Event}s that affect {@link DataAccessObject}s and can also include an associated {@link FxRecordModel}.
@@ -403,6 +404,78 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         return copy;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 61 * hash + Objects.hashCode(state.getOperation());
+        hash = 61 * hash + Objects.hashCode(state.getDataAccessObject());
+        hash = 61 * hash + Objects.hashCode(state.getFxRecordModel());
+        hash = 61 * hash + Objects.hashCode(getEventType().getName());
+        hash = 61 * hash + Objects.hashCode(getTarget());
+        hash = 61 * hash + Objects.hashCode(getSource());
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (ModelEvent.this.getClass() != obj.getClass()) {
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        final ModelEvent<D, M> other = (ModelEvent<D, M>) obj;
+        if (this.getOperation() == other.getOperation() && Objects.equals(getEventType(), other.getEventType())) {
+            M model = state.getFxRecordModel();
+            if (Objects.equals(model, other.getFxRecordModel()) && (null != model || Objects.equals(state.getDataAccessObject(), other.getDataAccessObject()))) {
+                return Objects.equals(target, other.getTarget()) && Objects.equals(source, other.getSource());
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(getClass().getName()).append("[type=").append(getEventType().getName()).append("; operation=").append(state.getOperation());
+        if (this instanceof ModelFailedEvent) {
+            @SuppressWarnings("unchecked")
+            ModelFailedEvent<D, M> f = (ModelFailedEvent<D, M>) this;
+            sb.append("; failKind=").append(f.getFailKind());
+            if (isConsumed()) {
+                sb.append("; consumed=true");
+            }
+            String s = f.getMessage();
+            if (null != s && !s.isEmpty()) {
+                sb.append("; message=").append(LogHelper.toLogText(s));
+            }
+            Throwable ex = f.getFault();
+            if (null != ex) {
+                sb.append("; fault=").append(ex);
+            }
+        } else if (isConsumed()) {
+            sb.append("; consumed=true");
+        }
+        M fxRecordModel = getFxRecordModel();
+        if (null == fxRecordModel) {
+            sb.append("; dataAccessObject=").append(state.getDataAccessObject());
+        } else {
+            sb.append("; fxRecordModel=").append(fxRecordModel);
+        }
+        EventTarget t = getTarget();
+        if (null != t) {
+            sb.append("; target=").append(t);
+        }
+        Object s = getSource();
+        if (null != s) {
+            return sb.append("; source=").append(s).append("]").toString();
+        }
+        return sb.append("]").toString();
+    }
+
     private class StateOriginal extends State {
 
         private final DbOperationType operation;
@@ -490,6 +563,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
             }
             return source.copyOf(operation);
         }
+
     }
 
     private abstract class State {
@@ -503,6 +577,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         protected abstract void setFxRecordModel(M fxRecordModel);
 
         protected abstract State copyOf(DbOperationType operation);
+
     }
 
 }

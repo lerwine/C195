@@ -1,5 +1,6 @@
 package scheduler.events;
 
+import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
@@ -295,6 +296,38 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
         event.countryEvent = countryEvent;
         event.failKind = failKind;
         return event;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 79 * hash + Objects.hashCode(message);
+        hash = 79 * hash + Objects.hashCode(fault);
+        hash = 79 * hash + Objects.hashCode(countryEvent);
+        hash = 79 * hash + Objects.hashCode(failKind);
+        hash = 79 * hash + Objects.hashCode(getOperation());
+        hash = 79 * hash + Objects.hashCode(getDataAccessObject());
+        hash = 79 * hash + Objects.hashCode(getFxRecordModel());
+        hash = 79 * hash + Objects.hashCode(getEventType().getName());
+        hash = 79 * hash + Objects.hashCode(getTarget());
+        hash = 79 * hash + Objects.hashCode(getSource());
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final CityFailedEvent other = (CityFailedEvent) obj;
+        return failKind == other.failKind && Objects.equals(message, other.message) && getEventType().getName().equals(other.getEventType().getName())
+                && Objects.equals(fault, other.fault) && Objects.equals(countryEvent, other.countryEvent) && super.equals(obj);
     }
 
 }
