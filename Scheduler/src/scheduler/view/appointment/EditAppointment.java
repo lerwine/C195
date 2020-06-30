@@ -238,6 +238,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
+        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onCustomerDropDownOptionsButtonAction");
         editingUserOptions = false;
         if (showActiveCustomers.isPresent()) {
             dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -255,6 +256,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsCancelButtonAction(ActionEvent event) {
+        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onDropdownOptionsCancelButtonAction");
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -264,6 +266,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsOkButtonAction(ActionEvent event) {
+        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onDropdownOptionsOkButtonAction");
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -292,6 +295,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onIncludeRemoteCheckBoxAction(ActionEvent event) {
+        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onIncludeRemoteCheckBoxAction");
         if (includeRemoteCheckBox.isSelected()) {
             remoteLocationList.forEach((t) -> {
                 if (!corporateLocationList.contains(t)) {
@@ -308,6 +312,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onUserDropDownOptionsButtonAction(ActionEvent event) {
+        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onUserDropDownOptionsButtonAction");
         editingUserOptions = true;
         if (showActiveUsers.isPresent()) {
             dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -324,6 +329,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.fine(() -> "Invoked scheduler.view.appointment.EditAppointment#initialize");
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -444,6 +450,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             duration = null;
         }
         dateRangeControl.setDateRange(start, duration, selectedTimeZone);
+        LOG.info(() -> String.format("Adding handlers for event %s and %s in scheduler.view.appointment.EditAppointment#loadAppointmentConflictsController",
+                ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE));
         dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
         dateRangeControl.addEventHandler(DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE, this::onDateRangeChanged);
     }
@@ -479,6 +487,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             bp.minHeightProperty().bind(heightProperty());
             bp.prefWidthProperty().bind(widthProperty());
             bp.minWidthProperty().bind(widthProperty());
+            LOG.info(() -> String.format("Adding handler for event %s in scheduler.view.appointment.EditAppointment#loadAppointmentConflictsController",
+                    ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE));
             appointmentConflictsController.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
@@ -488,6 +498,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onConflictsAction(ConflictsActionEvent event) {
+        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onConflictsAction", event));
         if (event.isCheckConflicts()) {
             appointmentConflictsController.checkConflicts();
         } else {
@@ -496,14 +507,17 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onDateRangeChanged(DateRangeChangedEvent event) {
+        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onDateRangeChanged", event));
         appointmentConflictsController.onDateRangeChanged(event);
     }
 
     private void onConflictStateChanged(ConflictStateChangedEvent event) {
+        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onConflictStateChanged", event));
         dateRangeControl.onConflictStateChanged(event);
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
+        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onAppointmentInserted", event));
         model.removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
         initializeEditMode();
     }
@@ -515,7 +529,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onCustomerDeleted", event));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -525,7 +539,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onUserDeleted(UserSuccessEvent event) {
-        LOG.info(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onUserDeleted", event));
         if (model.getRowState() != DataRowState.NEW) {
             UserDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -664,6 +678,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @Override
     public void applyChanges() {
+        LOG.info("Invoked scheduler.view.appointment.EditAppointment#applyChanges");
         throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#applyChanges
     }
 
@@ -678,6 +693,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected void succeeded() {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.CustomerReloadTask#succeeded");
             List<CustomerDAO> result = getValue();
             Optional<Boolean> currentOption = showActiveCustomers;
             if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
@@ -702,15 +718,24 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected List<CustomerDAO> call() throws Exception {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.CustomerReloadTask#call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            List<CustomerDAO> result;
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
                 if (loadOption.isPresent()) {
-                    return cf.load(dbConnector.getConnection(), cf.getActiveStatusFilter(loadOption.get()));
+                    result = cf.load(dbConnector.getConnection(), cf.getActiveStatusFilter(loadOption.get()));
+                } else {
+                    result = cf.load(dbConnector.getConnection(), cf.getAllItemsFilter());
                 }
-                return cf.load(dbConnector.getConnection(), cf.getAllItemsFilter());
             }
+            if (null == result) {
+                LOG.info("scheduler.view.appointment.EditAppointment.UserReloadTask#call: Returning a null result");
+            } else {
+                LOG.info(() -> String.format("scheduler.view.appointment.UserReloadTask.ItemsLoadTask#call: returning %d users", result.size()));
+            }
+            return result;
         }
 
     }
@@ -726,6 +751,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected void succeeded() {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.UserReloadTask#succeeded");
             List<UserDAO> result = getValue();
             Optional<Boolean> currentOption = showActiveUsers;
             if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
@@ -750,18 +776,28 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected List<UserDAO> call() throws Exception {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.UserReloadTask#call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            List<UserDAO> result;
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 if (loadOption.isPresent()) {
                     if (loadOption.get()) {
-                        return uf.load(dbConnector.getConnection(), uf.getActiveUsersFilter());
+                        result = uf.load(dbConnector.getConnection(), uf.getActiveUsersFilter());
+                    } else {
+                        result = uf.load(dbConnector.getConnection(), UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
                     }
-                    return uf.load(dbConnector.getConnection(), UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+                } else {
+                    result = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 }
-                return uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
             }
+            if (null == result) {
+                LOG.info("scheduler.view.appointment.EditAppointment.UserReloadTask#call: Returning a null result");
+            } else {
+                LOG.info(() -> String.format("scheduler.view.appointment.UserReloadTask.ItemsLoadTask#call: returning %d users", result.size()));
+            }
+            return result;
         }
 
     }
@@ -790,6 +826,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected void succeeded() {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.ItemsLoadTask#succeeded");
             List<AppointmentDAO> result = getValue();
             if (null != customerDaoList && !customerDaoList.isEmpty()) {
                 customerDaoList.forEach((t) -> customerModelList.add(new CustomerModel(t)));
@@ -818,7 +855,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected List<AppointmentDAO> call() throws Exception {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.ItemsLoadTask#call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            List<AppointmentDAO> result;
             try (DbConnector dbConnector = new DbConnector()) {
                 CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
                 UserDAO.FactoryImpl uf = UserDAO.FACTORY;
@@ -829,6 +868,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 } else {
                     customerDaoList = cf.load(dbConnector.getConnection(), cf.getAllItemsFilter());
                 }
+                LOG.info(() -> String.format("scheduler.view.appointment.EditAppointment.ItemsLoadTask#call: %d customers loaded", customerDaoList.size()));
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
                 if (userLoadOption.isPresent()) {
                     if (userLoadOption.get()) {
@@ -839,21 +879,31 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 } else {
                     userDaoList = uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
                 }
+                LOG.info(() -> String.format("scheduler.view.appointment.EditAppointment.ItemsLoadTask#call: %d users loaded", userDaoList.size()));
 
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
                 if (null != customerDaoList && null != userDaoList && !(customerDaoList.isEmpty() || userDaoList.isEmpty())) {
                     if (null != appointmentCustomer && ModelHelper.existsInDatabase(appointmentCustomer)) {
                         if (null != appointmentUser && ModelHelper.existsInDatabase(appointmentUser)) {
-                            return af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, appointmentUser, null, null));
+                            result = af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, appointmentUser, null, null));
+                        } else {
+                            result = af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, null, null, null));
                         }
-                        return af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, null, null, null));
+                    } else if (null != appointmentUser && ModelHelper.existsInDatabase(appointmentUser)) {
+                        result = af.load(dbConnector.getConnection(), AppointmentFilter.of(null, appointmentUser, null, null));
+                    } else {
+                        result = null;
                     }
-                    if (null != appointmentUser && ModelHelper.existsInDatabase(appointmentUser)) {
-                        return af.load(dbConnector.getConnection(), AppointmentFilter.of(null, appointmentUser, null, null));
-                    }
+                } else {
+                    result = null;
                 }
             }
-            return null;
+            if (null == result) {
+                LOG.info("scheduler.view.appointment.EditAppointment.ItemsLoadTask#call: Returning a null result");
+            } else {
+                LOG.info(() -> String.format("scheduler.view.appointment.EditAppointment.ItemsLoadTask#call: returning %d appointments", result.size()));
+            }
+            return result;
         }
 
     }

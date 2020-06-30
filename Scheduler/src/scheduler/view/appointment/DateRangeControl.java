@@ -27,8 +27,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
-import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -36,7 +34,6 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import scheduler.events.AppointmentSuccessEvent;
 import scheduler.fx.CssClassName;
 import scheduler.observables.BinaryOptionalBinding;
 import scheduler.observables.BindingHelper;
@@ -162,16 +159,21 @@ public final class DateRangeControl extends GridPane {
 
     @FXML
     void onCheckConflictsButtonAction(ActionEvent event) {
-        fireEvent(new ConflictsActionEvent(event.getSource(), this, true));
+        ConflictsActionEvent e = new ConflictsActionEvent(event.getSource(), this, true);
+        LOG.fine(() -> String.format("Firing event %s from scheduler.view.appointment.DateRangeControl#onCheckConflictsButtonAction", e));
+        fireEvent(e);
     }
 
     @FXML
     void onShowConflictsButtonAction(ActionEvent event) {
-        fireEvent(new ConflictsActionEvent(event.getSource(), this, true));
+        ConflictsActionEvent e = new ConflictsActionEvent(event.getSource(), this, false);
+        LOG.fine(() -> String.format("Firing event %s from scheduler.view.appointment.DateRangeControl#onShowConflictsButtonAction", e));
+        fireEvent(e);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.fine(() -> "Invoked scheduler.view.appointment.DateRangeControl#initialize");
         assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
         assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
         assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'DateRange.fxml'.";
@@ -196,22 +198,49 @@ public final class DateRangeControl extends GridPane {
 
         conflictMessage = new SimpleStringProperty("");
 
-        startDatePicker.getEditor().textProperty().addListener((observable) -> onStartControlChanged());
-        startDatePicker.valueProperty().addListener((observable) -> onStartControlChanged());
-        startHourTextField.textProperty().addListener((observable) -> onStartControlChanged());
-        startMinuteTextField.textProperty().addListener((observable) -> onStartControlChanged());
-        amPmComboBox.valueProperty().addListener((observable) -> onStartControlChanged());
+        startDatePicker.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startDatePicker#editor#text changed");
+            onStartControlChanged();
+        });
+        startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startDatePicker#value changed");
+            onStartControlChanged();
+        });
+        startHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startHourTextField#text changed");
+            onStartControlChanged();
+        });
+        startMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startMinuteTextField#text changed");
+            onStartControlChanged();
+        });
+        amPmComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#amPmComboBox#value changed");
+            onStartControlChanged();
+        });
 
-        durationHourTextField.textProperty().addListener((observable) -> onDurationControlChanged());
-        durationMinuteTextField.textProperty().addListener((observable) -> onDurationControlChanged());
-        timeZoneComboBox.valueProperty().addListener((observable) -> onDurationControlChanged());
-        parseStartBinding = BindingHelper.createBinaryOptionalBinding(()
-                -> parseDateAndTime(startDatePicker.getEditor().getText(), startDatePicker.getValue(), startHourTextField.getText(),
-                        startMinuteTextField.getText(), amPmComboBox.getValue(), timeZoneComboBox.getValue()),
+        durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#durationHourTextField#text changed");
+            onDurationControlChanged();
+        });
+        durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#durationMinuteTextField#text changed");
+            onDurationControlChanged();
+        });
+        timeZoneComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#timeZoneComboBox#value changed");
+            onDurationControlChanged();
+        });
+        parseStartBinding = BindingHelper.createBinaryOptionalBinding(() -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#parseStartBinding invalidated");
+            return parseDateAndTime(startDatePicker.getEditor().getText(), startDatePicker.getValue(), startHourTextField.getText(),
+                    startMinuteTextField.getText(), amPmComboBox.getValue(), timeZoneComboBox.getValue());
+        },
                 startDatePicker.getEditor().textProperty(), startDatePicker.valueProperty(), startHourTextField.textProperty(),
                 startMinuteTextField.textProperty(), amPmComboBox.valueProperty(), timeZoneComboBox.valueProperty());
         startParseMessage = parseStartBinding.mapToString((t) -> "", (s) -> s, resources.getString(RESOURCEKEY_REQUIRED));
         startMessage = Bindings.createStringBinding(() -> {
+            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startMessage invalidated");
             String c = conflictMessage.get();
             String s = startParseMessage.get();
             return (s.isEmpty()) ? c : s;
@@ -275,7 +304,9 @@ public final class DateRangeControl extends GridPane {
             collapseNode(localTimeLabel);
             collapseNode(localTimeValue);
         }
-        fireEvent(new DateRangeChangedEvent(this, this, ts));
+        DateRangeChangedEvent event = new DateRangeChangedEvent(this, this, ts);
+        LOG.fine(() -> String.format("Firing event %s", event));
+        fireEvent(event);
     }
 
     private void onStartControlChanged() {
@@ -389,10 +420,6 @@ public final class DateRangeControl extends GridPane {
         } else {
             restoreNode(checkConflictsButton);
         }
-    }
-
-    void addEventHandler(EventType<ConflictsActionEvent> DATE_RANGE_CHANGED_EVENT_TYPE, WeakEventHandler<AppointmentSuccessEvent> insertedHandler) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.DateRangeControl#addEventHandler
     }
 
 }
