@@ -77,6 +77,9 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
+import scheduler.view.appointment.event.ConflictStateChangedEvent;
+import scheduler.view.appointment.event.ConflictsActionEvent;
+import scheduler.view.appointment.event.DateRangeChangedEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -460,6 +463,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
         urlTextField.setText(model.getUrl());
         descriptionTextArea.setText(model.getDescription());
+        dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
+        dateRangeControl.addEventHandler(DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE, this::onDateRangeChanged);
+        appointmentConflictsController.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
@@ -469,6 +475,22 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         } else {
             initializeEditMode();
         }
+    }
+
+    private void onConflictsAction(ConflictsActionEvent event) {
+        if (event.isCheckConflicts()) {
+            appointmentConflictsController.checkConflicts();
+        } else {
+            appointmentConflictsController.showConflicts();
+        }
+    }
+
+    private void onDateRangeChanged(DateRangeChangedEvent event) {
+        appointmentConflictsController.onDateRangeChanged(event);
+    }
+
+    private void onConflictStateChanged(ConflictStateChangedEvent event) {
+        dateRangeControl.onConflictStateChanged(event);
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
@@ -502,6 +524,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
     }
 
+    // FIXME: Needs to be incorporated into #applyChanges and validation
     public boolean applyChangesToModel() {
         ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpan();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
@@ -622,10 +645,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     UserModel getUser() {
         return userComboBox.getValue();
-    }
-
-    DateRangeControl getDateRangeControl() {
-        return dateRangeControl;
     }
 
     @Override
@@ -783,7 +802,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             if (null != result && !result.isEmpty()) {
                 appointments.addAll(result);
             }
-            appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this, EditAppointment.this.waitBorderPane);
+            appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this.dateRangeControl.getTimeSpan(), EditAppointment.this.waitBorderPane);
             super.succeeded();
         }
 

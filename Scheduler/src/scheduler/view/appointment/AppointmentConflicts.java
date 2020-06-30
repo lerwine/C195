@@ -22,9 +22,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.UserModel;
@@ -32,6 +30,8 @@ import scheduler.util.DbConnector;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
+import scheduler.view.appointment.event.ConflictStateChangedEvent;
+import scheduler.view.appointment.event.DateRangeChangedEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -44,12 +44,10 @@ import scheduler.view.task.WaitBorderPane;
 public class AppointmentConflicts extends BorderPane {
 
     private WaitBorderPane waitBorderPane;
-    private EditAppointment parentController;
-    private DateRangeControl dateRangeController;
     private ObservableList<AppointmentModel> allAppointments;
     private ObservableList<AppointmentModel> conflictingAppointments;
-    private Customer currentCustomer;
-    private User currentUser;
+    private CustomerModel currentCustomer;
+    private UserModel currentUser;
     private ZonedAppointmentTimeSpan currentRange;
     private SimpleStringProperty conflictMessage;
     private boolean conflictCheckingCurrent = false;
@@ -81,29 +79,18 @@ public class AppointmentConflicts extends BorderPane {
         return conflictMessage.get();
     }
 
-    EditAppointment getParentController() {
-        return parentController;
-    }
-
-    private void onShowConflictsButtonAction(ActionEvent event) {
+    void showConflicts() {
         setVisible(true);
     }
 
-    private void onCheckConflictsButtonAction(ActionEvent event) {
+    void checkConflicts() {
         waitBorderPane.startNow(new AppointmentReloadTask());
     }
 
-    void initializeConflicts(List<AppointmentDAO> appointments, EditAppointment parentController, WaitBorderPane waitBorderPane) {
-        if (null != this.parentController) {
-            throw new IllegalStateException();
-        }
+    // FIXME: Call this method from EditAppointment on init, after customer and user initialized
+    void initializeConflicts(List<AppointmentDAO> appointments, ZonedAppointmentTimeSpan ts, WaitBorderPane waitBorderPane) {
         this.waitBorderPane = waitBorderPane;
-        this.parentController = parentController;
-        dateRangeController = parentController.getDateRangeControl();
-        currentCustomer = parentController.getCustomer();
-        currentUser = parentController.getUser();
-        currentRange = dateRangeController.getTimeSpan();
-        dateRangeController.setConflictsBinding(this, this::onCheckConflictsButtonAction, this::onShowConflictsButtonAction);
+        currentRange = ts;
         accept(appointments);
     }
 
@@ -131,9 +118,7 @@ public class AppointmentConflicts extends BorderPane {
     private void updateConflictMessage() {
         if (null == currentRange) {
             conflictMessage.set("");
-            if (null != dateRangeController) {
-                dateRangeController.onConflictStateChanged();
-            }
+            fireEvent(new ConflictStateChangedEvent(this, this, conflictMessage.get(), isConflictCheckingCurrent(), hasConflicts()));
             return;
         }
         if (conflictingAppointments.isEmpty()) {
@@ -142,9 +127,7 @@ public class AppointmentConflicts extends BorderPane {
             } else {
                 conflictMessage.set("");
             }
-            if (null != dateRangeController) {
-                dateRangeController.onConflictStateChanged();
-            }
+            fireEvent(new ConflictStateChangedEvent(this, this, conflictMessage.get(), isConflictCheckingCurrent(), hasConflicts()));
             return;
         }
 
@@ -194,58 +177,46 @@ public class AppointmentConflicts extends BorderPane {
                 }
                 break;
         }
-        if (null != dateRangeController) {
-            dateRangeController.onConflictStateChanged();
-        }
+        fireEvent(new ConflictStateChangedEvent(this, this, conflictMessage.get(), isConflictCheckingCurrent(), hasConflicts()));
     }
 
     private void accept(List<AppointmentDAO> appointments) {
-        currentCustomer = parentController.getCustomer();
-        currentUser = parentController.getUser();
         conflictCheckingCurrent = true;
         allAppointments.clear();
         conflictingAppointments.clear();
         if (null == appointments || appointments.isEmpty()) {
             conflictMessage.set("");
-            if (null != dateRangeController) {
-                dateRangeController.onConflictStateChanged();
-            }
+            fireEvent(new ConflictStateChangedEvent(this, this, conflictMessage.get(), isConflictCheckingCurrent(), hasConflicts()));
             return;
         }
         appointments.stream().map((t) -> new AppointmentModel(t)).sorted(AppointmentModel::compareByDates)
                 .forEachOrdered((t) -> allAppointments.add(t));
         refreshFromDateRange();
         updateConflictMessage();
-        if (null != dateRangeController) {
-            dateRangeController.onConflictStateChanged();
-        }
     }
 
+    // FIXME: Call this method from EditAppointment on init and when customer changes
     void onCustomerChanged(CustomerModel value) {
         if (!ModelHelper.areSameRecord(value, currentCustomer)) {
             currentCustomer = value;
             conflictCheckingCurrent = false;
             conflictingAppointments.clear();
             updateConflictMessage();
-            if (null != dateRangeController) {
-                dateRangeController.onConflictStateChanged();
-            }
         }
     }
 
+    // FIXME: Call this method from EditAppointment on init and when user changes
     void onUserChanged(UserModel value) {
-        if (!ModelHelper.areSameRecord(value, this.currentUser)) {
+        if (!ModelHelper.areSameRecord(value, currentUser)) {
             currentUser = value;
             conflictCheckingCurrent = false;
             conflictingAppointments.clear();
             updateConflictMessage();
-            if (null != dateRangeController) {
-                dateRangeController.onConflictStateChanged();
-            }
         }
     }
 
-    void onTimeSpanChanged(Optional<ZonedAppointmentTimeSpan> value) {
+    void onDateRangeChanged(DateRangeChangedEvent event) {
+        Optional<ZonedAppointmentTimeSpan> value = event.getZonedAppointmentTimeSpan();
         if (null != value && value.isPresent()) {
             ZonedAppointmentTimeSpan ts = value.get();
             if (null != ts) {
@@ -253,9 +224,6 @@ public class AppointmentConflicts extends BorderPane {
                     currentRange = ts;
                     refreshFromDateRange();
                     updateConflictMessage();
-                    if (null != dateRangeController) {
-                        dateRangeController.onConflictStateChanged();
-                    }
                     return;
                 }
             }
@@ -264,9 +232,6 @@ public class AppointmentConflicts extends BorderPane {
             currentRange = null;
             refreshFromDateRange();
             updateConflictMessage();
-            if (null != dateRangeController) {
-                dateRangeController.onConflictStateChanged();
-            }
         }
     }
 
@@ -286,8 +251,8 @@ public class AppointmentConflicts extends BorderPane {
         private AppointmentReloadTask() {
             updateTitle(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
             updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTINGTODB));
-            CustomerModel sc = parentController.getCustomer();
-            UserModel su = parentController.getUser();
+            CustomerModel sc = currentCustomer;
+            UserModel su = currentUser;
             customer = (null == sc) ? null : sc.dataObject();
             user = (null == su) ? null : su.dataObject();
         }

@@ -27,7 +27,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.event.EventType;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -35,6 +36,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.fx.CssClassName;
 import scheduler.observables.BinaryOptionalBinding;
 import scheduler.observables.BindingHelper;
@@ -49,12 +51,14 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
+import scheduler.view.appointment.event.ConflictStateChangedEvent;
+import scheduler.view.appointment.event.ConflictsActionEvent;
+import scheduler.view.appointment.event.DateRangeChangedEvent;
 
 /**
  * FXML Controller class for editing the date range for an {@link scheduler.model.ui.AppointmentModel}.
  * <p>
- * This is loaded by the {@link EditAppointment} controller. The associated view is
- * {@code /resources/scheduler/view/appointment/DateRangeControl.fxml}.</p>
+ * This is loaded by the {@link EditAppointment} controller. The associated view is {@code /resources/scheduler/view/appointment/DateRangeControl.fxml}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -103,7 +107,6 @@ public final class DateRangeControl extends GridPane {
     private StringBinding durationParseMessage;
     private StringBinding startMessage;
     private SimpleStringProperty conflictMessage;
-    private AppointmentConflicts conflictsController;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -155,6 +158,16 @@ public final class DateRangeControl extends GridPane {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading view", ex);
         }
+    }
+
+    @FXML
+    void onCheckConflictsButtonAction(ActionEvent event) {
+        fireEvent(new ConflictsActionEvent(event.getSource(), this, true));
+    }
+
+    @FXML
+    void onShowConflictsButtonAction(ActionEvent event) {
+        fireEvent(new ConflictsActionEvent(event.getSource(), this, true));
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -249,13 +262,6 @@ public final class DateRangeControl extends GridPane {
 
     }
 
-    void setConflictsBinding(AppointmentConflicts conflictsController, EventHandler<ActionEvent> checkConflictsListener,
-            EventHandler<ActionEvent> showConflictsListener) {
-        this.conflictsController = conflictsController;
-        checkConflictsButton.setOnAction(checkConflictsListener);
-        showConflictsButton.setOnAction(showConflictsListener);
-    }
-
     private void onTimeSpanComponentChanged() {
         Optional<ZonedAppointmentTimeSpan> ts = timeSpan.get();
         if (ts.isPresent()) {
@@ -269,18 +275,15 @@ public final class DateRangeControl extends GridPane {
             collapseNode(localTimeLabel);
             collapseNode(localTimeValue);
         }
-        if (null != conflictsController) {
-            conflictsController.onTimeSpanChanged(ts);
-        }
-        onConflictStateChanged();
+        fireEvent(new DateRangeChangedEvent(this, this, ts));
     }
 
     private void onStartControlChanged() {
         onTimeSpanComponentChanged();
-        refreshStartMessage();
-    }
-
-    public void refreshStartMessage() {
+//        refreshStartMessage();
+//    }
+//
+//    private void refreshStartMessage() {
         String s = startMessage.get();
         if (s.isEmpty()) {
             startValidationLabel.setVisible(false);
@@ -374,21 +377,22 @@ public final class DateRangeControl extends GridPane {
         return opt.isPresent() ? opt.get() : null;
     }
 
-    void onConflictStateChanged() {
-        if (null != conflictsController) {
-            conflictMessage.set(conflictsController.getConflictMessage());
-            if (conflictsController.isConflictCheckingCurrent()) {
-                collapseNode(checkConflictsButton);
-                if (conflictsController.hasConflicts()) {
-                    restoreNode(showConflictsButton);
-                } else {
-                    collapseNode(showConflictsButton);
-                }
+    void onConflictStateChanged(ConflictStateChangedEvent event) {
+        conflictMessage.set(event.getMessage());
+        if (event.isConflictCheckingCurrent()) {
+            collapseNode(checkConflictsButton);
+            if (event.isConflicting()) {
+                restoreNode(showConflictsButton);
             } else {
-                restoreNode(checkConflictsButton);
+                collapseNode(showConflictsButton);
             }
+        } else {
+            restoreNode(checkConflictsButton);
         }
-        refreshStartMessage();
+    }
+
+    void addEventHandler(EventType<ConflictsActionEvent> DATE_RANGE_CHANGED_EVENT_TYPE, WeakEventHandler<AppointmentSuccessEvent> insertedHandler) {
+        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.DateRangeControl#addEventHandler
     }
 
 }
