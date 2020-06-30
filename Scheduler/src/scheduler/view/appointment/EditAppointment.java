@@ -5,7 +5,6 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -124,8 +123,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     // Items for the userComboBox control.
     private final ObservableList<UserModel> userModelList;
 
-    private final HashSet<String> invalidControlIds;
-
+//    private final HashSet<String> invalidControlIds;
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
@@ -229,7 +227,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
-        invalidControlIds = new HashSet<>();
+//        invalidControlIds = new HashSet<>();
         corporateLocationList = FXCollections.observableArrayList();
         remoteLocationList = FXCollections.observableArrayList();
         customerModelList = FXCollections.observableArrayList();
@@ -386,54 +384,58 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 //                remoteLocationList.add(t);
 //            }
 //        });
-        invalidControlIds.add(titleTextField.getId());
-        invalidControlIds.add(customerComboBox.getId());
-        invalidControlIds.add(contactTextField.getId());
-        invalidControlIds.add(locationTextArea.getId());
-        invalidControlIds.add(userComboBox.getId());
-        invalidControlIds.add(userComboBox.getId());
-
+//        invalidControlIds.add(titleTextField.getId());
+//        invalidControlIds.add(customerComboBox.getId());
+//        invalidControlIds.add(contactTextField.getId());
+//        invalidControlIds.add(locationTextArea.getId());
+//        invalidControlIds.add(userComboBox.getId());
+//        invalidControlIds.add(userComboBox.getId());
         corporateLocationComboBox.setItems(corporateLocationList);
 
-        // Get appointment type options.
-        typeComboBox.setItems(FXCollections.observableArrayList(AppointmentType.values()));
-        typeComboBox.getSelectionModel().select(AppointmentType.OTHER);
+        initializeTypeComboBox();
 
-        try {
-            ViewAndController<BorderPane, AppointmentConflicts> acVc = ViewControllerLoader.loadViewAndController(AppointmentConflicts.class);
-            appointmentConflictsController = acVc.getController();
-            BorderPane bp = acVc.getView();
-            getChildren().add(bp);
-            bp.setVisible(false);
-            bp.prefHeightProperty().bind(heightProperty());
-            bp.minHeightProperty().bind(heightProperty());
-            bp.prefWidthProperty().bind(widthProperty());
-            bp.minWidthProperty().bind(widthProperty());
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
-            AlertHelper.showErrorAlert(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORTITLE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
-        }
+        loadAppointmentConflictsController();
+
         windowTitle.set(resources.getString((model.isNewRow()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
-        SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
-        typeSelectionModel.select(model.getType());
         titleTextField.setText(model.getTitle());
         contactTextField.setText(model.getContact());
+
+        initializeDateRangeControl();
+
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new ItemsLoadTask());
+
+        urlTextField.setText(model.getUrl());
+        descriptionTextArea.setText(model.getDescription());
+        if (model.isNewRow()) {
+            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
+            if (keepOpen) {
+                insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
+                model.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            }
+        } else {
+            initializeEditMode();
+        }
+    }
+
+    private void initializeDateRangeControl() {
         LocalDateTime start = model.getStart();
         LocalDateTime end = model.getEnd();
         CustomerItem<? extends ICustomerDAO> c = model.getCustomer();
-        TimeZone z = null;
+        TimeZone selectedTimeZone = null;
         if (null != c) {
             AddressItem<? extends IAddressDAO> a = c.getAddress();
             if (null != a) {
                 CityItem<? extends ICityDAO> t = a.getCity();
                 if (null != t) {
-                    z = t.getTimeZone();
+                    selectedTimeZone = t.getTimeZone();
                 }
             }
         }
-        if (null == z) {
-            z = TimeZone.getTimeZone(ZoneId.systemDefault());
+        if (null == selectedTimeZone) {
+            selectedTimeZone = TimeZone.getTimeZone(ZoneId.systemDefault());
         }
         Duration duration;
         if (null != start && null != end) {
@@ -441,12 +443,15 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         } else {
             duration = null;
         }
-        dateRangeControl.setDateRange(start, duration, z);
-        WaitTitledPane pane = new WaitTitledPane();
-        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
-                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
-        waitBorderPane.startNow(pane, new ItemsLoadTask());
+        dateRangeControl.setDateRange(start, duration, selectedTimeZone);
+        dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
+        dateRangeControl.addEventHandler(DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE, this::onDateRangeChanged);
+    }
 
+    private void initializeTypeComboBox() {
+        typeComboBox.setItems(FXCollections.observableArrayList(AppointmentType.values()));
+        SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
+        typeSelectionModel.select(model.getType());
         switch (typeSelectionModel.getSelectedItem()) {
             case OTHER:
                 locationTextArea.setText(model.getLocation());
@@ -461,19 +466,24 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 model.setLocation("");
                 break;
         }
-        urlTextField.setText(model.getUrl());
-        descriptionTextArea.setText(model.getDescription());
-        dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
-        dateRangeControl.addEventHandler(DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE, this::onDateRangeChanged);
-        appointmentConflictsController.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
-        if (model.isNewRow()) {
-            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
-            if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
-                model.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            }
-        } else {
-            initializeEditMode();
+    }
+
+    private void loadAppointmentConflictsController() {
+        try {
+            ViewAndController<BorderPane, AppointmentConflicts> acVc = ViewControllerLoader.loadViewAndController(AppointmentConflicts.class);
+            appointmentConflictsController = acVc.getController();
+            BorderPane bp = acVc.getView();
+            getChildren().add(bp);
+            bp.setVisible(false);
+            bp.prefHeightProperty().bind(heightProperty());
+            bp.minHeightProperty().bind(heightProperty());
+            bp.prefWidthProperty().bind(widthProperty());
+            bp.minWidthProperty().bind(widthProperty());
+            appointmentConflictsController.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
+            AlertHelper.showErrorAlert(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORTITLE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
         }
     }
 
