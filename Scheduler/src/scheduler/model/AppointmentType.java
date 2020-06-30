@@ -18,48 +18,73 @@ import scheduler.dao.AppointmentLocationSource;
 public enum AppointmentType {
     /**
      * Phone call appointment.
-     * <ul>
-     * <li>The string value {@code "phone"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
-     * <li>Phone number is stored in the {@link scheduler.dao.AppointmentDAO#location} field.</li>
-     * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
-     * </ul>
+     * <dl>
+     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dd>{@code = "phone"}</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dd>Required - Contains phone number</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dd>Optional</dd>
+     * </dl>
      */
     PHONE("phone", AppointmentLocationSource.LOCATION_FIELD, RESOURCEKEY_APPOINTMENTTYPE_PHONE),
     /**
      * Virtual online appointment.
-     * <ul>
-     * <li>The string value {@code "virtual"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
-     * <li>{@link scheduler.dao.AppointmentDAO#url} is required.</li>
-     * <li>{@link scheduler.dao.AppointmentDAO#location} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
-     * </ul>
+     * <dl>
+     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dd>{@code = "virtual"}</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dd>Required</dd>
+     * </dl>
      */
     VIRTUAL("virtual", AppointmentLocationSource.URL_FIELD, RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL),
     /**
      * Appointment at address of customer.
-     * <ul>
-     * <li>The string value {@code "customer"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
-     * <li>A copy of the customer's address is stored in the {@link scheduler.dao.AppointmentDAO#location} field.</li>
-     * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
-     * </ul>
+     * <dl>
+     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dd>{@code = "customer"}</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dd>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(java.lang.String, java.lang.String, java.lang.String)} &lArr;
+     * {@link scheduler.dao.CustomerDAO#address}</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dd>Optional</dd>
+     * </dl>
      */
     CUSTOMER_SITE("customer", AppointmentLocationSource.CUSTOMER_ADDRESS, RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER),
     /**
      * Appointment at a {@link scheduler.model.CorporateAddress}.
-     * <ul>
-     * <li>The string value {@code "corporate"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
-     * <li>The value of the {@link scheduler.model.CorporateAddress#name} is stored in the
-     * {@link scheduler.dao.AppointmentDAO#location} field.</li>
-     * <li>{@link scheduler.dao.AppointmentDAO#url} and {@link scheduler.dao.AppointmentDAO#contact} are optional.</li>
-     * </ul>
+     * <dl>
+     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dd>{@code = "corporate"}</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dd>{@code =} {@link scheduler.model.CorporateAddress#name}</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dd>Optional</dd>
+     * </dl>
      */
     CORPORATE_LOCATION("corporate", AppointmentLocationSource.CORPORATE_LOCATION, RESOURCEKEY_APPOINTMENTTYPE_CORPORATE),
     /**
      * Appointment at a physical location.
-     * <ul>
-     * <li>The string value {@code "other"} is stored in the {@link scheduler.dao.AppointmentDAO#type} field.</li>
-     * <li>The {@link scheduler.dao.AppointmentDAO#location} and {@link scheduler.dao.AppointmentDAO#contact} fields are required.</li>
-     * <li>{@link scheduler.dao.AppointmentDAO#url} isS optional.</li>
-     * </ul>
+     * <dl>
+     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dd>{@code = "other"}</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dd>Required</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dd>Required</dd>
+     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dd>Optional</dd>
+     * </dl>
      */
     OTHER("other", AppointmentLocationSource.LOCATION_FIELD, RESOURCEKEY_APPOINTMENTTYPE_OTHER);
 

@@ -159,7 +159,20 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
      * Gets the explicit location of the current appointment. This corresponds to the "location" database column. If the appointment location is not a
      * physical location or is an implicit location, then it will be encoded into the url field. Column definition:
      * <code>`location` text NOT NULL</code>
-     *
+     * <dl>
+     * <dt>{@link #getType()} = {@link AppointmentType#PHONE}</dt>
+     * <dd>Required - contains phone number.</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#VIRTUAL}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#CUSTOMER_SITE}</dt>
+     * <dd>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(java.lang.String, java.lang.String, java.lang.String)} &lArr;
+     * {@link scheduler.dao.CustomerDAO#address}</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#CORPORATE_LOCATION}</dt>
+     * <dd>{@code =} {@link scheduler.model.CorporateAddress#name}</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#OTHER}</dt>
+     * <dd>Required - Contains address text.</dd>
+     * </dl>
+     * 
      * @return The explicit location of the current appointment.
      */
     String getLocation();
@@ -167,16 +180,46 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
     /**
      * Gets the contact for the current appointment. This corresponds to the "contact" database column. Column definition:
      * <code>`contact` text NOT NULL</code>
+     * <dl>
+     * <dt>{@link #getType()} = {@link AppointmentType#PHONE}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#VIRTUAL}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#CUSTOMER_SITE}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#CORPORATE_LOCATION}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#OTHER}</dt>
+     * <dd>Required</dd>
+     * </dl>
      *
      * @return The contact for the current appointment.
      */
     String getContact();
 
+    /**
+     * Gets the contact for the current appointment. This corresponds to the "contact" database column. Column definition:
+     * <code>`type` text NOT NULL</code>
+     *
+     * @return The current appointment type.
+     */
     AppointmentType getType();
 
     /**
      * Gets the URL of the current appointment. This corresponds to the "url" database column. Column definition:
      * <code>`url` varchar(255) NOT NULL</code>
+     * <dl>
+     * <dt>{@link #getType()} = {@link AppointmentType#PHONE}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#VIRTUAL}</dt>
+     * <dd>Required</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#CUSTOMER_SITE}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#CORPORATE_LOCATION}</dt>
+     * <dd>Optional</dd>
+     * <dt>{@link #getType()} = {@link AppointmentType#OTHER}</dt>
+     * <dd>Optional</dd>
+     * </dl>
      *
      * @return The URL of the current appointment.
      */
