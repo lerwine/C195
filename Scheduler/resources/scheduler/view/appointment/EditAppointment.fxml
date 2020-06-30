@@ -115,7 +115,7 @@
                 </ComboBox>
                 <VBox fx:id="lowerLeftVBox" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
                     <children>
-                  <DateRangeControl fx:id="dateRangeControl" />
+                  <DateRangeControl fx:id="dateRangeControl" minHeight="122.0" minWidth="335.0" />
                         <HBox>
                             <VBox.margin>
                                 <Insets top="6.0" />
