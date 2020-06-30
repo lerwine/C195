@@ -309,15 +309,15 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract <T extends OperationRequestEvent<D, M>> T createEditRequestEvent(M model, Object source);
+        public abstract OperationRequestEvent<D, M> createEditRequestEvent(M model, Object source);
 
-        public abstract <T extends OperationRequestEvent<D, M>> T createDeleteRequestEvent(M model, Object source);
+        public abstract OperationRequestEvent<D, M> createDeleteRequestEvent(M model, Object source);
 
-        public abstract <T extends OperationRequestEvent<D, M>> EventType<T> getBaseRequestEventType();
+        public abstract EventType<? extends OperationRequestEvent<D, M>> getBaseRequestEventType();
 
-        public abstract <T extends OperationRequestEvent<D, M>> EventType<T> getEditRequestEventType();
+        public abstract EventType<? extends OperationRequestEvent<D, M>> getEditRequestEventType();
 
-        public abstract <T extends OperationRequestEvent<D, M>> EventType<T> getDeleteRequestEventType();
+        public abstract EventType<? extends OperationRequestEvent<D, M>> getDeleteRequestEventType();
 
         public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(RecordModelContext<D, M> model);
 

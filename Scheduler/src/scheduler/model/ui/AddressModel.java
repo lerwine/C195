@@ -525,31 +525,26 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public AddressOpRequestEvent createEditRequestEvent(AddressModel model, Object source) {
             return new AddressOpRequestEvent(model, source, false);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public AddressOpRequestEvent createDeleteRequestEvent(AddressModel model, Object source) {
             return new AddressOpRequestEvent(model, source, true);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<AddressOpRequestEvent> getBaseRequestEventType() {
             return AddressOpRequestEvent.ADDRESS_OP_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<AddressOpRequestEvent> getEditRequestEventType() {
             return AddressOpRequestEvent.EDIT_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<AddressOpRequestEvent> getDeleteRequestEventType() {
             return AddressOpRequestEvent.DELETE_REQUEST;
         }

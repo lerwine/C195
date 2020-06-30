@@ -6,18 +6,19 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
 import scheduler.dao.DataAccessObject;
+import scheduler.events.ModelEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.ui.FxRecordModel;
+import scheduler.util.LogHelper;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;
-import scheduler.events.ModelEvent;
-import scheduler.events.OperationRequestEvent;
-import scheduler.util.LogHelper;
 
 /**
  *
@@ -36,6 +37,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
     private final HBox graphic;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
 
+    @SuppressWarnings("unchecked")
     public ItemEditTableCell(FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
         onItemActionRequest = new SimpleObjectProperty<>();
         this.factory = factory;
@@ -46,10 +48,10 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
             if (null != oldValue) {
-                removeEventHandler(factory.getBaseRequestEventType(), oldValue);
+                removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
             }
             if (null != newValue) {
-                addEventHandler(factory.getBaseRequestEventType(), newValue);
+                addEventHandler((EventType<E>) factory.getBaseRequestEventType(), newValue);
             }
         });
     }
@@ -69,7 +71,8 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
     private void onEditButtonAction(ActionEvent event) {
         M item = getItem();
         if (null != item) {
-            E e = factory.createEditRequestEvent(item, event.getSource());
+            @SuppressWarnings("unchecked")
+            E e = (E) factory.createEditRequestEvent(item, event.getSource());
             LOG.fine(() -> String.format("Firing event %s", e.toString()));
             fireEvent(e);
         }
@@ -78,7 +81,8 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
     private void onDeleteButtonAction(ActionEvent event) {
         M item = getItem();
         if (null != item) {
-            E e = factory.createDeleteRequestEvent(item, event.getSource());
+            @SuppressWarnings("unchecked")
+            E e = (E) factory.createDeleteRequestEvent(item, event.getSource());
             LOG.fine(() -> String.format("Firing event %s", e.toString()));
             fireEvent(e);
         }

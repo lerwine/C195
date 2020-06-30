@@ -362,31 +362,26 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public CustomerOpRequestEvent createEditRequestEvent(CustomerModel model, Object source) {
             return new CustomerOpRequestEvent(model, source, false);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public CustomerOpRequestEvent createDeleteRequestEvent(CustomerModel model, Object source) {
             return new CustomerOpRequestEvent(model, source, true);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CustomerOpRequestEvent> getBaseRequestEventType() {
             return CustomerOpRequestEvent.CUSTOMER_OP_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CustomerOpRequestEvent> getEditRequestEventType() {
             return CustomerOpRequestEvent.EDIT_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CustomerOpRequestEvent> getDeleteRequestEventType() {
             return CustomerOpRequestEvent.DELETE_REQUEST;
         }

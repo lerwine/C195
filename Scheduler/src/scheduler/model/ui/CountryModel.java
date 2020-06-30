@@ -227,31 +227,26 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public CountryOpRequestEvent createEditRequestEvent(CountryModel model, Object source) {
             return new CountryOpRequestEvent(model, source, false);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public CountryOpRequestEvent createDeleteRequestEvent(CountryModel model, Object source) {
             return new CountryOpRequestEvent(model, source, true);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CountryOpRequestEvent> getBaseRequestEventType() {
             return CountryOpRequestEvent.COUNTRY_OP_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CountryOpRequestEvent> getEditRequestEventType() {
             return CountryOpRequestEvent.EDIT_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CountryOpRequestEvent> getDeleteRequestEventType() {
             return CountryOpRequestEvent.DELETE_REQUEST;
         }

@@ -35,16 +35,17 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     private final EventHandlerManager eventHandlerManager;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
 
+    @SuppressWarnings("unchecked")
     public ItemEditTableCellFactory() {
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>();
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
             FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getFactory();
             if (null != oldValue) {
-                eventHandlerManager.removeEventHandler(factory.getBaseRequestEventType(), oldValue);
+                eventHandlerManager.removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
             }
             if (null != newValue) {
-                eventHandlerManager.addEventHandler(factory.getBaseRequestEventType(), newValue);
+                eventHandlerManager.addEventHandler((EventType<E>) factory.getBaseRequestEventType(), newValue);
             }
         });
     }

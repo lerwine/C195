@@ -323,31 +323,26 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public CityOpRequestEvent createEditRequestEvent(CityModel model, Object source) {
             return new CityOpRequestEvent(model, source, false);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public CityOpRequestEvent createDeleteRequestEvent(CityModel model, Object source) {
             return new CityOpRequestEvent(model, source, true);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CityOpRequestEvent> getBaseRequestEventType() {
             return CityOpRequestEvent.CITY_OP_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CityOpRequestEvent> getEditRequestEventType() {
             return CityOpRequestEvent.EDIT_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<CityOpRequestEvent> getDeleteRequestEventType() {
             return CityOpRequestEvent.DELETE_REQUEST;
         }

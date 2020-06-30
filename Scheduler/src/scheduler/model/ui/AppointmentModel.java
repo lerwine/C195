@@ -25,6 +25,7 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
@@ -51,28 +52,34 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     public static final Factory FACTORY = new Factory();
 
-    public static String calculateEffectiveLocation(AppointmentType type, String customerAddress, String url, String location) {
+    public static String calculateEffectiveLocation(final AppointmentType type, final String customerAddress,
+            final String url, final String location) {
         switch (type) {
             case CUSTOMER_SITE:
-                return (customerAddress.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER)
+                return (customerAddress.isEmpty())
+                        ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER)
                         : customerAddress;
             case VIRTUAL:
-                return (url.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
+                return (url.isEmpty())
+                        ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
                         : url;
             case CORPORATE_LOCATION:
-                CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(location);
-                return AddressModel.calculateSingleLineAddress(corporateAddress.getAddress1(), corporateAddress.getAddress2(),
-                        AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(), corporateAddress.getCity().getCountry().getName(),
-                                corporateAddress.getPostalCode()), corporateAddress.getPhone());
+                final CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(location);
+                return AddressModel.calculateSingleLineAddress(corporateAddress.getAddress1(),
+                        corporateAddress.getAddress2(),
+                        AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(),
+                                corporateAddress.getCity().getCountry().getName(), corporateAddress.getPostalCode()),
+                        corporateAddress.getPhone());
             case PHONE:
-                return (location.isEmpty()) ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
+                return (location.isEmpty())
+                        ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
                         : String.format("tel: %s", location);
             default:
                 return location;
         }
     }
 
-    public static int compareByDates(AppointmentModel a, AppointmentModel b) {
+    public static int compareByDates(final AppointmentModel a, final AppointmentModel b) {
         if (null == a) {
             return (null == b) ? 0 : 1;
         }
@@ -87,7 +94,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         if (null == y) {
             return -1;
         }
-        int c = x.compareTo(y);
+        final int c = x.compareTo(y);
         if (c != 0) {
             return c;
         }
@@ -130,27 +137,37 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final ReadOnlyBooleanBindingProperty valid;
 
     @SuppressWarnings("incomplete-switch")
-    public AppointmentModel(AppointmentDAO dao) {
+    public AppointmentModel(final AppointmentDAO dao) {
         super(dao);
         customer = new SimpleObjectProperty<>(this, "customer");
         customerName = new ReadOnlyStringBindingProperty(this, "customerName", Bindings.selectString(customer, "name"));
-        customerAddress1 = new ReadOnlyStringBindingProperty(this, "customerName", Bindings.selectString(customer, "address1"));
-        customerAddress2 = new ReadOnlyStringBindingProperty(this, "customerAddress2", Bindings.selectString(customer, "address2"));
-        customerCityName = new ReadOnlyStringBindingProperty(this, "customerCityName", Bindings.selectString(customer, "cityName"));
-        customerCountryName = new ReadOnlyStringBindingProperty(this, "customerCountryName", Bindings.selectString(customer, "countryName"));
-        customerPostalCode = new ReadOnlyStringBindingProperty(this, "customerPostalCode", Bindings.selectString(customer, "postalCode"));
-        customerPhone = new ReadOnlyStringBindingProperty(this, "customerPhone", Bindings.selectString(customer, "phone"));
-        customerCityZipCountry = new ReadOnlyStringBindingProperty(this, "customerCityZipCountry", Bindings.selectString(customer, "cityZipCountry"));
-        customerAddressText = new ReadOnlyStringBindingProperty(this, "customerAddressText", Bindings.selectString(customer, "addressText"));
-        customerActive = new ReadOnlyBooleanBindingProperty(this, "customerActive", Bindings.selectBoolean(customer, "active"));
+        customerAddress1 = new ReadOnlyStringBindingProperty(this, "customerName",
+                Bindings.selectString(customer, "address1"));
+        customerAddress2 = new ReadOnlyStringBindingProperty(this, "customerAddress2",
+                Bindings.selectString(customer, "address2"));
+        customerCityName = new ReadOnlyStringBindingProperty(this, "customerCityName",
+                Bindings.selectString(customer, "cityName"));
+        customerCountryName = new ReadOnlyStringBindingProperty(this, "customerCountryName",
+                Bindings.selectString(customer, "countryName"));
+        customerPostalCode = new ReadOnlyStringBindingProperty(this, "customerPostalCode",
+                Bindings.selectString(customer, "postalCode"));
+        customerPhone = new ReadOnlyStringBindingProperty(this, "customerPhone",
+                Bindings.selectString(customer, "phone"));
+        customerCityZipCountry = new ReadOnlyStringBindingProperty(this, "customerCityZipCountry",
+                Bindings.selectString(customer, "cityZipCountry"));
+        customerAddressText = new ReadOnlyStringBindingProperty(this, "customerAddressText",
+                Bindings.selectString(customer, "addressText"));
+        customerActive = new ReadOnlyBooleanBindingProperty(this, "customerActive",
+                Bindings.selectBoolean(customer, "active"));
         user = new SimpleObjectProperty<>(this, "user");
         userName = new ReadOnlyStringBindingProperty(this, "userName", Bindings.selectString(user, "userName"));
         userStatus = new ReadOnlyObjectBindingProperty<>(this, "userStatus", Bindings.select(user, "status"));
-        userStatusDisplay = new ReadOnlyStringBindingProperty(this, "userStatusDisplay", Bindings.selectString(user, "statusDisplay"));
+        userStatusDisplay = new ReadOnlyStringBindingProperty(this, "userStatusDisplay",
+                Bindings.selectString(user, "statusDisplay"));
         title = new NonNullableStringProperty(this, "title", dao.getTitle());
         description = new NonNullableStringProperty(this, "description", dao.getDescription());
         location = new NonNullableStringProperty(this, "location", dao.getLocation());
-        AppointmentType at = dao.getType();
+        final AppointmentType at = dao.getType();
         type = new SimpleObjectProperty<>(this, "type", (null == at) ? AppointmentType.OTHER : at);
         typeDisplay = new ReadOnlyStringBindingProperty(this, "typeDisplay",
                 Bindings.createStringBinding(() -> AppointmentType.toDisplayText(type.get()), type));
@@ -159,21 +176,27 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         start = new SimpleObjectProperty<>(this, "start");
         end = new SimpleObjectProperty<>(this, "end");
 
-        StringBinding wsNormalizedLocation = Bindings.createStringBinding(() -> Values.asNonNullAndWsNormalized(location.get()), location);
-        StringBinding wsNormalizedUrl = Bindings.createStringBinding(() -> Values.asNonNullAndWsNormalized(url.get()), url);
+        final StringBinding wsNormalizedLocation = Bindings
+                .createStringBinding(() -> Values.asNonNullAndWsNormalized(location.get()), location);
+        final StringBinding wsNormalizedUrl = Bindings
+                .createStringBinding(() -> Values.asNonNullAndWsNormalized(url.get()), url);
         effectiveLocation = new ReadOnlyStringBindingProperty(this, "effectiveLocation", () -> {
-            AppointmentType t = type.get();
-            String l = wsNormalizedLocation.get();
-            String c = customerAddressText.get();
-            String u = wsNormalizedUrl.get();
+            final AppointmentType t = type.get();
+            final String l = wsNormalizedLocation.get();
+            final String c = customerAddressText.get();
+            final String u = wsNormalizedUrl.get();
             if (null != t) {
                 switch (t) {
                     case CORPORATE_LOCATION:
                         if (!l.isEmpty()) {
-                            CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(l);
-                            return AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(corporateAddress.getAddress1(), corporateAddress.getAddress2()),
-                                    AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(), corporateAddress.getCity().getCountry().getName(),
-                                            corporateAddress.getPostalCode()), corporateAddress.getPhone());
+                            final CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(l);
+                            return AddressModel.calculateMultiLineAddress(
+                                    AddressModel.calculateAddressLines(corporateAddress.getAddress1(),
+                                            corporateAddress.getAddress2()),
+                                    AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(),
+                                            corporateAddress.getCity().getCountry().getName(),
+                                            corporateAddress.getPostalCode()),
+                                    corporateAddress.getPhone());
                         }
                         break;
                     case CUSTOMER_SITE:
@@ -187,18 +210,16 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
         valid = new ReadOnlyBooleanBindingProperty(this, "valid",
                 Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(title.get()), title)
-                        .and(Bindings.selectBoolean(customer, "valid"))
-                        .and(Bindings.selectBoolean(user, "valid"))
+                        .and(Bindings.selectBoolean(customer, "valid")).and(Bindings.selectBoolean(user, "valid"))
                         .and(Bindings.createBooleanBinding(() -> {
-                            LocalDateTime s = start.get();
-                            LocalDateTime e = end.get();
+                            final LocalDateTime s = start.get();
+                            final LocalDateTime e = end.get();
                             return null != s && null != e && s.compareTo(e) <= 0;
-                        }, start, end))
-                        .and(Bindings.createBooleanBinding(() -> {
-                            AppointmentType t = type.get();
-                            String l = location.get();
-                            String c = contact.get();
-                            String u = url.get();
+                        }, start, end)).and(Bindings.createBooleanBinding(() -> {
+                            final AppointmentType t = type.get();
+                            final String l = location.get();
+                            final String c = contact.get();
+                            final String u = url.get();
                             if (null == t || l.isEmpty()) {
                                 return false;
                             }
@@ -215,8 +236,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                                     break;
                             }
                             return true;
-                        }, type, location, contact, url))
-        );
+                        }, type, location, contact, url)));
         customer.set(CustomerItem.createModel(dao.getCustomer()));
         user.set(UserItem.createModel(dao.getUser()));
         title.set(dao.getTitle());
@@ -233,7 +253,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return customer.get();
     }
 
-    public void setCustomer(CustomerItem<? extends ICustomerDAO> value) {
+    public void setCustomer(final CustomerItem<? extends ICustomerDAO> value) {
         customer.set(value);
     }
 
@@ -347,7 +367,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return user.get();
     }
 
-    public void setUser(UserItem<? extends IUserDAO> value) {
+    public void setUser(final UserItem<? extends IUserDAO> value) {
         user.set(value);
     }
 
@@ -391,7 +411,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return title.get();
     }
 
-    public void setTitle(String value) {
+    public void setTitle(final String value) {
         title.set(value);
     }
 
@@ -405,7 +425,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return description.get();
     }
 
-    public void setDescription(String value) {
+    public void setDescription(final String value) {
         description.set(value);
     }
 
@@ -419,7 +439,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return location.get();
     }
 
-    public void setLocation(String value) {
+    public void setLocation(final String value) {
         location.set(value);
     }
 
@@ -443,7 +463,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return contact.get();
     }
 
-    public void setContact(String value) {
+    public void setContact(final String value) {
         contact.set(value);
     }
 
@@ -457,7 +477,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return type.get();
     }
 
-    public void setType(AppointmentType value) {
+    public void setType(final AppointmentType value) {
         type.set(value);
     }
 
@@ -481,7 +501,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return url.get();
     }
 
-    public void setUrl(String value) {
+    public void setUrl(final String value) {
         url.set(value);
     }
 
@@ -495,7 +515,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return start.get();
     }
 
-    public void setStart(LocalDateTime value) {
+    public void setStart(final LocalDateTime value) {
         start.set(value);
     }
 
@@ -509,7 +529,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return end.get();
     }
 
-    public void setEnd(LocalDateTime value) {
+    public void setEnd(final LocalDateTime value) {
         end.set(value);
     }
 
@@ -548,16 +568,17 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
         if (null != obj && obj instanceof AppointmentModel) {
             final AppointmentModel other = (AppointmentModel) obj;
             if (isNewRow()) {
-                return customer.isEqualTo(other.customer).get() && user.isEqualTo(other.user).get() && title.isEqualTo(other.title).get()
-                        && description.isEqualTo(other.description).get() && location.isEqualTo(other.location).get()
-                        && contact.isEqualTo(other.contact).get() && type.isEqualTo(other.type).get() && url.isEqualTo(other.url).get()
+                return customer.isEqualTo(other.customer).get() && user.isEqualTo(other.user).get()
+                        && title.isEqualTo(other.title).get() && description.isEqualTo(other.description).get()
+                        && location.isEqualTo(other.location).get() && contact.isEqualTo(other.contact).get()
+                        && type.isEqualTo(other.type).get() && url.isEqualTo(other.url).get()
                         && start.isEqualTo(other.start).get() && end.isEqualTo(other.end).get();
             }
             return !other.isNewRow() && primaryKeyProperty().isEqualTo(other.primaryKeyProperty()).get();
@@ -572,29 +593,19 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
 
     @Override
     public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
+        final ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
         if (getRowState() != DataRowState.NEW) {
             builder.addNumber(primaryKeyProperty());
         }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addDataObject(customer)
-                .addDataObject(user)
-                .addString(title)
-                .addString(description)
-                .addString(location)
-                .addString(contact)
-                .addEnum(type)
-                .addString(url)
-                .addLocalDateTime(start)
-                .addLocalDateTime(end)
-                .addLocalDateTime(createDateProperty())
-                .addString(createdByProperty())
-                .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty())
-                .addBoolean(valid);
+        return builder.addEnum(PROP_ROWSTATE, getRowState()).addDataObject(customer).addDataObject(user)
+                .addString(title).addString(description).addString(location).addString(contact).addEnum(type)
+                .addString(url).addLocalDateTime(start).addLocalDateTime(end).addLocalDateTime(createDateProperty())
+                .addString(createdByProperty()).addLocalDateTime(lastModifiedDateProperty())
+                .addString(lastModifiedByProperty()).addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public final static class Factory
+            extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
             super(AppointmentEvent.APPOINTMENT_EVENT_TYPE);
@@ -609,7 +620,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public AppointmentModel createNew(AppointmentDAO dao) {
+        public AppointmentModel createNew(final AppointmentDAO dao) {
             return new AppointmentModel(dao);
         }
 
@@ -624,18 +635,20 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(
+                final RecordModelContext<AppointmentDAO, AppointmentModel> model) {
             return new AppointmentDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(
+                final RecordModelContext<AppointmentDAO, AppointmentModel> model) {
             return new AppointmentDAO.DeleteTask(model, false);
         }
 
         @Override
-        public AppointmentEvent validateForSave(RecordModelContext<AppointmentDAO, AppointmentModel> target) {
-            AppointmentDAO dao = target.getDataAccessObject();
+        public AppointmentEvent validateForSave(final RecordModelContext<AppointmentDAO, AppointmentModel> target) {
+            final AppointmentDAO dao = target.getDataAccessObject();
             String message;
             String s;
             if (dao.getRowState() == DataRowState.DELETED) {
@@ -645,7 +658,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             } else if (s.length() > MAX_LENGTH_TITLE) {
                 message = "Title too long";
             } else {
-                Timestamp start = dao.getStart();
+                final Timestamp start = dao.getStart();
                 Timestamp end;
                 if (null == start) {
                     message = "Start date/time not defined";
@@ -681,38 +694,42 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                             break;
                     }
                     if (null == message) {
-                        AppointmentModel fxRecordModel = target.getFxRecordModel();
+                        final AppointmentModel fxRecordModel = target.getFxRecordModel();
                         CustomerEvent customerEvent = null;
                         UserEvent userEvent = null;
                         if (null != fxRecordModel) {
-                            CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
+                            final CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
                             if (null == customer) {
                                 message = "Customer not specified";
                             } else if (customer instanceof CustomerModel) {
-                                customerEvent = CustomerModel.FACTORY.validateForSave(RecordModelContext.of((CustomerModel) customer));
+                                customerEvent = CustomerModel.FACTORY
+                                        .validateForSave(RecordModelContext.of((CustomerModel) customer));
                                 if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
                                     customerEvent = null;
-                                    UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
+                                    final UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
                                     if (null == user) {
                                         message = "User not specified";
                                     } else if (user instanceof UserModel) {
-                                        userEvent = UserModel.FACTORY.validateForSave(RecordModelContext.of((UserModel) user));
+                                        userEvent = UserModel.FACTORY
+                                                .validateForSave(RecordModelContext.of((UserModel) user));
                                     }
                                 }
                             }
                         } else {
-                            ICustomerDAO customer = dao.getCustomer();
+                            final ICustomerDAO customer = dao.getCustomer();
                             if (null == customer) {
                                 message = "Customer not specified";
                             } else if (customer instanceof CustomerDAO) {
-                                customerEvent = CustomerModel.FACTORY.validateForSave(RecordModelContext.of((CustomerDAO) customer));
+                                customerEvent = CustomerModel.FACTORY
+                                        .validateForSave(RecordModelContext.of((CustomerDAO) customer));
                                 if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
                                     customerEvent = null;
-                                    IUserDAO user = dao.getUser();
+                                    final IUserDAO user = dao.getUser();
                                     if (null == user) {
                                         message = "User not specified";
                                     } else if (user instanceof UserDAO) {
-                                        userEvent = UserModel.FACTORY.validateForSave(RecordModelContext.of((UserDAO) user));
+                                        userEvent = UserModel.FACTORY
+                                                .validateForSave(RecordModelContext.of((UserDAO) user));
                                     }
                                 }
                             }
@@ -721,15 +738,19 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                         if (null == message) {
                             if (null != customerEvent) {
                                 if (dao.getRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(target, this, (CustomerFailedEvent) customerEvent);
+                                    return AppointmentEvent.createInsertInvalidEvent(target, this,
+                                            (CustomerFailedEvent) customerEvent);
                                 }
-                                return AppointmentEvent.createUpdateInvalidEvent(target, this, (CustomerFailedEvent) customerEvent);
+                                return AppointmentEvent.createUpdateInvalidEvent(target, this,
+                                        (CustomerFailedEvent) customerEvent);
                             }
                             if (null != userEvent && userEvent instanceof UserFailedEvent) {
                                 if (dao.getRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(target, this, (UserFailedEvent) userEvent);
+                                    return AppointmentEvent.createInsertInvalidEvent(target, this,
+                                            (UserFailedEvent) userEvent);
                                 }
-                                return AppointmentEvent.createUpdateInvalidEvent(target, this, (UserFailedEvent) userEvent);
+                                return AppointmentEvent.createUpdateInvalidEvent(target, this,
+                                        (UserFailedEvent) userEvent);
                             }
                             return null;
                         }
@@ -744,31 +765,26 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public AppointmentOpRequestEvent createEditRequestEvent(AppointmentModel model, Object source) {
+        public AppointmentOpRequestEvent createEditRequestEvent(final AppointmentModel model, final Object source) {
             return new AppointmentOpRequestEvent(model, source, false);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public AppointmentOpRequestEvent createDeleteRequestEvent(AppointmentModel model, Object source) {
+        public AppointmentOpRequestEvent createDeleteRequestEvent(final AppointmentModel model, final Object source) {
             return new AppointmentOpRequestEvent(model, source, true);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<AppointmentOpRequestEvent> getBaseRequestEventType() {
             return AppointmentOpRequestEvent.APPOINTMENT_OP_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<AppointmentOpRequestEvent> getEditRequestEventType() {
             return AppointmentOpRequestEvent.EDIT_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<AppointmentOpRequestEvent> getDeleteRequestEventType() {
             return AppointmentOpRequestEvent.DELETE_REQUEST;
         }

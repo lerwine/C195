@@ -217,8 +217,8 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
                     message = "User name not defined";
                 } else if (userName.length() > MAX_LENGTH_USERNAME) {
                     message = "User name too long";
-                } else if (dao instanceof UserDAO) {
-                    String password = ((UserDAO) dao).getPassword();
+                } else {
+                    String password = dao.getPassword();
                     if (password.isEmpty()) {
                         message = "Password not defined";
                     } else if (password.length() > MAX_LENGTH_PASSWORD) {
@@ -226,8 +226,6 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
                     } else {
                         return null;
                     }
-                } else {
-                    return null;
                 }
             }
             if (dao.getRowState() == DataRowState.NEW) {
@@ -237,31 +235,26 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public UserOpRequestEvent createEditRequestEvent(UserModel model, Object source) {
             return new UserOpRequestEvent(model, source, false);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public UserOpRequestEvent createDeleteRequestEvent(UserModel model, Object source) {
             return new UserOpRequestEvent(model, source, true);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<UserOpRequestEvent> getBaseRequestEventType() {
             return UserOpRequestEvent.USER_OP_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<UserOpRequestEvent> getEditRequestEventType() {
             return UserOpRequestEvent.EDIT_REQUEST;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public EventType<UserOpRequestEvent> getDeleteRequestEventType() {
             return UserOpRequestEvent.DELETE_REQUEST;
         }
