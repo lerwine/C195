@@ -861,8 +861,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Gets the final {@link ModelEvent} after the {@code DaoTask} is finished.
          *
-         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from
-         * {@link #createFaultedEvent()}; otherwise, this will be set to the value obtained from {@link #createCanceledEvent()}.
+         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from {@link #createFaultedEvent()}; otherwise,
+         * this will be set to the value obtained from {@link #createCanceledEvent()}.
          */
         public E getFinalEvent() {
             return finalEvent.get();
@@ -882,6 +882,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         protected abstract E call(Connection connection) throws Exception;
 
         @Override
+        @SuppressWarnings("try")
         protected E call() throws Exception {
             if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
                 throw new IllegalStateException("Row state has changed");
