@@ -189,40 +189,7 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
      */
     public static final EventType<CustomerFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    public static boolean isFaultedEvent(CustomerFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_FAULTED_EVENT_NAME:
-            case UPDATE_FAULTED_EVENT_NAME:
-            case DELETE_FAULTED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isInvalidEvent(CustomerFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_INVALID_EVENT_NAME:
-            case UPDATE_INVALID_EVENT_NAME:
-            case DELETE_INVALID_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isCanceledEvent(CustomerFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_CANCELED_EVENT_NAME:
-            case UPDATE_CANCELED_EVENT_NAME:
-            case DELETE_CANCELED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    @SuppressWarnings("incomplete-switch")
+    @SuppressWarnings({"fallthrough", "incomplete-switch"})
     private static DbOperationType toDbOperationType(EventType<CustomerFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
@@ -283,22 +250,36 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
         return message;
     }
 
-    private final String message;
-    private final Throwable fault;
-    private final AddressFailedEvent addressEvent;
+    public static FailKind toFailKind(EventType<CustomerFailedEvent> eventType) {
+        switch (eventType.getName()) {
+            case INSERT_CANCELED_EVENT_NAME:
+            case UPDATE_CANCELED_EVENT_NAME:
+            case DELETE_CANCELED_EVENT_NAME:
+                return FailKind.CANCELED;
+            case INSERT_INVALID_EVENT_NAME:
+            case UPDATE_INVALID_EVENT_NAME:
+            case DELETE_INVALID_EVENT_NAME:
+                return FailKind.INVALID;
+            default:
+                return FailKind.INVALID;
+        }
+    }
+
+    private String message;
+    private Throwable fault;
+    private AddressFailedEvent addressEvent;
+    private FailKind failKind;
 
     public CustomerFailedEvent(CustomerEvent event, String message, Throwable fault, Object source, EventType<CustomerFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         addressEvent = (event instanceof CustomerFailedEvent) ? ((CustomerFailedEvent) event).addressEvent : null;
+        failKind = toFailKind(eventType);
     }
 
     public CustomerFailedEvent(CustomerEvent event, Object source, String message, EventType<CustomerFailedEvent> eventType, EventTarget target) {
-        super(event, source, target, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        addressEvent = (event instanceof CustomerFailedEvent) ? ((CustomerFailedEvent) event).addressEvent : null;
+        this(event, message, (Throwable) null, source, eventType, target);
     }
 
     public CustomerFailedEvent(CustomerEvent event, String message, Throwable fault, EventType<CustomerFailedEvent> eventType) {
@@ -306,13 +287,11 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         addressEvent = (event instanceof CustomerFailedEvent) ? ((CustomerFailedEvent) event).addressEvent : null;
+        failKind = toFailKind(eventType);
     }
 
     public CustomerFailedEvent(CustomerEvent event, String message, EventType<CustomerFailedEvent> eventType) {
-        super(event, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        addressEvent = (event instanceof CustomerFailedEvent) ? ((CustomerFailedEvent) event).addressEvent : null;
+        this(event, message, (Throwable) null, eventType);
     }
 
     public CustomerFailedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, String message, Throwable fault, Object source, EventType<CustomerFailedEvent> eventType) {
@@ -320,13 +299,11 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         addressEvent = null;
+        failKind = toFailKind(eventType);
     }
 
     public CustomerFailedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, String message, EventType<CustomerFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        addressEvent = null;
+        this(target, message, (Throwable) null, source, eventType);
     }
 
     CustomerFailedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, EventType<CustomerFailedEvent> eventType, AddressFailedEvent event) {
@@ -334,6 +311,7 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
         this.message = "Invalid address";
         fault = null;
         addressEvent = event;
+        failKind = toFailKind(eventType);
     }
 
     @Override
@@ -348,6 +326,21 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
 
     public AddressFailedEvent getAddressEvent() {
         return addressEvent;
+    }
+
+    @Override
+    public FailKind getFailKind() {
+        return failKind;
+    }
+
+    @Override
+    public CustomerFailedEvent copyFor(Object newSource, EventTarget newTarget) {
+        CustomerFailedEvent event = (CustomerFailedEvent) super.copyFor(newSource, newTarget);
+        event.message = message;
+        event.fault = fault;
+        event.addressEvent = addressEvent;
+        event.failKind = failKind;
+        return event;
     }
 
 }

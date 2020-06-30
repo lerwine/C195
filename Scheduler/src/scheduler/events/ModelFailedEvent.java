@@ -14,5 +14,6 @@ public interface ModelFailedEvent<D extends DataAccessObject, M extends FxRecord
     String getMessage();
 
     Throwable getFault();
-
+    
+    FailKind getFailKind();
 }

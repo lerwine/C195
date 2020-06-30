@@ -49,15 +49,15 @@ public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, Appoin
     }
 
     public static final boolean isInvalid(AppointmentEvent event) {
-        return event instanceof AppointmentFailedEvent && AppointmentFailedEvent.isInvalidEvent((AppointmentFailedEvent) event);
+        return event instanceof AppointmentFailedEvent && ((AppointmentFailedEvent) event).getFailKind() == FailKind.INVALID;
     }
 
     public static final boolean isCanceled(AppointmentEvent event) {
-        return event instanceof AppointmentFailedEvent && AppointmentFailedEvent.isCanceledEvent((AppointmentFailedEvent) event);
+        return event instanceof AppointmentFailedEvent && ((AppointmentFailedEvent) event).getFailKind() == FailKind.CANCELED;
     }
 
     public static final boolean isFaulted(AppointmentEvent event) {
-        return event instanceof AppointmentFailedEvent && AppointmentFailedEvent.isFaultedEvent((AppointmentFailedEvent) event);
+        return event instanceof AppointmentFailedEvent && ((AppointmentFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
     public static final AppointmentEvent createInsertSuccessEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source) {

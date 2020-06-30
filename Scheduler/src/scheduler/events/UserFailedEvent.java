@@ -16,8 +16,8 @@ import scheduler.model.ui.UserModel;
  * </ul></li>
  * </ul>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr; {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr;
- * {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr; {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"}
+ * &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_USER_SAVE_FAILED</dt>
@@ -149,40 +149,22 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
      */
     public static final EventType<UserFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    public static boolean isFaultedEvent(UserFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_FAULTED_EVENT_NAME:
-            case UPDATE_FAULTED_EVENT_NAME:
-            case DELETE_FAULTED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isInvalidEvent(UserFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_INVALID_EVENT_NAME:
-            case UPDATE_INVALID_EVENT_NAME:
-            case DELETE_INVALID_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isCanceledEvent(UserFailedEvent event) {
-        switch (event.getEventType().getName()) {
+    public static FailKind toFailKind(EventType<UserFailedEvent> eventType) {
+        switch (eventType.getName()) {
             case INSERT_CANCELED_EVENT_NAME:
             case UPDATE_CANCELED_EVENT_NAME:
             case DELETE_CANCELED_EVENT_NAME:
-                return true;
+                return FailKind.CANCELED;
+            case INSERT_INVALID_EVENT_NAME:
+            case UPDATE_INVALID_EVENT_NAME:
+            case DELETE_INVALID_EVENT_NAME:
+                return FailKind.INVALID;
             default:
-                return false;
+                return FailKind.INVALID;
         }
     }
 
-    @SuppressWarnings("incomplete-switch")
+    @SuppressWarnings({"fallthrough", "incomplete-switch"})
     private static DbOperationType toDbOperationType(EventType<UserFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
@@ -243,43 +225,41 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
         return message;
     }
 
-    private final String message;
-    private final Throwable fault;
+    private String message;
+    private Throwable fault;
+    private FailKind failKind;
 
     public UserFailedEvent(UserEvent event, String message, Throwable fault, Object source, EventType<UserFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        failKind = toFailKind(eventType);
     }
 
     public UserFailedEvent(UserEvent event, Object source, String message, EventType<UserFailedEvent> eventType, EventTarget target) {
-        super(event, source, target, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
+        this(event, message, (Throwable) null, source, eventType, target);
     }
 
     public UserFailedEvent(UserEvent event, String message, Throwable fault, EventType<UserFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        failKind = toFailKind(eventType);
     }
 
     public UserFailedEvent(UserEvent event, String message, EventType<UserFailedEvent> eventType) {
-        super(event, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
+        this(event, message, (Throwable) null, eventType);
     }
 
     public UserFailedEvent(RecordModelContext<UserDAO, UserModel> target, String message, Throwable fault, Object source, EventType<UserFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        failKind = toFailKind(eventType);
     }
 
     public UserFailedEvent(RecordModelContext<UserDAO, UserModel> target, Object source, String message, EventType<UserFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
+        this(target, message, (Throwable) null, source, eventType);
     }
 
     @Override
@@ -290,6 +270,20 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
     @Override
     public Throwable getFault() {
         return fault;
+    }
+
+    @Override
+    public FailKind getFailKind() {
+        return failKind;
+    }
+
+    @Override
+    public UserFailedEvent copyFor(Object newSource, EventTarget newTarget) {
+        UserFailedEvent event = (UserFailedEvent) super.copyFor(newSource, newTarget);
+        event.message = message;
+        event.fault = fault;
+        event.failKind = failKind;
+        return event;
     }
 
 }

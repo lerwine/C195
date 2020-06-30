@@ -10,8 +10,8 @@ import scheduler.model.ui.CityModel;
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr;
- * {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"}
+ * &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_CITY_SAVE_FAILED</dt>
@@ -143,40 +143,7 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
      */
     public static final EventType<CityFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    public static boolean isFaultedEvent(CityFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_FAULTED_EVENT_NAME:
-            case UPDATE_FAULTED_EVENT_NAME:
-            case DELETE_FAULTED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isInvalidEvent(CityFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_INVALID_EVENT_NAME:
-            case UPDATE_INVALID_EVENT_NAME:
-            case DELETE_INVALID_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isCanceledEvent(CityFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_CANCELED_EVENT_NAME:
-            case UPDATE_CANCELED_EVENT_NAME:
-            case DELETE_CANCELED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    @SuppressWarnings("incomplete-switch")
+    @SuppressWarnings({"fallthrough", "incomplete-switch"})
     private static DbOperationType toDbOperationType(EventType<CityFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
@@ -237,22 +204,36 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
         return message;
     }
 
-    private final String message;
-    private final Throwable fault;
-    private final CountryFailedEvent countryEvent;
+    public static FailKind toFailKind(EventType<CityFailedEvent> eventType) {
+        switch (eventType.getName()) {
+            case INSERT_CANCELED_EVENT_NAME:
+            case UPDATE_CANCELED_EVENT_NAME:
+            case DELETE_CANCELED_EVENT_NAME:
+                return FailKind.CANCELED;
+            case INSERT_INVALID_EVENT_NAME:
+            case UPDATE_INVALID_EVENT_NAME:
+            case DELETE_INVALID_EVENT_NAME:
+                return FailKind.INVALID;
+            default:
+                return FailKind.INVALID;
+        }
+    }
+
+    private String message;
+    private Throwable fault;
+    private CountryFailedEvent countryEvent;
+    private FailKind failKind;
 
     public CityFailedEvent(CityEvent event, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
+        failKind = toFailKind(eventType);
     }
 
     public CityFailedEvent(CityEvent event, Object source, String message, EventType<CityFailedEvent> eventType, EventTarget target) {
-        super(event, source, target, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
+        this(event, message, (Throwable) null, source, eventType, target);
     }
 
     public CityFailedEvent(CityEvent event, String message, Throwable fault, EventType<CityFailedEvent> eventType) {
@@ -260,13 +241,11 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
+        failKind = toFailKind(eventType);
     }
 
     public CityFailedEvent(CityEvent event, String message, EventType<CityFailedEvent> eventType) {
-        super(event, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        countryEvent = (event instanceof CityFailedEvent) ? ((CityFailedEvent) event).countryEvent : null;
+        this(event, message, (Throwable) null, eventType);
     }
 
     public CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType) {
@@ -274,13 +253,11 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         countryEvent = null;
+        failKind = toFailKind(eventType);
     }
 
     public CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, String message, EventType<CityFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        countryEvent = null;
+        this(target, message, (Throwable) null, source, eventType);
     }
 
     CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, EventType<CityFailedEvent> eventType, CountryFailedEvent event) {
@@ -288,6 +265,7 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
         this.message = "Invalid country";
         fault = null;
         countryEvent = event;
+        failKind = toFailKind(eventType);
     }
 
     @Override
@@ -302,6 +280,21 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
 
     public CountryFailedEvent getCountryEvent() {
         return countryEvent;
+    }
+
+    @Override
+    public FailKind getFailKind() {
+        return failKind;
+    }
+
+    @Override
+    public CityFailedEvent copyFor(Object newSource, EventTarget newTarget) {
+        CityFailedEvent event = (CityFailedEvent) super.copyFor(newSource, newTarget);
+        event.message = message;
+        event.fault = fault;
+        event.countryEvent = countryEvent;
+        event.failKind = failKind;
+        return event;
     }
 
 }

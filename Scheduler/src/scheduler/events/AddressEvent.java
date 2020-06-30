@@ -48,15 +48,15 @@ public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> 
     }
 
     public static final boolean isInvalid(AddressEvent event) {
-        return event instanceof AddressFailedEvent && AddressFailedEvent.isInvalidEvent((AddressFailedEvent) event);
+        return event instanceof AddressFailedEvent && ((AddressFailedEvent) event).getFailKind() == FailKind.INVALID;
     }
 
     public static final boolean isCanceled(AddressEvent event) {
-        return event instanceof AddressFailedEvent && AddressFailedEvent.isCanceledEvent((AddressFailedEvent) event);
+        return event instanceof AddressFailedEvent && ((AddressFailedEvent) event).getFailKind() == FailKind.CANCELED;
     }
 
     public static final boolean isFaulted(AddressEvent event) {
-        return event instanceof AddressFailedEvent && AddressFailedEvent.isFaultedEvent((AddressFailedEvent) event);
+        return event instanceof AddressFailedEvent && ((AddressFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
     public static final AddressEvent createInsertSuccessEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source) {

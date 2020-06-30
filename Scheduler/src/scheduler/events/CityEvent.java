@@ -48,15 +48,15 @@ public abstract class CityEvent extends ModelEvent<CityDAO, CityModel> {
     }
 
     public static final boolean isInvalid(CityEvent event) {
-        return event instanceof CityFailedEvent && CityFailedEvent.isInvalidEvent((CityFailedEvent) event);
+        return event instanceof CityFailedEvent && ((CityFailedEvent) event).getFailKind() == FailKind.INVALID;
     }
 
     public static final boolean isCanceled(CityEvent event) {
-        return event instanceof CityFailedEvent && CityFailedEvent.isCanceledEvent((CityFailedEvent) event);
+        return event instanceof CityFailedEvent && ((CityFailedEvent) event).getFailKind() == FailKind.CANCELED;
     }
 
     public static final boolean isFaulted(CityEvent event) {
-        return event instanceof CityFailedEvent && CityFailedEvent.isFaultedEvent((CityFailedEvent) event);
+        return event instanceof CityFailedEvent && ((CityFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
     public static final CityEvent createInsertSuccessEvent(RecordModelContext<CityDAO, CityModel> target, Object source) {

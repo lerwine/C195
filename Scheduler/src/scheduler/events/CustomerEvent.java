@@ -26,6 +26,7 @@ import scheduler.model.ui.CustomerModel;
  * </dl>
  * </dd>
  * </dl>
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public abstract class CustomerEvent extends ModelEvent<CustomerDAO, CustomerModel> {
@@ -47,15 +48,15 @@ public abstract class CustomerEvent extends ModelEvent<CustomerDAO, CustomerMode
     }
 
     public static final boolean isInvalid(CustomerEvent event) {
-        return event instanceof CustomerFailedEvent && CustomerFailedEvent.isInvalidEvent((CustomerFailedEvent) event);
+        return event instanceof CustomerFailedEvent && ((CustomerFailedEvent) event).getFailKind() == FailKind.INVALID;
     }
 
     public static final boolean isCanceled(CustomerEvent event) {
-        return event instanceof CustomerFailedEvent && CustomerFailedEvent.isCanceledEvent((CustomerFailedEvent) event);
+        return event instanceof CustomerFailedEvent && ((CustomerFailedEvent) event).getFailKind() == FailKind.CANCELED;
     }
 
     public static final boolean isFaulted(CustomerEvent event) {
-        return event instanceof CustomerFailedEvent && CustomerFailedEvent.isFaultedEvent((CustomerFailedEvent) event);
+        return event instanceof CustomerFailedEvent && ((CustomerFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
     public static final CustomerEvent createInsertSuccessEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source) {

@@ -143,40 +143,7 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
      */
     public static final EventType<AddressFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    public static boolean isFaultedEvent(AddressFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_FAULTED_EVENT_NAME:
-            case UPDATE_FAULTED_EVENT_NAME:
-            case DELETE_FAULTED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isInvalidEvent(AddressFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_INVALID_EVENT_NAME:
-            case UPDATE_INVALID_EVENT_NAME:
-            case DELETE_INVALID_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isCanceledEvent(AddressFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_CANCELED_EVENT_NAME:
-            case UPDATE_CANCELED_EVENT_NAME:
-            case DELETE_CANCELED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    @SuppressWarnings("incomplete-switch")
+    @SuppressWarnings({"fallthrough", "incomplete-switch"})
     private static DbOperationType toDbOperationType(EventType<AddressFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
@@ -237,22 +204,36 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
         return message;
     }
 
-    private final String message;
-    private final Throwable fault;
-    private final CityFailedEvent cityEvent;
+    public static FailKind toFailKind(EventType<AddressFailedEvent> eventType) {
+        switch (eventType.getName()) {
+            case INSERT_CANCELED_EVENT_NAME:
+            case UPDATE_CANCELED_EVENT_NAME:
+            case DELETE_CANCELED_EVENT_NAME:
+                return FailKind.CANCELED;
+            case INSERT_INVALID_EVENT_NAME:
+            case UPDATE_INVALID_EVENT_NAME:
+            case DELETE_INVALID_EVENT_NAME:
+                return FailKind.INVALID;
+            default:
+                return FailKind.INVALID;
+        }
+    }
+
+    private String message;
+    private Throwable fault;
+    private CityFailedEvent cityEvent;
+    private FailKind failKind;
 
     public AddressFailedEvent(AddressEvent event, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
+        failKind = toFailKind(eventType);
     }
 
     public AddressFailedEvent(AddressEvent event, Object source, String message, EventType<AddressFailedEvent> eventType, EventTarget target) {
-        super(event, source, target, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
+        this(event, message, (Throwable) null, source, eventType, target);
     }
 
     public AddressFailedEvent(AddressEvent event, String message, Throwable fault, EventType<AddressFailedEvent> eventType) {
@@ -260,13 +241,11 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
+        failKind = toFailKind(eventType);
     }
 
     public AddressFailedEvent(AddressEvent event, String message, EventType<AddressFailedEvent> eventType) {
-        super(event, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        cityEvent = (event instanceof AddressFailedEvent) ? ((AddressFailedEvent) event).cityEvent : null;
+        this(event, message, (Throwable) null, eventType);
     }
 
     public AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType) {
@@ -274,13 +253,11 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         cityEvent = null;
+        failKind = toFailKind(eventType);
     }
 
     public AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, String message, EventType<AddressFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        cityEvent = null;
+        this(target, message, (Throwable) null, source, eventType);
     }
 
     AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, EventType<AddressFailedEvent> eventType, CityFailedEvent event) {
@@ -288,6 +265,7 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
         this.message = "Invalid city";
         fault = null;
         cityEvent = event;
+        failKind = toFailKind(eventType);
     }
 
     @Override
@@ -302,6 +280,21 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
 
     public CityFailedEvent getCityEvent() {
         return cityEvent;
+    }
+
+    @Override
+    public FailKind getFailKind() {
+        return failKind;
+    }
+
+    @Override
+    public AddressFailedEvent copyFor(Object newSource, EventTarget newTarget) {
+        AddressFailedEvent event = (AddressFailedEvent) super.copyFor(newSource, newTarget);
+        event.message = message;
+        event.fault = fault;
+        event.cityEvent = cityEvent;
+        event.failKind = failKind;
+        return event;
     }
 
 }

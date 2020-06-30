@@ -3,8 +3,8 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.OperationFailureException;
-import scheduler.model.RecordModelContext;
 import scheduler.dao.UserDAO;
+import scheduler.model.RecordModelContext;
 import scheduler.model.ui.UserModel;
 
 /**
@@ -26,6 +26,7 @@ import scheduler.model.ui.UserModel;
  * </dl>
  * </dd>
  * </dl>
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public abstract class UserEvent extends ModelEvent<UserDAO, UserModel> {
@@ -47,15 +48,15 @@ public abstract class UserEvent extends ModelEvent<UserDAO, UserModel> {
     }
 
     public static final boolean isInvalid(UserEvent event) {
-        return event instanceof UserFailedEvent && UserFailedEvent.isInvalidEvent((UserFailedEvent) event);
+        return event instanceof UserFailedEvent && ((UserFailedEvent) event).getFailKind() == FailKind.INVALID;
     }
 
     public static final boolean isCanceled(UserEvent event) {
-        return event instanceof UserFailedEvent && UserFailedEvent.isCanceledEvent((UserFailedEvent) event);
+        return event instanceof UserFailedEvent && ((UserFailedEvent) event).getFailKind() == FailKind.CANCELED;
     }
 
     public static final boolean isFaulted(UserEvent event) {
-        return event instanceof UserFailedEvent && UserFailedEvent.isFaultedEvent((UserFailedEvent) event);
+        return event instanceof UserFailedEvent && ((UserFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
     public static final UserEvent createInsertSuccessEvent(RecordModelContext<UserDAO, UserModel> target, Object source) {

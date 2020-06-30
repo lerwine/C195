@@ -144,40 +144,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
      */
     public static final EventType<AppointmentFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    public static boolean isFaultedEvent(AppointmentFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_FAULTED_EVENT_NAME:
-            case UPDATE_FAULTED_EVENT_NAME:
-            case DELETE_FAULTED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isInvalidEvent(AppointmentFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_INVALID_EVENT_NAME:
-            case UPDATE_INVALID_EVENT_NAME:
-            case DELETE_INVALID_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isCanceledEvent(AppointmentFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_CANCELED_EVENT_NAME:
-            case UPDATE_CANCELED_EVENT_NAME:
-            case DELETE_CANCELED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    @SuppressWarnings("incomplete-switch")
+    @SuppressWarnings({"fallthrough", "incomplete-switch"})
     private static DbOperationType toDbOperationType(EventType<AppointmentFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
@@ -238,10 +205,26 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         return message;
     }
 
-    private final String message;
-    private final Throwable fault;
-    private final CustomerFailedEvent customerEvent;
-    private final UserFailedEvent userEvent;
+    public static FailKind toFailKind(EventType<AppointmentFailedEvent> eventType) {
+        switch (eventType.getName()) {
+            case INSERT_CANCELED_EVENT_NAME:
+            case UPDATE_CANCELED_EVENT_NAME:
+            case DELETE_CANCELED_EVENT_NAME:
+                return FailKind.CANCELED;
+            case INSERT_INVALID_EVENT_NAME:
+            case UPDATE_INVALID_EVENT_NAME:
+            case DELETE_INVALID_EVENT_NAME:
+                return FailKind.INVALID;
+            default:
+                return FailKind.INVALID;
+        }
+    }
+
+    private String message;
+    private Throwable fault;
+    private CustomerFailedEvent customerEvent;
+    private UserFailedEvent userEvent;
+    private FailKind failKind;
 
     public AppointmentFailedEvent(AppointmentEvent event, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType, EventTarget target) {
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
@@ -255,20 +238,11 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
             customerEvent = null;
             userEvent = null;
         }
+        failKind = toFailKind(eventType);
     }
 
     public AppointmentFailedEvent(AppointmentEvent event, Object source, String message, EventType<AppointmentFailedEvent> eventType, EventTarget target) {
-        super(event, source, target, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        if (event instanceof AppointmentFailedEvent) {
-            AppointmentFailedEvent fe = (AppointmentFailedEvent) event;
-            customerEvent = fe.customerEvent;
-            userEvent = fe.userEvent;
-        } else {
-            customerEvent = null;
-            userEvent = null;
-        }
+        this(event, message, (Throwable) null, source, eventType, target);
     }
 
     public AppointmentFailedEvent(AppointmentEvent event, String message, Throwable fault, EventType<AppointmentFailedEvent> eventType) {
@@ -283,20 +257,11 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
             customerEvent = null;
             userEvent = null;
         }
+        failKind = toFailKind(eventType);
     }
 
     public AppointmentFailedEvent(AppointmentEvent event, String message, EventType<AppointmentFailedEvent> eventType) {
-        super(event, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        if (event instanceof AppointmentFailedEvent) {
-            AppointmentFailedEvent fe = (AppointmentFailedEvent) event;
-            customerEvent = fe.customerEvent;
-            userEvent = fe.userEvent;
-        } else {
-            customerEvent = null;
-            userEvent = null;
-        }
+        this(event, message, (Throwable) null, eventType);
     }
 
     public AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType) {
@@ -305,14 +270,11 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         this.fault = fault;
         customerEvent = null;
         userEvent = null;
+        failKind = toFailKind(eventType);
     }
 
     public AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, String message, EventType<AppointmentFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
-        customerEvent = null;
-        userEvent = null;
+        this(target, message, (Throwable) null, source, eventType);
     }
 
     AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<AppointmentFailedEvent> eventType, CustomerFailedEvent event) {
@@ -321,6 +283,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         fault = null;
         customerEvent = event;
         userEvent = null;
+        failKind = toFailKind(eventType);
     }
 
     AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<AppointmentFailedEvent> eventType, UserFailedEvent event) {
@@ -329,6 +292,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         fault = null;
         customerEvent = null;
         userEvent = event;
+        failKind = toFailKind(eventType);
     }
 
     @Override
@@ -347,6 +311,22 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
 
     public UserFailedEvent getUserEvent() {
         return userEvent;
+    }
+
+    @Override
+    public FailKind getFailKind() {
+        return failKind;
+    }
+
+    @Override
+    public AppointmentFailedEvent copyFor(Object newSource, EventTarget newTarget) {
+        AppointmentFailedEvent event = (AppointmentFailedEvent) super.copyFor(newSource, newTarget);
+        event.message = message;
+        event.fault = fault;
+        event.customerEvent = customerEvent;
+        event.userEvent = userEvent;
+        event.failKind = failKind;
+        return event;
     }
 
 }

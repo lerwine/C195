@@ -48,15 +48,15 @@ public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> 
     }
 
     public static final boolean isInvalid(CountryEvent event) {
-        return event instanceof CountryFailedEvent && CountryFailedEvent.isInvalidEvent((CountryFailedEvent) event);
+        return event instanceof CountryFailedEvent && ((CountryFailedEvent) event).getFailKind() == FailKind.INVALID;
     }
 
     public static final boolean isCanceled(CountryEvent event) {
-        return event instanceof CountryFailedEvent && CountryFailedEvent.isCanceledEvent((CountryFailedEvent) event);
+        return event instanceof CountryFailedEvent && ((CountryFailedEvent) event).getFailKind() == FailKind.CANCELED;
     }
 
     public static final boolean isFaulted(CountryEvent event) {
-        return event instanceof CountryFailedEvent && CountryFailedEvent.isFaultedEvent((CountryFailedEvent) event);
+        return event instanceof CountryFailedEvent && ((CountryFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
     public static final CountryEvent createInsertSuccessEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source) {

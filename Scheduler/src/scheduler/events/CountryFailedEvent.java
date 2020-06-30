@@ -143,40 +143,7 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
      */
     public static final EventType<CountryFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    public static boolean isFaultedEvent(CountryFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_FAULTED_EVENT_NAME:
-            case UPDATE_FAULTED_EVENT_NAME:
-            case DELETE_FAULTED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isInvalidEvent(CountryFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_INVALID_EVENT_NAME:
-            case UPDATE_INVALID_EVENT_NAME:
-            case DELETE_INVALID_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public static boolean isCanceledEvent(CountryFailedEvent event) {
-        switch (event.getEventType().getName()) {
-            case INSERT_CANCELED_EVENT_NAME:
-            case UPDATE_CANCELED_EVENT_NAME:
-            case DELETE_CANCELED_EVENT_NAME:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    @SuppressWarnings("incomplete-switch")
+    @SuppressWarnings({"fallthrough", "incomplete-switch"})
     private static DbOperationType toDbOperationType(EventType<CountryFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
@@ -236,8 +203,24 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
         return message;
     }
 
-    private final String message;
-    private final Throwable fault;
+    public static FailKind toFailKind(EventType<CountryFailedEvent> eventType) {
+        switch (eventType.getName()) {
+            case INSERT_CANCELED_EVENT_NAME:
+            case UPDATE_CANCELED_EVENT_NAME:
+            case DELETE_CANCELED_EVENT_NAME:
+                return FailKind.CANCELED;
+            case INSERT_INVALID_EVENT_NAME:
+            case UPDATE_INVALID_EVENT_NAME:
+            case DELETE_INVALID_EVENT_NAME:
+                return FailKind.INVALID;
+            default:
+                return FailKind.INVALID;
+        }
+    }
+
+    private String message;
+    private Throwable fault;
+    private FailKind failKind;
 
     /**
      * Creates a new {@link CountryFailedEvent} from another {@link CountryEvent} object.
@@ -253,36 +236,33 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
         super(event, source, target, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        failKind = toFailKind(eventType);
     }
 
     public CountryFailedEvent(CountryEvent event, Object source, String message, EventType<CountryFailedEvent> eventType, EventTarget target) {
-        super(event, source, target, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
+        this(event, message, (Throwable) null, source, eventType, target);
     }
 
     public CountryFailedEvent(CountryEvent event, String message, Throwable fault, EventType<CountryFailedEvent> eventType) {
         super(event, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        failKind = toFailKind(eventType);
     }
 
     public CountryFailedEvent(CountryEvent event, String message, EventType<CountryFailedEvent> eventType) {
-        super(event, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
+        this(event, message, (Throwable) null, eventType);
     }
 
     public CountryFailedEvent(RecordModelContext<CountryDAO, CountryModel> target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
+        failKind = toFailKind(eventType);
     }
 
     public CountryFailedEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, String message, EventType<CountryFailedEvent> eventType) {
-        super(target, source, eventType, toDbOperationType(eventType, null));
-        this.message = ensureMessage(message, null, eventType);
-        fault = null;
+        this(target, message, (Throwable) null, source, eventType);
     }
 
     @Override
@@ -293,6 +273,20 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
     @Override
     public Throwable getFault() {
         return fault;
+    }
+
+    @Override
+    public FailKind getFailKind() {
+        return failKind;
+    }
+
+    @Override
+    public CountryFailedEvent copyFor(Object newSource, EventTarget newTarget) {
+        CountryFailedEvent event = (CountryFailedEvent) super.copyFor(newSource, newTarget);
+        event.message = message;
+        event.fault = fault;
+        event.failKind = failKind;
+        return event;
     }
 
 }
