@@ -20,7 +20,8 @@ import scheduler.view.ViewAndController;
  */
 public class ViewControllerLoader {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(ViewControllerLoader.class.getName());
 
     // private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,
@@ -82,19 +83,6 @@ public class ViewControllerLoader {
         return loadView(controller, view, ResourceBundleHelper.getBundle(controller.getClass()));
     }
 
-    public static final <T extends Node> void initializeCustomControl(T customControl, ResourceBundle resources) throws IOException {
-        @SuppressWarnings("unchecked")
-        Class<T> c = (Class<T>) customControl.getClass();
-        String path = AppResources.getFXMLResourceName(c);
-        LOG.fine(() -> String.format("Loading %s", path));
-        FXMLLoader loader = new FXMLLoader(c.getResource(path),
-                (null == resources) ? ResourceBundleHelper.getBundle(c) : resources);
-        loader.setRoot(customControl);
-        loader.setController(customControl);
-        loader.load();
-        LOG.fine(() -> String.format("%s loaded", path));
-    }
-
     /**
      * Loads the FXML for a custom control.
      *
@@ -103,8 +91,16 @@ public class ViewControllerLoader {
      * @param customControl The custom control to be initialized.
      * @throws IOException If unable to load the FXML.
      */
-    public static final <T extends Node> void initializeCustomControl(T customControl) throws IOException {
-        initializeCustomControl(customControl, null);
+    public static final <T extends Node> void initializeCustomControl(final T customControl) throws IOException {
+        @SuppressWarnings("unchecked")
+        Class<T> c = (Class<T>) customControl.getClass();
+        String path = AppResources.getFXMLResourceName(c);
+        LOG.fine(() -> String.format("Loading %s", path));
+        FXMLLoader loader = new FXMLLoader(c.getResource(path), ResourceBundleHelper.getBundle(c));
+        loader.setRoot(customControl);
+        loader.setController(customControl);
+        loader.load();
+        LOG.fine(() -> String.format("%s loaded", path));
     }
 
     /**
