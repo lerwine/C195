@@ -1,10 +1,13 @@
 package scheduler.view.appointment;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -27,6 +30,8 @@ import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
@@ -42,6 +47,9 @@ import scheduler.view.task.WaitBorderPane;
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/AppointmentConflicts.fxml")
 public class AppointmentConflicts extends BorderPane {
+
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentConflicts.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AppointmentConflicts.class.getName());
 
     private WaitBorderPane waitBorderPane;
     private ObservableList<AppointmentModel> allAppointments;
@@ -60,11 +68,21 @@ public class AppointmentConflicts extends BorderPane {
 
     @FXML
     private void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
+        LOG.fine(() ->  "Invoked scheduler.view.appointment.AppointmentConflicts#onCloseConflictsBorderPaneButtonAction");
         setVisible(false);
     }
 
+    public AppointmentConflicts() {
+        try {
+            ViewControllerLoader.initializeCustomControl(this);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+        }
+    }
+    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.fine(() ->  "Invoked scheduler.view.appointment.AppointmentConflicts#initialize");
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'AppointmentConflicts.fxml'.";
         currentCustomer = null;
         currentUser = null;
@@ -177,7 +195,10 @@ public class AppointmentConflicts extends BorderPane {
                 }
                 break;
         }
-        fireEvent(new ConflictStateChangedEvent(this, this, conflictMessage.get(), isConflictCheckingCurrent(), hasConflicts()));
+        
+        ConflictStateChangedEvent event = new ConflictStateChangedEvent(this, this, conflictMessage.get(), isConflictCheckingCurrent(), hasConflicts());
+        LOG.fine(() -> String.format("Firing event %s", event));
+        fireEvent(event);
     }
 
     private void accept(List<AppointmentDAO> appointments) {
