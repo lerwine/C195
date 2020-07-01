@@ -199,40 +199,40 @@ public final class DateRangeControl extends GridPane {
         conflictMessage = new SimpleStringProperty("");
 
         startDatePicker.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startDatePicker#editor#text changed");
+            LOG.fine(() -> "startDatePicker#editor#text changed");
             onStartControlChanged();
         });
         startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startDatePicker#value changed");
+            LOG.fine(() -> "startDatePicker#value changed");
             onStartControlChanged();
         });
         startHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startHourTextField#text changed");
+            LOG.fine(() -> "startHourTextField#text changed");
             onStartControlChanged();
         });
         startMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startMinuteTextField#text changed");
+            LOG.fine(() -> "startMinuteTextField#text changed");
             onStartControlChanged();
         });
         amPmComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#amPmComboBox#value changed");
+            LOG.fine(() -> "amPmComboBox#value changed");
             onStartControlChanged();
         });
 
         durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#durationHourTextField#text changed");
+            LOG.fine(() -> "durationHourTextField#text changed");
             onDurationControlChanged();
         });
         durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#durationMinuteTextField#text changed");
+            LOG.fine(() -> "durationMinuteTextField#text changed");
             onDurationControlChanged();
         });
         timeZoneComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#timeZoneComboBox#value changed");
+            LOG.fine(() -> "timeZoneComboBox#value changed");
             onDurationControlChanged();
         });
         parseStartBinding = BindingHelper.createBinaryOptionalBinding(() -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#parseStartBinding invalidated");
+            LOG.fine(() -> "parseStartBinding invalidated");
             return parseDateAndTime(startDatePicker.getEditor().getText(), startDatePicker.getValue(), startHourTextField.getText(),
                     startMinuteTextField.getText(), amPmComboBox.getValue(), timeZoneComboBox.getValue());
         },
@@ -240,7 +240,7 @@ public final class DateRangeControl extends GridPane {
                 startMinuteTextField.textProperty(), amPmComboBox.valueProperty(), timeZoneComboBox.valueProperty());
         startParseMessage = parseStartBinding.mapToString((t) -> "", (s) -> s, resources.getString(RESOURCEKEY_REQUIRED));
         startMessage = Bindings.createStringBinding(() -> {
-            LOG.fine(() -> "scheduler.view.appointment.DateRangeControl#startMessage invalidated");
+            LOG.fine(() -> "startMessage invalidated");
             String c = conflictMessage.get();
             String s = startParseMessage.get();
             return (s.isEmpty()) ? c : s;
@@ -399,9 +399,16 @@ public final class DateRangeControl extends GridPane {
         return BinaryOptional.ofPrimary(AppointmentDuration.of(Duration.ofSeconds(((long) h * 60L + (long) m) * 60L)));
     }
 
-    ZonedAppointmentTimeSpan getTimeSpan() {
-        Optional<ZonedAppointmentTimeSpan> opt = timeSpan.get();
-        return opt.isPresent() ? opt.get() : null;
+    ZonedAppointmentTimeSpan getTimeSpanValue() {
+        return timeSpan.get().orElse(null);
+    }
+
+    public Optional<ZonedAppointmentTimeSpan> getTimeSpan() {
+        return timeSpan.get();
+    }
+    
+    public OptionalBinding<ZonedAppointmentTimeSpan> getTimeSpanProperty() {
+        return timeSpan;
     }
 
     void onConflictStateChanged(ConflictStateChangedEvent event) {

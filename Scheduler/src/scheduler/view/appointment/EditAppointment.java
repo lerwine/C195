@@ -1,20 +1,30 @@
 package scheduler.view.appointment;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -57,9 +67,11 @@ import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.PredefinedData;
+import scheduler.model.SupportedCityDefinition;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AddressItem;
+import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CustomerItem;
@@ -67,6 +79,7 @@ import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import scheduler.model.ui.UserModel;
+import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -216,6 +229,18 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML // fx:id="appointmentConflicts"
     private AppointmentConflicts appointmentConflicts; // Value injected by FXMLLoader
+    private StringBinding normalizedTitleBinding;
+    private StringBinding normalizedPhoneBinding;
+    private StringBinding normalizedLocationBinding;
+    private StringBinding normalizedContactBinding;
+    private StringBinding normalizedUrlBinding;
+    private BooleanBinding titleValid;
+    private BooleanBinding customerValid;
+    private BooleanBinding userValid;
+    private BooleanBinding locationValid;
+    private BooleanBinding contactValid;
+    private BooleanBinding urlValid;
+    private BooleanBinding validationBinding;
 
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -351,17 +376,15 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert appointmentConflicts != null : "fx:id=\"appointmentConflicts\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
-        initializeCorporateLocationComboBox();
-
-        initializeAppointmentConflictsController();
-
-        titleTextField.setText(model.getTitle());
-
-        contactTextField.setText(model.getContact());
+        initializeTitleTextField();
 
         initializeDateRangeControl();
 
-        urlTextField.setText(model.getUrl());
+        initializeLocationControls();
+
+        initializeContactTextField();
+
+        initializeUrlTextField();
 
         descriptionTextArea.setText(model.getDescription());
 
@@ -385,15 +408,53 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     }
 
-    private void initializeCorporateLocationComboBox() {
-        PredefinedData.getCorporateAddressMap().values().forEach((t) -> {
-            if (t.isSatelliteOffice()) {
-                remoteLocationList.add(t);
-            } else {
-                corporateLocationList.add(t);
-            }
-        });
-        corporateLocationComboBox.setItems(corporateLocationList);
+    private void initializeTitleTextField() {
+        titleTextField.setText(model.getTitle());
+        StringProperty textProperty = titleTextField.textProperty();
+        normalizedTitleBinding = BindingHelper.asNonNullAndWsNormalized(textProperty);
+        StringBinding validationMessageBinding = Bindings.when(normalizedTitleBinding.isEmpty())
+                .then("Title cannot be empty.")
+                .otherwise(Bindings.when(normalizedTitleBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_TITLE))
+                        .then("Title too long.")
+                        .otherwise(""));
+        titleValidationLabel.textProperty().bind(validationMessageBinding);
+        titleValidationLabel.visibleProperty().bind(validationMessageBinding.isEmpty());
+        validationBinding = titleValid = validationMessageBinding.isEmpty();
+        textProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+    }
+
+    private void initializeCustomerComboBox(List<CustomerDAO> customerDaoList) {
+        if (null != customerDaoList && !customerDaoList.isEmpty()) {
+            customerDaoList.forEach((t) -> customerModelList.add(new CustomerModel(t)));
+        }
+        customerComboBox.setItems(customerModelList);
+        SingleSelectionModel<CustomerModel> selectionModel = customerComboBox.getSelectionModel();
+        CustomerItem<? extends Customer> customer = model.getCustomer();
+        if (null != customer) {
+            int cpk = customer.getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
+                    -> selectionModel.select(t));
+        }
+        ReadOnlyObjectProperty<CustomerModel> selectedItemProperty = selectionModel.selectedItemProperty();
+        customerValid = selectedItemProperty.isNotNull();
+        validationBinding = validationBinding.and(customerValid);
+        selectedItemProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+    }
+
+    private void initializeUserComboBox(List<UserDAO> userDaoList) {
+        if (null != userDaoList && !userDaoList.isEmpty()) {
+            userDaoList.forEach((t) -> userModelList.add(new UserModel(t)));
+        }
+        userComboBox.setItems(userModelList);
+        SingleSelectionModel<UserModel> selectionModel = userComboBox.getSelectionModel();
+        UserItem<? extends User> user = model.getUser();
+        int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
+        userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
+                -> userComboBox.getSelectionModel().select(t));
+        ReadOnlyObjectProperty<UserModel> selectedItemProperty = selectionModel.selectedItemProperty();
+        userValid = selectedItemProperty.isNotNull();
+        validationBinding = validationBinding.and(userValid);
+        selectedItemProperty.addListener((observable, oldValue, newValue) -> updateValidity());
     }
 
     private void initializeDateRangeControl() {
@@ -422,8 +483,136 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         dateRangeControl.setDateRange(start, duration, selectedTimeZone);
         LOG.info(() -> String.format("Adding handlers for events %s and %s",
                 ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE));
+        // FIXME: Add validation
         dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
         dateRangeControl.addEventHandler(DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE, this::onDateRangeChanged);
+    }
+
+    private void initializeLocationControls() {
+        PredefinedData.getCorporateAddressMap().values().forEach((t) -> {
+            if (t.isSatelliteOffice()) {
+                remoteLocationList.add(t);
+            } else {
+                corporateLocationList.add(t);
+            }
+        });
+        corporateLocationComboBox.setItems(corporateLocationList);
+        SingleSelectionModel<CorporateAddress> selectionModel = corporateLocationComboBox.getSelectionModel();
+        ReadOnlyObjectProperty<CorporateAddress> selectedAddressProperty = selectionModel.selectedItemProperty();
+        switch (model.getType()) {
+            case CORPORATE_LOCATION:
+                selectionModel.select(PredefinedData.getCorporateAddress(model.getLocation()));
+                break;
+            case PHONE:
+                phoneTextField.setText(model.getLocation());
+                break;
+            case CUSTOMER_SITE:
+                break;
+            default:
+                locationTextArea.setText(model.getLocation());
+                break;
+        }
+        StringProperty phoneProperty = phoneTextField.textProperty();
+        StringProperty locationProperty = locationTextArea.textProperty();
+        normalizedPhoneBinding = BindingHelper.asNonNullAndWsNormalized(phoneProperty);
+        normalizedLocationBinding = BindingHelper.asTrimmedAndNotNull(locationProperty);
+        ReadOnlyObjectProperty<AppointmentType> selectedType = typeComboBox.getSelectionModel().selectedItemProperty();
+        StringBinding validationMessageBinding = Bindings.when(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION))
+                .then(Bindings.when(selectedAddressProperty.isNull()).then("Corporate location must be selected.").otherwise(""))
+                .otherwise(Bindings.when(selectedType.isEqualTo(AppointmentType.PHONE))
+                    .then(Bindings.when(normalizedPhoneBinding.isEmpty()).then("Phone number must be provided.")
+                            .otherwise(Bindings.when(normalizedPhoneBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_LOCATION))
+                                .then("Phone number text too long.")
+                                .otherwise("")))
+                    .otherwise(Bindings.when(selectedType.isEqualTo(AppointmentType.OTHER).and(normalizedLocationBinding.isEmpty()))
+                        .then("Address must be provided.")
+                        .otherwise(Bindings.when(normalizedLocationBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_LOCATION))
+                            .then("Address text too long.")
+                            .otherwise(""))));
+        locationValidationLabel.textProperty().bind(validationMessageBinding);
+        locationLabel.textProperty().bind(Bindings.when(selectedType.isEqualTo(AppointmentType.PHONE))
+                .then(resources.getString(RESOURCEKEY_PHONENUMBER))
+                .otherwise(resources.getString(RESOURCEKEY_LOCATIONLABELTEXT)));
+        
+        // FIXME: These should be collapsed and un-collapsed instead of binding to visibility
+        locationValidationLabel.visibleProperty().bind(validationMessageBinding.isEmpty());
+        corporateLocationComboBox.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION));
+        locationTextArea.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.OTHER).or(selectedType.isEqualTo(AppointmentType.VIRTUAL)));
+        phoneTextField.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.PHONE));
+        implicitLocationLabel.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION).or(selectedType.isEqualTo(AppointmentType.CUSTOMER_SITE)));
+        
+        customerComboBox.getSelectionModel().selectedItemProperty().get().multiLineAddressProperty();
+        implicitLocationLabel.textProperty().bind(Bindings.when(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION))
+                .then(Bindings.createStringBinding(() -> {
+                    CorporateAddress addr = selectedAddressProperty.get();
+                    if (null == addr)
+                        return "";
+                    SupportedCityDefinition city = addr.getCity();
+                    return String.format("%s%n%s", addr.getName(),
+                            AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(addr.getAddress1(), addr.getAddress2()),
+                                    AddressModel.calculateCityZipCountry(city.getName(), city.getCountry().getName(), addr.getPostalCode()), addr.getPhone()));
+                }, selectedAddressProperty))
+                .otherwise(Bindings.selectString(customerComboBox.getSelectionModel().selectedItemProperty(), "multiLineAddress")));
+                
+        locationValid = validationMessageBinding.isEmpty();
+        validationBinding = validationBinding.and(locationValid);
+        selectedAddressProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+        phoneProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+        locationProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+    }
+
+    private void initializeContactTextField() {
+        contactTextField.setText(model.getContact());
+        StringProperty textProperty = contactTextField.textProperty();
+        normalizedContactBinding = BindingHelper.asNonNullAndWsNormalized(textProperty);
+        StringBinding validationMessageBinding = Bindings.when(normalizedContactBinding.isEmpty())
+                .then(Bindings.when(typeComboBox.getSelectionModel().selectedItemProperty().isEqualTo(AppointmentType.OTHER)).then("Contact cannot be empty.").otherwise(""))
+                .otherwise(Bindings.when(normalizedContactBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_CONTACT))
+                        .then("Contact too long.")
+                        .otherwise(""));
+        contactValidationLabel.textProperty().bind(validationMessageBinding);
+        contactValidationLabel.visibleProperty().bind(validationMessageBinding.isEmpty());
+        contactValid = validationMessageBinding.isEmpty();
+        validationBinding = validationBinding.and(contactValid);
+        textProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+    }
+
+    private void initializeUrlTextField() {
+        urlTextField.setText(model.getUrl());
+        StringProperty textProperty = urlTextField.textProperty();
+        normalizedUrlBinding = BindingHelper.asTrimmedAndNotNull(textProperty);
+        BooleanBinding isVirtualBinding = typeComboBox.getSelectionModel().selectedItemProperty().isEqualTo(AppointmentType.VIRTUAL);
+        
+        StringBinding validationMessageBinding = Bindings.createStringBinding(() -> {
+            String text = normalizedUrlBinding.get();
+            if (isVirtualBinding.get()) {
+                if (text.isEmpty()) {
+                    return "URL cannot be empty.";
+                }
+            } else if (!text.isEmpty()) {
+                if (text.length() > scheduler.model.Appointment.MAX_LENGTH_URL) {
+                    return "URL too long.";
+                }
+                URI uri;
+                try {
+                    if (!(uri = new URI(text)).isAbsolute() || uri.isAbsolute()) {
+                        uri = null;
+                    }
+                } catch (URISyntaxException ex) {
+                    LOG.log(Level.FINE, "URI parse error", ex);
+                    uri = null;
+                }
+                if (null == uri) {
+                    return "Invalid URL format";
+                }
+            }
+            return "";
+        }, textProperty, isVirtualBinding);
+        urlValidationLabel.textProperty().bind(validationMessageBinding);
+        urlValidationLabel.visibleProperty().bind(validationMessageBinding.isEmpty());
+        urlValid = validationMessageBinding.isEmpty();
+        validationBinding = validationBinding.and(urlValid);
+        textProperty.addListener((observable, oldValue, newValue) -> updateValidity());
     }
 
     private void initializeTypeComboBox() {
@@ -443,11 +632,23 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 locationTextArea.setText(model.getLocation());
                 break;
         }
+        typeSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            onAppointmentTypeChanged(newValue);
+            updateValidity();
+        });
+    }
+    
+    private void onAppointmentTypeChanged(AppointmentType type) {
+        // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentTypeChanged
     }
 
-    private void initializeAppointmentConflictsController() {
+    private void initializeAppointmentConflicts(List<AppointmentDAO> appointments) {
+        if (null == appointments) {
+            appointments = Collections.emptyList();
+        }
         LOG.info(() -> String.format("Adding handler for event %s", ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE));
         appointmentConflicts.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
+        appointmentConflicts.initializeConflicts(appointments, EditAppointment.this.dateRangeControl.getTimeSpanValue(), EditAppointment.this.waitBorderPane);
     }
 
     private void onConflictsAction(ConflictsActionEvent event) {
@@ -462,6 +663,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private void onDateRangeChanged(DateRangeChangedEvent event) {
         LOG.info(() -> String.format("Handling event %s", event));
         appointmentConflicts.onDateRangeChanged(event);
+        ZonedAppointmentTimeSpan ts = event.getZonedAppointmentTimeSpan().orElse(null);
     }
 
     private void onConflictStateChanged(ConflictStateChangedEvent event) {
@@ -503,7 +705,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     // FIXME: Needs to be incorporated into #applyChanges and validation
     public boolean applyChangesToModel() {
-        ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpan();
+        ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpanValue();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime apptEnd = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime busStart;
@@ -589,6 +791,16 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @Override
     public boolean isValid() {
         return valid.get();
+    }
+
+    private void updateValidity() {
+        if (validationBinding.get()) {
+            if (!valid.get()) {
+                valid.set(true);
+            }
+        } else if (valid.get()) {
+            valid.set(false);
+        }
     }
 
     @Override
@@ -780,29 +992,12 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         @Override
         protected void succeeded() {
             LOG.info("Invoked scheduler.view.appointment.EditAppointment.ItemsLoadTask#succeeded");
-            List<AppointmentDAO> result = getValue();
-            if (null != customerDaoList && !customerDaoList.isEmpty()) {
-                customerDaoList.forEach((t) -> customerModelList.add(new CustomerModel(t)));
-            }
-            if (null != userDaoList && !userDaoList.isEmpty()) {
-                userDaoList.forEach((t) -> userModelList.add(new UserModel(t)));
-            }
-            customerComboBox.setItems(customerModelList);
-            userComboBox.setItems(userModelList);
-            CustomerItem<? extends Customer> customer = model.getCustomer();
-            if (null != customer) {
-                int cpk = customer.getPrimaryKey();
-                customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
-                        -> customerComboBox.getSelectionModel().select(t));
-            }
-            UserItem<? extends User> user = model.getUser();
-            int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
-            userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
-                    -> userComboBox.getSelectionModel().select(t));
-            if (null != result && !result.isEmpty()) {
-                appointments.addAll(result);
-            }
-            appointmentConflicts.initializeConflicts(appointments, EditAppointment.this.dateRangeControl.getTimeSpan(), EditAppointment.this.waitBorderPane);
+            initializeCustomerComboBox(customerDaoList);
+            initializeUserComboBox(userDaoList);
+            initializeAppointmentConflicts(getValue());
+            EditAppointment.this.validationBinding = titleValid.and(customerValid).and(userValid).and(locationValid).and(contactValid).and(urlValid);
+            onAppointmentTypeChanged(typeComboBox.getValue());
+            updateValidity();
             super.succeeded();
         }
 
