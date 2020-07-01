@@ -75,7 +75,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public ReadOnlyStringProperty getMultiLineAddress() {
+    public String getMultiLineAddress() {
+        return multiLineAddress.get();
+    }
+    
+    @Override
+    public ReadOnlyStringProperty multiLineAddressProperty() {
         return multiLineAddress;
     }
 

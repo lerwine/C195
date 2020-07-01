@@ -107,11 +107,13 @@ public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbMode
 
     ReadOnlyProperty<String> cityZipCountryProperty();
 
-    ReadOnlyProperty<String> countryNameProperty();
-
     String getCountryName();
 
-    ReadOnlyProperty<String> getMultiLineAddress();
+    ReadOnlyProperty<String> countryNameProperty();
+
+    String getMultiLineAddress();
+
+    ReadOnlyProperty<String> multiLineAddressProperty();
 
     String getPhone();
 

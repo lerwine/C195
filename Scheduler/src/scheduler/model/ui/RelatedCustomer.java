@@ -185,7 +185,12 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public ReadOnlyProperty<String> getMultiLineAddress() {
+    public String getMultiLineAddress() {
+        return multiLineAddress.get();
+    }
+
+    @Override
+    public ReadOnlyProperty<String> multiLineAddressProperty() {
         return multiLineAddress;
     }
 
