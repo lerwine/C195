@@ -68,7 +68,7 @@ public class AppointmentConflicts extends BorderPane {
 
     @FXML
     private void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
-        LOG.fine(() ->  "Invoked scheduler.view.appointment.AppointmentConflicts#onCloseConflictsBorderPaneButtonAction");
+        LOG.fine(() ->  "Closing conflicts listing");
         setVisible(false);
     }
 
@@ -82,7 +82,7 @@ public class AppointmentConflicts extends BorderPane {
     
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        LOG.fine(() ->  "Invoked scheduler.view.appointment.AppointmentConflicts#initialize");
+        LOG.fine(() ->  "Initializing");
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'AppointmentConflicts.fxml'.";
         currentCustomer = null;
         currentUser = null;

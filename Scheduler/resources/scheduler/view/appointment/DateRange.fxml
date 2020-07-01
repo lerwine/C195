@@ -52,9 +52,9 @@
                     </HBox.margin>
                 </Button>
             </children>
-         <GridPane.margin>
-            <Insets top="6.0" />
-         </GridPane.margin>
+            <GridPane.margin>
+                <Insets top="6.0" />
+            </GridPane.margin>
         </HBox>
         <DatePicker fx:id="startDatePicker" styleClass="topLabeledControl" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
             <GridPane.margin>
@@ -81,9 +81,9 @@
                     </buttonCell>
                 </ComboBox>
             </children>
-         <GridPane.margin>
-            <Insets left="8.0" />
-         </GridPane.margin>
+            <GridPane.margin>
+                <Insets left="8.0" />
+            </GridPane.margin>
         </HBox>
         <Label styleClass="topControlLabel" text="%duration" GridPane.rowIndex="3">
             <GridPane.margin>
@@ -123,14 +123,16 @@
             </styleClass>
         </Label>
         <Label fx:id="localTimeLabel" text="%localTime" GridPane.columnSpan="2" GridPane.rowIndex="6">
-         <styleClass>
-            <String fx:value="topControlLabel" />
-            <String fx:value="collapsed" />
-         </styleClass></Label>
+            <styleClass>
+                <String fx:value="topControlLabel" />
+                <String fx:value="collapsed" />
+            </styleClass>
+        </Label>
         <Label fx:id="localTimeValue" wrapText="true" GridPane.columnSpan="2" GridPane.rowIndex="7">
-         <styleClass>
-            <String fx:value="topLabeledControl" />
-            <String fx:value="collapsed" />
-         </styleClass></Label>
+            <styleClass>
+                <String fx:value="topLabeledControl" />
+                <String fx:value="collapsed" />
+            </styleClass>
+        </Label>
     </children>
 </fx:root>

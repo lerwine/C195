@@ -27,6 +27,7 @@
 <?import scheduler.fx.CustomerListCellFactory?>
 <?import scheduler.fx.UserListCell?>
 <?import scheduler.fx.UserListCellFactory?>
+<?import scheduler.view.appointment.AppointmentConflicts?>
 <?import scheduler.view.appointment.DateRangeControl?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
@@ -115,7 +116,7 @@
                 </ComboBox>
                 <VBox fx:id="lowerLeftVBox" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
                     <children>
-                  <DateRangeControl fx:id="dateRangeControl" minHeight="122.0" minWidth="335.0" />
+                        <DateRangeControl fx:id="dateRangeControl" minHeight="122.0" minWidth="335.0" />
                         <HBox>
                             <VBox.margin>
                                 <Insets top="6.0" />
@@ -259,5 +260,6 @@
                 </BorderPane>
             </center>
         </BorderPane>
+        <AppointmentConflicts maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
     </children>
 </fx:root>

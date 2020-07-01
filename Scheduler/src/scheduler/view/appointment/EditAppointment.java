@@ -38,7 +38,6 @@ import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
@@ -54,8 +53,10 @@ import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.model.AppointmentType;
+import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
+import scheduler.model.PredefinedData;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AddressItem;
@@ -69,9 +70,7 @@ import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
-import scheduler.util.ViewControllerLoader;
 import scheduler.view.EditItem;
-import scheduler.view.ViewAndController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
@@ -113,21 +112,14 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
-    // Items for the customerComboBox control.
     private final ObservableList<CustomerModel> customerModelList;
-
-    // Items for the corporateLocationComboBox control.
-    private final ObservableList<AddressDAO> corporateLocationList;
-    private final ObservableList<AddressDAO> remoteLocationList;
-
-    // Items for the userComboBox control.
+    private final ObservableList<CorporateAddress> corporateLocationList;
+    private final ObservableList<CorporateAddress> remoteLocationList;
     private final ObservableList<UserModel> userModelList;
-
-//    private final HashSet<String> invalidControlIds;
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
-    private AppointmentConflicts appointmentConflictsController;
+    private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
 
     @ModelEditor
     private AppointmentModel model;
@@ -166,7 +158,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private CheckBox includeRemoteCheckBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="corporateLocationComboBox"
-    private ComboBox<AddressDAO> corporateLocationComboBox; // Value injected by FXMLLoader
+    private ComboBox<CorporateAddress> corporateLocationComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="locationTextArea"
     private TextArea locationTextArea; // Value injected by FXMLLoader
@@ -221,13 +213,14 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML // fx:id="dropdownOptionsAllRadioButton"
     private RadioButton dropdownOptionsAllRadioButton; // Value injected by FXMLLoader
-    private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
+
+    @FXML // fx:id="appointmentConflicts"
+    private AppointmentConflicts appointmentConflicts; // Value injected by FXMLLoader
 
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
-//        invalidControlIds = new HashSet<>();
         corporateLocationList = FXCollections.observableArrayList();
         remoteLocationList = FXCollections.observableArrayList();
         customerModelList = FXCollections.observableArrayList();
@@ -238,7 +231,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onCustomerDropDownOptionsButtonAction");
+        LOG.fine(() -> "Handler invoked");
         editingUserOptions = false;
         if (showActiveCustomers.isPresent()) {
             dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -256,7 +249,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsCancelButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onDropdownOptionsCancelButtonAction");
+        LOG.fine(() -> "Handler invoked");
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -266,7 +259,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsOkButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onDropdownOptionsOkButtonAction");
+        LOG.fine(() -> "Handler invoked");
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -295,7 +288,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onIncludeRemoteCheckBoxAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onIncludeRemoteCheckBoxAction");
+        LOG.fine(() -> "Handler invoked");
         if (includeRemoteCheckBox.isSelected()) {
             remoteLocationList.forEach((t) -> {
                 if (!corporateLocationList.contains(t)) {
@@ -312,7 +305,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onUserDropDownOptionsButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked: scheduler.view.appointment.EditAppointment#onUserDropDownOptionsButtonAction");
+        LOG.fine(() -> "Handler invoked");
         editingUserOptions = true;
         if (showActiveUsers.isPresent()) {
             dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -329,7 +322,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        LOG.fine(() -> "Invoked scheduler.view.appointment.EditAppointment#initialize");
+        LOG.fine(() -> "Initializing");
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -356,65 +349,24 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         assert dropdownOptions != null : "fx:id=\"dropdownOptions\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsInactiveRadioButton != null : "fx:id=\"dropdownOptionsInactiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert appointmentConflicts != null : "fx:id=\"appointmentConflicts\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
-        // FIXME: Reimplement
-//        PredefinedData.getCityMap().values().stream().flatMap((c) -> c.getAddresses().stream()).map((t) -> {
-//            AddressDAO dao = t.getDataAccessObject();
-//            if (null == dao) {
-//                (dao = new AddressDAO()).setPredefinedElement(t);
-//            }
-//            return dao;
-//        }).sorted((AddressDAO o1, AddressDAO o2) -> {
-//            AddressDAO.PredefinedAddressElement pd1 = o1.getPredefinedElement();
-//            AddressDAO.PredefinedAddressElement pd2 = o2.getPredefinedElement();
-//            if (pd1.isMainOffice()) {
-//                if (!pd2.isMainOffice()) {
-//                    return -1;
-//                }
-//            } else if (pd2.isMainOffice()) {
-//                return 1;
-//            }
-//            ICityDAO c1 = o1.getCity();
-//            ICityDAO c2 = o2.getCity();
-//            int result = c1.getCountry().getName().compareTo(c2.getCountry().getName());
-//            if (result == 0 && (result = c1.getName().compareTo(c2.getName())) == 0
-//                    && (result = o1.getPostalCode().compareTo(o2.getPostalCode())) == 0
-//                    && (result = o1.getAddress1().compareTo(o2.getAddress2())) == 0) {
-//                return o1.getAddress2().compareTo(o2.getAddress2());
-//            }
-//            return result;
-//        }).forEach((t) -> {
-//            if (t.getPredefinedElement().isMainOffice()) {
-//                corporateLocationList.add(t);
-//            } else {
-//                remoteLocationList.add(t);
-//            }
-//        });
-//        invalidControlIds.add(titleTextField.getId());
-//        invalidControlIds.add(customerComboBox.getId());
-//        invalidControlIds.add(contactTextField.getId());
-//        invalidControlIds.add(locationTextArea.getId());
-//        invalidControlIds.add(userComboBox.getId());
-//        invalidControlIds.add(userComboBox.getId());
-        corporateLocationComboBox.setItems(corporateLocationList);
+        initializeCorporateLocationComboBox();
 
-        initializeTypeComboBox();
+        initializeAppointmentConflictsController();
 
-        loadAppointmentConflictsController();
-
-        windowTitle.set(resources.getString((model.isNewRow()) ? RESOURCEKEY_ADDNEWAPPOINTMENT : RESOURCEKEY_EDITAPPOINTMENT));
         titleTextField.setText(model.getTitle());
+
         contactTextField.setText(model.getContact());
 
         initializeDateRangeControl();
 
-        WaitTitledPane pane = new WaitTitledPane();
-        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
-                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
-        waitBorderPane.startNow(pane, new ItemsLoadTask());
-
         urlTextField.setText(model.getUrl());
+
         descriptionTextArea.setText(model.getDescription());
+
+        initializeTypeComboBox();
+
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
@@ -422,8 +374,26 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 model.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
+            windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
             initializeEditMode();
         }
+
+        WaitTitledPane pane = new WaitTitledPane();
+        pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
+                .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        waitBorderPane.startNow(pane, new ItemsLoadTask());
+
+    }
+
+    private void initializeCorporateLocationComboBox() {
+        PredefinedData.getCorporateAddressMap().values().forEach((t) -> {
+            if (t.isSatelliteOffice()) {
+                remoteLocationList.add(t);
+            } else {
+                corporateLocationList.add(t);
+            }
+        });
+        corporateLocationComboBox.setItems(corporateLocationList);
     }
 
     private void initializeDateRangeControl() {
@@ -450,7 +420,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             duration = null;
         }
         dateRangeControl.setDateRange(start, duration, selectedTimeZone);
-        LOG.info(() -> String.format("Adding handlers for event %s and %s in scheduler.view.appointment.EditAppointment#loadAppointmentConflictsController",
+        LOG.info(() -> String.format("Adding handlers for events %s and %s",
                 ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE));
         dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
         dateRangeControl.addEventHandler(DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE, this::onDateRangeChanged);
@@ -461,63 +431,46 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
         typeSelectionModel.select(model.getType());
         switch (typeSelectionModel.getSelectedItem()) {
-            case OTHER:
-                locationTextArea.setText(model.getLocation());
+            case CUSTOMER_SITE:
                 break;
             case PHONE:
                 phoneTextField.setText(model.getLocation());
                 break;
             case CORPORATE_LOCATION:
-//                corporateLocationComboBox.getSelectionModel().select(PredefinedData.lookupAddress(model.getLocation()));
+                corporateLocationComboBox.getSelectionModel().select(PredefinedData.getCorporateAddress(model.getLocation()));
                 break;
             default:
-                model.setLocation("");
+                locationTextArea.setText(model.getLocation());
                 break;
         }
     }
 
-    private void loadAppointmentConflictsController() {
-        try {
-            ViewAndController<BorderPane, AppointmentConflicts> acVc = ViewControllerLoader.loadViewAndController(AppointmentConflicts.class);
-            appointmentConflictsController = acVc.getController();
-            BorderPane bp = acVc.getView();
-            getChildren().add(bp);
-            bp.setVisible(false);
-            bp.prefHeightProperty().bind(heightProperty());
-            bp.minHeightProperty().bind(heightProperty());
-            bp.prefWidthProperty().bind(widthProperty());
-            bp.minWidthProperty().bind(widthProperty());
-            LOG.info(() -> String.format("Adding handler for event %s in scheduler.view.appointment.EditAppointment#loadAppointmentConflictsController",
-                    ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE));
-            appointmentConflictsController.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
-            AlertHelper.showErrorAlert(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_UNEXPECTEDERRORTITLE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_ERRORLOADINGAPPOINTMENTS));
-        }
+    private void initializeAppointmentConflictsController() {
+        LOG.info(() -> String.format("Adding handler for event %s", ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE));
+        appointmentConflicts.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
     }
 
     private void onConflictsAction(ConflictsActionEvent event) {
-        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onConflictsAction", event));
+        LOG.info(() -> String.format("Handling event %s", event));
         if (event.isCheckConflicts()) {
-            appointmentConflictsController.checkConflicts();
+            appointmentConflicts.checkConflicts();
         } else {
-            appointmentConflictsController.showConflicts();
+            appointmentConflicts.showConflicts();
         }
     }
 
     private void onDateRangeChanged(DateRangeChangedEvent event) {
-        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onDateRangeChanged", event));
-        appointmentConflictsController.onDateRangeChanged(event);
+        LOG.info(() -> String.format("Handling event %s", event));
+        appointmentConflicts.onDateRangeChanged(event);
     }
 
     private void onConflictStateChanged(ConflictStateChangedEvent event) {
-        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onConflictStateChanged", event));
+        LOG.info(() -> String.format("Handling event %s", event));
         dateRangeControl.onConflictStateChanged(event);
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onAppointmentInserted", event));
+        LOG.info(() -> String.format("Handling event %s", event));
         model.removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
         initializeEditMode();
     }
@@ -529,7 +482,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onCustomerDeleted", event));
+        LOG.info(() -> String.format("Handling event %s", event));
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -539,7 +492,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onUserDeleted(UserSuccessEvent event) {
-        LOG.info(() -> String.format("Handling event %s in scheduler.view.appointment.EditAppointment#onUserDeleted", event));
+        LOG.info(() -> String.format("Handling event %s", event));
         if (model.getRowState() != DataRowState.NEW) {
             UserDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -565,7 +518,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             return false;
         }
         Optional<ButtonType> response;
-        if (!appointmentConflictsController.isConflictCheckingCurrent()) {
+        if (!appointmentConflicts.isConflictCheckingCurrent()) {
             if (apptStart.compareTo(busEnd) > 0) {
                 response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
                         resources.getString(RESOURCEKEY_NOTCHECKEDOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
@@ -587,7 +540,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
                         resources.getString(RESOURCEKEY_NOTCHECKEDMESSAGE), ButtonType.YES, ButtonType.NO);
             }
-        } else if (this.appointmentConflictsController.hasConflicts()) {
+        } else if (this.appointmentConflicts.hasConflicts()) {
             if (apptStart.compareTo(busEnd) > 0) {
                 response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
                         resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
@@ -678,7 +631,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @Override
     public void applyChanges() {
-        LOG.info("Invoked scheduler.view.appointment.EditAppointment#applyChanges");
+        LOG.info("Applying changes");
         throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#applyChanges
     }
 
@@ -693,7 +646,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected void succeeded() {
-            LOG.info("Invoked scheduler.view.appointment.EditAppointment.CustomerReloadTask#succeeded");
+            LOG.info("Task succeeded");
             List<CustomerDAO> result = getValue();
             Optional<Boolean> currentOption = showActiveCustomers;
             if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
@@ -718,7 +671,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         @Override
         protected List<CustomerDAO> call() throws Exception {
-            LOG.info("Invoked scheduler.view.appointment.EditAppointment.CustomerReloadTask#call");
+            LOG.info("Invoked call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             List<CustomerDAO> result;
             try (DbConnector dbConnector = new DbConnector()) {
@@ -731,9 +684,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 }
             }
             if (null == result) {
-                LOG.info("scheduler.view.appointment.EditAppointment.UserReloadTask#call: Returning a null result");
+                LOG.info("Returning a null result");
             } else {
-                LOG.info(() -> String.format("scheduler.view.appointment.UserReloadTask.ItemsLoadTask#call: returning %d users", result.size()));
+                LOG.info(() -> String.format("Returning %d users", result.size()));
             }
             return result;
         }
@@ -849,7 +802,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             if (null != result && !result.isEmpty()) {
                 appointments.addAll(result);
             }
-            appointmentConflictsController.initializeConflicts(appointments, EditAppointment.this.dateRangeControl.getTimeSpan(), EditAppointment.this.waitBorderPane);
+            appointmentConflicts.initializeConflicts(appointments, EditAppointment.this.dateRangeControl.getTimeSpan(), EditAppointment.this.waitBorderPane);
             super.succeeded();
         }
 

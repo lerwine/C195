@@ -10,98 +10,101 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
 
-
-  <fx:root maxHeight="-Infinity" maxWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-      <top>
-          <Label text="%conflictingAppointments">
-              <styleClass>
-                  <String fx:value="header" />
-                  <String fx:value="h1" />
-              </styleClass>
-          </Label>
-      </top>
-      <center>
-          <TableView fx:id="conflictingAppointmentsTableView" styleClass="content">
-              <columns>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%titleColHeading">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="title" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%startColHeading">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="start" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="end" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%typeColHeading">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="type" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customerColHeading">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="customerName" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%userColHeading">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="userName" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%locationColHeading">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="effectiveLocation" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="createDate" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="createdBy" />
-                      </cellValueFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="lastUpdate" />
-                      </cellValueFactory>
-                      <cellFactory>
-                          <DateTimeTableCellFactory />
-                      </cellFactory>
-                  </TableColumn>
-                  <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
-                      <cellValueFactory>
-                          <PropertyValueFactory property="lastUpdateBy" />
-                      </cellValueFactory>
-                  </TableColumn>
-              </columns>
-          </TableView>
-      </center>
-      <bottom>
-          <ButtonBar styleClass="footer">
-              <buttons>
-                  <Button mnemonicParsing="false" onAction="#onCloseConflictsBorderPaneButtonAction" text="%close" />
-              </buttons>
-          </ButtonBar>
-      </bottom>
-      <styleClass>
-          <String fx:value="bordered-section" />
-          <String fx:value="warning" />
-      </styleClass>
-  </fx:root>
+<fx:root minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" stylesheets="@../../defaultStyles.css" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+            <top>
+                <Label text="%conflictingAppointments">
+                    <styleClass>
+                        <String fx:value="header" />
+                        <String fx:value="h1" />
+                    </styleClass>
+                </Label>
+            </top>
+            <center>
+                <TableView fx:id="conflictingAppointmentsTableView" styleClass="content">
+                    <columns>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%titleColHeading">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="title" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%startColHeading">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="start" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="end" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%typeColHeading">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="type" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customerColHeading">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="customerName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%userColHeading">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="userName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%locationColHeading">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="effectiveLocation" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createDate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="createdBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdate" />
+                            </cellValueFactory>
+                            <cellFactory>
+                                <DateTimeTableCellFactory />
+                            </cellFactory>
+                        </TableColumn>
+                        <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="lastUpdateBy" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+            </center>
+            <bottom>
+                <ButtonBar styleClass="footer">
+                    <buttons>
+                        <Button mnemonicParsing="false" onAction="#onCloseConflictsBorderPaneButtonAction" text="%close" />
+                    </buttons>
+                </ButtonBar>
+            </bottom>
+            <styleClass>
+                <String fx:value="bordered-section" />
+                <String fx:value="warning" />
+            </styleClass>
+        </BorderPane>
+    </center>
+</fx:root>

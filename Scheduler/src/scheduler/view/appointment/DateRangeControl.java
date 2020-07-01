@@ -160,20 +160,20 @@ public final class DateRangeControl extends GridPane {
     @FXML
     void onCheckConflictsButtonAction(ActionEvent event) {
         ConflictsActionEvent e = new ConflictsActionEvent(event.getSource(), this, true);
-        LOG.fine(() -> String.format("Firing event %s from scheduler.view.appointment.DateRangeControl#onCheckConflictsButtonAction", e));
+        LOG.fine(() -> String.format("Firing event %s", e));
         fireEvent(e);
     }
 
     @FXML
     void onShowConflictsButtonAction(ActionEvent event) {
         ConflictsActionEvent e = new ConflictsActionEvent(event.getSource(), this, false);
-        LOG.fine(() -> String.format("Firing event %s from scheduler.view.appointment.DateRangeControl#onShowConflictsButtonAction", e));
+        LOG.fine(() -> String.format("Firing event %s", e));
         fireEvent(e);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        LOG.fine(() -> "Invoked scheduler.view.appointment.DateRangeControl#initialize");
+        LOG.fine(() -> "Initializing");
         assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
         assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'DateRange.fxml'.";
         assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'DateRange.fxml'.";
@@ -311,10 +311,6 @@ public final class DateRangeControl extends GridPane {
 
     private void onStartControlChanged() {
         onTimeSpanComponentChanged();
-//        refreshStartMessage();
-//    }
-//
-//    private void refreshStartMessage() {
         String s = startMessage.get();
         if (s.isEmpty()) {
             startValidationLabel.setVisible(false);
