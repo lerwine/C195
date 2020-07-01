@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDateTime;
+import java.util.Date;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -147,10 +148,14 @@ public interface AppointmentItem<T extends IAppointmentDAO> extends Appointment<
         }
 
         if (value instanceof Timestamp) {
-            return start.compareTo((ChronoLocalDateTime<?>) value);
+            return start.compareTo(((Timestamp) value).toLocalDateTime());
         }
 
-        return -1;
+        if (value instanceof Date) {
+            return start.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
+        }
+
+        throw new IllegalArgumentException();
     }
 
     @Override
@@ -194,10 +199,14 @@ public interface AppointmentItem<T extends IAppointmentDAO> extends Appointment<
         }
 
         if (value instanceof Timestamp) {
-            return end.compareTo((ChronoLocalDateTime<?>) value);
+            return end.compareTo(((Timestamp) value).toLocalDateTime());
         }
 
-        return -1;
+        if (value instanceof Date) {
+            return end.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
+        }
+
+        throw new IllegalArgumentException();
     }
 
 }

@@ -60,15 +60,15 @@ public interface IAppointmentDAO extends DbObject, Appointment<Timestamp> {
             return start.compareTo((Date) value);
         }
 
-        Timestamp other;
         if (value instanceof ZonedDateTime) {
-            other = DB.toUtcTimestamp((ZonedDateTime) value);
-        } else if (value instanceof LocalDateTime) {
-            other = DB.toUtcTimestamp((LocalDateTime) value);
-        } else {
-            return -1;
+            return start.compareTo(DB.toUtcTimestamp((ZonedDateTime) value));
         }
-        return start.compareTo(other);
+
+        if (value instanceof LocalDateTime) {
+            return start.compareTo(DB.toUtcTimestamp((LocalDateTime) value));
+        }
+
+        throw new IllegalArgumentException();
     }
 
     @Override
@@ -112,15 +112,15 @@ public interface IAppointmentDAO extends DbObject, Appointment<Timestamp> {
             return end.compareTo((Date) value);
         }
 
-        Timestamp other;
         if (value instanceof ZonedDateTime) {
-            other = DB.toUtcTimestamp((ZonedDateTime) value);
-        } else if (value instanceof LocalDateTime) {
-            other = DB.toUtcTimestamp((LocalDateTime) value);
-        } else {
-            return -1;
+            return end.compareTo(DB.toUtcTimestamp((ZonedDateTime) value));
         }
-        return end.compareTo(other);
+
+        if (value instanceof LocalDateTime) {
+            return end.compareTo(DB.toUtcTimestamp((LocalDateTime) value));
+        }
+
+        throw new IllegalArgumentException();
     }
 
 }
