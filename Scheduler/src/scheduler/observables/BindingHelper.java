@@ -23,7 +23,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -48,6 +47,7 @@ import scheduler.util.Values;
 public class BindingHelper {
 
     private static final Logger LOG = Logger.getLogger(BindingHelper.class.getName());
+    private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
 
     public static <T, U> BinarySelectiveBinding<T, U> createBinarySelectiveBinding(Callable<BinarySelective<T, U>> func, Observable... dependencies) {
         return new BinarySelectiveBinding<T, U>(dependencies) {
@@ -132,7 +132,7 @@ public class BindingHelper {
         }, observable);
     }
 
-    private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
+
     public static BinaryOptionalBinding<Integer, ParseException> parseInt(final ObservableValue<String> observableString) {
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         return createBinaryOptionalBinding(() -> {
@@ -144,10 +144,11 @@ public class BindingHelper {
 
             try {
                 Matcher m = INT_PATTERN.matcher(v);
-                if (!m.find())
+                if (!m.find()) {
                     throw new ParseException("Invalid number", s.length() - v.length());
-                else if (m.end() < v.length())
+                } else if (m.end() < v.length()) {
                     throw new ParseException("Invalid number", m.end() + (s.length() - v.length()));
+                }
                 Number parse = fmt.parse(v);
                 return BinaryOptional.ofPrimary(parse.intValue());
             } catch (ParseException ex) {
@@ -177,9 +178,8 @@ public class BindingHelper {
     }
 
     /**
-     * A binding that maps a string value to a {@link BinaryOptional} value that will contain either a {@link URI} value if successfully parsed or a
-     * {@link URISyntaxException} if there were parsing errors. If the input string is {@code null}, then this will be converted as
-     * {@link BinaryOptional#EMPTY}.
+     * A binding that maps a string value to a {@link BinaryOptional} value that will contain either a {@link URI} value if successfully parsed or a {@link URISyntaxException} if
+     * there were parsing errors. If the input string is {@code null}, then this will be converted as {@link BinaryOptional#EMPTY}.
      *
      * @param observableString A string binding to be parsed as a {@link URI}.
      * @return A {@link BinaryOptional} that will contain a {@link URI} or {@link URISyntaxException}, or will be {@link BinaryOptional#EMPTY}.
@@ -241,8 +241,8 @@ public class BindingHelper {
     }
 
     /**
-     * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or an empty
-     * string if the source value was null.
+     * Creates a new {@link javafx.beans.binding.StringBinding} that returns an string value with leading and trailing whitespace removed or an empty string if the source value was
+     * null.
      *
      * @param observableString The {@link javafx.beans.property.StringProperty} to trim.
      * @return The new {@link javafx.beans.binding.StringBinding}.
@@ -271,8 +271,7 @@ public class BindingHelper {
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is not null and contains at least one
-     * non-whitespace character.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is not null and contains at least one non-whitespace character.
      *
      * @param observableString The {@link javafx.beans.property.StringProperty} to test.
      * @return The new {@link javafx.beans.binding.BooleanBinding}.
@@ -286,8 +285,7 @@ public class BindingHelper {
     }
 
     /**
-     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is null, empty or contains all whitespace
-     * characters.
+     * Creates a new {@link BooleanBinding} that holds {@code true} if a given {@link StringProperty} is null, empty or contains all whitespace characters.
      *
      * @param observableString The {@link javafx.beans.property.StringProperty} to test.
      * @return The new {@link javafx.beans.binding.BooleanBinding}.

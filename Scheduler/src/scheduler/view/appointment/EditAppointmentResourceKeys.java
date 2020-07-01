@@ -28,8 +28,7 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_ALL = "all";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "AM/PM designator not specified."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "AM/PM designator not specified."}.
      */
     public static final String RESOURCEKEY_AMPMDESIGNATORNOTSPECIFIED = "amPmDesignatorNotSpecified";
 
@@ -44,8 +43,7 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTCONFLICT = "appointmentConflict";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Appointments for Customer \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments for Customer \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
 
@@ -220,8 +218,7 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_DURATIONHOURNOTSPECIFIED = "durationHourNotSpecified";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Duration minute not specified."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Duration minute not specified."}.
      */
     public static final String RESOURCEKEY_DURATIONMINUTENOTSPECIFIED = "durationMinuteNotSpecified";
 
@@ -236,8 +233,7 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_END = "end";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "That file extension is not supported."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That file extension is not supported."}.
      */
     public static final String RESOURCEKEY_EXTENSIONISNOTSUPPORTED = "extensionIsNotSupported";
 
@@ -342,8 +338,7 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_MINUTES = "minutes";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "That name is already being used."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That name is already being used."}.
      */
     public static final String RESOURCEKEY_NAMEALREADYUSED = "nameAlreadyUsed";
 
@@ -540,8 +535,7 @@ public interface EditAppointmentResourceKeys {
     public static final String RESOURCEKEY_USERLABELTEXT = "userLabelText";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "User not found. Click \"%s\" button to add new user."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User not found. Click \"%s\" button to add new user."}.
      */
     public static final String RESOURCEKEY_USERNOTFOUND = "userNotFound";
 
