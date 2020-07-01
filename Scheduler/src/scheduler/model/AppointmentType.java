@@ -19,13 +19,13 @@ public enum AppointmentType {
     /**
      * Phone call appointment.
      * <dl>
-     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dt>{@link Appointment#getType() type}</dt>
      * <dd>{@code = "phone"}</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dt>{@link Appointment#getLocation() location}</dt>
      * <dd>Required - Contains phone number</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dt>{@link Appointment#getContact() contact}</dt>
      * <dd>Optional</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dt>{@link Appointment#getUrl() url}</dt>
      * <dd>Optional</dd>
      * </dl>
      */
@@ -33,13 +33,13 @@ public enum AppointmentType {
     /**
      * Virtual online appointment.
      * <dl>
-     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dt>{@link Appointment#getType() type}</dt>
      * <dd>{@code = "virtual"}</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dt>{@link Appointment#getLocation() location}</dt>
      * <dd>Optional</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dt>{@link Appointment#getContact() contact}</dt>
      * <dd>Optional</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dt>{@link Appointment#getUrl() url}</dt>
      * <dd>Required</dd>
      * </dl>
      */
@@ -47,14 +47,14 @@ public enum AppointmentType {
     /**
      * Appointment at address of customer.
      * <dl>
-     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dt>{@link Appointment#getType() type}</dt>
      * <dd>{@code = "customer"}</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
-     * <dd>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(java.lang.String, java.lang.String, java.lang.String)} &lArr;
-     * {@link scheduler.dao.CustomerDAO#address}</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dt>{@link Appointment#getLocation() location}</dt>
+     * <dd>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(String, String, String)} &lArr;
+     * {@link Customer#getAddress() Customer#address}</dd>
+     * <dt>{@link Appointment#getContact() contact}</dt>
      * <dd>Optional</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dt>{@link Appointment#getUrl() url}</dt>
      * <dd>Optional</dd>
      * </dl>
      */
@@ -62,13 +62,13 @@ public enum AppointmentType {
     /**
      * Appointment at a {@link scheduler.model.CorporateAddress}.
      * <dl>
-     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dt>{@link Appointment#getType() type}</dt>
      * <dd>{@code = "corporate"}</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
-     * <dd>{@code =} {@link scheduler.model.CorporateAddress#name}</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dt>{@link Appointment#getLocation() location}</dt>
+     * <dd>{@code =} {@link CorporateAddress#name}</dd>
+     * <dt>{@link Appointment#getContact() contact}</dt>
      * <dd>Optional</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dt>{@link Appointment#getUrl() url}</dt>
      * <dd>Optional</dd>
      * </dl>
      */
@@ -76,13 +76,13 @@ public enum AppointmentType {
     /**
      * Appointment at a physical location.
      * <dl>
-     * <dt>{@link scheduler.dao.AppointmentDAO#type}</dt>
+     * <dt>{@link Appointment#getType() type}</dt>
      * <dd>{@code = "other"}</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#location}</dt>
+     * <dt>{@link Appointment#getLocation() location}</dt>
      * <dd>Required</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#contact}</dt>
+     * <dt>{@link Appointment#getContact() contact}</dt>
      * <dd>Required</dd>
-     * <dt>{@link scheduler.dao.AppointmentDAO#url}</dt>
+     * <dt>{@link Appointment#getUrl() url}</dt>
      * <dd>Optional</dd>
      * </dl>
      */
