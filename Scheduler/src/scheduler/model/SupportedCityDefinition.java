@@ -9,25 +9,28 @@ import javax.xml.bind.annotation.XmlType;
 import scheduler.util.ToStringPropertyBuilder;
 
 /**
- *
+ * Defines a application-supported city definition, specifying an associated {@link java.util.TimeZone} for that city.
+ * This object is instantiated by the {@link PredefinedData}
+ * utility class.
+ * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-@XmlRootElement(name = CorporateCity.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-@XmlType(name = CorporateCity.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI, factoryMethod = "createInstanceJAXB")
+@XmlRootElement(name = SupportedCityDefinition.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+@XmlType(name = SupportedCityDefinition.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI, factoryMethod = "createInstanceJAXB")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CorporateCity extends PredefinedData.PredefinedCity {
+public class SupportedCityDefinition extends PredefinedData.PredefinedCity {
 
     public static final String ELEMENT_NAME = "city";
 
     @SuppressWarnings("unused")
-    private static CorporateCity createInstanceJAXB() {
-        return new CorporateCity();
+    private static SupportedCityDefinition createInstanceJAXB() {
+        return new SupportedCityDefinition();
     }
 
     @XmlAttribute()
     private String name;
 
-    private CorporateCity() {
+    private SupportedCityDefinition() {
 
     }
 

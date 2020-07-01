@@ -3,30 +3,30 @@
                xsi:schemaLocation="urn:Erwine.Leonard.T:C195:StaticAddresses.xsd StaticAddresses.xsd">
     <a:country languageTag="en-US">
         <a:city name="Phoenix" zoneId="US/Mountain">
-            <a:address name="Phoenix Main Office" address1="127 N 2nd St" address2="" postalCode="85004" phone="(602) 440-1132" mainOffice="true" />
+            <a:address name="Phoenix Main Office" address1="127 N 2nd St" address2="" postalCode="85004" phone="(602) 440-1132" satelliteOffice="false" />
         </a:city>
         <a:city name="New York" zoneId="US/Eastern">
-            <a:address name="New York Main Office" address1="405 Lexington Ave" address2="MS 4428" postalCode="10174" phone="(212) 447-1836" mainOffice="true" />
+            <a:address name="New York Main Office" address1="405 Lexington Ave" address2="MS 4428" postalCode="10174" phone="(212) 447-1836" satelliteOffice="false" />
         </a:city>
     </a:country>
     <a:country languageTag="es-GT">
         <a:city name="Guatemala City" zoneId="America/Guatemala">
-            <a:address name="Guatemala Satellite Office" address1="15 Calle" address2="" postalCode="" phone="+502 6854 2872" mainOffice="false" />
+            <a:address name="Guatemala Satellite Office" address1="15 Calle" address2="" postalCode="" phone="+502 6854 2872" satelliteOffice="true" />
         </a:city>
     </a:country>
     <a:country languageTag="en-GB">
         <a:city name="London" zoneId="GB">
-            <a:address name="London Main Office" address1="10 Upper Bank Street" address2="Suite 3210" postalCode="E14 5NP" phone="+44 7825 278103" mainOffice="true" />
+            <a:address name="London Main Office" address1="10 Upper Bank Street" address2="Suite 3210" postalCode="E14 5NP" phone="+44 7825 278103" satelliteOffice="false" />
         </a:city>
     </a:country>
     <a:country languageTag="de-DE">
         <a:city name="Berlin" zoneId="CET">
-            <a:address name="Berlin Satellite Office" address1="Alexanderpl. 5-7" address2="" postalCode="10178" phone="+49 30 13572462" mainOffice="false" />
+            <a:address name="Berlin Satellite Office" address1="Alexanderpl. 5-7" address2="" postalCode="10178" phone="+49 30 13572462" satelliteOffice="true" />
         </a:city>
     </a:country>
     <a:country languageTag="hi-IN">
         <a:city name="Mumbai" zoneId="Asia/Kolkata">
-            <a:address name="Mumbai Satellite Office" address1="Road No.28b Sion East" address2="Sion Mumbai" postalCode="400022" phone="+91 22 2502 2348" mainOffice="false" />
+            <a:address name="Mumbai Satellite Office" address1="Road No.28b Sion East" address2="Sion Mumbai" postalCode="400022" phone="+91 22 2502 2348" satelliteOffice="true" />
         </a:city>
     </a:country>
 </a:definitions>

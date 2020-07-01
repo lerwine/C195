@@ -25,11 +25,11 @@ import javax.xml.bind.annotation.XmlType;
 import scheduler.AppResources;
 import scheduler.SupportedLocale;
 import scheduler.dao.CountryDAO;
-import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 
 /**
- * Contains static methods for getting pre-defined location and time zone information.
+ * Contains static methods for getting supported locale and address definitions. {@link SupportedCountryDefinition}, {@link SupportedCityDefinition} and {@link CorporateAddress}
+ * objects are de-serialized from the {@code scheduler/StaticAddresses.xml} resource.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -38,20 +38,21 @@ import scheduler.util.PropertyBindable;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PredefinedData {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(PredefinedData.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(PredefinedData.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(PredefinedData.class.getName());
 
     public static final String ELEMENT_NAME = "definitions";
     public static final String NAMESPACE_URI = "urn:Erwine.Leonard.T:C195:StaticAddresses.xsd";
     static final String ADDRESSES_XML_FILE = "scheduler/StaticAddresses.xml";
 
-    private static Map<String, CorporateCountry> COUNTRY_MAP;
+    private static Map<String, SupportedCountryDefinition> COUNTRY_MAP;
     private static Map<String, CorporateAddress> ADDRESS_MAP;
 
     private static void CheckLoadAddresses() {
         if (null != COUNTRY_MAP) {
             return;
         }
-        HashMap<String, CorporateCountry> countryMap = new HashMap<>();
+        HashMap<String, SupportedCountryDefinition> countryMap = new HashMap<>();
         HashMap<String, CorporateAddress> addressMap = new HashMap<>();
         COUNTRY_MAP = Collections.unmodifiableMap(countryMap);
         ADDRESS_MAP = Collections.unmodifiableMap(addressMap);
@@ -70,7 +71,7 @@ public class PredefinedData {
                     predefinedCountry.name = CountryProperties.getCountryAndLanguageDisplayText(predefinedCountry.locale);
                     String countryMapKey = predefinedCountry.locale.getCountry();
                     countryMap.put(countryMapKey, t);
-                    List<CorporateCity> cities = t.getCities();
+                    List<SupportedCityDefinition> cities = t.getCities();
                     if (null == cities) {
                         predefinedCountry.cities = Collections.emptyList();
                     } else if (!cities.isEmpty()) {
@@ -97,12 +98,12 @@ public class PredefinedData {
     }
 
     /**
-     * Looks up a {@link CorporateCountry} by its country/region code.
+     * Looks up a {@link SupportedCountryDefinition} by its country/region code.
      *
      * @param regionCode The county/region code to look up.
-     * @return The {@link CorporateCountry} with the specified {@code regionCode} or {@code null} if none was found
+     * @return The {@link SupportedCountryDefinition} with the specified {@code regionCode} or {@code null} if none was found
      */
-    public static CorporateCountry getCorporateCountry(String regionCode) {
+    public static SupportedCountryDefinition getSupportedCountryDefinition(String regionCode) {
         CheckLoadAddresses();
         if (null != regionCode && COUNTRY_MAP.containsKey(regionCode)) {
             return COUNTRY_MAP.get(regionCode);
@@ -115,7 +116,7 @@ public class PredefinedData {
      *
      * @return A {@link Map} that maps country codes to a {@link List} of {@link ZoneId}s for that country.
      */
-    public static Map<String, CorporateCountry> getCorporateCountryMap() {
+    public static Map<String, SupportedCountryDefinition> getSupportedCountryDefinitionMap() {
         CheckLoadAddresses();
         return COUNTRY_MAP;
     }
@@ -149,8 +150,8 @@ public class PredefinedData {
         return new PredefinedData();
     }
 
-    @XmlElement(name = CorporateCountry.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-    private List<CorporateCountry> countries;
+    @XmlElement(name = SupportedCountryDefinition.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+    private List<SupportedCountryDefinition> countries;
 
     private PredefinedData() {
         countries = new ArrayList<>();
@@ -169,8 +170,8 @@ public class PredefinedData {
 
         private SupportedLocale displayLocale;
 
-        @XmlElement(name = CorporateCity.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
-        private List<CorporateCity> cities;
+        @XmlElement(name = SupportedCityDefinition.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)
+        private List<SupportedCityDefinition> cities;
 
         protected PredefinedCountry() {
 
@@ -196,7 +197,12 @@ public class PredefinedData {
             return locale;
         }
 
-        public List<CorporateCity> getCities() {
+        /**
+         * Gets a list of {@link SupportedCityDefinition SupportedCityDefinitions} for the current country.
+         *
+         * @return A {@link List} of {@link SupportedCityDefinition SupportedCityDefinitions} for the current country.
+         */
+        public List<SupportedCityDefinition> getCities() {
             return cities;
         }
 
@@ -214,7 +220,7 @@ public class PredefinedData {
         private List<CorporateAddress> addresses;
 
         @XmlTransient
-        private CorporateCountry country;
+        private SupportedCountryDefinition country;
 
         protected PredefinedCity() {
 
@@ -226,10 +232,15 @@ public class PredefinedData {
         }
 
         @Override
-        public CorporateCountry getCountry() {
+        public SupportedCountryDefinition getCountry() {
             return country;
         }
 
+        /**
+         * Gets a list of {@link CorporateAddress CorporateAddresses} for the current country.
+         *
+         * @return A {@link List} of {@link CorporateAddress CorporateAddresses} for the current country.
+         */
         public List<CorporateAddress> getAddresses() {
             return addresses;
         }
@@ -239,14 +250,14 @@ public class PredefinedData {
     public static abstract class PredefinedAddress implements AddressProperties {
 
         @XmlTransient
-        private CorporateCity city;
+        private SupportedCityDefinition city;
 
         protected PredefinedAddress() {
 
         }
 
         @Override
-        public CorporateCity getCity() {
+        public SupportedCityDefinition getCity() {
             return city;
         }
 

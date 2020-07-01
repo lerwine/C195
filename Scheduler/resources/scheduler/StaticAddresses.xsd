@@ -46,7 +46,7 @@
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
-        <xs:attribute name="mainOffice" use="required" type="xs:boolean" />
+        <xs:attribute name="satelliteOffice" default="false" type="xs:boolean" />
     </xs:complexType>
     <xs:complexType name="cityType">
         <xs:sequence>

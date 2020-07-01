@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlType;
 import scheduler.util.ToStringPropertyBuilder;
 
 /**
+ * Represents a statically-defined address of a corporate office or satellite location. This object is instantiated by the {@link PredefinedData} utility class.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -27,7 +28,7 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
     @XmlAttribute
     private String name;
     @XmlAttribute
-    private boolean mainOffice;
+    private boolean satelliteOffice;
     @XmlAttribute
     private String address1;
     @XmlAttribute
@@ -41,12 +42,22 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
 
     }
 
+    /**
+     * Gets the display name of the corporate office or satellite location.
+     *
+     * @return The display name of the corporate office or satellite location.
+     */
     public String getName() {
         return name;
     }
 
-    public boolean isMainOffice() {
-        return mainOffice;
+    /**
+     * Indicates whether the current {@code CorporateAddress} is for the address of a satellite office location.
+     *
+     * @return {@code true} if this is a satellite office location; otherwise {@code true} if this is for a corporate office location.
+     */
+    public boolean isSatelliteOffice() {
+        return satelliteOffice;
     }
 
     @Override
