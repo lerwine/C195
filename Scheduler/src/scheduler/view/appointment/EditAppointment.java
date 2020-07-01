@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -24,7 +23,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -80,6 +78,7 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
+import scheduler.observables.OptionalBinding;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -90,7 +89,6 @@ import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.appointment.event.ConflictStateChangedEvent;
 import scheduler.view.appointment.event.ConflictsActionEvent;
-import scheduler.view.appointment.event.DateRangeChangedEvent;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -241,6 +239,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private BooleanBinding contactValid;
     private BooleanBinding urlValid;
     private BooleanBinding validationBinding;
+    private BooleanBinding dateRangeValid;
 
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -481,11 +480,14 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             duration = null;
         }
         dateRangeControl.setDateRange(start, duration, selectedTimeZone);
-        LOG.info(() -> String.format("Adding handlers for events %s and %s",
-                ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE));
-        // FIXME: Add validation
+        OptionalBinding<ZonedAppointmentTimeSpan> timeSpanProperty = dateRangeControl.timeSpanProperty();
+        dateRangeValid = timeSpanProperty.orElse((ZonedAppointmentTimeSpan) null).isNotNull();
+        validationBinding = validationBinding.and(dateRangeValid);
         dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
-        dateRangeControl.addEventHandler(DateRangeChangedEvent.DATE_RANGE_CHANGED_EVENT_TYPE, this::onDateRangeChanged);
+        dateRangeControl.timeSpanProperty().addListener((observable, oldValue, newValue) -> {
+            appointmentConflicts.onDateRangeChanged(newValue);
+            updateValidity();
+        });
     }
 
     private void initializeLocationControls() {
@@ -520,40 +522,41 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         StringBinding validationMessageBinding = Bindings.when(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION))
                 .then(Bindings.when(selectedAddressProperty.isNull()).then("Corporate location must be selected.").otherwise(""))
                 .otherwise(Bindings.when(selectedType.isEqualTo(AppointmentType.PHONE))
-                    .then(Bindings.when(normalizedPhoneBinding.isEmpty()).then("Phone number must be provided.")
-                            .otherwise(Bindings.when(normalizedPhoneBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_LOCATION))
-                                .then("Phone number text too long.")
-                                .otherwise("")))
-                    .otherwise(Bindings.when(selectedType.isEqualTo(AppointmentType.OTHER).and(normalizedLocationBinding.isEmpty()))
-                        .then("Address must be provided.")
-                        .otherwise(Bindings.when(normalizedLocationBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_LOCATION))
-                            .then("Address text too long.")
-                            .otherwise(""))));
+                        .then(Bindings.when(normalizedPhoneBinding.isEmpty()).then("Phone number must be provided.")
+                                .otherwise(Bindings.when(normalizedPhoneBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_LOCATION))
+                                        .then("Phone number text too long.")
+                                        .otherwise("")))
+                        .otherwise(Bindings.when(selectedType.isEqualTo(AppointmentType.OTHER).and(normalizedLocationBinding.isEmpty()))
+                                .then("Address must be provided.")
+                                .otherwise(Bindings.when(normalizedLocationBinding.length().greaterThan(scheduler.model.Appointment.MAX_LENGTH_LOCATION))
+                                        .then("Address text too long.")
+                                        .otherwise(""))));
         locationValidationLabel.textProperty().bind(validationMessageBinding);
         locationLabel.textProperty().bind(Bindings.when(selectedType.isEqualTo(AppointmentType.PHONE))
                 .then(resources.getString(RESOURCEKEY_PHONENUMBER))
                 .otherwise(resources.getString(RESOURCEKEY_LOCATIONLABELTEXT)));
-        
+
         // FIXME: These should be collapsed and un-collapsed instead of binding to visibility
         locationValidationLabel.visibleProperty().bind(validationMessageBinding.isEmpty());
         corporateLocationComboBox.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION));
         locationTextArea.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.OTHER).or(selectedType.isEqualTo(AppointmentType.VIRTUAL)));
         phoneTextField.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.PHONE));
         implicitLocationLabel.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION).or(selectedType.isEqualTo(AppointmentType.CUSTOMER_SITE)));
-        
+
         customerComboBox.getSelectionModel().selectedItemProperty().get().multiLineAddressProperty();
         implicitLocationLabel.textProperty().bind(Bindings.when(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION))
                 .then(Bindings.createStringBinding(() -> {
                     CorporateAddress addr = selectedAddressProperty.get();
-                    if (null == addr)
+                    if (null == addr) {
                         return "";
+                    }
                     SupportedCityDefinition city = addr.getCity();
                     return String.format("%s%n%s", addr.getName(),
                             AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(addr.getAddress1(), addr.getAddress2()),
                                     AddressModel.calculateCityZipCountry(city.getName(), city.getCountry().getName(), addr.getPostalCode()), addr.getPhone()));
                 }, selectedAddressProperty))
                 .otherwise(Bindings.selectString(customerComboBox.getSelectionModel().selectedItemProperty(), "multiLineAddress")));
-                
+
         locationValid = validationMessageBinding.isEmpty();
         validationBinding = validationBinding.and(locationValid);
         selectedAddressProperty.addListener((observable, oldValue, newValue) -> updateValidity());
@@ -582,7 +585,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         StringProperty textProperty = urlTextField.textProperty();
         normalizedUrlBinding = BindingHelper.asTrimmedAndNotNull(textProperty);
         BooleanBinding isVirtualBinding = typeComboBox.getSelectionModel().selectedItemProperty().isEqualTo(AppointmentType.VIRTUAL);
-        
+
         StringBinding validationMessageBinding = Bindings.createStringBinding(() -> {
             String text = normalizedUrlBinding.get();
             if (isVirtualBinding.get()) {
@@ -637,7 +640,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             updateValidity();
         });
     }
-    
+
     private void onAppointmentTypeChanged(AppointmentType type) {
         // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentTypeChanged
     }
@@ -647,6 +650,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             appointments = Collections.emptyList();
         }
         LOG.info(() -> String.format("Adding handler for event %s", ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE));
+        // FIXME: Add validation in scheduler.view.appointment.EditAppointment#initializeAppointmentConflicts
         appointmentConflicts.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
         appointmentConflicts.initializeConflicts(appointments, EditAppointment.this.dateRangeControl.getTimeSpanValue(), EditAppointment.this.waitBorderPane);
     }
@@ -658,12 +662,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         } else {
             appointmentConflicts.showConflicts();
         }
-    }
-
-    private void onDateRangeChanged(DateRangeChangedEvent event) {
-        LOG.info(() -> String.format("Handling event %s", event));
-        appointmentConflicts.onDateRangeChanged(event);
-        ZonedAppointmentTimeSpan ts = event.getZonedAppointmentTimeSpan().orElse(null);
     }
 
     private void onConflictStateChanged(ConflictStateChangedEvent event) {
@@ -995,7 +993,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             initializeCustomerComboBox(customerDaoList);
             initializeUserComboBox(userDaoList);
             initializeAppointmentConflicts(getValue());
-            EditAppointment.this.validationBinding = titleValid.and(customerValid).and(userValid).and(locationValid).and(contactValid).and(urlValid);
+            EditAppointment.this.validationBinding = titleValid.and(customerValid).and(userValid).and(dateRangeValid).and(locationValid).and(contactValid).and(urlValid);
             onAppointmentTypeChanged(typeComboBox.getValue());
             updateValidity();
             super.succeeded();

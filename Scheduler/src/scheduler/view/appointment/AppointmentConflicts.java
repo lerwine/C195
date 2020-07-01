@@ -36,7 +36,6 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.appointment.event.ConflictStateChangedEvent;
-import scheduler.view.appointment.event.DateRangeChangedEvent;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -66,12 +65,6 @@ public class AppointmentConflicts extends BorderPane {
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
 
-    @FXML
-    private void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
-        LOG.fine(() ->  "Closing conflicts listing");
-        setVisible(false);
-    }
-
     public AppointmentConflicts() {
         try {
             ViewControllerLoader.initializeCustomControl(this);
@@ -79,10 +72,16 @@ public class AppointmentConflicts extends BorderPane {
             LOG.log(Level.SEVERE, "Error loading view", ex);
         }
     }
-    
+
+    @FXML
+    private void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
+        LOG.fine(() -> "Closing conflicts listing");
+        setVisible(false);
+    }
+
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        LOG.fine(() ->  "Initializing");
+        LOG.fine(() -> "Initializing");
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'AppointmentConflicts.fxml'.";
         currentCustomer = null;
         currentUser = null;
@@ -195,7 +194,7 @@ public class AppointmentConflicts extends BorderPane {
                 }
                 break;
         }
-        
+
         ConflictStateChangedEvent event = new ConflictStateChangedEvent(this, this, conflictMessage.get(), isConflictCheckingCurrent(), hasConflicts());
         LOG.fine(() -> String.format("Firing event %s", event));
         fireEvent(event);
@@ -236,8 +235,7 @@ public class AppointmentConflicts extends BorderPane {
         }
     }
 
-    void onDateRangeChanged(DateRangeChangedEvent event) {
-        Optional<ZonedAppointmentTimeSpan> value = event.getZonedAppointmentTimeSpan();
+    void onDateRangeChanged(Optional<ZonedAppointmentTimeSpan> value) {
         if (null != value && value.isPresent()) {
             ZonedAppointmentTimeSpan ts = value.get();
             if (null != ts) {

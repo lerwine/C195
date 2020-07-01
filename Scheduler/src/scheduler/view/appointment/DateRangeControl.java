@@ -50,7 +50,6 @@ import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.appointment.event.ConflictStateChangedEvent;
 import scheduler.view.appointment.event.ConflictsActionEvent;
-import scheduler.view.appointment.event.DateRangeChangedEvent;
 
 /**
  * FXML Controller class for editing the date range for an {@link scheduler.model.ui.AppointmentModel}.
@@ -304,9 +303,6 @@ public final class DateRangeControl extends GridPane {
             collapseNode(localTimeLabel);
             collapseNode(localTimeValue);
         }
-        DateRangeChangedEvent event = new DateRangeChangedEvent(this, this, ts);
-        LOG.fine(() -> String.format("Firing event %s", event));
-        fireEvent(event);
     }
 
     private void onStartControlChanged() {
@@ -406,8 +402,8 @@ public final class DateRangeControl extends GridPane {
     public Optional<ZonedAppointmentTimeSpan> getTimeSpan() {
         return timeSpan.get();
     }
-    
-    public OptionalBinding<ZonedAppointmentTimeSpan> getTimeSpanProperty() {
+
+    public OptionalBinding<ZonedAppointmentTimeSpan> timeSpanProperty() {
         return timeSpan;
     }
 
