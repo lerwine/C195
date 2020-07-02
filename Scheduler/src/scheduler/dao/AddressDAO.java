@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -30,6 +31,7 @@ import scheduler.events.AddressFailedEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
 import scheduler.model.Address;
+import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.RecordModelContext;
@@ -40,6 +42,7 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 
 /**
@@ -305,6 +308,60 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return DaoFilter.of(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES),
                     IntColumnValueFilter.of(DbColumn.ADDRESS_CITY, IntValueFilter.of(pk, ComparisonOperator.EQUALS),
                             (AddressDAO t) -> ModelHelper.getPrimaryKey(t.getCity())));
+        }
+
+        public AddressDAO lookupCacheByValues(AddressLookup values, String cityName, String regionCode) {
+            values = values.asNormalizedAddressLookup();
+            cityName = Values.asNonNullAndWsNormalized(cityName);
+            regionCode = Values.asNonNullAndWsNormalized(regionCode);
+            Iterator<AddressDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                AddressDAO result = iterator.next();
+                if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
+                    ICityDAO c = result.getCity();
+                    if (null != c && c.getName().equals(cityName)) {
+                        ICountryDAO n = c.getCountry();
+                        if (null != n && n.getLocale().getCountry().equals(regionCode)) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public AddressDAO lookupCacheByValues(AddressLookup values, String cityName, int countryPk) {
+            values = values.asNormalizedAddressLookup();
+            cityName = Values.asNonNullAndWsNormalized(cityName);
+            Iterator<AddressDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                AddressDAO result = iterator.next();
+                if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
+                    ICityDAO c = result.getCity();
+                    if (null != c && c.getName().equals(cityName)) {
+                        ICountryDAO n = c.getCountry();
+                        if (null != n && n.getPrimaryKey() == countryPk) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public AddressDAO lookupCacheByValues(AddressLookup values, int cityPk) {
+            values = values.asNormalizedAddressLookup();
+            Iterator<AddressDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                AddressDAO result = iterator.next();
+                if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
+                    ICityDAO c = result.getCity();
+                    if (null != c && c.getPrimaryKey() == cityPk) {
+                        return result;
+                    }
+                }
+            }
+            return null;
         }
 
         @Override

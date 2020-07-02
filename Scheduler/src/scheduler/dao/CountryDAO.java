@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -176,7 +177,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         public CountryDAO createNew() {
             return new CountryDAO();
         }
-
+        
         public CountryDAO fromLocale(Locale locale) {
             CountryDAO result = new CountryDAO();
             result.setLocale(locale);
@@ -259,13 +260,25 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             }
             return result;
         }
+        
+        public CountryDAO lookupCacheByRegionCode(String rc) {
+            Iterator<CountryDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                CountryDAO result = iterator.next();
+                if (result.getLocale().getCountry().equals(rc)) {
+                    return result;
+                }
+            }
+            return null;
+        }
 
-        public CountryDAO getByRegionCode(Connection connection, String rc) throws SQLException {
+        // FIXME: Complement usages of this method with {@link #lookupCacheByRegionCode(java.lang.String)}
+        public CountryDAO getByRegionCode(Connection connection, String regionCode) throws SQLException {
             String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
                     .append(DbColumn.COUNTRY_NAME).append("=?").toString();
             LOG.fine(() -> String.format("getByRegionCode", "Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, rc);
+                ps.setString(1, regionCode);
                 try (ResultSet rs = ps.getResultSet()) {
                     if (rs.next()) {
                         CountryDAO result = fromResultSet(rs);

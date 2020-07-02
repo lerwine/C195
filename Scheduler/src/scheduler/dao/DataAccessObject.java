@@ -346,6 +346,41 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
     }
 
+    private static class DataObjectCacheIterator<T extends DataObject> implements Iterator<T> {
+
+        private T next = null;
+        private final DataObjectCache<T> target;
+        private final Iterator<Integer> backingIterator;
+
+        private DataObjectCacheIterator(DataObjectCache<T> target) {
+            backingIterator = (this.target = target).backingMap.keySet().iterator();
+        }
+
+        @Override
+        public synchronized boolean hasNext() {
+            if (null != next) {
+                return true;
+            }
+            while (backingIterator.hasNext()) {
+                if (null != (next = target.get(backingIterator.next()))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public synchronized T next() {
+            T result = next;
+            next = null;
+            while (null == result) {
+                result = target.get(backingIterator.next());
+            }
+            return result;
+        }
+
+    }
+
     private static class DataObjectCache<T extends DataObject> {
 
         private final HashMap<Integer, WeakReference<T>> backingMap = new HashMap<>();
@@ -548,6 +583,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param toDAO The target {@link DataAccessObject} to be copied to.
          */
         protected abstract void onCloneProperties(D fromDAO, D toDAO);
+
+        protected final Iterator<D> cacheIterator() {
+            return new DataObjectCacheIterator<>(dataObjectCache);
+        }
 
         /**
          * Creates a new data access object from database query results.

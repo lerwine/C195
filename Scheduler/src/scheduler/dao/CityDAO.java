@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.function.Consumer;
@@ -332,17 +333,51 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             return result;
         }
 
-        public CityDAO getByResourceKey(Connection connection, String rk) throws SQLException {
+        public CityDAO lookupCacheByNameAndRegionCode(String name, String regionCode) {
+            name = Values.asNonNullAndWsNormalized(name);
+            regionCode = Values.asNonNullAndWsNormalized(regionCode);
+            Iterator<CityDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                CityDAO result = iterator.next();
+                if (result.name.equals(name)) {
+                    ICountryDAO c = result.getCountry();
+                    if (null != c && c.getLocale().getCountry().equals(regionCode)) {
+                        return result;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public CityDAO lookupCacheByName(String name, int countryPk) {
+            name = Values.asNonNullAndWsNormalized(name);
+            Iterator<CityDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                CityDAO result = iterator.next();
+                if (result.name.equals(name)) {
+                    ICountryDAO c = result.getCountry();
+                    if (null != c && c.getPrimaryKey() == countryPk) {
+                        return result;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public CityDAO getByName(Connection connection, String name) throws SQLException {
             String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
-                    .append(DbColumn.CITY_NAME.getDbName()).append("=?").toString();
+                    .append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?").toString();
             LOG.fine(() -> String.format("getByResourceKey", "Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setString(1, rk);
+                name = Values.asNonNullAndWsNormalized(name);
+                ps.setString(1, String.format("%s;*", DB.escapeWC(name)));
                 try (ResultSet rs = ps.getResultSet()) {
-                    if (rs.next()) {
+                    while (rs.next()) {
                         CityDAO result = fromResultSet(rs);
                         LogHelper.logWarnings(connection, LOG);
-                        return result;
+                        if (result.name.equals(name)) {
+                            return result;
+                        }
                     }
                     LogHelper.logWarnings(connection, LOG);
                 }
