@@ -56,8 +56,7 @@ public class RegionTable extends AbstractSet<RegionTable.Row> {
      * Gets the ISO 3166 2-character country code for countries in the specified time zone.
      *
      * @param zoneId The time zone id.
-     * @return A {@link List} of ISO 3166 2-character country code for countries for the specified {@code zoneId}, which may be empty if no matching
-     * {@code zoneId} is found.
+     * @return A {@link List} of ISO 3166 2-character country code for countries for the specified {@code zoneId}, which may be empty if no matching {@code zoneId} is found.
      */
     public static List<String> getCountriesForZoneId(String zoneId) {
         Map<String, List<String>> map = INSTANCE.zoneIdCountriesMap;

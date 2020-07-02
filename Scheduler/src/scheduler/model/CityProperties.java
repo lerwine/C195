@@ -121,8 +121,7 @@ public interface CityProperties {
     TimeZone getTimeZone();
 
     /**
-     * Gets the {@link CountryProperties} for the current city. This corresponds to the "country" data row referenced by the "countryId" database
-     * column.
+     * Gets the {@link CountryProperties} for the current city. This corresponds to the "country" data row referenced by the "countryId" database column.
      *
      * @return The {@link CountryProperties} for the current city.
      */

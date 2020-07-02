@@ -159,6 +159,8 @@ public class PredefinedData {
 
     public static abstract class PredefinedCountry extends PropertyBindable implements CountryProperties {
 
+        public static final String PROP_DATAACCESSOBJECT = "dataAccessObject";
+
         @XmlAttribute
         private String languageTag;
 
