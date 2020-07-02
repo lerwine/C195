@@ -21,12 +21,17 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import scheduler.AppResourceKeys;
+import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.UserModel;
+import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.Tuple;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -52,9 +57,7 @@ public class AppointmentConflictsControl extends BorderPane {
     private final ObservableList<AppointmentModel> allAppointments;
     private final ObservableList<AppointmentModel> conflictingAppointments;
     private final ObjectBinding<Tuple<CustomerModel, UserModel>> participantsBinding;
-//    private final ObjectBinding<Tuple<Tuple<CustomerModel, UserModel>, ZonedAppointmentTimeSpan>> checkingParameterBinding;
 
-//    private WaitBorderPane waitBorderPane;
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
@@ -71,7 +74,6 @@ public class AppointmentConflictsControl extends BorderPane {
         allAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
         participantsBinding = Tuple.createBinding(selectedCustomer, selectedUser);
-//        checkingParameterBinding = Tuple.createBinding(participantsBinding, selectedTimeSpan);
     }
 
     @FXML
@@ -87,7 +89,6 @@ public class AppointmentConflictsControl extends BorderPane {
         selectedTimeSpan.addListener((observable, oldValue, newValue) -> {
             onTimeSpanChanged(newValue);
         });
-//        selectedTimeSpan.addListener((observable, oldValue, newValue) -> onTimeSpanChanged(checkingParameterBinding.get()));
     }
 
     public ConflictCheckStatus getConflictCheckStatus() {
@@ -144,7 +145,6 @@ public class AppointmentConflictsControl extends BorderPane {
 
     public synchronized boolean initializeConflictCheckData(Tuple<CustomerModel, UserModel> participants, List<AppointmentDAO> appointments) {
         UserModel currentUser;
-        String message;
         CustomerModel currentCustomer = selectedCustomer.get();
         if (null == currentCustomer || null == (currentUser = selectedUser.get())) {
             if (!allAppointments.isEmpty()) {
@@ -163,21 +163,30 @@ public class AppointmentConflictsControl extends BorderPane {
                 allAppointments.clear();
                 conflictingAppointments.clear();
             }
-            if (!appointments.isEmpty()) {
-                appointments.stream().map((t) -> new AppointmentModel(t)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
-            }
-            ZonedAppointmentTimeSpan timeSpan = selectedTimeSpan.get();
-            if (null == timeSpan) {
-                if (!conflictMessage.get().isEmpty()) {
-                    conflictMessage.set("");
+            if (null != appointments) {
+                if (!appointments.isEmpty()) {
+                    appointments.stream().map((t) -> new AppointmentModel(t)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
                 }
-                if (conflictCheckStatus.get() != ConflictCheckStatus.NO_CONFLICT) {
-                    conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
+                ZonedAppointmentTimeSpan timeSpan = selectedTimeSpan.get();
+                if (null == timeSpan) {
+                    if (!conflictMessage.get().isEmpty()) {
+                        conflictMessage.set("");
+                    }
+                    if (conflictCheckStatus.get() != ConflictCheckStatus.NO_CONFLICT) {
+                        conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
+                    }
+                } else {
+                    updateConflictingAppointments(currentCustomer, currentUser, selectedTimeSpan.get());
                 }
-            } else {
-                updateConflictingAppointments(currentCustomer, currentUser, selectedTimeSpan.get());
+                return true;
             }
-            return true;
+            String message = resources.getString(RESOURCEKEY_CONFLICTDATASTALE);
+            if (!message.equals(conflictMessage.get())) {
+                conflictMessage.set(message);
+            }
+            if (conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED) {
+                conflictCheckStatus.set(ConflictCheckStatus.NOT_CHECKED);
+            }
         }
         return false;
     }
@@ -296,11 +305,14 @@ public class AppointmentConflictsControl extends BorderPane {
     }
 
     public void startConflictCheck(WaitBorderPane waitBorderPane) {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.edit.AppointmentConflictsControl#startConflictCheck
+        Tuple<CustomerModel, UserModel> checkParams = participantsBinding.get();
+        Objects.requireNonNull(checkParams.getValue1());
+        Objects.requireNonNull(checkParams.getValue2());
+        waitBorderPane.startNow(new CheckConflictsTask(checkParams));
     }
 
     public void showConflicts() {
-        throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.edit.AppointmentConflictsControl#showConflicts
+        restoreNode(this);
     }
 
     private class CheckConflictsTask extends Task<List<AppointmentDAO>> {
@@ -313,27 +325,31 @@ public class AppointmentConflictsControl extends BorderPane {
 
         @Override
         protected List<AppointmentDAO> call() throws Exception {
-            throw new UnsupportedOperationException("Not supported yet."); // TODO: Implement scheduler.view.appointment.edit.AppointmentConflictsControl.CheckConflictsTask#call
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            AppointmentFilter filter;
+            try (DbConnector dbConnector = new DbConnector()) {
+                filter = AppointmentFilter.of(AppointmentFilter.expressionOf(participants.getValue1(), participants.getValue2()));
+                updateMessage(filter.getLoadingMessage());
+                return AppointmentDAO.FACTORY.load(dbConnector.getConnection(), filter);
+            }
         }
 
         @Override
         protected void succeeded() {
             super.succeeded();
-            if (initializeConflictCheckData(participants, getValue())) {
-
-            }
+            initializeConflictCheckData(participants, getValue());
         }
 
         @Override
         protected void cancelled() {
             super.cancelled();
-            initializeConflictCheckData(null, null);
+            initializeConflictCheckData(participants, null);
         }
 
         @Override
         protected void failed() {
             super.failed();
-            initializeConflictCheckData(null, null);
+            initializeConflictCheckData(participants, null);
         }
 
     }
