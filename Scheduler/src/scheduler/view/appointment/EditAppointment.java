@@ -78,17 +78,20 @@ import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
-import scheduler.observables.OptionalBinding;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.Tuple;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.appointment.event.ConflictStateChangedEvent;
-import scheduler.view.appointment.event.ConflictsActionEvent;
+import scheduler.view.appointment.edit.AppointmentConflictsControl;
+import scheduler.view.appointment.edit.DateRangeControl;
+import scheduler.view.appointment.edit.ZonedAppointmentTimeSpan;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
 
@@ -226,7 +229,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private RadioButton dropdownOptionsAllRadioButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentConflicts"
-    private AppointmentConflicts appointmentConflicts; // Value injected by FXMLLoader
+    private AppointmentConflictsControl appointmentConflicts; // Value injected by FXMLLoader
     private StringBinding normalizedTitleBinding;
     private StringBinding normalizedPhoneBinding;
     private StringBinding normalizedLocationBinding;
@@ -437,7 +440,10 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         ReadOnlyObjectProperty<CustomerModel> selectedItemProperty = selectionModel.selectedItemProperty();
         customerValid = selectedItemProperty.isNotNull();
         validationBinding = validationBinding.and(customerValid);
-        selectedItemProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+        selectedItemProperty.addListener((observable, oldValue, newValue) -> {
+            appointmentConflicts.setSelectedCustomer(newValue);
+            updateValidity();
+        });
     }
 
     private void initializeUserComboBox(List<UserDAO> userDaoList) {
@@ -453,7 +459,10 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         ReadOnlyObjectProperty<UserModel> selectedItemProperty = selectionModel.selectedItemProperty();
         userValid = selectedItemProperty.isNotNull();
         validationBinding = validationBinding.and(userValid);
-        selectedItemProperty.addListener((observable, oldValue, newValue) -> updateValidity());
+        selectedItemProperty.addListener((observable, oldValue, newValue) -> {
+            appointmentConflicts.setSelectedUser(newValue);
+            updateValidity();
+        });
     }
 
     private void initializeDateRangeControl() {
@@ -480,12 +489,13 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             duration = null;
         }
         dateRangeControl.setDateRange(start, duration, selectedTimeZone);
-        OptionalBinding<ZonedAppointmentTimeSpan> timeSpanProperty = dateRangeControl.timeSpanProperty();
-        dateRangeValid = timeSpanProperty.orElse((ZonedAppointmentTimeSpan) null).isNotNull();
+        ReadOnlyObjectProperty<ZonedAppointmentTimeSpan> timeSpanProperty = dateRangeControl.timeSpanProperty();
+        dateRangeValid = timeSpanProperty.isNotNull();
         validationBinding = validationBinding.and(dateRangeValid);
-        dateRangeControl.addEventHandler(ConflictsActionEvent.CONFLICTS_ACTION_EVENT_TYPE, this::onConflictsAction);
+        dateRangeControl.setOnCheckConflictsButtonAction((event) -> appointmentConflicts.startConflictCheck(waitBorderPane));
+        dateRangeControl.setOnShowConflictsButtonAction((event) -> appointmentConflicts.showConflicts());
         dateRangeControl.timeSpanProperty().addListener((observable, oldValue, newValue) -> {
-            appointmentConflicts.onDateRangeChanged(newValue);
+            appointmentConflicts.setSelectedTimeSpan(newValue);
             updateValidity();
         });
     }
@@ -536,12 +546,41 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 .then(resources.getString(RESOURCEKEY_PHONENUMBER))
                 .otherwise(resources.getString(RESOURCEKEY_LOCATIONLABELTEXT)));
 
-        // FIXME: These should be collapsed and un-collapsed instead of binding to visibility
-        locationValidationLabel.visibleProperty().bind(validationMessageBinding.isEmpty());
-        corporateLocationComboBox.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION));
-        locationTextArea.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.OTHER).or(selectedType.isEqualTo(AppointmentType.VIRTUAL)));
-        phoneTextField.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.PHONE));
-        implicitLocationLabel.visibleProperty().bind(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION).or(selectedType.isEqualTo(AppointmentType.CUSTOMER_SITE)));
+        validationMessageBinding.isEmpty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                collapseNode(locationValidationLabel);
+            } else {
+                restoreNode(locationValidationLabel);
+            }
+        });
+        selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION).addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                restoreNode(corporateLocationComboBox);
+            } else {
+                collapseNode(corporateLocationComboBox);
+            }
+        });
+        selectedType.isEqualTo(AppointmentType.OTHER).or(selectedType.isEqualTo(AppointmentType.VIRTUAL)).addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                restoreNode(locationTextArea);
+            } else {
+                collapseNode(locationTextArea);
+            }
+        });
+        selectedType.isEqualTo(AppointmentType.PHONE).addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                restoreNode(phoneTextField);
+            } else {
+                collapseNode(phoneTextField);
+            }
+        });
+        selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION).or(selectedType.isEqualTo(AppointmentType.CUSTOMER_SITE)).addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                restoreNode(implicitLocationLabel);
+            } else {
+                collapseNode(implicitLocationLabel);
+            }
+        });
 
         customerComboBox.getSelectionModel().selectedItemProperty().get().multiLineAddressProperty();
         implicitLocationLabel.textProperty().bind(Bindings.when(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION))
@@ -642,31 +681,20 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onAppointmentTypeChanged(AppointmentType type) {
-        // FIXME: Implement scheduler.view.appointment.EditAppointment#onAppointmentTypeChanged
+        updateValidity();
     }
 
     private void initializeAppointmentConflicts(List<AppointmentDAO> appointments) {
         if (null == appointments) {
             appointments = Collections.emptyList();
         }
-        LOG.info(() -> String.format("Adding handler for event %s", ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE));
-        // FIXME: Add validation in scheduler.view.appointment.EditAppointment#initializeAppointmentConflicts
-        appointmentConflicts.addEventHandler(ConflictStateChangedEvent.CONFLICT_STATE_CHANGED_EVENT_TYPE, this::onConflictStateChanged);
-        appointmentConflicts.initializeConflicts(appointments, EditAppointment.this.dateRangeControl.getTimeSpanValue(), EditAppointment.this.waitBorderPane);
-    }
-
-    private void onConflictsAction(ConflictsActionEvent event) {
-        LOG.info(() -> String.format("Handling event %s", event));
-        if (event.isCheckConflicts()) {
-            appointmentConflicts.checkConflicts();
-        } else {
-            appointmentConflicts.showConflicts();
-        }
-    }
-
-    private void onConflictStateChanged(ConflictStateChangedEvent event) {
-        LOG.info(() -> String.format("Handling event %s", event));
-        dateRangeControl.onConflictStateChanged(event);
+        appointmentConflicts.setSelectedTimeSpan(dateRangeControl.getTimeSpan());
+        appointmentConflicts.initializeConflictCheckData(Tuple.of(customerComboBox.getSelectionModel().getSelectedItem(), userComboBox.getSelectionModel().getSelectedItem()),
+                appointments);
+        appointmentConflicts.conflictMessageProperty().addListener((observable, oldValue, newValue) -> dateRangeControl.setConflictMessage(newValue));
+        appointmentConflicts.conflictCheckStatusProperty().addListener((observable, oldValue, newValue) -> dateRangeControl.setConflictCheckStatus(newValue));
+        dateRangeControl.setConflictMessage(appointmentConflicts.getConflictMessage());
+        dateRangeControl.setConflictCheckStatus(appointmentConflicts.getConflictCheckStatus());
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
@@ -701,9 +729,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
     }
 
-    // FIXME: Needs to be incorporated into #applyChanges and validation
     public boolean applyChangesToModel() {
-        ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpanValue();
+        ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpan();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime apptEnd = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime busStart;
@@ -718,69 +745,75 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             return false;
         }
         Optional<ButtonType> response;
-        if (!appointmentConflicts.isConflictCheckingCurrent()) {
-            if (apptStart.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        resources.getString(RESOURCEKEY_NOTCHECKEDOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
-            } else if (apptEnd.compareTo(busStart) < 0) {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        resources.getString(RESOURCEKEY_NOTCHECKEDOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
-            } else if (apptStart.compareTo(busStart) < 0) {
-                if (apptEnd.compareTo(busEnd) > 0) {
+        switch (appointmentConflicts.getConflictCheckStatus()) {
+            case NOT_CHECKED:
+                if (apptStart.compareTo(busEnd) > 0) {
                     response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
-                            resources.getString(RESOURCEKEY_NOTCHECKEDOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                            resources.getString(RESOURCEKEY_NOTCHECKEDOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else if (apptEnd.compareTo(busStart) < 0) {
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                            resources.getString(RESOURCEKEY_NOTCHECKEDOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else if (apptStart.compareTo(busStart) < 0) {
+                    if (apptEnd.compareTo(busEnd) > 0) {
+                        response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                                resources.getString(RESOURCEKEY_NOTCHECKEDOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                    } else {
+                        response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                                resources.getString(RESOURCEKEY_NOTCHECKEDSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                    }
+                } else if (apptEnd.compareTo(busEnd) > 0) {
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
+                            resources.getString(RESOURCEKEY_NOTCHECKEDENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
                 } else {
                     response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
-                            resources.getString(RESOURCEKEY_NOTCHECKEDSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                            resources.getString(RESOURCEKEY_NOTCHECKEDMESSAGE), ButtonType.YES, ButtonType.NO);
                 }
-            } else if (apptEnd.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        resources.getString(RESOURCEKEY_NOTCHECKEDENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
-            } else {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_NOTCHECKEDTITLE),
-                        resources.getString(RESOURCEKEY_NOTCHECKEDMESSAGE), ButtonType.YES, ButtonType.NO);
-            }
-        } else if (this.appointmentConflicts.hasConflicts()) {
-            if (apptStart.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
-            } else if (apptEnd.compareTo(busStart) < 0) {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
-            } else if (apptStart.compareTo(busStart) < 0) {
-                if (apptEnd.compareTo(busEnd) > 0) {
+                break;
+            case HAS_CONFLICT:
+                if (apptStart.compareTo(busEnd) > 0) {
                     response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else if (apptEnd.compareTo(busStart) < 0) {
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else if (apptStart.compareTo(busStart) < 0) {
+                    if (apptEnd.compareTo(busEnd) > 0) {
+                        response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                                resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                    } else {
+                        response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                                resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                    }
+                } else if (apptEnd.compareTo(busEnd) > 0) {
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
+                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
                 } else {
                     response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                            resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTMESSAGE), ButtonType.YES, ButtonType.NO);
                 }
-            } else if (apptEnd.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
-            } else {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTTITLE),
-                        resources.getString(RESOURCEKEY_SCHEDULINGCONFLICTMESSAGE), ButtonType.YES, ButtonType.NO);
-            }
-        } else if (apptStart.compareTo(busEnd) > 0) {
-            response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
-                    resources.getString(RESOURCEKEY_BUSHREXCOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
-        } else if (apptEnd.compareTo(busStart) < 0) {
-            response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
-                    resources.getString(RESOURCEKEY_BUSHREXCOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
-        } else if (apptStart.compareTo(busStart) < 0) {
-            if (apptEnd.compareTo(busEnd) > 0) {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
-                        resources.getString(RESOURCEKEY_BUSHREXCOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
-            } else {
-                response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
-                        resources.getString(RESOURCEKEY_BUSHREXCSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
-            }
-        } else if (apptEnd.compareTo(busEnd) > 0) {
-            response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
-                    resources.getString(RESOURCEKEY_BUSHREXCENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
-        } else {
-            response = Optional.of(ButtonType.YES);
+                break;
+            default:
+                if (apptStart.compareTo(busEnd) > 0) {
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                            resources.getString(RESOURCEKEY_BUSHREXCOCCURSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else if (apptEnd.compareTo(busStart) < 0) {
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                            resources.getString(RESOURCEKEY_BUSHREXCOCCURSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else if (apptStart.compareTo(busStart) < 0) {
+                    if (apptEnd.compareTo(busEnd) > 0) {
+                        response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                                resources.getString(RESOURCEKEY_BUSHREXCOUTSIDEBUSHRS), ButtonType.YES, ButtonType.NO);
+                    } else {
+                        response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                                resources.getString(RESOURCEKEY_BUSHREXCSTARTSBEFOREBUSHRS), ButtonType.YES, ButtonType.NO);
+                    }
+                } else if (apptEnd.compareTo(busEnd) > 0) {
+                    response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), resources.getString(RESOURCEKEY_BUSHREXCTITLE),
+                            resources.getString(RESOURCEKEY_BUSHREXCENDSAFTERBUSHRS), ButtonType.YES, ButtonType.NO);
+                } else {
+                    response = Optional.of(ButtonType.YES);
+                }
+                break;
         }
 
         return response.isPresent() && response.get() == ButtonType.YES;
@@ -842,7 +875,31 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     @Override
     public void applyChanges() {
         LOG.info("Applying changes");
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#applyChanges
+        model.setTitle(normalizedTitleBinding.get());
+        model.setContact(normalizedContactBinding.get());
+        model.setUrl(normalizedUrlBinding.get());
+        model.setDescription(descriptionTextArea.getText());
+        model.setCustomer(customerComboBox.getSelectionModel().getSelectedItem());
+        model.setUser(userComboBox.getSelectionModel().getSelectedItem());
+        AppointmentType type = typeComboBox.getSelectionModel().getSelectedItem();
+        model.setType(type);
+        ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpan();
+        model.setStart(ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
+        model.setEnd(ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime());
+        switch (type) {
+            case CORPORATE_LOCATION:
+                model.setLocation(corporateLocationComboBox.getSelectionModel().getSelectedItem().getName());
+                break;
+            case CUSTOMER_SITE:
+                model.setLocation(customerComboBox.getSelectionModel().getSelectedItem().getMultiLineAddress());
+                break;
+            case PHONE:
+                model.setLocation(normalizedPhoneBinding.get());
+                break;
+            default:
+                model.setLocation(normalizedLocationBinding.get());
+                break;
+        }
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

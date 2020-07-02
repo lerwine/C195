@@ -38,12 +38,12 @@
         <HBox GridPane.columnSpan="2" GridPane.valignment="BOTTOM">
             <children>
                 <Label alignment="BOTTOM_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%startLabelText" HBox.hgrow="ALWAYS" />
-                <Button fx:id="checkConflictsButton" mnemonicParsing="false" onAction="#onCheckConflictsButtonAction" styleClass="small-control" text="%check">
+                <Button fx:id="checkConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%check">
                     <font>
                         <Font size="10.0" />
                     </font>
                 </Button>
-                <Button fx:id="showConflictsButton" layoutX="448.0" layoutY="10.0" mnemonicParsing="false" onAction="#onShowConflictsButtonAction" styleClass="small-control" text="%show">
+                <Button fx:id="showConflictsButton" layoutX="448.0" layoutY="10.0" mnemonicParsing="false" styleClass="small-control" text="%show">
                     <font>
                         <Font size="10.0" />
                     </font>

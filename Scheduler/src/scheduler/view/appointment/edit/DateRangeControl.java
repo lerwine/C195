@@ -1,4 +1,4 @@
-package scheduler.view.appointment;
+package scheduler.view.appointment.edit;
 
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -13,7 +13,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -23,10 +22,16 @@ import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -37,7 +42,6 @@ import javafx.scene.layout.GridPane;
 import scheduler.fx.CssClassName;
 import scheduler.observables.BinaryOptionalBinding;
 import scheduler.observables.BindingHelper;
-import scheduler.observables.OptionalBinding;
 import scheduler.util.BinaryOptional;
 import static scheduler.util.NodeUtil.addCssClass;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -47,14 +51,11 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.view.appointment.event.ConflictStateChangedEvent;
-import scheduler.view.appointment.event.ConflictsActionEvent;
 
 /**
- * FXML Controller class for editing the date range for an {@link scheduler.model.ui.AppointmentModel}.
- * <p>
- * This is loaded by the {@link EditAppointment} controller. The associated view is {@code /resources/scheduler/view/appointment/DateRangeControl.fxml}.</p>
+ * FXML Controller class for editing the date range for an {@link scheduler.model.ui.AppointmentModel}. This is loaded by the {@link EditAppointment} controller.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -63,6 +64,7 @@ import scheduler.view.appointment.event.ConflictsActionEvent;
 public final class DateRangeControl extends GridPane {
 
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
+    private static final String INVALID_NUMBER = "Invalid number";
 
     private static final Logger LOG = Logger.getLogger(DateRangeControl.class.getName());
 
@@ -76,9 +78,9 @@ public final class DateRangeControl extends GridPane {
         try {
             Matcher m = INT_PATTERN.matcher(v);
             if (!m.find()) {
-                throw new ParseException("Invalid number", s.length() - v.length());
+                throw new ParseException(INVALID_NUMBER, s.length() - v.length());
             } else if (m.end() < v.length()) {
-                throw new ParseException("Invalid number", m.end() + (s.length() - v.length()));
+                throw new ParseException(INVALID_NUMBER, m.end() + (s.length() - v.length()));
             }
             int i = fmt.parse(v).intValue();
             return (i < 0 || (max > 0 && i > max)) ? -2 : i;
@@ -87,22 +89,15 @@ public final class DateRangeControl extends GridPane {
         }
     }
 
-    private static Optional<ZonedAppointmentTimeSpan> buildZonedAppointmentTimeSpan(BinaryOptional<ZonedDateAndTimeSelection, String> start,
-            BinaryOptional<AppointmentDuration, String> duration) {
-        if (start.isPrimary() && duration.isPrimary()) {
-            return Optional.of(ZonedAppointmentTimeSpan.of(start.getPrimary(), duration.getPrimary()));
-        }
-        return Optional.empty();
-    }
-
     private final ObservableList<TimeZone> timeZones;
+    private final SimpleStringProperty conflictMessage;
+    private final SimpleObjectProperty<ConflictCheckStatus> conflictCheckStatus;
+    private final ReadOnlyObjectWrapper<ZonedAppointmentTimeSpan> timeSpan;
     private BinaryOptionalBinding<ZonedDateAndTimeSelection, String> parseStartBinding;
     private BinaryOptionalBinding<AppointmentDuration, String> parseDurationBinding;
-    private OptionalBinding<ZonedAppointmentTimeSpan> timeSpan;
     private StringBinding startParseMessage;
     private StringBinding durationParseMessage;
     private StringBinding startMessage;
-    private SimpleStringProperty conflictMessage;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -148,26 +143,15 @@ public final class DateRangeControl extends GridPane {
 
     @SuppressWarnings("LeakingThisInConstructor")
     public DateRangeControl() {
-        this.timeZones = FXCollections.observableArrayList();
+        conflictMessage = new SimpleStringProperty("");
+        conflictCheckStatus = new SimpleObjectProperty<>(ConflictCheckStatus.NOT_CHECKED);
+        timeSpan = new ReadOnlyObjectWrapper<>();
+        timeZones = FXCollections.observableArrayList();
         try {
             ViewControllerLoader.initializeCustomControl(this);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading view", ex);
         }
-    }
-
-    @FXML
-    void onCheckConflictsButtonAction(ActionEvent event) {
-        ConflictsActionEvent e = new ConflictsActionEvent(event.getSource(), this, true);
-        LOG.fine(() -> String.format("Firing event %s", e));
-        fireEvent(e);
-    }
-
-    @FXML
-    void onShowConflictsButtonAction(ActionEvent event) {
-        ConflictsActionEvent e = new ConflictsActionEvent(event.getSource(), this, false);
-        LOG.fine(() -> String.format("Firing event %s", e));
-        fireEvent(e);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -194,8 +178,6 @@ public final class DateRangeControl extends GridPane {
         amPmComboBox.setItems(FXCollections.observableArrayList(false, true));
 
         timeZoneComboBox.setItems(timeZones);
-
-        conflictMessage = new SimpleStringProperty("");
 
         startDatePicker.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
             LOG.fine(() -> "startDatePicker#editor#text changed");
@@ -249,13 +231,82 @@ public final class DateRangeControl extends GridPane {
                 durationMinuteTextField.getText(), timeZoneMissing.get()), durationHourTextField.textProperty(),
                 durationMinuteTextField.textProperty(), timeZoneMissing);
         durationParseMessage = parseDurationBinding.mapToString((t) -> "", (s) -> s, resources.getString(RESOURCEKEY_REQUIRED));
-        timeSpan = BindingHelper.createOptionalBinding(() -> buildZonedAppointmentTimeSpan(parseStartBinding.get(),
-                parseDurationBinding.get()), parseStartBinding, parseDurationBinding);
+        timeSpan.bind(Bindings.createObjectBinding(() -> {
+            BinaryOptional<ZonedDateAndTimeSelection, String> start = parseStartBinding.get();
+            BinaryOptional<AppointmentDuration, String> duration = parseDurationBinding.get();
+            if (start.isPrimary() && duration.isPrimary()) {
+                return ZonedAppointmentTimeSpan.of(start.getPrimary(), duration.getPrimary());
+            }
+            return null;
+        }, parseStartBinding, parseDurationBinding));
+        conflictCheckStatus.addListener((observable, oldValue, newValue) -> {
+            switch (newValue) {
+                case NO_CONFLICT:
+                    collapseNode(checkConflictsButton);
+                    break;
+                case HAS_CONFLICT:
+                    collapseNode(checkConflictsButton);
+                    restoreNode(showConflictsButton);
+                    return;
+                default:
+                    restoreNode(checkConflictsButton);
+                    break;
+            }
+            collapseNode(showConflictsButton);
+        });
         onStartControlChanged();
         onDurationControlChanged();
     }
 
-    void setDateRange(LocalDateTime start, Duration duration, TimeZone timeZone) {
+    public ConflictCheckStatus getConflictCheckStatus() {
+        return conflictCheckStatus.get();
+    }
+
+    public void setConflictCheckStatus(ConflictCheckStatus value) {
+        conflictCheckStatus.set(value);
+    }
+
+    public ObjectProperty<ConflictCheckStatus> conflictCheckStatusProperty() {
+        return conflictCheckStatus;
+    }
+
+    public ZonedAppointmentTimeSpan getTimeSpan() {
+        return timeSpan.get();
+    }
+
+    public ReadOnlyObjectProperty<ZonedAppointmentTimeSpan> timeSpanProperty() {
+        return timeSpan;
+    }
+
+    public String getConflictMessage() {
+        return conflictMessage.get();
+    }
+
+    public void setConflictMessage(String message) {
+        conflictMessage.set(message);
+    }
+
+    public StringProperty conflictMessageProperty() {
+        return conflictMessage;
+    }
+
+    public final EventHandler<ActionEvent> getOnCheckConflictsButtonAction() {
+        return checkConflictsButton.getOnAction();
+    }
+
+    public final void setOnCheckConflictsButtonAction(EventHandler<ActionEvent> value) {
+        checkConflictsButton.setOnAction(value);
+    }
+
+    public final EventHandler<ActionEvent> getOnShowConflictsButtonAction() {
+        return showConflictsButton.getOnAction();
+    }
+
+    public final void setOnShowConflictsButtonAction(EventHandler<ActionEvent> value) {
+        showConflictsButton.setOnAction(value);
+    }
+
+    public void setDateRange(LocalDateTime start, Duration duration, TimeZone timeZone) {
         if (null == start) {
             startDatePicker.getEditor().setText("");
             startHourTextField.setText("");
@@ -291,11 +342,11 @@ public final class DateRangeControl extends GridPane {
     }
 
     private void onTimeSpanComponentChanged() {
-        Optional<ZonedAppointmentTimeSpan> ts = timeSpan.get();
-        if (ts.isPresent()) {
+        ZonedAppointmentTimeSpan ts = timeSpan.get();
+        if (null != ts) {
             DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
-            ZonedDateTime s = ts.get().toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault());
-            ZonedDateTime e = ts.get().toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault());
+            ZonedDateTime s = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault());
+            ZonedDateTime e = ts.toZonedEndDateTime().withZoneSameInstant(ZoneId.systemDefault());
             restoreNode(localTimeLabel);
             restoreLabeled(localTimeValue, String.format(resources.getString(RESOURCEKEY_TIMERANGE),
                     formatter.format(s), formatter.format(e)));
@@ -393,32 +444,6 @@ public final class DateRangeControl extends GridPane {
             return BinaryOptional.ofSecondary(resources.getString(RESOURCEKEY_TIMEZONENOTSPECIFIED));
         }
         return BinaryOptional.ofPrimary(AppointmentDuration.of(Duration.ofSeconds(((long) h * 60L + (long) m) * 60L)));
-    }
-
-    ZonedAppointmentTimeSpan getTimeSpanValue() {
-        return timeSpan.get().orElse(null);
-    }
-
-    public Optional<ZonedAppointmentTimeSpan> getTimeSpan() {
-        return timeSpan.get();
-    }
-
-    public OptionalBinding<ZonedAppointmentTimeSpan> timeSpanProperty() {
-        return timeSpan;
-    }
-
-    void onConflictStateChanged(ConflictStateChangedEvent event) {
-        conflictMessage.set(event.getMessage());
-        if (event.isConflictCheckingCurrent()) {
-            collapseNode(checkConflictsButton);
-            if (event.isConflicting()) {
-                restoreNode(showConflictsButton);
-            } else {
-                collapseNode(showConflictsButton);
-            }
-        } else {
-            restoreNode(checkConflictsButton);
-        }
     }
 
 }

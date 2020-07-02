@@ -1,5 +1,6 @@
-package scheduler.view.appointment;
+package scheduler.view.appointment.edit;
 
+import scheduler.view.appointment.edit.HourAndMinute;
 import java.time.Duration;
 
 /**

@@ -1,4 +1,4 @@
-package scheduler.view.appointment;
+package scheduler.view.appointment.edit;
 
 import scheduler.util.PropertyBindable;
 

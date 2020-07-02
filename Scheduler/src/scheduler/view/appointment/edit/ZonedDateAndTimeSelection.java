@@ -1,4 +1,4 @@
-package scheduler.view.appointment;
+package scheduler.view.appointment.edit;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
