@@ -257,11 +257,13 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void cancelButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "cancelButtonAction", event);
         ((Button) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
     private void cityComboBoxChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "cityComboBoxChanged", event);
         CitySelectionItem cityItem = (countryRadioButton.isSelected()) ? null : cityComboBox.getValue();
         CustomerSelectionItem currentCustomer = (customerRadioButton.isSelected()) ? customCustomerComboBox.getValue() : null;
         if (null == cityItem || null == cityItem.getValue()) {
@@ -288,6 +290,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void countryComboBoxChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "countryComboBoxChanged", event);
         CountrySelectionItem countryItem = countryComboBox.getValue();
         CitySelectionItem currentCity = (countryRadioButton.isSelected()) ? null : cityComboBox.getValue();
         CustomerSelectionItem currentCustomer = (customerRadioButton.isSelected()) ? customCustomerComboBox.getValue() : null;
@@ -324,6 +327,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void customerRadioButtonChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "customerRadioButtonChanged", event);
         if (countryRadioButton.isSelected()) {
             selectItem(customCustomerComboBox, null);
             selectItem(cityComboBox, null);
@@ -344,6 +348,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void endComboBoxChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "endComboBoxChanged", event);
         DateTypeSelectionItem opt = endComboBox.getValue();
         if (null == opt || opt.getValue().equals(DateFilterType.NONE)) {
             endDatePicker.setDisable(true);
@@ -367,12 +372,14 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void locationComboBoxChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "locationComboBoxChanged", event);
         LocationTextSelectionItem opt = locationComboBox.getSelectionModel().getSelectedItem();
         locationTextField.setDisable(null == opt || opt.getValue().equals(TextFilterType.NONE));
     }
 
     @FXML
     private void lookupOptionsButtonClick(ActionEvent event) {
+        LOG.entering(getClass().getName(), "lookupOptionsButtonClick", event);
         lookupOptionCustomersCheckBox.setSelected(includeInactiveCustomers);
         lookupOptionUsersCheckBox.setSelected(includeInactiveUsers);
         lookupOptionsBorderPane.setVisible(true);
@@ -380,11 +387,13 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void lookupOptionsCancelClick(ActionEvent event) {
+        LOG.entering(getClass().getName(), "lookupOptionsCancelClick", event);
         lookupOptionsBorderPane.setVisible(false);
     }
 
     @FXML
     private void lookupOptionsOkClick(ActionEvent event) {
+        LOG.entering(getClass().getName(), "lookupOptionsOkClick", event);
         if (lookupOptionCustomersCheckBox.isSelected() != includeInactiveCustomers) {
             includeInactiveCustomers = lookupOptionCustomersCheckBox.isSelected();
             if (lookupOptionUsersCheckBox.isSelected() != includeInactiveUsers) {
@@ -401,11 +410,13 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void okButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "okButtonAction", event);
         ((Button) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
     private void searchTypesTabSelectionChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "searchTypesTabSelectionChanged", event);
         if (((Tab) event.getSource()).isSelected()) {
             if (customTab.isSelected()) {
                 RangeSelectionItem item = rangeTypeComboBox.getValue();
@@ -500,6 +511,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void startComboBoxChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "startComboBoxChanged", event);
         DateTypeSelectionItem opt = startComboBox.getSelectionModel().getSelectedItem();
         if (null == opt || opt.getValue().equals(DateFilterType.NONE)) {
             startDatePicker.setDisable(true);
@@ -531,6 +543,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void timeRadioButtonChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "timeRadioButtonChanged", event);
         DateTypeSelectionItem opt = startComboBox.getSelectionModel().getSelectedItem();
         if (null == opt || opt.getValue().equals(DateFilterType.NONE)) {
             return;
@@ -553,6 +566,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
     @FXML
     private void titleComboBoxChanged(ActionEvent event) {
+        LOG.entering(getClass().getName(), "titleComboBoxChanged", event);
         LocationTextSelectionItem opt = locationComboBox.getSelectionModel().getSelectedItem();
         locationTextField.setDisable(null == opt || opt.getValue().equals(TextFilterType.NONE));
     }

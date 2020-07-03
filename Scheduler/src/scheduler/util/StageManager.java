@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 import javafx.collections.ObservableListBase;
 import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
@@ -24,6 +25,8 @@ import javafx.stage.WindowEvent;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public final class StageManager extends ObservableListBase<Stage> {
+
+    private static final Logger LOG = Logger.getLogger(StageManager.class.getName());
 
     public static final StageManager INSTANCE = new StageManager();
     private static final Object STAGE_PROPERTY_KEY = new Object();
@@ -84,11 +87,9 @@ public final class StageManager extends ObservableListBase<Stage> {
      * Opens a new {@link Modality#APPLICATION_MODAL} window.
      *
      * @param content The {@link Scene#root} control for the new window.
-     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
-     * {@code StageManager}.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this {@code StageManager}.
      * @param style Specifies the style for the new window ({@link Stage}) or {@code null} to use the {@link #DEFAULT_STAGE_STYLE}.
-     * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it
-     * is shown.
+     * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if the {@code beforeShow} delegate throws an exception.
      * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
      * @throws NullPointerException if {@code content} is null.
@@ -105,6 +106,7 @@ public final class StageManager extends ObservableListBase<Stage> {
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
+                LOG.entering(getClass().getName(), "handle", event);
                 synchronized (INSTANCE.backingList) {
                     if (null != INSTANCE.showingStage && INSTANCE.showingStage == stage) {
                         INSTANCE.showingStage = null;
@@ -128,8 +130,7 @@ public final class StageManager extends ObservableListBase<Stage> {
      * Opens a new {@link Modality#APPLICATION_MODAL} window.
      *
      * @param content The {@link Scene#root} control for the new window.
-     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
-     * {@code StageManager}.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this {@code StageManager}.
      * @param style Specifies the style for the new window ({@link Stage}) or {@code null} to use the {@link #DEFAULT_STAGE_STYLE}.
      * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
      * @throws NullPointerException if {@code content} is null.
@@ -146,6 +147,7 @@ public final class StageManager extends ObservableListBase<Stage> {
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
+                LOG.entering(getClass().getName(), "handle", event);
                 synchronized (INSTANCE.backingList) {
                     if (null != INSTANCE.showingStage && INSTANCE.showingStage == stage) {
                         INSTANCE.showingStage = null;
@@ -166,10 +168,8 @@ public final class StageManager extends ObservableListBase<Stage> {
      * Opens a new {@link Modality#APPLICATION_MODAL} {@link StageStyle#UTILITY} window.
      *
      * @param content The {@link Scene#root} control for the new window.
-     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
-     * {@code StageManager}.
-     * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it
-     * is shown.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this {@code StageManager}.
+     * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if the {@code beforeShow} delegate throws an exception.
      * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
      * @throws NullPointerException if {@code content} is null.
@@ -182,8 +182,7 @@ public final class StageManager extends ObservableListBase<Stage> {
      * Opens a new {@link Modality#APPLICATION_MODAL} {@link StageStyle#UTILITY} window.
      *
      * @param content The {@link Scene#root} control for the new window.
-     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this
-     * {@code StageManager}.
+     * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this {@code StageManager}.
      * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
      * @throws NullPointerException if {@code content} is null.
      */
@@ -195,9 +194,8 @@ public final class StageManager extends ObservableListBase<Stage> {
      * Gets value indicating whether a {@link Stage} will be automatically un-registered with the {@code StageManager} when closed.
      *
      * @param stage The target {@link Stage}.
-     * @return An {@link Optional} {@code true} value if the {@link Stage} will be automatically un-registered when closed; An
-     * {@link Optional} {@code false} value if the {@link Stage} will remain registered when closed; Otherwise, an {@link Optional#EMPTY} value if the
-     * {@link Stage} is not registered with the {@code StageManager}.
+     * @return An {@link Optional} {@code true} value if the {@link Stage} will be automatically un-registered when closed; An {@link Optional} {@code false} value if the
+     * {@link Stage} will remain registered when closed; Otherwise, an {@link Optional#EMPTY} value if the {@link Stage} is not registered with the {@code StageManager}.
      */
     public static Optional<Boolean> getUnregisterWhenHidden(Stage stage) {
         ObservableMap<Object, Object> properties = stage.getProperties();
@@ -295,8 +293,7 @@ public final class StageManager extends ObservableListBase<Stage> {
      * Registers a stage so it will be added to this collection when it is visible and removed when it is not.
      *
      * @param stage The {@link Stage} to register.
-     * @param unregisterWhenHidden {@code true} to automatically unregister after the stage is hidden; otherwise {@code false} if it is to remain
-     * registered after it is hidden.
+     * @param unregisterWhenHidden {@code true} to automatically unregister after the stage is hidden; otherwise {@code false} if it is to remain registered after it is hidden.
      * @return {@code true} if the {@link Stage} was registered; otherwise, {@code false} if it was already registered.
      */
     public static boolean register(Stage stage, boolean unregisterWhenHidden) {
@@ -398,6 +395,7 @@ public final class StageManager extends ObservableListBase<Stage> {
     }
 
     private void onStageShown(WindowEvent event) {
+        LOG.entering(getClass().getName(), "onStageShown", event);
         Stage stage = (Stage) event.getSource();
         synchronized (backingList) {
             ifRegistered(stage, () -> {
@@ -414,6 +412,7 @@ public final class StageManager extends ObservableListBase<Stage> {
     }
 
     private void onStageHidden(WindowEvent event) {
+        LOG.entering(getClass().getName(), "onStageHidden", event);
         Stage stage = (Stage) event.getSource();
         synchronized (stage) {
             Optional<Boolean> unregisterWhenHidden = removeUnregisterWhenHidden(stage);

@@ -80,25 +80,30 @@ public class Overview extends VBox {
     }
 
     private void onByMonthHyperlinkAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onByMonthHyperlinkAction", event);
         ByMonth.loadIntoMainContent(LocalDate.now());
     }
 
     private void onByWeekHyperlinkAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onByWeekHyperlinkAction", event);
         ByWeek.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML
     private void onCountryListingHyperlinkAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onCountryListingHyperlinkAction", event);
         ManageCountries.loadIntoMainContent();
     }
 
     @FXML
     private void onCustomerListingHyperlinkAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onCustomerListingHyperlinkAction", event);
         ManageCustomers.loadIntoMainContent(CustomerModel.FACTORY.getDefaultFilter());
     }
 
     @FXML
     private void onNewAppointmentHyperlinkAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNewAppointmentHyperlinkAction", event);
         try {
             EditAppointment.editNew(null, null, getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -108,11 +113,13 @@ public class Overview extends VBox {
 
     @FXML
     private void onAppointmentListHyperlinkAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onAppointmentListHyperlinkAction", event);
         ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
     }
 
     @FXML
     private void onUserListingHyperlinkAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onUserListingHyperlinkAction", event);
         ManageUsers.loadIntoMainContent(UserModel.FACTORY.getDefaultFilter());
     }
 

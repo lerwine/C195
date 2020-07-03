@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.Observable;
 import javafx.beans.value.ObservableValue;
@@ -35,6 +36,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/HelpContent.fxml")
 public class HelpContent extends BorderPane {
 
+    private static final Logger LOG = Logger.getLogger(HelpContent.class.getName());
+
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
@@ -46,6 +49,7 @@ public class HelpContent extends BorderPane {
 
     @FXML
     private void onCloseButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onCloseButtonAction", event);
         hide();
     }
 

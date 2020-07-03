@@ -123,7 +123,7 @@ public class AppointmentAlert extends BorderPane {
     }
 
     private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.entering(getClass().getName(), "onAppointmentInserted", event);
         AppointmentDAO dao = event.getDataAccessObject();
         // XXX: Check for model
         LocalDateTime start = LocalDateTime.now();
@@ -149,7 +149,7 @@ public class AppointmentAlert extends BorderPane {
     }
 
     private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.entering(getClass().getName(), "onAppointmentUpdated", event);
         AppointmentDAO dao = event.getDataAccessObject();
         // XXX: Check for model
         int key = dao.getPrimaryKey();
@@ -199,7 +199,7 @@ public class AppointmentAlert extends BorderPane {
     }
 
     private synchronized void onAppointmentDeleted(AppointmentSuccessEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.entering(getClass().getName(), "onAppointmentDeleted", event);
         AppointmentDAO dao = event.getDataAccessObject();
         // XXX: Check for model
         int pk = dao.getPrimaryKey();
@@ -221,6 +221,7 @@ public class AppointmentAlert extends BorderPane {
 
     @FXML
     private void onDismissAllAppointmentAlerts(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onDismissAllAppointmentAlerts", event);
         dismissAll();
     }
 
@@ -259,6 +260,7 @@ public class AppointmentAlert extends BorderPane {
     }
 
     private void onWindowHidden(WindowEvent event) {
+        LOG.entering(getClass().getName(), "onWindowHidden", event);
         stop(true);
     }
 

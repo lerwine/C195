@@ -78,6 +78,7 @@ public class AppointmentConflictsControl extends BorderPane {
 
     @FXML
     void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onCloseConflictsBorderPaneButtonAction", event);
 
     }
 

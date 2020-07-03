@@ -177,7 +177,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         public CountryDAO createNew() {
             return new CountryDAO();
         }
-        
+
         public CountryDAO fromLocale(Locale locale) {
             CountryDAO result = new CountryDAO();
             result.setLocale(locale);
@@ -260,7 +260,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             }
             return result;
         }
-        
+
         public CountryDAO lookupCacheByRegionCode(String rc) {
             Iterator<CountryDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
@@ -293,7 +293,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.fine(() -> String.format("Adding %s to dispatch chain", CountryModel.FACTORY.getClass().getName()));
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 

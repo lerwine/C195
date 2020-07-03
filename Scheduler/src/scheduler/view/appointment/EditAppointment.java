@@ -258,7 +258,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked");
+        LOG.entering(getClass().getName(), "onCustomerDropDownOptionsButtonAction", event);
         editingUserOptions = false;
         if (showActiveCustomers.isPresent()) {
             dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -276,7 +276,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsCancelButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked");
+        LOG.entering(getClass().getName(), "onDropdownOptionsCancelButtonAction", event);
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -286,7 +286,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsOkButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked");
+        LOG.entering(getClass().getName(), "onDropdownOptionsOkButtonAction", event);
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -315,7 +315,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onIncludeRemoteCheckBoxAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked");
+        LOG.entering(getClass().getName(), "onIncludeRemoteCheckBoxAction", event);
         if (includeRemoteCheckBox.isSelected()) {
             remoteLocationList.forEach((t) -> {
                 if (!corporateLocationList.contains(t)) {
@@ -332,7 +332,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onUserDropDownOptionsButtonAction(ActionEvent event) {
-        LOG.fine(() -> "Handler invoked");
+        LOG.entering(getClass().getName(), "onUserDropDownOptionsButtonAction", event);
         editingUserOptions = true;
         if (showActiveUsers.isPresent()) {
             dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -698,6 +698,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
+        LOG.entering(getClass().getName(), "onAppointmentInserted", event);
         LOG.info(() -> String.format("Handling event %s", event));
         model.removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
         initializeEditMode();
@@ -710,7 +711,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.info(() -> String.format("Handling event %s", event));
+        LOG.entering(getClass().getName(), "onCustomerDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -720,7 +721,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onUserDeleted(UserSuccessEvent event) {
-        LOG.info(() -> String.format("Handling event %s", event));
+        LOG.entering(getClass().getName(), "onUserDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
             UserDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model

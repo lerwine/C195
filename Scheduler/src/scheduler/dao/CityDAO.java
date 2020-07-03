@@ -116,6 +116,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     }
 
     private void onCountryEvent(CountryEvent event) {
+        LOG.entering(getClass().getName(), "onCountryEvent", event);
         ICountryDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
             CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
@@ -615,6 +616,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         private void onCountryEvent(CountryEvent event) {
+            LOG.entering(getClass().getName(), "onCountryEvent", event);
             ICountryDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
                 CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);

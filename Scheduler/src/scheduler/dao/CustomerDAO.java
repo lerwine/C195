@@ -116,6 +116,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     }
 
     private void onAddressEvent(AddressEvent event) {
+        LOG.entering(getClass().getName(), "onAddressEvent", event);
         IAddressDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
             AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
@@ -558,6 +559,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         private void onAddressEvent(AddressEvent event) {
+            LOG.entering(getClass().getName(), "onAddressEvent", event);
             IAddressDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
                 AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);

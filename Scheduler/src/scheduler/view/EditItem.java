@@ -166,6 +166,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
 
     @FXML
     void onCancelButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onCancelButtonAction", event);
         Stage stage = (Stage) getScene().getWindow();
         ButtonType response;
         if (editorRegion.isModified()) {
@@ -191,6 +192,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     @SuppressWarnings("unchecked")
     void onDeleteButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onDeleteButtonAction", event);
         Stage stage = (Stage) getScene().getWindow();
         AlertHelper.showWarningAlert(stage, LOG,
                 resources.getString(RESOURCEKEY_CONFIRMDELETE),
@@ -214,6 +216,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     @FXML
     @SuppressWarnings({"incomplete-switch", "unchecked"})
     void onSaveButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onSaveButtonAction", event);
         editorRegion.applyChanges();
         DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(RecordModelContext.of(model));
         task.setOnSucceeded((e) -> {

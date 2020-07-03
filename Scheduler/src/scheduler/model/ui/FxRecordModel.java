@@ -259,6 +259,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
     public static abstract class FxModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> implements EventTarget {
 
+        private static final Logger LOG = Logger.getLogger(FxModelFactory.class.getName());
+
         private final EventHandlerManager eventHandlerManager;
 
         protected FxModelFactory(EventType<E> anyEventType) {
@@ -267,6 +269,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         private void handleOperationRequestEvent(E event) {
+            LOG.entering(getClass().getName(), "handleOperationRequestEvent", event);
             if (!event.isConsumed()) {
                 M model = event.getFxRecordModel();
                 if (null != model) {
@@ -325,7 +328,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            return getDaoFactory().buildEventDispatchChain(tail.append(eventHandlerManager));
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            return tail.append(eventHandlerManager);
         }
 
         /**

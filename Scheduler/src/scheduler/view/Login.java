@@ -89,11 +89,13 @@ public final class Login extends Scheduler.LoginBorderPane {
 
     @FXML
     private void onExitButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onExitButtonAction", event);
         getScene().getWindow().hide();
     }
 
     @FXML
     private void onLoginButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onLoginButtonAction", event);
         tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
     }
 

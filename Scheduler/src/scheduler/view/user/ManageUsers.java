@@ -71,26 +71,31 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @FXML
     private void filterButtonClick(ActionEvent event) {
+        LOG.entering(getClass().getName(), "filterButtonClick", event);
         restoreNode(userFilterBorderPane);
     }
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
     }
 
     @FXML
     private void onUserFilterCancelButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onUserFilterCancelButtonAction", event);
         userFilterBorderPane.setVisible(false);
     }
 
     @FXML
     private void onUserFilterOKButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onUserFilterOKButtonAction", event);
         if (inactiveUsersRadioButton.isSelected()) {
             setFilter(UserModelFilter.inactive());
         } else if (allUsersRadioButton.isSelected()) {

@@ -124,6 +124,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     private void onCustomerEvent(CustomerEvent event) {
+        LOG.entering(getClass().getName(), "onCustomerEvent", event);
         ICustomerDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
             CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
@@ -160,6 +161,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     private void onUserEvent(UserEvent event) {
+        LOG.entering(getClass().getName(), "onUserEvent", event);
         IUserDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
             UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);

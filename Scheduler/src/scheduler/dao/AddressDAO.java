@@ -135,6 +135,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     private void onCityEvent(CityEvent event) {
+        LOG.entering(getClass().getName(), "onCityEvent", event);
         ICityDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
             CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
@@ -692,6 +693,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         private void onCityEvent(CityEvent event) {
+            LOG.entering(getClass().getName(), "onCityEvent", event);
             ICityDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
                 CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);

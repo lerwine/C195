@@ -137,36 +137,43 @@ public final class MainController {
 
     @FXML
     private void onAllAppointmentsMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onAllAppointmentsMenuItemAction", event);
         ManageAppointments.loadIntoMainContent(AppointmentModel.FACTORY.getAllItemsFilter());
     }
 
     @FXML
     private void onByRegionMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onByRegionMenuItemAction", event);
         replaceContent(new AppointmentsByRegion());
     }
 
     @FXML
     private void onConsultantScheduleMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onConsultantScheduleMenuItemAction", event);
         replaceContent(new ConsultantSchedule());
     }
 
     @FXML
     private void onTypesByMonthMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onTypesByMonthMenuItemAction", event);
         replaceContent(new AppointmentTypesByMonth());
     }
 
     @FXML
     private void onManageCustomersMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onManageCustomersMenuItemAction", event);
         ManageCustomers.loadIntoMainContent(CustomerModel.FACTORY.getDefaultFilter());
     }
 
     @FXML
     private void onManageUsersMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onManageUsersMenuItemAction", event);
         ManageUsers.loadIntoMainContent(UserModel.FACTORY.getDefaultFilter());
     }
 
     @FXML
     private void onNewAddressMenuItem(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNewAddressMenuItem", event);
         try {
             EditAddress.editNew(null, contentView.getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -176,6 +183,7 @@ public final class MainController {
 
     @FXML
     private void onNewAppointmentMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNewAppointmentMenuItemAction", event);
         try {
             EditAppointment.editNew(null, null, contentView.getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -185,6 +193,7 @@ public final class MainController {
 
     @FXML
     private void onNewCustomerMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNewCustomerMenuItemAction", event);
         try {
             EditCustomer.editNew(null, contentView.getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -194,6 +203,7 @@ public final class MainController {
 
     @FXML
     private void onNewUserMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNewUserMenuItemAction", event);
         try {
             EditUser.editNew(contentView.getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -203,26 +213,31 @@ public final class MainController {
 
     @FXML
     private void onManageAddressesMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onManageAddressesMenuItemAction", event);
         ManageCountries.loadIntoMainContent();
     }
 
     @FXML
     private void onMyCurrentAndFutureAppointmentsMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onMyCurrentAndFutureAppointmentsMenuItemAction", event);
         ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
     }
 
     @FXML
     private void onOverviewMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onOverviewMenuItemAction", event);
         replaceContent(new Overview());
     }
 
     @FXML
     private void onWeeklyCalendarMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onWeeklyCalendarMenuItemAction", event);
         ByWeek.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML
     private void onMonthlyCalendarMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onMonthlyCalendarMenuItemAction", event);
         ByMonth.loadIntoMainContent(LocalDate.now());
     }
 

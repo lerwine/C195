@@ -241,6 +241,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML
     private void onAddAppointmentButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onAddAppointmentButtonAction", event);
         try {
             EditAppointment.editNew(model, null, getScene().getWindow(), false);
         } catch (IOException ex) {
@@ -251,6 +252,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
+        LOG.entering(getClass().getName(), "onAppointmentsTableViewTableViewKeyReleased", event);
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             AppointmentModel item;
             switch (event.getCode()) {
@@ -272,6 +274,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML
     private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onDeleteAppointmentMenuItemAction", event);
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             deleteItem(RecordModelContext.of(item));
@@ -280,6 +283,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML
     private void onEditAppointmentMenuItemAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onEditAppointmentMenuItemAction", event);
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             editItem(item);
@@ -313,6 +317,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(AppointmentOpRequestEvent event) {
+        LOG.entering(getClass().getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
                 EditAppointment.edit(event.getFxRecordModel(), getScene().getWindow());
@@ -326,6 +331,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML
     private void onNewCityButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNewCityButtonAction", event);
         CityModel c;
         try {
             c = EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
@@ -357,6 +363,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML
     private void onNewCountryButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNewCountryButtonAction", event);
         CountryModel c;
         try {
             c = EditCountry.editNew(getScene().getWindow(), false);
@@ -372,6 +379,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onAppointmentFilterComboBoxAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onAppointmentFilterComboBoxAction", event);
         waitBorderPane.startNow(new AppointmentReloadTask());
     }
 
@@ -495,6 +503,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onCustomerInserted(CustomerSuccessEvent event) {
+        LOG.entering(getClass().getName(), "onCustomerInserted", event);
         model.removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
         restoreNode(appointmentFilterComboBox);
         restoreNode(appointmentsTableView);
@@ -506,7 +515,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onAppointmentAdded(AppointmentEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.entering(getClass().getName(), "onAppointmentAdded", event);
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -518,7 +527,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onAppointmentUpdated(AppointmentEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.entering(getClass().getName(), "onAppointmentUpdated", event);
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -537,7 +546,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     private void onAppointmentDeleted(AppointmentEvent event) {
-        LOG.fine(() -> String.format("%s event handled", event.getEventType().getName()));
+        LOG.entering(getClass().getName(), "onAppointmentDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
             AppointmentDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model

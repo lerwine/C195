@@ -48,6 +48,7 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.model.DataObject;
+import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
@@ -1109,14 +1110,17 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         @Override
         protected final E call(Connection connection) throws Exception {
+            LOG.entering(getClass().getName(), "call", connection);
             if (!validationSuccessful) {
+                LOG.fine("Validating");
                 E event = validate(connection);
                 if (null != event && event instanceof ModelFailedEvent) {
+                    LOG.fine(() -> String.format("Validation failed: %s", event));
                     return event;
                 }
                 validationSuccessful = true;
             }
-
+            LOG.fine("Validated");
             return (isCancelled()) ? null : onValidated(connection);
         }
 
@@ -1299,9 +1303,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @Override
         protected void succeeded() {
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
-            obj.acceptChanges();
-            obj.rowState = DataRowState.UNMODIFIED;
-            obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
+            E event = getValue();
+            LOG.fine(() -> String.format("Task succeeded: %s", event));
+            if (!(event instanceof ModelFailedEvent)) {
+                obj.acceptChanges();
+                obj.rowState = DataRowState.UNMODIFIED;
+                obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
+            }
             super.succeeded();
         }
 
@@ -1358,8 +1366,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
             DataAccessObject obj = (DataAccessObject) dao;
             obj.acceptChanges();
-            obj.rowState = DataRowState.DELETED;
-            dao.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             return createSuccessEvent();
         }
 
@@ -1373,9 +1379,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @Override
         protected void succeeded() {
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
-            obj.acceptChanges();
-            obj.rowState = DataRowState.DELETED;
-            obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
+            E event = getValue();
+            LOG.fine(() -> String.format("Task succeeded: %s", event));
+            if (!(event instanceof ModelFailedEvent)) {
+                obj.acceptChanges();
+                obj.rowState = DataRowState.DELETED;
+                obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
+            }
             super.succeeded();
         }
 
