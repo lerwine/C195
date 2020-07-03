@@ -169,11 +169,8 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                CustomerEvent result = task.getValue();
-                if (result instanceof CustomerFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((CustomerFailedEvent) result).getMessage(), ButtonType.OK);
-                }
+            task.addEventHandler(CustomerFailedEvent.DELETE_INVALID, (e) -> {
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
             });
             MainController.startBusyTaskNow(task);
         }

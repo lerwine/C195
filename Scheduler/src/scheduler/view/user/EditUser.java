@@ -234,11 +234,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
-            task.setOnSucceeded((e) -> {
-                AppointmentEvent result = task.getValue();
-                if (result instanceof AppointmentFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((AppointmentFailedEvent) result).getMessage(), ButtonType.OK);
-                }
+            task.addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
             });
             waitBorderPane.startNow(task);
         }

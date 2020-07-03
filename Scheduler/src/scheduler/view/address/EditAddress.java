@@ -46,7 +46,6 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
-import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
@@ -109,7 +108,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
-    
+
     private static final Object TARGET_CITY_KEY = new Object();
 
     public static AddressModel editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {
@@ -282,11 +281,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                CustomerEvent result = task.getValue();
-                if (result instanceof CustomerFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((CustomerFailedEvent) result).getMessage(), ButtonType.OK);
-                }
+            task.addEventHandler(CustomerFailedEvent.DELETE_INVALID, (e) -> {
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
             });
             waitBorderPane.startNow(task);
         }

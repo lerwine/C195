@@ -166,11 +166,8 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                UserEvent result = task.getValue();
-                if (result instanceof UserFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((UserFailedEvent) result).getMessage(), ButtonType.OK);
-                }
+            task.addEventHandler(UserFailedEvent.DELETE_INVALID, (e) -> {
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
             });
             MainController.startBusyTaskNow(task);
         }
