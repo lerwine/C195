@@ -124,7 +124,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     private void onCustomerEvent(CustomerEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerEvent", event);
+        LOG.entering(LOG.getName(), "onCustomerEvent", event);
         ICustomerDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
             CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
@@ -161,7 +161,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     private void onUserEvent(UserEvent event) {
-        LOG.entering(getClass().getName(), "onUserEvent", event);
+        LOG.entering(LOG.getName(), "onUserEvent", event);
         IUserDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
             UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
@@ -350,7 +350,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return AppointmentAlertManager.INSTANCE.buildEventDispatchChain(FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail)));
     }
 
@@ -791,7 +791,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 

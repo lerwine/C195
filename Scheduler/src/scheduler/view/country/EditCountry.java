@@ -150,7 +150,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @SuppressWarnings("incomplete-switch")
     @FXML
     private void onCitiesTableViewKeyReleased(KeyEvent event) {
-        LOG.entering(getClass().getName(), "onCitiesTableViewKeyReleased", event);
+        LOG.entering(LOG.getName(), "onCitiesTableViewKeyReleased", event);
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             CityModel item;
             switch (event.getCode()) {
@@ -172,7 +172,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML
     private void onCityDeleteMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCityDeleteMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onCityDeleteMenuItemAction", event);
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             deleteItem(RecordModelContext.of(item));
@@ -181,7 +181,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML
     private void onCityEditMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCityEditMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onCityEditMenuItemAction", event);
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             editItem(item);
@@ -191,7 +191,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CityOpRequestEvent event) {
-        LOG.entering(getClass().getName(), "onItemActionRequest", event);
+        LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
                 EditCity.edit(event.getFxRecordModel(), getScene().getWindow());
@@ -205,14 +205,14 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     @FXML
     private void onLocaleComboBoxAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onLocaleComboBoxAction", event);
+        LOG.entering(LOG.getName(), "onLocaleComboBoxAction", event);
         valid.set(null != selectedLocale.get());
         modified.set(!Objects.equals(selectedLocale.get(), model.getLocale()));
     }
 
     @FXML
     private void onNewButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onNewButtonAction", event);
+        LOG.entering(LOG.getName(), "onNewButtonAction", event);
         try {
             EditCity.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -288,7 +288,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCountryInserted(CountrySuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCountryInserted", event);
+        LOG.entering(LOG.getName(), "onCountryInserted", event);
         model.removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, insertedHandler);
         restoreNode(citiesLabel);
         restoreNode(citiesTableView);
@@ -305,7 +305,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityAdded(CitySuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCityAdded", event);
+        LOG.entering(LOG.getName(), "onCityAdded", event);
         CityModel m = event.getFxRecordModel();
         if (null == m) {
             CityDAO dao = event.getDataAccessObject();
@@ -318,7 +318,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityUpdated(CitySuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCityUpdated", event);
+        LOG.entering(LOG.getName(), "onCityUpdated", event);
         CityModel item = event.getFxRecordModel();
         if (null == item) {
             CityDAO dao = event.getDataAccessObject();
@@ -345,7 +345,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     private void onCityDeleted(CityEvent event) {
-        LOG.entering(getClass().getName(), "onCityDeleted", event);
+        LOG.entering(LOG.getName(), "onCityDeleted", event);
         int pk = event.getDataAccessObject().getPrimaryKey();
         itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> itemList.remove(t));
     }

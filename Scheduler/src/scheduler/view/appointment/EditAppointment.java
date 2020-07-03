@@ -259,7 +259,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerDropDownOptionsButtonAction", event);
+        LOG.entering(LOG.getName(), "onCustomerDropDownOptionsButtonAction", event);
         editingUserOptions = false;
         if (showActiveCustomers.isPresent()) {
             dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -277,7 +277,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsCancelButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onDropdownOptionsCancelButtonAction", event);
+        LOG.entering(LOG.getName(), "onDropdownOptionsCancelButtonAction", event);
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -287,7 +287,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onDropdownOptionsOkButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onDropdownOptionsOkButtonAction", event);
+        LOG.entering(LOG.getName(), "onDropdownOptionsOkButtonAction", event);
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
@@ -316,7 +316,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onIncludeRemoteCheckBoxAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onIncludeRemoteCheckBoxAction", event);
+        LOG.entering(LOG.getName(), "onIncludeRemoteCheckBoxAction", event);
         if (includeRemoteCheckBox.isSelected()) {
             remoteLocationList.forEach((t) -> {
                 if (!corporateLocationList.contains(t)) {
@@ -333,7 +333,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     @FXML
     private void onUserDropDownOptionsButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onUserDropDownOptionsButtonAction", event);
+        LOG.entering(LOG.getName(), "onUserDropDownOptionsButtonAction", event);
         editingUserOptions = true;
         if (showActiveUsers.isPresent()) {
             dropdownOptions.selectToggle((showActiveUsers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
@@ -699,7 +699,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAppointmentInserted", event);
+        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
         model.removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
         initializeEditMode();
     }
@@ -711,7 +711,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerDeleted", event);
+        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -721,7 +721,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     private void onUserDeleted(UserSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onUserDeleted", event);
+        LOG.entering(LOG.getName(), "onUserDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
             UserDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model

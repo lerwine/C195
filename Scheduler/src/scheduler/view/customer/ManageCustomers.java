@@ -74,31 +74,31 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @FXML
     private void filterButtonClick(ActionEvent event) {
-        LOG.entering(getClass().getName(), "filterButtonClick", event);
+        LOG.entering(LOG.getName(), "filterButtonClick", event);
         restoreNode(customerFilterBorderPane);
     }
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onHelpButtonAction", event);
+        LOG.entering(LOG.getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onHelpOKButtonAction", event);
+        LOG.entering(LOG.getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
     }
 
     @FXML
     private void onCustomerFilterCancelButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerFilterCancelButtonAction", event);
+        LOG.entering(LOG.getName(), "onCustomerFilterCancelButtonAction", event);
         customerFilterBorderPane.setVisible(false);
     }
 
     @FXML
     private void onCustomerFilterOKButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerFilterOKButtonAction", event);
+        LOG.entering(LOG.getName(), "onCustomerFilterOKButtonAction", event);
         if (inactiveCustomersRadioButton.isSelected()) {
             setFilter(CustomerModelFilter.inactive());
         } else if (allCustomersRadioButton.isSelected()) {

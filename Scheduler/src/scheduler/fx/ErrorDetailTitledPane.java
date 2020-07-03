@@ -131,7 +131,7 @@ public final class ErrorDetailTitledPane extends TitledPane {
 
     @FXML
     private void onCopyErrorMessageAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "nameSearchTextFieldChange", event);
+        LOG.entering(LOG.getName(), "nameSearchTextFieldChange", event);
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(errorMessageTextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -139,7 +139,7 @@ public final class ErrorDetailTitledPane extends TitledPane {
 
     @FXML
     private void onCopyErrorTypeAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "nameSearchTextFieldChange", event);
+        LOG.entering(LOG.getName(), "nameSearchTextFieldChange", event);
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(errorTypeLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -147,7 +147,7 @@ public final class ErrorDetailTitledPane extends TitledPane {
 
     @FXML
     private void onCopyProperty1Action(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCopyProperty1Action", event);
+        LOG.entering(LOG.getName(), "onCopyProperty1Action", event);
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(property1TextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -155,7 +155,7 @@ public final class ErrorDetailTitledPane extends TitledPane {
 
     @FXML
     private void onCopyProperty2Action(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCopyProperty2Action", event);
+        LOG.entering(LOG.getName(), "onCopyProperty2Action", event);
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(property2TextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -163,7 +163,7 @@ public final class ErrorDetailTitledPane extends TitledPane {
 
     @FXML
     private void onCopyProperty3Action(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCopyProperty3Action", event);
+        LOG.entering(LOG.getName(), "onCopyProperty3Action", event);
         final ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(property3TextLabel.getText());
         Clipboard.getSystemClipboard().setContent(clipboardContent);

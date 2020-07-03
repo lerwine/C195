@@ -213,7 +213,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return tail.append(eventHandlerManager);
     }
 
@@ -274,7 +274,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         private void handleOperationRequestEvent(E event) {
-            LOG.entering(getClass().getName(), "handleOperationRequestEvent", event);
+            LOG.entering(LOG.getName(), "handleOperationRequestEvent", event);
             if (!event.isConsumed()) {
                 M model = event.getFxRecordModel();
                 if (null != model) {
@@ -334,7 +334,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return tail.append(eventHandlerManager);
         }
 

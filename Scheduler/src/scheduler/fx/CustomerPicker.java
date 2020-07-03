@@ -208,14 +208,14 @@ public class CustomerPicker extends BorderPane {
 
     @FXML
     private void cancelButtonClick(ActionEvent event) {
-        LOG.entering(getClass().getName(), "cancelButtonClick", event);
+        LOG.entering(LOG.getName(), "cancelButtonClick", event);
         selectedCustomer = null;
         ((Node) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
     private void nameSearchTextFieldChange(ActionEvent event) {
-        LOG.entering(getClass().getName(), "nameSearchTextFieldChange", event);
+        LOG.entering(LOG.getName(), "nameSearchTextFieldChange", event);
         filterCustomers();
     }
 
@@ -245,13 +245,13 @@ public class CustomerPicker extends BorderPane {
 
     @FXML
     private void selectCustomerButtonClick(ActionEvent event) {
-        LOG.entering(getClass().getName(), "selectCustomerButtonClick", event);
+        LOG.entering(LOG.getName(), "selectCustomerButtonClick", event);
         ((Node) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
     private void countryFilterCheckBoxChange(ActionEvent event) {
-        LOG.entering(getClass().getName(), "countryFilterCheckBoxChange", event);
+        LOG.entering(LOG.getName(), "countryFilterCheckBoxChange", event);
         if (countryFilterCheckBox.isSelected()) {
             cityFilterCheckBox.setDisable(false);
             countryComboBox.setDisable(false);
@@ -275,7 +275,7 @@ public class CustomerPicker extends BorderPane {
 
     @FXML
     private void countryComboBoxChange(ActionEvent event) {
-        LOG.entering(getClass().getName(), "countryComboBoxChange", event);
+        LOG.entering(LOG.getName(), "countryComboBoxChange", event);
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
@@ -287,7 +287,7 @@ public class CustomerPicker extends BorderPane {
 
     @FXML
     private void cityFilterCheckBoxChange(ActionEvent event) {
-        LOG.entering(getClass().getName(), "cityFilterCheckBoxChange", event);
+        LOG.entering(LOG.getName(), "cityFilterCheckBoxChange", event);
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
@@ -310,7 +310,7 @@ public class CustomerPicker extends BorderPane {
 
     @FXML
     private void cityComboBoxChange(ActionEvent event) {
-        LOG.entering(getClass().getName(), "cityComboBoxChange", event);
+        LOG.entering(LOG.getName(), "cityComboBoxChange", event);
         if (countryFilterCheckBox.isSelected() && cityFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {
@@ -326,7 +326,7 @@ public class CustomerPicker extends BorderPane {
 
     @FXML
     private void statusComboBoxChange(ActionEvent event) {
-        LOG.entering(getClass().getName(), "statusComboBoxChange", event);
+        LOG.entering(LOG.getName(), "statusComboBoxChange", event);
         if (countryFilterCheckBox.isSelected()) {
             CountryModel country = countryComboBox.getSelectionModel().getSelectedItem();
             if (null != country) {

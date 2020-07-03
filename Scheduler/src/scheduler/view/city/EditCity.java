@@ -193,7 +193,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML
     void onAddAddressButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onAddAddressButtonAction", event);
+        LOG.entering(LOG.getName(), "onAddAddressButtonAction", event);
         try {
             EditAddress.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -203,7 +203,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML
     void onAddressDeleteMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onAddressDeleteMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onAddressDeleteMenuItemAction", event);
         AddressModel item = addressesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             deleteItem(RecordModelContext.of(item));
@@ -212,7 +212,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML
     void onAddressEditMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onAddressEditMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onAddressEditMenuItemAction", event);
         AddressModel item = addressesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             editItem(item);
@@ -222,7 +222,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML
     @SuppressWarnings("incomplete-switch")
     void onAddressesTableViewKeyReleased(KeyEvent event) {
-        LOG.entering(getClass().getName(), "onAddressesTableViewKeyReleased", event);
+        LOG.entering(LOG.getName(), "onAddressesTableViewKeyReleased", event);
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             AddressModel item;
             switch (event.getCode()) {
@@ -244,21 +244,21 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML
     void onCountryComboBoxAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCountryComboBoxAction", event);
+        LOG.entering(LOG.getName(), "onCountryComboBoxAction", event);
         onChange(nameTextField.getText());
         onZoneOptionChange(selectedCountry.get());
     }
 
     @FXML
     void onTimeZoneComboBoxAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onTimeZoneComboBoxAction", event);
+        LOG.entering(LOG.getName(), "onTimeZoneComboBoxAction", event);
         onChange(nameTextField.getText());
     }
 
     @FXML
     @SuppressWarnings("incomplete-switch")
     void onItemActionRequest(AddressOpRequestEvent event) {
-        LOG.entering(getClass().getName(), "onItemActionRequest", event);
+        LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
                 EditAddress.edit(event.getFxRecordModel(), getScene().getWindow());
@@ -272,7 +272,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML
     void onNewCountryButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onNewCountryButtonAction", event);
+        LOG.entering(LOG.getName(), "onNewCountryButtonAction", event);
         CountryModel c;
         try {
             c = EditCountry.editNew(getScene().getWindow(), false);
@@ -289,7 +289,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     @FXML
     void onShowAllTimeZonesCheckBoxAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onShowAllTimeZonesCheckBoxAction", event);
+        LOG.entering(LOG.getName(), "onShowAllTimeZonesCheckBoxAction", event);
         CountryModel country = selectedCountry.get();
         if (null != country) {
             onZoneOptionChange(country);
@@ -374,7 +374,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     private void onCityInserted(CitySuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCityInserted", event);
+        LOG.entering(LOG.getName(), "onCityInserted", event);
         model.removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, insertedHandler);
         restoreNode(addressesLabel);
         restoreNode(addressesTableView);
@@ -458,7 +458,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     private void onAddressAdded(AddressSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAddressAdded", event);
+        LOG.entering(LOG.getName(), "onAddressAdded", event);
         if (model.getRowState() != DataRowState.NEW) {
             AddressDAO dao = event.getDataAccessObject();
             if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
@@ -468,7 +468,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     private void onAddressUpdated(AddressSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAddressUpdated", event);
+        LOG.entering(LOG.getName(), "onAddressUpdated", event);
         if (model.getRowState() != DataRowState.NEW) {
             AddressDAO dao = event.getDataAccessObject();
             int pk = dao.getPrimaryKey();
@@ -484,7 +484,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     private void onAddressDeleted(AddressSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAddressDeleted", event);
+        LOG.entering(LOG.getName(), "onAddressDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
             AddressDAO dao = event.getDataAccessObject();
             int pk = dao.getPrimaryKey();

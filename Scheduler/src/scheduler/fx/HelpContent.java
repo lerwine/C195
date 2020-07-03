@@ -52,7 +52,7 @@ public class HelpContent extends BorderPane {
 
     @FXML
     private void onCloseButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCloseButtonAction", event);
+        LOG.entering(LOG.getName(), "onCloseButtonAction", event);
         hide();
     }
 

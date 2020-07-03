@@ -146,7 +146,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML
     private void onDeleteMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onDeleteMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onDeleteMenuItemAction", event);
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             onDeleteItem(RecordModelContext.of(item));
@@ -155,7 +155,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML
     private void onEditMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onEditMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onEditMenuItemAction", event);
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             onEditItem(item);
@@ -164,7 +164,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML
     private void onItemActionRequest(OperationRequestEvent<D, M> event) {
-        LOG.entering(getClass().getName(), "onItemActionRequest", event);
+        LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             onEditItem(event.getFxRecordModel());
         } else {
@@ -175,7 +175,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onListingTableViewKeyReleased(KeyEvent event) {
-        LOG.entering(getClass().getName(), "onListingTableViewKeyReleased", event);
+        LOG.entering(LOG.getName(), "onListingTableViewKeyReleased", event);
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             M item;
             switch (event.getCode()) {
@@ -197,7 +197,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML
     private void onNewButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onNewButtonAction", event);
+        LOG.entering(LOG.getName(), "onNewButtonAction", event);
         onNewItem();
     }
 
@@ -257,7 +257,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     protected void onInsertedEvent(E event) {
-        LOG.entering(getClass().getName(), "onInsertedEvent", event);
+        LOG.entering(LOG.getName(), "onInsertedEvent", event);
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
             D dao = event.getDataAccessObject();
@@ -269,7 +269,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     protected void onUpdatedEvent(E event) {
-        LOG.entering(getClass().getName(), "onUpdatedEvent", event);
+        LOG.entering(LOG.getName(), "onUpdatedEvent", event);
         D dao = event.getDataAccessObject();
         // XXX: Check to see if we need to get/update model
         FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
@@ -291,7 +291,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     protected void onDeletedEvent(E event) {
-        LOG.entering(getClass().getName(), "onDeletedEvent", event);
+        LOG.entering(LOG.getName(), "onDeletedEvent", event);
         if (!items.isEmpty()) {
             D dao = event.getDataAccessObject();
             getModelFactory().find(items, dao).ifPresent((t) -> items.remove(t));

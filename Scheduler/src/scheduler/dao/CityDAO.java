@@ -116,7 +116,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     }
 
     private void onCountryEvent(CountryEvent event) {
-        LOG.entering(getClass().getName(), "onCountryEvent", event);
+        LOG.entering(LOG.getName(), "onCountryEvent", event);
         ICountryDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
             CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
@@ -160,7 +160,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -414,7 +414,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 //        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -572,18 +572,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 case 0:
                     break;
                 case 1:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return CityEvent.createInsertInvalidEvent(this, this,
-                                ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
-                    }
-                    return CityEvent.createUpdateInvalidEvent(this, this,
+                    return CityEvent.createDeleteInvalidEvent(this, this,
                             ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
                 default:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return CityEvent.createInsertInvalidEvent(this, this,
-                                ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
-                    }
-                    return CityEvent.createUpdateInvalidEvent(this, this,
+                    return CityEvent.createDeleteInvalidEvent(this, this,
                             ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
             }
 
@@ -625,7 +617,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         private void onCountryEvent(CountryEvent event) {
-            LOG.entering(getClass().getName(), "onCountryEvent", event);
+            LOG.entering(LOG.getName(), "onCountryEvent", event);
             ICountryDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
                 CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);

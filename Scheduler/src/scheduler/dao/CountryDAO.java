@@ -110,7 +110,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -293,7 +293,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -419,15 +419,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 case 0:
                     break;
                 case 1:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return CountryEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
-                    }
-                    return CountryEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                    return CountryEvent.createDeleteInvalidEvent(this, this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
                 default:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return CountryEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
-                    }
-                    return CountryEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+                    return CountryEvent.createDeleteInvalidEvent(this, this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
             }
             return null;
         }

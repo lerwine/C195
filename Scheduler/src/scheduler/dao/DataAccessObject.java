@@ -292,7 +292,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return tail.append(eventHandlerManager);
     }
 
@@ -771,7 +771,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return tail.append(eventHandlerManager);
         }
 
@@ -1124,7 +1124,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         @Override
         protected final E call(Connection connection) throws Exception {
-            LOG.entering(getClass().getName(), "call", connection);
+            LOG.entering(LOG.getName(), "call", connection);
             if (!validationSuccessful) {
                 LOG.fine("Validating");
                 E event = validate(connection);

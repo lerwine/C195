@@ -138,7 +138,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -327,7 +327,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 //        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -443,10 +443,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         protected UserEvent validate(Connection connection) throws Exception {
             UserDAO dao = getDataAccessObject();
             if (dao == Scheduler.getCurrentUser()) {
-                if (getOriginalRowState() == DataRowState.NEW) {
-                    return UserEvent.createInsertInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
-                }
-                return UserEvent.createUpdateInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
+                return UserEvent.createDeleteInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
             }
 
             int count;
@@ -460,15 +457,9 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 case 0:
                     break;
                 case 1:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return UserEvent.createInsertInvalidEvent(this, this, REFERENCED_BY_ONE);
-                    }
-                    return UserEvent.createUpdateInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return UserEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
                 default:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return UserEvent.createInsertInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
-                    }
-                    return UserEvent.createUpdateInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return UserEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
             }
             return null;
         }

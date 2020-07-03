@@ -223,7 +223,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onCustomerDeleteMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerDeleteMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onCustomerDeleteMenuItemAction", event);
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             onDelete(RecordModelContext.of(item));
@@ -232,7 +232,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onCustomerEditMenuItemAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerEditMenuItemAction", event);
+        LOG.entering(LOG.getName(), "onCustomerEditMenuItemAction", event);
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             onEdit(item);
@@ -242,7 +242,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onCustomersTableViewKeyReleased(KeyEvent event) {
-        LOG.entering(getClass().getName(), "onCustomersTableViewKeyReleased", event);
+        LOG.entering(LOG.getName(), "onCustomersTableViewKeyReleased", event);
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             CustomerModel item;
             switch (event.getCode()) {
@@ -264,7 +264,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onEditCityButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onEditCityButtonAction", event);
+        LOG.entering(LOG.getName(), "onEditCityButtonAction", event);
         editingCity.set(true);
     }
 
@@ -295,7 +295,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CustomerOpRequestEvent event) {
-        LOG.entering(getClass().getName(), "onItemActionRequest", event);
+        LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             onEdit(event.getFxRecordModel());
         } else {
@@ -305,7 +305,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onNewCityButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onNewCityButtonAction", event);
+        LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
         CityModel c;
         try {
             c = EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
@@ -328,7 +328,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML
     private void onNewCustomerButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onNewCustomerButtonAction", event);
+        LOG.entering(LOG.getName(), "onNewCustomerButtonAction", event);
         try {
             EditCustomer.editNew(model, getScene().getWindow(), true);
         } catch (IOException ex) {
@@ -432,7 +432,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void onAddressInserted(AddressSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAddressInserted", event);
+        LOG.entering(LOG.getName(), "onAddressInserted", event);
         model.removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
         editingCity.set(false);
         restoreNode(customersHeadingLabel);
@@ -449,7 +449,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void onCustomerAdded(CustomerSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerAdded", event);
+        LOG.entering(LOG.getName(), "onCustomerAdded", event);
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -460,7 +460,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void onCustomerUpdated(CustomerSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerUpdated", event);
+        LOG.entering(LOG.getName(), "onCustomerUpdated", event);
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
@@ -477,7 +477,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onCustomerDeleted", event);
+        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
             CustomerDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model

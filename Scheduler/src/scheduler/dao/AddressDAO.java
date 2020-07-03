@@ -135,7 +135,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     private void onCityEvent(CityEvent event) {
-        LOG.entering(getClass().getName(), "onCityEvent", event);
+        LOG.entering(LOG.getName(), "onCityEvent", event);
         ICityDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
             CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
@@ -208,7 +208,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -460,7 +460,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -649,15 +649,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 case 0:
                     break;
                 case 1:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return AddressEvent.createInsertInvalidEvent(this, this, REFERENCED_BY_ONE);
-                    }
-                    return AddressEvent.createUpdateInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return AddressEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
                 default:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return AddressEvent.createInsertInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
-                    }
-                    return AddressEvent.createUpdateInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return AddressEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
             }
 
             return null;
@@ -702,7 +696,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         private void onCityEvent(CityEvent event) {
-            LOG.entering(getClass().getName(), "onCityEvent", event);
+            LOG.entering(LOG.getName(), "onCityEvent", event);
             ICityDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
                 CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);

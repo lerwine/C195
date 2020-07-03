@@ -154,7 +154,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @FXML
     private void filterButtonClick(ActionEvent event) {
-        LOG.entering(getClass().getName(), "filterButtonClick", event);
+        LOG.entering(LOG.getName(), "filterButtonClick", event);
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "This method is not implemented");
         alert.initStyle(StageStyle.UTILITY);
         alert.initOwner((Stage) ((Button) event.getSource()).getScene().getWindow());
@@ -171,7 +171,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @FXML
     private void onExportButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onExportButtonAction", event);
+        LOG.entering(LOG.getName(), "onExportButtonAction", event);
         Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
         FileChooser fc = new FileChooser();
         ObservableList<FileChooser.ExtensionFilter> filterList = fc.getExtensionFilters();
@@ -445,13 +445,13 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onHelpButtonAction", event);
+        LOG.entering(LOG.getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onHelpOKButtonAction", event);
+        LOG.entering(LOG.getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
     }
 

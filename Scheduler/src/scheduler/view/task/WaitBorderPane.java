@@ -52,7 +52,7 @@ public final class WaitBorderPane extends BorderPane {
     }
 
     private void onRunning(WaitTitledPaneEvent event) {
-        LOG.entering(getClass().getName(), "onRunning", event);
+        LOG.entering(LOG.getName(), "onRunning", event);
         WaitTitledPane pane = event.getTarget();
         waitAccordion.getPanes().add(pane);
         restoreNode(this);
@@ -80,14 +80,14 @@ public final class WaitBorderPane extends BorderPane {
     }
 
     private void onSucceeded(WaitTitledPaneEvent event) {
-        LOG.entering(getClass().getName(), "onSucceeded", event);
+        LOG.entering(LOG.getName(), "onSucceeded", event);
         WaitTitledPane pane = event.getTarget();
         removeEventHandlers(pane);
         removePane(pane);
     }
 
     private void onCanceled(WaitTitledPaneEvent event) {
-        LOG.entering(getClass().getName(), "onCanceled", event);
+        LOG.entering(LOG.getName(), "onCanceled", event);
         ObservableList<TitledPane> panes = waitAccordion.getPanes();
         WaitTitledPane oldPane = event.getTarget();
         removeEventHandlers(oldPane);
@@ -105,7 +105,7 @@ public final class WaitBorderPane extends BorderPane {
     }
 
     private void onFailed(WaitTitledPaneEvent event) {
-        LOG.entering(getClass().getName(), "onFailed", event);
+        LOG.entering(LOG.getName(), "onFailed", event);
         ObservableList<TitledPane> panes = waitAccordion.getPanes();
         WaitTitledPane oldPane = event.getTarget();
         removeEventHandlers(oldPane);

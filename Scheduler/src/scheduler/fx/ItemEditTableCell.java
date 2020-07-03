@@ -69,7 +69,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
     }
 
     private void onEditButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onEditButtonAction", event);
+        LOG.entering(LOG.getName(), "onEditButtonAction", event);
         M item = getItem();
         if (null != item) {
             @SuppressWarnings("unchecked")
@@ -80,7 +80,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onDeleteButtonAction", event);
+        LOG.entering(LOG.getName(), "onDeleteButtonAction", event);
         M item = getItem();
         if (null != item) {
             @SuppressWarnings("unchecked")

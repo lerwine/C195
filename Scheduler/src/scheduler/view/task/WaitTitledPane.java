@@ -72,7 +72,7 @@ public final class WaitTitledPane extends TitledPane {
 
     @FXML
     private synchronized void onCancelButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onCancelButtonAction", event);
+        LOG.entering(LOG.getName(), "onCancelButtonAction", event);
         cancelButton.setDisable(true);
         if (null == currentTask) {
             return;
@@ -93,7 +93,7 @@ public final class WaitTitledPane extends TitledPane {
     }
 
     private void onRunning(WorkerStateEvent event) {
-        LOG.entering(getClass().getName(), "onRunning", event);
+        LOG.entering(LOG.getName(), "onRunning", event);
         Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task started", task.getTitle()));
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.RUNNING);
@@ -102,7 +102,7 @@ public final class WaitTitledPane extends TitledPane {
     }
 
     private void onFailed(WorkerStateEvent event) {
-        LOG.entering(getClass().getName(), "onFailed", event);
+        LOG.entering(LOG.getName(), "onFailed", event);
         removeTaskEventHandlers();
         Task<?> task = (Task<?>) event.getSource();
         LOG.log(Level.SEVERE, String.format("Background task %s failed", task.getTitle()), task.getException());
@@ -112,7 +112,7 @@ public final class WaitTitledPane extends TitledPane {
     }
 
     private void onSucceeded(WorkerStateEvent event) {
-        LOG.entering(getClass().getName(), "onSucceeded", event);
+        LOG.entering(LOG.getName(), "onSucceeded", event);
         removeTaskEventHandlers();
         Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task succeeded", task.getTitle()));
@@ -122,7 +122,7 @@ public final class WaitTitledPane extends TitledPane {
     }
 
     private void onCanceled(WorkerStateEvent event) {
-        LOG.entering(getClass().getName(), "onCanceled", event);
+        LOG.entering(LOG.getName(), "onCanceled", event);
         removeTaskEventHandlers();
         Task<?> task = (Task<?>) event.getSource();
         LOG.warning(() -> String.format("%s task canceled", task.getTitle()));

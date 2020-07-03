@@ -116,7 +116,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     }
 
     private void onAddressEvent(AddressEvent event) {
-        LOG.entering(getClass().getName(), "onAddressEvent", event);
+        LOG.entering(LOG.getName(), "onAddressEvent", event);
         IAddressDAO newValue = event.getDataAccessObject();
         if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
             AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
@@ -165,7 +165,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -366,7 +366,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -520,15 +520,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 case 0:
                     break;
                 case 1:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return CustomerEvent.createInsertInvalidEvent(this, this, REFERENCED_BY_ONE);
-                    }
-                    return CustomerEvent.createUpdateInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return CustomerEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
                 default:
-                    if (getOriginalRowState() == DataRowState.NEW) {
-                        return CustomerEvent.createInsertInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
-                    }
-                    return CustomerEvent.createUpdateInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return CustomerEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
             }
             return null;
         }
@@ -568,7 +562,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         private void onAddressEvent(AddressEvent event) {
-            LOG.entering(getClass().getName(), "onAddressEvent", event);
+            LOG.entering(LOG.getName(), "onAddressEvent", event);
             IAddressDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
                 AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);

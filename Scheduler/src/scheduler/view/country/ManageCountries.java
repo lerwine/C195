@@ -62,13 +62,13 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onHelpButtonAction", event);
+        LOG.entering(LOG.getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onHelpOKButtonAction", event);
+        LOG.entering(LOG.getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
     }
 

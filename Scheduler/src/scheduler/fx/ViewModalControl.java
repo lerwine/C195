@@ -431,7 +431,7 @@ public class ViewModalControl extends Control {
 
         @Override
         public void handle(ActionEvent event) {
-            LOG.entering(getClass().getName(), "handle", event);
+            LOG.entering(LOG.getName(), "handle", event);
             hide(type);
         }
 

@@ -73,7 +73,7 @@ public class ByMonth extends StackPane {
 
     @FXML
     private void onRunButtonAction(ActionEvent event) {
-        LOG.entering(getClass().getName(), "onRunButtonAction", event);
+        LOG.entering(LOG.getName(), "onRunButtonAction", event);
         monthNameLabel.setText(monthComboBox.getValue());
         loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1);
     }

@@ -89,7 +89,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
+        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
         return tail.append(eventHandlerManager);
     }
 
@@ -163,7 +163,7 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAppointmentInserted", event);
+        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
         // XXX: Check to see if we need to get model, instead
         if (checkInsert(event.getDataAccessObject(), true)) {
             alerting.set(true);
@@ -171,7 +171,7 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private void onAppointmentUpdated(AppointmentSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAppointmentUpdated", event);
+        LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
         // XXX: Check to see if we need to get model, instead
         if (checkUpdate(event.getDataAccessObject(), true)) {
             alerting.set(!alertingList.isEmpty());
@@ -179,7 +179,7 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private void onAppointmentDeleted(AppointmentSuccessEvent event) {
-        LOG.entering(getClass().getName(), "onAppointmentDeleted", event);
+        LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
         // XXX: Check to see if we need to get model, instead
         if (checkDelete(event.getDataAccessObject().getPrimaryKey())) {
             alerting.set(false);

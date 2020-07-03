@@ -106,7 +106,7 @@ public final class StageManager extends ObservableListBase<Stage> {
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                LOG.entering(getClass().getName(), "handle", event);
+                LOG.entering(LOG.getName(), "handle", event);
                 synchronized (INSTANCE.backingList) {
                     if (null != INSTANCE.showingStage && INSTANCE.showingStage == stage) {
                         INSTANCE.showingStage = null;
@@ -147,7 +147,7 @@ public final class StageManager extends ObservableListBase<Stage> {
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                LOG.entering(getClass().getName(), "handle", event);
+                LOG.entering(LOG.getName(), "handle", event);
                 synchronized (INSTANCE.backingList) {
                     if (null != INSTANCE.showingStage && INSTANCE.showingStage == stage) {
                         INSTANCE.showingStage = null;
@@ -395,7 +395,7 @@ public final class StageManager extends ObservableListBase<Stage> {
     }
 
     private void onStageShown(WindowEvent event) {
-        LOG.entering(getClass().getName(), "onStageShown", event);
+        LOG.entering(LOG.getName(), "onStageShown", event);
         Stage stage = (Stage) event.getSource();
         synchronized (backingList) {
             ifRegistered(stage, () -> {
@@ -412,7 +412,7 @@ public final class StageManager extends ObservableListBase<Stage> {
     }
 
     private void onStageHidden(WindowEvent event) {
-        LOG.entering(getClass().getName(), "onStageHidden", event);
+        LOG.entering(LOG.getName(), "onStageHidden", event);
         Stage stage = (Stage) event.getSource();
         synchronized (stage) {
             Optional<Boolean> unregisterWhenHidden = removeUnregisterWhenHidden(stage);
