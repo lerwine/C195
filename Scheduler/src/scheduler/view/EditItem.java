@@ -230,7 +230,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                 switch (result.getOperation()) {
                     case DB_INSERT:
                         if (keepOpen) {
-                            LOG.fine(() -> String.format("Firing %s on %s", e, editorRegion.getClass().getName()));
+                            LOG.fine(() -> String.format("Firing %s%n\ton %s", e, editorRegion.getClass().getName()));
                             editorRegion.fireEvent(e);
                         } else {
                             getScene().getWindow().hide();

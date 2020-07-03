@@ -97,7 +97,7 @@ public final class WaitTitledPane extends TitledPane {
         Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task started", task.getTitle()));
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.RUNNING);
-        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
     }
 
@@ -107,7 +107,7 @@ public final class WaitTitledPane extends TitledPane {
         Task<?> task = (Task<?>) event.getSource();
         LOG.log(Level.SEVERE, String.format("Background task %s failed", task.getTitle()), task.getException());
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, (Task<?>) event.getSource(), WaitTitledPaneEvent.FAILED);
-        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
     }
 
@@ -117,7 +117,7 @@ public final class WaitTitledPane extends TitledPane {
         Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task succeeded", task.getTitle()));
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.SUCCEEDED);
-        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
     }
 
@@ -127,7 +127,7 @@ public final class WaitTitledPane extends TitledPane {
         Task<?> task = (Task<?>) event.getSource();
         LOG.warning(() -> String.format("%s task canceled", task.getTitle()));
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.CANCELED);
-        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
     }
 

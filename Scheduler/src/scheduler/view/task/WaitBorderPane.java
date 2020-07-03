@@ -97,7 +97,7 @@ public final class WaitBorderPane extends BorderPane {
                 NodeUtil.createButtonBar(NodeUtil.createButton("OK", (e) -> {
                     removePane(newPane);
                     WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.CANCEL_ACK);
-                    LOG.fine(() -> String.format("Firing %s on %s", ev, oldPane.getClass().getName()));
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, oldPane.getClass().getName()));
                     oldPane.fireEvent(ev);
                 }))));
         panes.set(panes.indexOf(oldPane), newPane);
@@ -116,14 +116,14 @@ public final class WaitBorderPane extends BorderPane {
             Logger.getLogger(WaitBorderPane.class.getName()).log(Level.SEVERE, "Error creating detail pane", ex);
             removePane(oldPane);
             WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK);
-            LOG.fine(() -> String.format("Firing %s on %s", ev, oldPane.getClass().getName()));
+            LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, oldPane.getClass().getName()));
             oldPane.fireEvent(ev);
             return;
         }
         newPane.setOnAction((e) -> {
             removePane(newPane);
             WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK);
-            LOG.fine(() -> String.format("Firing %s on %s", ev, oldPane.getClass().getName()));
+            LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, oldPane.getClass().getName()));
             oldPane.fireEvent(ev);
         });
         panes.set(panes.indexOf(oldPane), newPane);

@@ -196,7 +196,7 @@ public class ViewModalControl extends Control {
 
     private void fireOnHidden(ButtonType button) {
         ViewModalEvent event = new ViewModalEvent(this, content.get(), button);
-        LOG.fine(() -> String.format("Firing %s on %s", event, getClass().getName()));
+        LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getClass().getName()));
         fireEvent(event);
     }
 
