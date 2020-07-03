@@ -270,15 +270,15 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         protected FxModelFactory(EventType<E> anyEventType) {
             eventHandlerManager = new EventHandlerManager(this);
-            eventHandlerManager.addEventHandler(anyEventType, this::handleOperationRequestEvent);
+            eventHandlerManager.addEventHandler(anyEventType, this::onModelEvent);
         }
 
-        private void handleOperationRequestEvent(E event) {
-            LOG.entering(LOG.getName(), "handleOperationRequestEvent", event);
+        private void onModelEvent(E event) {
+            LOG.entering(LOG.getName(), "onModelEvent", event);
             if (!event.isConsumed()) {
                 M model = event.getFxRecordModel();
                 if (null != model) {
-                    LOG.fine(() -> String.format("Firing %s on %s", event, model));
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, model));
                     Event.fireEvent(model, event);
                 }
             }
