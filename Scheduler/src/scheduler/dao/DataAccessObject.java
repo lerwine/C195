@@ -917,6 +917,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return finalEvent.getReadOnlyProperty();
         }
 
+        @Override
+        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            return getDataAccessObject().buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
         /**
          * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
          *
@@ -972,13 +977,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try {
                     finalEvent.set(event);
                 } finally {
-                    try {
-                        LOG.fine(() -> String.format("Firing %s on %s", event, this));
-                        fireEvent(event);
-                    } finally {
-                        LOG.fine(() -> String.format("Firing %s on %s", event, getDataAccessObject()));
-                        Event.fireEvent(getDataAccessObject(), event);
-                    }
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, this));
+                    fireEvent(event);
                 }
             }
         }
@@ -991,13 +991,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try {
                     finalEvent.set(event);
                 } finally {
-                    try {
-                        LOG.fine(() -> String.format("Firing %s on %s", event, this));
-                        fireEvent(event);
-                    } finally {
-                        LOG.fine(() -> String.format("Firing %s on %s", event, getDataAccessObject()));
-                        Event.fireEvent(getDataAccessObject(), event);
-                    }
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, this));
+                    fireEvent(event);
                 }
             }
         }
@@ -1010,13 +1005,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 try {
                     finalEvent.set(event);
                 } finally {
-                    try {
-                        LOG.fine(() -> String.format("Firing %s on %s", event, this));
-                        fireEvent(event);
-                    } finally {
-                        LOG.fine(() -> String.format("Firing %s on %s", event, getDataAccessObject()));
-                        Event.fireEvent(getDataAccessObject(), event);
-                    }
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, this));
+                    fireEvent(event);
                 }
             }
         }
@@ -1322,12 +1312,26 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
             E event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
-            if (!(event instanceof ModelFailedEvent)) {
+            if (event instanceof ModelFailedEvent) {
+                obj.rejectChanges();
+            } else {
                 obj.acceptChanges();
                 obj.rowState = DataRowState.UNMODIFIED;
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             }
             super.succeeded();
+        }
+
+        @Override
+        protected void cancelled() {
+            ((DataAccessObject) getDataAccessObject()).rejectChanges();
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            ((DataAccessObject) getDataAccessObject()).rejectChanges();
+            super.failed();
         }
 
     }
@@ -1401,12 +1405,26 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
             E event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
-            if (!(event instanceof ModelFailedEvent)) {
+            if (event instanceof ModelFailedEvent) {
+                obj.rejectChanges();
+            } else {
                 obj.acceptChanges();
                 obj.rowState = DataRowState.DELETED;
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             }
             super.succeeded();
+        }
+
+        @Override
+        protected void cancelled() {
+            ((DataAccessObject) getDataAccessObject()).rejectChanges();
+            super.cancelled();
+        }
+
+        @Override
+        protected void failed() {
+            ((DataAccessObject) getDataAccessObject()).rejectChanges();
+            super.failed();
         }
 
     }
