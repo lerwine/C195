@@ -125,13 +125,11 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                CountryEvent result = task.getValue();
-                if (result instanceof CountryFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((CountryFailedEvent) result).getMessage(), ButtonType.OK);
-                }
+            task.addEventHandler(CountryFailedEvent.DELETE_INVALID, (e) -> {
+                LOG.info(() -> String.format("Delete failed; %s", e));
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((CountryFailedEvent) e).getMessage(), ButtonType.OK);
             });
-            MainController.startBusyTaskNow(new CountryDAO.DeleteTask(item, false));
+            MainController.startBusyTaskNow(task);
         }
     }
 
