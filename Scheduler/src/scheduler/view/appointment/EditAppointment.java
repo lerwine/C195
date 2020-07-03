@@ -699,7 +699,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.entering(getClass().getName(), "onAppointmentInserted", event);
-        LOG.info(() -> String.format("Handling event %s", event));
         model.removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
         initializeEditMode();
     }

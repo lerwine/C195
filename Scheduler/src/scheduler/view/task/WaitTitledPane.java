@@ -114,6 +114,7 @@ public final class WaitTitledPane extends TitledPane {
     }
 
     private void onCanceled(WorkerStateEvent event) {
+        LOG.entering(getClass().getName(), "onCanceled", event);
         removeTaskEventHandlers();
         Task<?> task = (Task<?>) event.getSource();
         LOG.warning(() -> String.format("%s task canceled", task.getTitle()));
