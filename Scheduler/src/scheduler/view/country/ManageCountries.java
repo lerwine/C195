@@ -25,6 +25,7 @@ import scheduler.model.CountryProperties;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 import scheduler.util.AlertHelper;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
@@ -42,7 +43,8 @@ import static scheduler.view.country.ManageCountriesResourceKeys.*;
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
 public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryEvent> {
 
-    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCountries.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
 
     public static ManageCountries loadIntoMainContent(ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> filter) {
         ManageCountries newContent = new ManageCountries();

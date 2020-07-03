@@ -165,7 +165,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -366,7 +366,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.fine(() -> String.format("Adding %s to dispatch chain", CustomerModel.FACTORY.getClass().getName()));
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -382,6 +382,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     }
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
@@ -487,6 +490,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     public static final class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
 
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
+
         private static final String REFERENCED_BY_ONE = "Customer is referenced by one appointment.";
         private static final String REFERENCED_BY_N = "Customer is referenced by %d other appointments.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
@@ -540,6 +546,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     }
 
     public static class Related extends PropertyBindable implements ICustomerDAO {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Related.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Related.class.getName());
 
         private final String name;
         private IAddressDAO address;

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.fx;
 
 import java.io.IOException;
@@ -38,6 +33,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import scheduler.util.LogHelper;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -51,7 +47,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/ViewModalControl.fxml")
 public class ViewModalControl extends Control {
 
-    private static final Logger LOG = Logger.getLogger(ViewModalControl.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewModalControl.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ViewModalControl.class.getName());
 
     @FXML // fx:id="backingBorderPane"
     private BorderPane backingBorderPane; // Value injected by FXMLLoader
@@ -111,7 +108,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Gets the title displayed along the top.
-     * 
+     *
      * @return The title displayed along the top.
      */
     public String getTitle() {
@@ -120,7 +117,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Sets the title displayed along the top.
-     * 
+     *
      * @param value The title to be displayed along the top.
      */
     public void setTitle(String value) {
@@ -133,7 +130,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Gets the center content node.
-     * 
+     *
      * @return The center content node.
      */
     public Node getContent() {
@@ -142,7 +139,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Sets the center content node.
-     * 
+     *
      * @param value The new center content node.
      */
     public void setContent(Node value) {
@@ -155,7 +152,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Gets the button types displayed along the bottom.
-     * 
+     *
      * @return The button types displayed along the bottom.
      */
     public ObservableList<ButtonType> getButtonTypes() {
@@ -164,7 +161,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Gets the button types to be displayed along the bottom.
-     * 
+     *
      * @param value The button types to be displayed along the bottom.
      */
     public void setButtonTypes(ObservableList<ButtonType> value) {
@@ -177,7 +174,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Gets the event handler that will be called when the view modal control is hidden.
-     * 
+     *
      * @return The event handler that will be called when the view modal control is hidden.
      */
     public EventHandler<ViewModalEvent> getOnHidden() {
@@ -186,7 +183,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Sets the event handler that will be called when the view modal control is hidden.
-     * 
+     *
      * @param value The event handler that will be called when the view modal control is hidden.
      */
     public void setOnHidden(EventHandler<ViewModalEvent> value) {
@@ -196,20 +193,22 @@ public class ViewModalControl extends Control {
     public ObjectProperty<EventHandler<ViewModalEvent>> onHiddenProperty() {
         return onHidden;
     }
-    
+
     private void fireOnHidden(ButtonType button) {
-        fireEvent(new ViewModalEvent(this, content.get(), button));
+        ViewModalEvent event = new ViewModalEvent(this, content.get(), button);
+        LOG.fine(() -> String.format("Firing %s on %s", event, getClass().getName()));
+        fireEvent(event);
     }
 
     /**
      * Displays a JavaFX node as modal content.
-     * 
+     *
      * @param title The title to be displayed along the top.
      * @param source The content to be displayed.
      * @param onHidden The event handler that will be called when the view modal control is hidden.
      * @param button The button types to be displayed along the bottom.
      */
-    public synchronized void show(String title, Node source, EventHandler<ViewModalEvent> onHidden, ButtonType ...button) {
+    public synchronized void show(String title, Node source, EventHandler<ViewModalEvent> onHidden, ButtonType... button) {
         Objects.requireNonNull(source);
         if (null != showingHandler) {
             setContent(null);
@@ -218,16 +217,17 @@ public class ViewModalControl extends Control {
         }
         showingHandler = onHidden;
         buttonTypes.set(FXCollections.observableArrayList(button));
-        if (null != onHidden)
+        if (null != onHidden) {
             addEventHandler(ViewModalEvent.VIEW_MODAL, onHidden);
+        }
         setTitle(title);
         setContent(source);
         setVisible(true);
     }
-    
+
     /**
      * Loads FXML and displays it as modal content.
-     * 
+     *
      * @param <T> The content node type.
      * @param title The title to be displayed along the top.
      * @param fxmlResourceName The name of the FXML resource to load.
@@ -237,7 +237,7 @@ public class ViewModalControl extends Control {
      * @throws IOException If unable to load FXML resource.
      */
     public <T extends Node> T show(String title, String fxmlResourceName, EventHandler<ViewModalEvent> onHidden,
-            ButtonType ...button) throws IOException {
+            ButtonType... button) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlResourceName));
         T result = loader.load();
         show(title, result, onHidden, button);
@@ -246,13 +246,13 @@ public class ViewModalControl extends Control {
 
     /**
      * Displays a JavaFX text nodes as modal content.
-     * 
+     *
      * @param title The title to be displayed along the top.
      * @param iterator The text nodes to be displayed.
      * @param onHidden The event handler that will be called when the view modal control is hidden.
      * @param button The button types to be displayed along the bottom.
      */
-    public synchronized void show(String title, Iterator<Text> iterator, EventHandler<ViewModalEvent> onHidden, ButtonType ...button) {
+    public synchronized void show(String title, Iterator<Text> iterator, EventHandler<ViewModalEvent> onHidden, ButtonType... button) {
         Text t = iterator.next();
         while (null == t) {
             if (!iterator.hasNext()) {
@@ -271,17 +271,17 @@ public class ViewModalControl extends Control {
         }
         show(title, source, onHidden, button);
     }
-    
+
     /**
      * Displays a JavaFX text nodes as modal content.
-     * 
+     *
      * @param <T> The type of object containing the text nodes.
      * @param title The title to be displayed along the top.
      * @param source The text nodes to be displayed.
      * @param onHidden The event handler that will be called when the view modal control is hidden.
      * @param button The button types to be displayed along the bottom.
      */
-    public <T extends Iterable<Text>> void show(String title, T source, EventHandler<ViewModalEvent> onHidden, ButtonType ...button) {
+    public <T extends Iterable<Text>> void show(String title, T source, EventHandler<ViewModalEvent> onHidden, ButtonType... button) {
         if (null == source) {
             show(title, Collections.emptyIterator());
         } else {
@@ -291,13 +291,13 @@ public class ViewModalControl extends Control {
 
     /**
      * Displays a JavaFX text nodes as modal content.
-     * 
+     *
      * @param title The title to be displayed along the top.
      * @param source The text nodes to be displayed.
      * @param onHidden The event handler that will be called when the view modal control is hidden.
      * @param button The button types to be displayed along the bottom.
      */
-    public void show(String title, Stream<Text> source, EventHandler<ViewModalEvent> onHidden, ButtonType ...button) {
+    public void show(String title, Stream<Text> source, EventHandler<ViewModalEvent> onHidden, ButtonType... button) {
         if (null == source) {
             show(title, Collections.emptyIterator(), onHidden, button);
         } else {
@@ -307,7 +307,7 @@ public class ViewModalControl extends Control {
 
     /**
      * Loads FXML and displays it as modal content.
-     * 
+     *
      * @param <T> The content node type.
      * @param title The title to be displayed along the top.
      * @param fxmlResourceName The name of the FXML resource to load.
@@ -315,53 +315,53 @@ public class ViewModalControl extends Control {
      * @return The loaded content node.
      * @throws IOException If unable to load FXML resource.
      */
-    public <T extends Node> T show(String title, String fxmlResourceName, ButtonType ...button) throws IOException {
+    public <T extends Node> T show(String title, String fxmlResourceName, ButtonType... button) throws IOException {
         return show(title, fxmlResourceName, null, button);
     }
 
     /**
      * Displays a JavaFX text nodes as modal content.
-     * 
+     *
      * @param title The title to be displayed along the top.
      * @param iterator The text nodes to be displayed.
      * @param onHidden The event handler that will be called when the view modal control is hidden.
      * @param button The button types to be displayed along the bottom.
      */
-    private void show(String title, Iterator<Text> iterator, ButtonType ...button) {
+    private void show(String title, Iterator<Text> iterator, ButtonType... button) {
         show(title, iterator, null, button);
     }
 
     /**
      * Displays a JavaFX text nodes as modal content.
-     * 
+     *
      * @param <T> The type of object containing the text nodes.
      * @param title The title to be displayed along the top.
      * @param source The text nodes to be displayed.
      * @param button The button types to be displayed along the bottom.
      */
-    public <T extends Iterable<Text>> void show(String title, T source, ButtonType ...button) {
+    public <T extends Iterable<Text>> void show(String title, T source, ButtonType... button) {
         show(title, source, null, button);
     }
 
     /**
      * Displays a JavaFX text nodes as modal content.
-     * 
+     *
      * @param title The title to be displayed along the top.
      * @param source The text nodes to be displayed.
      * @param button The button types to be displayed along the bottom.
      */
-    public void show(String title, Stream<Text> source, ButtonType ...button) {
+    public void show(String title, Stream<Text> source, ButtonType... button) {
         show(title, source, null, button);
     }
 
     /**
      * Displays a JavaFX node as modal content.
-     * 
+     *
      * @param title The title to be displayed along the top.
      * @param source The content to be displayed.
      * @param button The button types to be displayed along the bottom.
      */
-    public void show(String title, Node source, ButtonType ...button) {
+    public void show(String title, Node source, ButtonType... button) {
         show(title, source, null, button);
     }
 
@@ -378,11 +378,14 @@ public class ViewModalControl extends Control {
 
     private void onOnHiddenChanged(ObservableValue<? extends EventHandler<ViewModalEvent>> observable, EventHandler<ViewModalEvent> oldValue,
             EventHandler<ViewModalEvent> newValue) {
-        if (null != oldValue)
+        if (null != oldValue) {
             removeEventHandler(ViewModalEvent.VIEW_MODAL, oldValue);
-        if (null != newValue)
+        }
+        if (null != newValue) {
             addEventHandler(ViewModalEvent.VIEW_MODAL, newValue);
+        }
     }
+
     private synchronized void onListChanged(Observable observable) {
         @SuppressWarnings("unchecked")
         ObservableList<ButtonType> items = ((ListProperty<ButtonType>) observable).get();

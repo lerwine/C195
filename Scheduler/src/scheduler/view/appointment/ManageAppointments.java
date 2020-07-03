@@ -55,6 +55,7 @@ import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.model.ui.UserItem;
 import scheduler.util.AlertHelper;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
@@ -92,7 +93,8 @@ import scheduler.view.export.TsvDataExporter;
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
 public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
-    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageAppointments.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
 
     public static ManageAppointments loadIntoMainContent(AppointmentModelFilter filter) {
         ManageAppointments newContent = new ManageAppointments();
@@ -524,7 +526,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
             task.setOnSucceeded((e) -> {
                 AppointmentEvent result = task.getValue();
                 if (result instanceof AppointmentFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((AppointmentFailedEvent)result).getMessage(), ButtonType.OK);
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((AppointmentFailedEvent) result).getMessage(), ButtonType.OK);
                 }
             });
             MainController.startBusyTaskNow(task);

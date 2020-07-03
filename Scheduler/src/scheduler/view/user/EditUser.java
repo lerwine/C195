@@ -102,6 +102,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
 public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel, UserEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
     public static UserModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
         UserModel.Factory factory = UserModel.FACTORY;

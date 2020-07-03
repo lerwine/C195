@@ -208,7 +208,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -460,7 +460,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.fine(() -> String.format("Adding %s to dispatch chain", AddressModel.FACTORY.getClass().getName()));
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -476,6 +476,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
@@ -616,6 +619,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     public static final class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
 
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
+
         private static final String REFERENCED_BY_N = "Address is referenced by %d other customers";
         private static final String REFERENCED_BY_ONE = "Address is referenced by one customer.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
@@ -670,6 +676,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     public static class Related extends PropertyBindable implements IAddressDAO {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Related.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Related.class.getName());
 
         private final int primaryKey;
         private final String address1;

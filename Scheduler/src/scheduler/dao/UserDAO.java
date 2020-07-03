@@ -138,7 +138,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -327,7 +327,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 //        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.fine(() -> String.format("Adding %s to dispatch chain", UserModel.FACTORY.getClass().getName()));
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -343,6 +343,9 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
         private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
@@ -418,6 +421,9 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
     }
 
     public static final class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         private static final String CANNOT_DELETE_YOUR_OWN_ACCOUNT = "Cannot delete your own account";
         private static final String REFERENCED_BY_N = "Address is referenced by %d other appointments";

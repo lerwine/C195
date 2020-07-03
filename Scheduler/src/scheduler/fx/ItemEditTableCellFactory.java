@@ -83,6 +83,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return tail.append(eventHandlerManager);
     }
 

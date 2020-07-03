@@ -30,6 +30,7 @@ import scheduler.events.OperationRequestEvent;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
@@ -92,7 +93,9 @@ import scheduler.view.ModelFilter;
  */
 public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends StackPane {
 
-    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
+
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
     private final ObservableList<M> items;
 

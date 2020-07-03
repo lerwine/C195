@@ -160,7 +160,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -414,7 +414,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 //        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.fine(() -> String.format("Adding %s to dispatch chain", CityModel.FACTORY.getClass().getName()));
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
@@ -430,6 +430,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     }
 
     public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
 
@@ -543,6 +546,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     public static final class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
 
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
+
         public DeleteTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
             super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
@@ -597,6 +603,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     }
 
     public static final class Related extends PropertyBindable implements ICityDAO {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Related.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Related.class.getName());
 
         private final int primaryKey;
         private final String name;

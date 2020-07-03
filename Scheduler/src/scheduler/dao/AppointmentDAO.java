@@ -350,7 +350,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.fine(() -> String.format("Adding %s and %s to dispatch chain", AppointmentAlertManager.INSTANCE.getClass().getName(), FACTORY.getClass().getName()));
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return AppointmentAlertManager.INSTANCE.buildEventDispatchChain(FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail)));
     }
 
@@ -791,7 +791,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.fine(() -> String.format("Adding %s to dispatch chain", AppointmentModel.FACTORY.getClass().getName()));
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 

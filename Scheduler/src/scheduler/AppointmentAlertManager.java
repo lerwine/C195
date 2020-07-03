@@ -27,6 +27,7 @@ import scheduler.model.ui.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DB;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import scheduler.util.Tuple;
 
 /**
@@ -36,7 +37,8 @@ import scheduler.util.Tuple;
  */
 public class AppointmentAlertManager implements EventTarget {
 
-    private static final Logger LOG = Logger.getLogger(AppointmentAlertManager.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlertManager.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AppointmentAlertManager.class.getName());
 
     public static final AppointmentAlertManager INSTANCE = new AppointmentAlertManager();
 
@@ -87,6 +89,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return tail.append(eventHandlerManager);
     }
 

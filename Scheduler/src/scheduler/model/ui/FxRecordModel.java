@@ -34,6 +34,7 @@ import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
+import scheduler.util.LogHelper;
 import scheduler.view.ModelFilter;
 
 /**
@@ -56,7 +57,9 @@ import scheduler.view.ModelFilter;
  */
 public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRecordModel<T>, EventTarget {
 
-    private static final Logger LOG = Logger.getLogger(FxRecordModel.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxRecordModel.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(FxRecordModel.class.getName());
+
     /**
      * The name of the 'newRow' property.
      */
@@ -210,6 +213,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return tail.append(eventHandlerManager);
     }
 
@@ -259,7 +263,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
     public static abstract class FxModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> implements EventTarget {
 
-        private static final Logger LOG = Logger.getLogger(FxModelFactory.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxModelFactory.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(FxModelFactory.class.getName());
 
         private final EventHandlerManager eventHandlerManager;
 
@@ -273,6 +278,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             if (!event.isConsumed()) {
                 M model = event.getFxRecordModel();
                 if (null != model) {
+                    LOG.fine(() -> String.format("Firing %s on %s", event, model));
                     Event.fireEvent(model, event);
                 }
             }

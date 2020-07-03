@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.fx;
 
 import java.io.IOException;
@@ -34,6 +29,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javax.xml.bind.JAXBException;
+import scheduler.util.LogHelper;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.addCssClass;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -52,7 +48,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/ErrorDetailTitledPane.fxml")
 public final class ErrorDetailTitledPane extends TitledPane {
 
-    private static final Logger LOG = Logger.getLogger(ErrorDetailTitledPane.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ErrorDetailTitledPane.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ErrorDetailTitledPane.class.getName());
 
     public static ErrorDetailTitledPane of(String heading, String message, Throwable error, int maxDepth) throws IOException {
         ErrorDetailTitledPane result = new ErrorDetailTitledPane();

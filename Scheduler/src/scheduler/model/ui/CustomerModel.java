@@ -1,6 +1,8 @@
 package scheduler.model.ui;
 
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -26,6 +28,7 @@ import scheduler.model.RecordModelContext;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
@@ -78,7 +81,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     public String getMultiLineAddress() {
         return multiLineAddress.get();
     }
-    
+
     @Override
     public ReadOnlyStringProperty multiLineAddressProperty() {
         return multiLineAddress;
@@ -266,6 +269,9 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
         private Factory() {
             super(CustomerEvent.CUSTOMER_EVENT_TYPE);

@@ -19,6 +19,7 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.StackPane;
 import scheduler.Scheduler;
 import scheduler.model.ui.AppointmentModel;
+import scheduler.util.LogHelper;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -32,7 +33,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/appointment/ByMonth.fxml")
 public class ByMonth extends StackPane {
 
-    private static final Logger LOG = Logger.getLogger(ByMonth.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ByMonth.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ByMonth.class.getName());
 
     public static ByMonth loadIntoMainContent(LocalDate month) {
         ByMonth newContent = new ByMonth();

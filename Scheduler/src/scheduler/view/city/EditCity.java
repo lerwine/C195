@@ -106,6 +106,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     private static final Object TARGET_COUNTRY_KEY = new Object();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
     public static CityModel edit(CityModel model, Window parentWindow) throws IOException {
         return EditItem.showAndWait(parentWindow, EditCity.class, model, false);

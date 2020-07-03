@@ -104,8 +104,9 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
 public final class EditAppointment extends StackPane implements EditItem.ModelEditor<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
-
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
+    
     public static AppointmentModel editNew(CustomerItem<? extends Customer> customer, UserItem<? extends User> user,
             Window parentWindow, boolean keepOpen) throws IOException {
         AppointmentModel.Factory factory = AppointmentModel.FACTORY;

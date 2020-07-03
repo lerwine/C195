@@ -26,6 +26,7 @@ import scheduler.model.Customer;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.AlertHelper;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -43,7 +44,8 @@ import static scheduler.view.customer.ManageCustomersResourceKeys.*;
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
 public final class ManageCustomers extends MainListingControl<CustomerDAO, CustomerModel, CustomerEvent> {
 
-    private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCustomers.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
     public static ManageCustomers loadIntoMainContent(CustomerModelFilter filter) {
         ManageCustomers newContent = new ManageCustomers();

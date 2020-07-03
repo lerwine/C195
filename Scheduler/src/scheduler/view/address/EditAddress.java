@@ -108,7 +108,8 @@ import scheduler.view.task.WaitTitledPane;
 public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel, AddressEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINER);
-
+//    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
+    
     private static final Object TARGET_CITY_KEY = new Object();
 
     public static AddressModel editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.Observable;
@@ -21,6 +22,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainResourceKeys;
@@ -36,7 +38,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/HelpContent.fxml")
 public class HelpContent extends BorderPane {
 
-    private static final Logger LOG = Logger.getLogger(HelpContent.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(HelpContent.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(HelpContent.class.getName());
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;

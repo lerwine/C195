@@ -2,6 +2,8 @@ package scheduler.model.ui;
 
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -37,6 +39,7 @@ import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.LogHelper;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
@@ -396,7 +399,9 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
     public final static class Factory extends FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> {
 
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
+
         // Singleton
         private Factory() {
             super(AddressEvent.ADDRESS_EVENT_TYPE);

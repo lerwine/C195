@@ -74,7 +74,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
         if (null != item) {
             @SuppressWarnings("unchecked")
             E e = (E) factory.createEditRequestEvent(item, event.getSource());
-            LOG.fine(() -> String.format("Firing event %s", e.toString()));
+            LOG.fine(() -> String.format("Firing %s on %s", e, getClass().getName()));
             fireEvent(e);
         }
     }
@@ -85,7 +85,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
         if (null != item) {
             @SuppressWarnings("unchecked")
             E e = (E) factory.createDeleteRequestEvent(item, event.getSource());
-            LOG.fine(() -> String.format("Firing event %s", e.toString()));
+            LOG.fine(() -> String.format("Firing %s on %s", e, getClass().getName()));
             fireEvent(e);
         }
     }

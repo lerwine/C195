@@ -2,6 +2,8 @@ package scheduler.model.ui;
 
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -32,6 +34,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.ModelFilter;
@@ -191,6 +194,9 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<CityDAO, CityModel, CityEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
         // Singleton
         private Factory() {

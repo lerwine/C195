@@ -27,6 +27,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CANCELLING;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CLOSE;
 import static scheduler.AppResourceKeys.RESOURCEKEY_NOFN;
 import static scheduler.AppResourceKeys.RESOURCEKEY_PLEASEWAIT;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
@@ -42,7 +43,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/task/WaitTitledPane.fxml")
 public final class WaitTitledPane extends TitledPane {
 
-    private static final Logger LOG = Logger.getLogger(WaitTitledPane.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WaitTitledPane.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(WaitTitledPane.class.getName());
 
     private Task<?> currentTask;
 
@@ -94,7 +96,9 @@ public final class WaitTitledPane extends TitledPane {
         LOG.entering(getClass().getName(), "onRunning", event);
         Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task started", task.getTitle()));
-        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.RUNNING));
+        WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.RUNNING);
+        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        fireEvent(ev);
     }
 
     private void onFailed(WorkerStateEvent event) {
@@ -102,7 +106,9 @@ public final class WaitTitledPane extends TitledPane {
         removeTaskEventHandlers();
         Task<?> task = (Task<?>) event.getSource();
         LOG.log(Level.SEVERE, String.format("Background task %s failed", task.getTitle()), task.getException());
-        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, (Task<?>) event.getSource(), WaitTitledPaneEvent.FAILED));
+        WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, (Task<?>) event.getSource(), WaitTitledPaneEvent.FAILED);
+        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        fireEvent(ev);
     }
 
     private void onSucceeded(WorkerStateEvent event) {
@@ -110,7 +116,9 @@ public final class WaitTitledPane extends TitledPane {
         removeTaskEventHandlers();
         Task<?> task = (Task<?>) event.getSource();
         LOG.finer(() -> String.format("%s task succeeded", task.getTitle()));
-        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.SUCCEEDED));
+        WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.SUCCEEDED);
+        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        fireEvent(ev);
     }
 
     private void onCanceled(WorkerStateEvent event) {
@@ -118,7 +126,9 @@ public final class WaitTitledPane extends TitledPane {
         removeTaskEventHandlers();
         Task<?> task = (Task<?>) event.getSource();
         LOG.warning(() -> String.format("%s task canceled", task.getTitle()));
-        fireEvent(new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.CANCELED));
+        WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.CANCELED);
+        LOG.fine(() -> String.format("Firing %s on %s", ev, getClass().getName()));
+        fireEvent(ev);
     }
 
     public WaitTitledPane addOnDone(EventHandler<WaitTitledPaneEvent> eventHandler) {

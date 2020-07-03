@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -31,6 +32,7 @@ import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -63,7 +65,8 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/EditItem.fxml")
 public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
 
-    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
     /**
      * Opens a new window for editing an {@link FxRecordModel} item.
@@ -227,6 +230,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                 switch (result.getOperation()) {
                     case DB_INSERT:
                         if (keepOpen) {
+                            LOG.fine(() -> String.format("Firing %s on %s", e, editorRegion.getClass().getName()));
                             editorRegion.fireEvent(e);
                         } else {
                             getScene().getWindow().hide();

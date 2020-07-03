@@ -50,8 +50,8 @@ import scheduler.view.user.ManageUsers;
  * <p>
  * This controller will remain active from the time the user is logged in until the application exits.</p>
  * <p>
- * All data object create, update and delete operations should be initiated through this controller. This allows dynamically loaded views to be
- * notified of changes, if necessary.</p>
+ * All data object create, update and delete operations should be initiated through this controller. This allows dynamically loaded views to be notified of changes, if
+ * necessary.</p>
  * <p>
  * The associated view is {@code /resources/scheduler/view/MainView.fxml}.</p>
  *
@@ -62,6 +62,7 @@ import scheduler.view.user.ManageUsers;
 public final class MainController {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainController.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(MainController.class.getName());
 
     public static void startBusyTaskNow(WaitTitledPane waitTitledPane, Task<?> task) {
         Scheduler.getMainController().waitBorderPane.startNow(waitTitledPane, task);

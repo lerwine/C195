@@ -57,6 +57,7 @@ import scheduler.dao.filter.TextFilterType;
 import scheduler.model.Address;
 import scheduler.observables.StringBindingProperty;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreErrorLabeled;
@@ -77,7 +78,8 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")
 public final class EditAppointmentFilter extends BorderPane {
 
-    private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointmentFilter.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
 
     private static <T extends DataAccessObject, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {
         if (null == obj) {

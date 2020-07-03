@@ -110,7 +110,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.fine(() -> String.format("Adding %s to dispatch chain", FACTORY.getClass().getName()));
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
     }
 
@@ -310,6 +310,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
     public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel, CountryEvent> {
 
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
+
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking country naming conflicts";
 
         public SaveTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
@@ -387,6 +390,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     }
 
     public static final class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 

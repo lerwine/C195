@@ -24,6 +24,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.OverviewResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
@@ -46,7 +47,8 @@ import scheduler.view.user.ManageUsers;
 @FXMLResource("/scheduler/view/Overview.fxml")
 public class Overview extends VBox {
 
-    private static final Logger LOG = Logger.getLogger(Overview.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Overview.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(Overview.class.getName());
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;

@@ -12,6 +12,7 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ErrorDetailTitledPane;
+import scheduler.util.LogHelper;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.addCssClass;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -29,7 +30,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/task/WaitBorderPane.fxml")
 public final class WaitBorderPane extends BorderPane {
 
-    private static final Logger LOG = Logger.getLogger(WaitBorderPane.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WaitBorderPane.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(WaitBorderPane.class.getName());
 
     @FXML
     private Accordion waitAccordion;
@@ -94,7 +96,9 @@ public final class WaitBorderPane extends BorderPane {
         newPane.setContent(NodeUtil.createCompactVBox(NodeUtil.createLabel("Operation canceled."),
                 NodeUtil.createButtonBar(NodeUtil.createButton("OK", (e) -> {
                     removePane(newPane);
-                    oldPane.fireEvent(new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.CANCEL_ACK));
+                    WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.CANCEL_ACK);
+                    LOG.fine(() -> String.format("Firing %s on %s", ev, oldPane.getClass().getName()));
+                    oldPane.fireEvent(ev);
                 }))));
         panes.set(panes.indexOf(oldPane), newPane);
         newPane.setExpanded(true);
@@ -111,12 +115,16 @@ public final class WaitBorderPane extends BorderPane {
         } catch (IOException ex) {
             Logger.getLogger(WaitBorderPane.class.getName()).log(Level.SEVERE, "Error creating detail pane", ex);
             removePane(oldPane);
-            oldPane.fireEvent(new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK));
+            WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK);
+            LOG.fine(() -> String.format("Firing %s on %s", ev, oldPane.getClass().getName()));
+            oldPane.fireEvent(ev);
             return;
         }
         newPane.setOnAction((e) -> {
             removePane(newPane);
-            oldPane.fireEvent(new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK));
+            WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK);
+            LOG.fine(() -> String.format("Firing %s on %s", ev, oldPane.getClass().getName()));
+            oldPane.fireEvent(ev);
         });
         panes.set(panes.indexOf(oldPane), newPane);
         newPane.setExpanded(true);

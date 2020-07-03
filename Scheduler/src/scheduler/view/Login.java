@@ -1,6 +1,7 @@
 package scheduler.view;
 
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -20,6 +21,7 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.SupportedLocale;
 import scheduler.util.AlertHelper;
+import scheduler.util.LogHelper;
 import scheduler.util.NodeUtil;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
@@ -36,7 +38,8 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/Login.fxml")
 public final class Login extends Scheduler.LoginBorderPane {
 
-    private static final Logger LOG = Logger.getLogger(Login.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Login.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(Login.class.getName());
 
     public static final String RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN = "appointmentSchedulerLogin";
     public static final String RESOURCEKEY_DBACCESSERROR = "dbAccessError";

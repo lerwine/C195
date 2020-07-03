@@ -34,6 +34,7 @@ import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
@@ -54,7 +55,8 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/fx/CustomerPicker.fxml")
 public class CustomerPicker extends BorderPane {
 
-    private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerPicker.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
 
     private ObservableList<CountryModel> countries;
     private ObservableList<CityModel> cities;

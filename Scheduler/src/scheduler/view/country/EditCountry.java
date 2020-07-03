@@ -89,6 +89,7 @@ import scheduler.view.task.WaitTitledPane;
 public final class EditCountry extends VBox implements EditItem.ModelEditor<CountryDAO, CountryModel, CountryEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
 
     public static CountryModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
         CountryModel.Factory factory = CountryModel.FACTORY;

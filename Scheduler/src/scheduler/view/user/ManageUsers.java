@@ -26,6 +26,7 @@ import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
@@ -42,7 +43,8 @@ import static scheduler.view.user.ManageUsersResourceKeys.*;
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
 public final class ManageUsers extends MainListingControl<UserDAO, UserModel, UserEvent> {
 
-    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageUsers.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
 
     public static ManageUsers loadIntoMainContent(UserModelFilter filter) {
         ManageUsers newContent = new ManageUsers();

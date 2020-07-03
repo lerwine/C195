@@ -48,7 +48,6 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.model.DataObject;
-import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
@@ -293,6 +292,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         return tail.append(eventHandlerManager);
     }
 
@@ -444,6 +444,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
+
         private final EventHandlerManager eventHandlerManager;
         private final DataObjectCache<D> dataObjectCache = new DataObjectCache<>();
 
@@ -770,6 +771,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return tail.append(eventHandlerManager);
         }
 
@@ -828,6 +830,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <E> The result {@link ModelEvent} type.
      */
     public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends Task<E> implements RecordModelContext<D, M> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<D> dataAccessObject;
         private final ReadOnlyObjectWrapper<M> fxRecordModel;
@@ -968,8 +973,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     finalEvent.set(event);
                 } finally {
                     try {
+                        LOG.fine(() -> String.format("Firing %s on %s", event, this));
                         fireEvent(event);
                     } finally {
+                        LOG.fine(() -> String.format("Firing %s on %s", event, getDataAccessObject()));
                         Event.fireEvent(getDataAccessObject(), event);
                     }
                 }
@@ -985,8 +992,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     finalEvent.set(event);
                 } finally {
                     try {
+                        LOG.fine(() -> String.format("Firing %s on %s", event, this));
                         fireEvent(event);
                     } finally {
+                        LOG.fine(() -> String.format("Firing %s on %s", event, getDataAccessObject()));
                         Event.fireEvent(getDataAccessObject(), event);
                     }
                 }
@@ -1002,8 +1011,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     finalEvent.set(event);
                 } finally {
                     try {
+                        LOG.fine(() -> String.format("Firing %s on %s", event, this));
                         fireEvent(event);
                     } finally {
+                        LOG.fine(() -> String.format("Firing %s on %s", event, getDataAccessObject()));
                         Event.fireEvent(getDataAccessObject(), event);
                     }
                 }
@@ -1045,6 +1056,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
     public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends DaoTask<D, M, E> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
         private final ReadOnlyObjectWrapper<FxRecordModel.FxModelFactory<D, M, E>> modelFactory;
@@ -1155,6 +1169,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
     public static abstract class SaveDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
 
         /**
          * Creates a new {@code SaveDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
@@ -1326,6 +1343,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
     public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
+
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(DeleteDaoTask.class.getName());
 
         /**
          * Creates a new {@code DeleteDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.

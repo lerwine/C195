@@ -120,6 +120,7 @@ import scheduler.view.task.WaitTitledPane;
 public final class EditCustomer extends VBox implements EditItem.ModelEditor<CustomerDAO, CustomerModel, CustomerEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
 
     public static CustomerModel editNew(AddressItem<? extends IAddressDAO> address, Window parentWindow, boolean keepOpen) throws IOException {
         CustomerModel.Factory factory = CustomerModel.FACTORY;
