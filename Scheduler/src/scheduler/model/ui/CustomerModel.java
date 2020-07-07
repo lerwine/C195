@@ -274,7 +274,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
         private Factory() {
-            super(CustomerEvent.CUSTOMER_EVENT_TYPE);
+            super();
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }

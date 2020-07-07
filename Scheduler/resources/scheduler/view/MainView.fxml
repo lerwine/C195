@@ -16,7 +16,6 @@
             <children>
                 <MenuBar>
                     <menus>
-                        <Menu fx:id="overviewMenu" mnemonicParsing="false" onAction="#onOverviewMenuItemAction" text="%overview" />
                         <Menu mnemonicParsing="false" text="%appointments">
                             <items>
                                 <MenuItem fx:id="weeklyCalendarMenuItem" mnemonicParsing="false" onAction="#onWeeklyCalendarMenuItemAction" text="%weeklyCalendar" />
@@ -30,6 +29,7 @@
                         </Menu>
                         <Menu mnemonicParsing="false" text="%reports">
                             <items>
+                                <MenuItem fx:id="overviewMenuItem" mnemonicParsing="false" onAction="#onOverviewMenuItemAction" text="%overview" />
                                 <MenuItem fx:id="typesByMonthMenuItem" mnemonicParsing="false" onAction="#onTypesByMonthMenuItemAction" text="%typesByMonth" />
                                 <MenuItem fx:id="consultantScheduleMenuItem" mnemonicParsing="false" onAction="#onConsultantScheduleMenuItemAction" text="%consultantSchedule" />
                                 <MenuItem fx:id="byRegionMenuItem" mnemonicParsing="false" onAction="#onByRegionMenuItemAction" text="%appointmentsByRegion" />

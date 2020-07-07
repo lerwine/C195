@@ -76,7 +76,9 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     private String url;
     private Timestamp start;
     private Timestamp end;
+    // FIXME: Do not use weak event handlers
     private WeakEventHandler<CustomerEvent> customerChangeHandler;
+    // FIXME: Do not use weak event handlers
     private WeakEventHandler<UserEvent> userChangeHandler;
 
     /**
@@ -108,7 +110,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param customer new value of customer
      */
-    public void setCustomer(ICustomerDAO customer) {
+    private void setCustomer(ICustomerDAO customer) {
         ICustomerDAO oldValue = this.customer;
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
@@ -145,7 +147,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param user new value of user
      */
-    public void setUser(IUserDAO user) {
+    private void setUser(IUserDAO user) {
         IUserDAO oldValue = this.user;
         this.user = user;
         firePropertyChange(PROP_USER, oldValue, this.user);
@@ -182,7 +184,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of title
      */
-    public void setTitle(String value) {
+    private void setTitle(String value) {
         String oldValue = this.title;
         this.title = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_TITLE, oldValue, this.title);
@@ -198,7 +200,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of description
      */
-    public void setDescription(String value) {
+    private void setDescription(String value) {
         String oldValue = this.description;
         this.description = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_DESCRIPTION, oldValue, this.description);
@@ -214,7 +216,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of location
      */
-    public void setLocation(String value) {
+    private void setLocation(String value) {
         String oldValue = this.location;
         this.location = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_LOCATION, oldValue, this.location);
@@ -230,7 +232,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of contact
      */
-    public void setContact(String value) {
+    private void setContact(String value) {
         String oldValue = this.contact;
         this.contact = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_CONTACT, oldValue, this.contact);
@@ -246,7 +248,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param type new value of type
      */
-    public void setType(AppointmentType type) {
+    private void setType(AppointmentType type) {
         AppointmentType oldValue = this.type;
         this.type = (null == type) ? AppointmentType.OTHER : type;
         firePropertyChange(PROP_TYPE, oldValue, this.type);
@@ -262,7 +264,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of url
      */
-    public void setUrl(String value) {
+    private void setUrl(String value) {
         String oldValue = this.url;
         this.url = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_URL, oldValue, this.url);
@@ -278,7 +280,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of start
      */
-    public void setStart(Timestamp value) {
+    private void setStart(Timestamp value) {
         Timestamp oldValue = this.start;
         this.start = Objects.requireNonNull(value);
         firePropertyChange(PROP_START, oldValue, this.start);
@@ -294,7 +296,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of end
      */
-    public void setEnd(Timestamp value) {
+    private void setEnd(Timestamp value) {
         Timestamp oldValue = this.end;
         this.end = Objects.requireNonNull(value);
         firePropertyChange(PROP_END, oldValue, this.end);
@@ -795,23 +797,26 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-//        @Override
-//        public SaveDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createSaveTask(AppointmentDAO dao) {
-//            return new SaveTask(RecordModelContext.of(dao), false);
-//        }
-//
-//        @Override
-//        public DeleteDaoTask<AppointmentDAO, ? extends FxRecordModel<AppointmentDAO>, AppointmentEvent> createDeleteTask(AppointmentDAO dao) {
-//            return new DeleteTask(RecordModelContext.of(dao), false);
-//        }
     }
 
     public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
-//        private CustomerDAO.SaveTask customerTask;
-//        private UserDAO.SaveTask userTask;
         public SaveTask(RecordModelContext<AppointmentDAO, AppointmentModel> target, boolean alreadyValidated) {
             super(target, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
+            AppointmentModel model = target.getFxRecordModel();
+            if (null != model) {
+                AppointmentDAO dao = target.getDataAccessObject();
+                dao.setType(model.getType());
+                dao.setTitle(model.getTitle());
+                dao.setCustomer(model.getCustomer().dataObject());
+                dao.setUser(model.getUser().dataObject());
+                dao.setContact(model.getContact());
+                dao.setLocation(model.getLocation());
+                dao.setUrl(model.getUrl());
+                dao.setStart(DB.toUtcTimestamp(model.getStart()));
+                dao.setEnd(DB.toUtcTimestamp(model.getEnd()));
+                dao.setDescription(model.getDescription());
+            }
         }
 
         @Override

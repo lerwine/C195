@@ -180,6 +180,8 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
                     return DbOperationType.DB_DELETE;
                 }
                 break;
+            default:
+                throw new IllegalArgumentException(String.format("%s is an unsupported event name", eventType.getName()));
         }
         throw new IllegalArgumentException();
     }

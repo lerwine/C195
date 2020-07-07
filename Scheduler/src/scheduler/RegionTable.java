@@ -33,8 +33,8 @@ import scheduler.util.Values;
 public class RegionTable extends AbstractSet<RegionTable.Row> {
 
     private static final String TAB_FILE_PATH = "scheduler/zone1970.tab";
-//    private static final Logger LOG = Logger.getLogger(RegionTable.class.getName());
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(RegionTable.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(RegionTable.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(RegionTable.class.getName()), Level.FINER);
 
     /**
      * The singleton {@code RegionTable} instance.

@@ -94,7 +94,6 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             throw new IOException("Error injecting fields", ex);
         }
         ViewControllerLoader.initializeCustomControl(editorRegion);
-        ParentWindowChangeListener.setWindowChangeListener(result, result::onWindowChanged);
         StageManager.showAndWait(result, parentWindow);
         return (result.model.isNewRow()) ? null : result.model;
     }
@@ -124,6 +123,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         return showAndWait(parentWindow, editorRegion, model, keepOpen);
     }
 
+    private final WindowChangeListener windowChangeListener;
     private final S editorRegion;
     private final U model;
     private final boolean keepOpen;
@@ -162,6 +162,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
 
     private EditItem(S editorRegion, U model, boolean keepOpen) {
+        windowChangeListener = new WindowChangeListener();
         this.editorRegion = editorRegion;
         this.model = model;
         this.keepOpen = keepOpen;
@@ -229,10 +230,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
             } else {
                 switch (result.getOperation()) {
                     case DB_INSERT:
-                        if (keepOpen) {
-                            LOG.fine(() -> String.format("Firing %s%n\ton %s", e, editorRegion.getClass().getName()));
-                            editorRegion.fireEvent(e);
-                        } else {
+                        if (!keepOpen) {
                             getScene().getWindow().hide();
                         }
                         break;
@@ -262,6 +260,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         VBox.setVgrow(editorRegion, Priority.ALWAYS);
         VBox.setMargin(editorRegion, new Insets(8.0));
         saveChangesButton.disableProperty().bind(editorRegion.validProperty().and(editorRegion.modifiedProperty().or(model.newRowProperty())).not());
+        windowChangeListener.initialize(sceneProperty());
         if (model.isNewRow()) {
             deleteButton.setDisable(true);
             collapseNode(deleteButton);
@@ -291,13 +290,19 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                 dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
     }
 
-    private void onWindowChanged(ObservableValue<? extends Window> observable, Window oldValue, Window newValue) {
-        if (null != oldValue && oldValue instanceof Stage) {
-            ((Stage) oldValue).titleProperty().unbind();
+    private class WindowChangeListener extends ParentWindowChangeListener {
+
+        @Override
+        protected void onStageChanged(ObservableValue<? extends Stage> observable, Stage oldValue, Stage newValue) {
+            super.onStageChanged(observable, oldValue, newValue);
+            if (null != oldValue) {
+                oldValue.titleProperty().unbind();
+            }
+            if (null != newValue) {
+                newValue.titleProperty().bind(editorRegion.windowTitleProperty());
+            }
         }
-        if (null != newValue && newValue instanceof Stage) {
-            ((Stage) newValue).titleProperty().bind(editorRegion.windowTitleProperty());
-        }
+
     }
 
     /**

@@ -414,6 +414,7 @@ public class ViewModalControl extends Control {
             for (ButtonActionHandler h : change) {
                 buttons.add(h.button);
                 handlers.add(h);
+                // FIXME: Do not use weak event handlers
                 h.button.addEventHandler(ActionEvent.ACTION, new WeakEventHandler<>(h));
             }
         }

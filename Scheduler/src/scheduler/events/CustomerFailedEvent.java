@@ -226,6 +226,8 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
                     return DbOperationType.DB_DELETE;
                 }
                 break;
+            default:
+                throw new IllegalArgumentException(String.format("%s is an unsupported event name", eventType.getName()));
         }
         throw new IllegalArgumentException();
     }

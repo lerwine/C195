@@ -63,6 +63,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     private String postalCode;
     private String phone;
     private final OriginalPropertyValues originalValues;
+    // FIXME: Do not use weak event handlers
     private WeakEventHandler<CityEvent> cityChangeHandler;
 
     /**
@@ -87,7 +88,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      *
      * @param value new value of address1
      */
-    public synchronized void setAddress1(String value) {
+    private synchronized void setAddress1(String value) {
         String oldValue = address1;
         address1 = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_ADDRESS1, oldValue, address1);
@@ -103,7 +104,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      *
      * @param value new value of address2
      */
-    public synchronized void setAddress2(String value) {
+    private synchronized void setAddress2(String value) {
         String oldValue = address2;
         address2 = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_ADDRESS2, oldValue, address2);
@@ -119,7 +120,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      *
      * @param city new value of city
      */
-    public synchronized void setCity(ICityDAO city) {
+    private synchronized void setCity(ICityDAO city) {
         ICityDAO oldValue = this.city;
         this.city = city;
         firePropertyChange(PROP_CITY, oldValue, this.city);
@@ -156,7 +157,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      *
      * @param value new value of postalCode
      */
-    public synchronized void setPostalCode(String value) {
+    private synchronized void setPostalCode(String value) {
         String oldValue = postalCode;
         postalCode = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_POSTALCODE, oldValue, postalCode);
@@ -172,7 +173,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      *
      * @param value new value of phone
      */
-    public synchronized void setPhone(String value) {
+    private synchronized void setPhone(String value) {
         String oldValue = phone;
         phone = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_PHONE, oldValue, phone);
@@ -464,15 +465,6 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-//        @Override
-//        public SaveDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createSaveTask(AddressDAO dao) {
-//            return new SaveTask(RecordModelContext.of(dao), false);
-//        }
-//
-//        @Override
-//        public DeleteDaoTask<AddressDAO, ? extends FxRecordModel<AddressDAO>, AddressEvent> createDeleteTask(AddressDAO dao) {
-//            return new DeleteTask(RecordModelContext.of(dao), false);
-//        }
     }
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
@@ -485,6 +477,15 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         public SaveTask(RecordModelContext<AddressDAO, AddressModel> target, boolean alreadyValidated) {
             super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+            AddressModel model = target.getFxRecordModel();
+            if (null != model) {
+                AddressDAO dao = target.getDataAccessObject();
+                dao.setAddress1(model.getAddress1());
+                dao.setAddress2(model.getAddress2());
+                dao.setCity(model.getCity().dataObject());
+                dao.setPostalCode(model.getPostalCode());
+                dao.setPhone(model.getPhone());
+            }
         }
 
         @Override
@@ -680,6 +681,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private ICityDAO city;
         private final String postalCode;
         private final String phone;
+        // FIXME: Do not use weak event handlers
         private WeakEventHandler<CityEvent> cityChangeHandler;
 
         private Related(int primaryKey, String address1, String address2, ICityDAO city, String postalCode, String phone) {

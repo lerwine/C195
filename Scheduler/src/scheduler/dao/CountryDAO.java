@@ -78,7 +78,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         return locale;
     }
 
-    public void setLocale(Locale locale) {
+    private void setLocale(Locale locale) {
         Locale oldLocale = this.locale;
         String oldName = name;
         this.locale = locale;
@@ -297,15 +297,6 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-//        @Override
-//        public SaveDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createSaveTask(CountryDAO dao) {
-//            return new SaveTask(RecordModelContext.of(dao), false);
-//        }
-//
-//        @Override
-//        public DeleteDaoTask<CountryDAO, ? extends FxRecordModel<CountryDAO>, CountryEvent> createDeleteTask(CountryDAO dao) {
-//            return new DeleteTask(RecordModelContext.of(dao), false);
-//        }
     }
 
     public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel, CountryEvent> {
@@ -317,6 +308,10 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         public SaveTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
             super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+            CountryModel model = target.getFxRecordModel();
+            if (null != model) {
+                target.getDataAccessObject().setLocale(model.getLocale());
+            }
         }
 
         @Override

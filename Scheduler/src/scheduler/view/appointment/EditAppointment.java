@@ -134,6 +134,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
+    // FIXME: Do not use weak event handlers
     private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
 
     @ModelEditor
@@ -397,7 +398,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
                 insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
-                model.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+                model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
             windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
@@ -700,7 +701,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-        model.removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
         initializeEditMode();
     }
 

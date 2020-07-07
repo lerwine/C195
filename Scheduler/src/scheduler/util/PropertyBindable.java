@@ -176,38 +176,45 @@ public abstract class PropertyBindable implements IPropertyBindable {
         PropertyChangeSupportImpl() {
             super(PropertyBindable.this);
         }
-
-        // We are handling any exceptions on purpose.
-        @SuppressWarnings("UseSpecificCatch")
-        private void firePropertyChangeImpl(PropertyChangeEvent event) {
+        
+        private void firePropertyChangeImpl(final PropertyChangeEvent event) {
+            // Temporarily replace uncaught exception handler so we can log any exceptions thrown, that might otherwise be untracked.
+            final UncaughtExceptionHandler oldEh = Thread.currentThread().getUncaughtExceptionHandler();
+            final UncaughtExceptionHandler tempEh = (Thread t, Throwable e) -> {
+                LOG.log(Level.SEVERE, String.format("Uncaught exception firing %s property change event", event.getPropertyName()), e);
+                if (null != oldEh) {
+                    oldEh.uncaughtException(t, e);
+                }
+            };
+            Thread.currentThread().setUncaughtExceptionHandler(tempEh);
             try {
+                LOG.finer(() -> "Calling onPropertyChange(%s)");
                 onPropertyChange(event);
-            } catch (Throwable ex) {
-                LOG.log(Level.SEVERE, String.format("Uncaught exception in implementing class handling %s property change event", event.getPropertyName()), ex);
-                Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
-            } finally {
-                // Temporarily replace exception handler so we can log any exceptions thrown, that might otherwise be untracked.
+            } catch (@SuppressWarnings("UseSpecificCatch") Throwable ex) {
                 UncaughtExceptionHandler eh = Thread.currentThread().getUncaughtExceptionHandler();
-                Thread.currentThread().setUncaughtExceptionHandler((Thread t, Throwable e) -> {
-                    LOG.log(Level.SEVERE, String.format("Uncaught exception firing %s property change event", event.getPropertyName()), e);
-                    eh.uncaughtException(t, e);
-                });
+                ((null == eh) ? tempEh : eh).uncaughtException(Thread.currentThread(), ex);
+            } finally {
                 if (Platform.isFxApplicationThread()) {
                     try {
+                        LOG.finer(() -> "Firing %s");
                         super.firePropertyChange(event);
-                    } catch (Throwable ex) {
-                        Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
+                    } catch (@SuppressWarnings("UseSpecificCatch") Throwable ex) {
+                        UncaughtExceptionHandler eh = Thread.currentThread().getUncaughtExceptionHandler();
+                        ((null == eh) ? tempEh : eh).uncaughtException(Thread.currentThread(), ex);
                     } finally {
-                        Thread.currentThread().setUncaughtExceptionHandler(eh);
+                        Thread.currentThread().setUncaughtExceptionHandler(oldEh);
                     }
                 } else {
+                    LOG.finer(() -> "Firing %s later on FX application thread");
                     Platform.runLater(() -> {
                         try {
+                            LOG.finer(() -> "Firing %s");
                             super.firePropertyChange(event);
                         } catch (Throwable ex) {
-                            Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), ex);
+                            UncaughtExceptionHandler eh = Thread.currentThread().getUncaughtExceptionHandler();
+                            ((null == eh) ? tempEh : eh).uncaughtException(Thread.currentThread(), ex);
                         } finally {
-                            Thread.currentThread().setUncaughtExceptionHandler(eh);
+                            Thread.currentThread().setUncaughtExceptionHandler(oldEh);
                         }
                     });
                 }

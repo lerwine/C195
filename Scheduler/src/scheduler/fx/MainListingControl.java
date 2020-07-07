@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -20,6 +21,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -33,6 +35,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
+import scheduler.util.ParentWindowShowingListener;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
@@ -110,9 +113,21 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML // fx:id="listingTableView"
     private TableView<M> listingTableView; // Value injected by FXMLLoader
+    private final ShowingChangedListener windowShowingChangedListener;
 
     @SuppressWarnings("LeakingThisInConstructor")
     protected MainListingControl() {
+        addEventHandler(EventType.ROOT, (e) -> {
+            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
+                LOG.finer(() -> String.format("Event handling %s", e));
+            }
+        });
+        addEventFilter(EventType.ROOT, (e) -> {
+            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
+                LOG.finer(() -> String.format("Event filtering %s", e));
+            }
+        });
+        windowShowingChangedListener = new ShowingChangedListener();
         filter = new SimpleObjectProperty<>();
         items = FXCollections.observableArrayList();
         try {
@@ -129,12 +144,10 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         assert headingLabel != null : "fx:id=\"headingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert subHeadingLabel != null : "fx:id=\"subHeadingLabel\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
-        addEventFilter(getInsertedEventType(), this::onInsertedEvent);
-        addEventFilter(getUpdatedEventType(), this::onUpdatedEvent);
-        addEventFilter(getDeletedEventType(), this::onDeletedEvent);
 
         listingTableView.setItems(items);
 
+        windowShowingChangedListener.initialize(sceneProperty());
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());
@@ -293,8 +306,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     protected void onDeletedEvent(E event) {
         LOG.entering(LOG.getName(), "onDeletedEvent", event);
         if (!items.isEmpty()) {
-            D dao = event.getDataAccessObject();
-            getModelFactory().find(items, dao).ifPresent((t) -> items.remove(t));
+            getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> {
+                items.remove(t);
+            });
         }
     }
 
@@ -317,6 +331,30 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     protected abstract EventType<? extends E> getUpdatedEventType();
 
     protected abstract EventType<? extends E> getDeletedEventType();
+
+    private class ShowingChangedListener extends ParentWindowShowingListener {
+        
+        private boolean isAttached = false;
+        
+        @Override
+        protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+            super.onShowingChanged(observable, oldValue, newValue);
+            if (newValue) {
+                if (!isAttached) {
+                    addEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+                    addEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+                    addEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+                    isAttached = true;
+                }
+            } else if (isAttached) {
+                removeEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+                removeEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+                removeEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+                isAttached = false;
+            }
+        }
+        
+    }
 
     protected class LoadItemsTask extends Task<List<D>> {
 

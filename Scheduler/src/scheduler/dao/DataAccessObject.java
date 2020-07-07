@@ -29,12 +29,10 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -250,7 +248,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
@@ -262,7 +260,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            void addEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
@@ -274,7 +272,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
@@ -286,7 +284,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+            void removeEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 
@@ -782,7 +780,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void addEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
+        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -793,7 +791,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void addEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
             eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
@@ -804,7 +802,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void removeEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
+        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -815,7 +813,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void removeEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
             eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 
@@ -1292,6 +1290,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                             throw new SQLException("No primary key returned");
                         }
                         dataObj.primaryKey = rs.getInt(1);
+                        dataObj.rowState = DataRowState.UNMODIFIED;
                         factory.dataObjectCache.put(dao);
                     } catch (SQLException ex) {
                         LogHelper.logWarnings(connection, LOG);

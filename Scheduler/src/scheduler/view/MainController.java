@@ -91,9 +91,6 @@ public final class MainController {
     @FXML // fx:id="contentVBox"
     private VBox contentVBox; // Value injected by FXMLLoader
 
-    @FXML // fx:id="overviewMenu"
-    private Menu overviewMenu; // Value injected by FXMLLoader
-
     @FXML // fx:id="weeklyCalendarMenuItem"
     private MenuItem weeklyCalendarMenuItem; // Value injected by FXMLLoader
 
@@ -105,6 +102,9 @@ public final class MainController {
 
     @FXML // fx:id="allAppointmentsMenuItem"
     private MenuItem allAppointmentsMenuItem; // Value injected by FXMLLoader
+
+    @FXML // fx:id="overviewMenuItem"
+    private MenuItem overviewMenuItem; // Value injected by FXMLLoader
 
     @FXML // fx:id="typesByMonthMenuItem"
     private MenuItem typesByMonthMenuItem; // Value injected by FXMLLoader
@@ -246,11 +246,11 @@ public final class MainController {
     private void initialize() {
         assert rootStackPane != null : "fx:id=\"rootStackPane\" was not injected: check your FXML file 'MainView.fxml'.";
         assert contentVBox != null : "fx:id=\"contentVBox\" was not injected: check your FXML file 'MainView.fxml'.";
-        assert overviewMenu != null : "fx:id=\"overviewMenu\" was not injected: check your FXML file 'MainView.fxml'.";
         assert weeklyCalendarMenuItem != null : "fx:id=\"weeklyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert monthlyCalendarMenuItem != null : "fx:id=\"monthlyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert myCurrentAndFutureAppointmentsMenuItem != null : "fx:id=\"myCurrentAndFutureAppointmentsMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert allAppointmentsMenuItem != null : "fx:id=\"allAppointmentsMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert overviewMenuItem != null : "fx:id=\"overviewMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert typesByMonthMenuItem != null : "fx:id=\"typesByMonthMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert consultantScheduleMenuItem != null : "fx:id=\"consultantScheduleMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert byRegionMenuItem != null : "fx:id=\"byRegionMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";

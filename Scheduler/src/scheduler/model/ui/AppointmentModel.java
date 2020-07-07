@@ -608,7 +608,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
-            super(AppointmentEvent.APPOINTMENT_EVENT_TYPE);
+            super();
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }

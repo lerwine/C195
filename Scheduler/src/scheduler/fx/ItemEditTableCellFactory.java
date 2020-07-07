@@ -9,7 +9,7 @@ import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import javafx.event.WeakEventHandler;
+//import javafx.event.WeakEventHandler;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
@@ -75,7 +75,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     @Override
     public ItemEditTableCell<D, M, E> call(TableColumn<M, M> param) {
         ItemEditTableCell<D, M, E> itemEditTableCell = new ItemEditTableCell<>(getFactory());
-        itemEditTableCell.setOnItemActionRequest(new WeakEventHandler<>(this::onItemActionRequest));
+        itemEditTableCell.setOnItemActionRequest(this::onItemActionRequest);
         return itemEditTableCell;
     }
 
@@ -93,7 +93,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+    public void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
@@ -103,7 +103,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void addEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+    public void addEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
@@ -113,7 +113,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
+    public void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
@@ -123,7 +123,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventHandler) {
+    public void removeEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 

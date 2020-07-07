@@ -2,7 +2,6 @@ package scheduler.view.user;
 
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
@@ -161,16 +160,18 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @Override
     protected void onDeleteItem(RecordModelContext<UserDAO, UserModel> item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+        AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
-            task.addEventHandler(UserFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
-            });
-            MainController.startBusyTaskNow(task);
-        }
+                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
+            if (response == ButtonType.YES) {
+                UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
+                // FIXME: This isn't going to work. Apparently weak event handlers won't cut it, either
+                item.getDataAccessObject().addEventHandler(UserFailedEvent.DELETE_INVALID, (UserFailedEvent e) -> {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+                });
+                MainController.startBusyTaskNow(task);
+            }
+        });
     }
 
     @Override

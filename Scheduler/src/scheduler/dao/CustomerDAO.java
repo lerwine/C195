@@ -61,6 +61,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     private String name;
     private IAddressDAO address;
     private boolean active;
+    // FIXME: Do not use weak event handlers
     private WeakEventHandler<AddressEvent> addressChangeHandler;
 
     /**
@@ -84,7 +85,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
      *
      * @param value new value of name
      */
-    public void setName(String value) {
+    private void setName(String value) {
         String oldValue = this.name;
         this.name = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_NAME, oldValue, this.name);
@@ -100,7 +101,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
      *
      * @param address new value of address
      */
-    public void setAddress(IAddressDAO address) {
+    private void setAddress(IAddressDAO address) {
         IAddressDAO oldValue = this.address;
         this.address = address;
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
@@ -137,7 +138,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
      *
      * @param active new value of active
      */
-    public void setActive(boolean active) {
+    private void setActive(boolean active) {
         boolean oldValue = this.active;
         this.active = active;
         firePropertyChange(PROP_ADDRESS, oldValue, this.active);
@@ -370,15 +371,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-//        @Override
-//        public SaveDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createSaveTask(CustomerDAO dao) {
-//            return new SaveTask(RecordModelContext.of(dao), false);
-//        }
-//
-//        @Override
-//        public DeleteDaoTask<CustomerDAO, ? extends FxRecordModel<CustomerDAO>, CustomerEvent> createDeleteTask(CustomerDAO dao) {
-//            return new DeleteTask(RecordModelContext.of(dao), false);
-//        }
     }
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
@@ -391,6 +383,13 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         public SaveTask(RecordModelContext<CustomerDAO, CustomerModel> target, boolean alreadyValidated) {
             super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+            CustomerModel model = target.getFxRecordModel();
+            if (null != model) {
+                CustomerDAO dao = target.getDataAccessObject();
+                dao.setName(model.getName());
+                dao.setActive(model.isActive());
+                dao.setAddress(model.getAddress().dataObject());
+            }
         }
 
         @Override
@@ -548,6 +547,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private IAddressDAO address;
         private final boolean active;
         private final int primaryKey;
+        // FIXME: Do not use weak event handlers
         private WeakEventHandler<AddressEvent> addressChangeHandler;
 
         private Related(int primaryKey, String name, IAddressDAO address, boolean active) {

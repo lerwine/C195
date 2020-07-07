@@ -181,6 +181,8 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
                     return DbOperationType.DB_DELETE;
                 }
                 break;
+            default:
+                throw new IllegalArgumentException(String.format("%s is an unsupported event name", eventType.getName()));
         }
         throw new IllegalArgumentException();
     }

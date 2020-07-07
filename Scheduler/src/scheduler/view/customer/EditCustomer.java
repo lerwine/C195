@@ -477,7 +477,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
                 insertedHandler = new WeakEventHandler<>(this::onCustomerInserted);
-                model.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
+                model.dataObject().addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
             initializeEditMode();
@@ -495,6 +495,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+        // FIXME: Do not use weak event handlers
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
@@ -502,7 +503,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     private void onCustomerInserted(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerInserted", event);
-        model.removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        model.dataObject().removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
         restoreNode(appointmentFilterComboBox);
         restoreNode(appointmentsTableView);
         restoreNode(addAppointmentButtonBar);
@@ -530,8 +531,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             AppointmentDAO dao = event.getDataAccessObject();
             // XXX: See if we need to get/set model
             AppointmentFilterItem filter = selectedFilter.get();
-            int pk = dao.getPrimaryKey();
-            AppointmentModel m = customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            AppointmentModel m = AppointmentModel.FACTORY.find(customerAppointments, dao).orElse(null);
             if (null != m) {
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
                     customerAppointments.remove(m);
@@ -545,12 +545,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     private void onAppointmentDeleted(AppointmentEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            int pk = dao.getPrimaryKey();
-            customerAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerAppointments.remove(t));
-        }
+        AppointmentModel.FACTORY.find(customerAppointments, event.getDataAccessObject()).ifPresent((t) -> {
+            customerAppointments.remove(t);
+        });
     }
 
     private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable,

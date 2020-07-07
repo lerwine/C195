@@ -169,7 +169,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
         // Singleton
         private Factory() {
-            super(UserEvent.USER_EVENT_TYPE);
+            super();
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }

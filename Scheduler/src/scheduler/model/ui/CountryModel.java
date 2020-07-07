@@ -138,7 +138,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
         // Singleton
         private Factory() {
-            super(CountryEvent.COUNTRY_EVENT_TYPE);
+            super();
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }

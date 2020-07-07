@@ -404,7 +404,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
 
         // Singleton
         private Factory() {
-            super(AddressEvent.ADDRESS_EVENT_TYPE);
+            super();
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }

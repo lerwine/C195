@@ -14,7 +14,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
-import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.ZoneIdMappings.fromZoneId;
@@ -72,7 +71,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     private String name;
     private ICountryDAO country;
     private TimeZone timeZone;
-    private WeakEventHandler<CountryEvent> countryChangeHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} city object.
@@ -89,7 +87,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         return name;
     }
 
-    public void setName(String value) {
+    private void setName(String value) {
         String oldValue = name;
         name = Values.asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_NAME, oldValue, name);
@@ -100,31 +98,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         return country;
     }
 
-    public void setCountry(ICountryDAO country) {
+    private void setCountry(ICountryDAO country) {
         ICountryDAO oldValue = this.country;
         this.country = country;
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
-        if (null == country || country instanceof CountryDAO) {
-            if (null != countryChangeHandler) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
-                countryChangeHandler = null;
-            }
-        } else if (null == countryChangeHandler) {
-            countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-            CountryDAO.FACTORY.addEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
-        }
-    }
-
-    private void onCountryEvent(CountryEvent event) {
-        LOG.entering(LOG.getName(), "onCountryEvent", event);
-        ICountryDAO newValue = event.getDataAccessObject();
-        if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-            CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
-            countryChangeHandler = null;
-            ICountryDAO oldValue = country;
-            country = newValue;
-            firePropertyChange(PROP_COUNTRY, oldValue, country);
-        }
     }
 
     @Override
@@ -132,7 +109,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         return timeZone;
     }
 
-    public void setTimeZone(TimeZone zoneId) {
+    private void setTimeZone(TimeZone zoneId) {
         TimeZone oldValue = this.timeZone;
         this.timeZone = zoneId;
         firePropertyChange(PROP_TIMEZONE, oldValue, this.timeZone);
@@ -418,15 +395,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-//        @Override
-//        public SaveDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createSaveTask(CityDAO dao) {
-//            return new SaveTask(RecordModelContext.of(dao), false);
-//        }
-//
-//        @Override
-//        public DeleteDaoTask<CityDAO, ? extends FxRecordModel<CityDAO>, CityEvent> createDeleteTask(CityDAO dao) {
-//            return new DeleteTask(RecordModelContext.of(dao), false);
-//        }
     }
 
     public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
@@ -438,6 +406,13 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         public SaveTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
             super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+            CityModel model = target.getFxRecordModel();
+            if (null != model) {
+                CityDAO dao = target.getDataAccessObject();
+                dao.setName(model.getName());
+                dao.setTimeZone(model.getTimeZone());
+                dao.setCountry(model.getCountry().dataObject());
+            }
         }
 
         @Override
@@ -603,29 +578,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         private final String name;
         private ICountryDAO country;
         private final TimeZone timeZone;
-        private WeakEventHandler<CountryEvent> countryChangeHandler;
 
         private Related(int primaryKey, String name, ICountryDAO country, TimeZone zoneId) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.country = country;
             this.timeZone = zoneId;
-            if (!(null == country || country instanceof CountryDAO)) {
-                countryChangeHandler = new WeakEventHandler<>(this::onCountryEvent);
-                CountryDAO.FACTORY.addEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
-            }
-        }
-
-        private void onCountryEvent(CountryEvent event) {
-            LOG.entering(LOG.getName(), "onCountryEvent", event);
-            ICountryDAO newValue = event.getDataAccessObject();
-            if (newValue.getPrimaryKey() == country.getPrimaryKey()) {
-                CountryDAO.FACTORY.removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, countryChangeHandler);
-                countryChangeHandler = null;
-                ICountryDAO oldValue = country;
-                country = newValue;
-                firePropertyChange(PROP_COUNTRY, oldValue, country);
-            }
         }
 
         @Override

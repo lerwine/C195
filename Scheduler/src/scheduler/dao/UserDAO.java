@@ -79,7 +79,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
      *
      * @param value new value of userName
      */
-    public void setUserName(String value) {
+    private void setUserName(String value) {
         String oldValue = this.userName;
         this.userName = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_USERNAME, oldValue, this.userName);
@@ -94,7 +94,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
      *
      * @param value new value of password
      */
-    public void setPassword(String value) {
+    private void setPassword(String value) {
         String oldValue = this.password;
         this.password = asNonNullAndTrimmed(value);
         firePropertyChange(PROP_PASSWORD, oldValue, this.password);
@@ -110,7 +110,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
      *
      * @param status new value of status
      */
-    public void setStatus(UserStatus status) {
+    private void setStatus(UserStatus status) {
         UserStatus oldValue = this.status;
         this.status = (null == status) ? UserStatus.NORMAL : status;
         firePropertyChange(PROP_STATUS, oldValue, this.status);
@@ -317,29 +317,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             return UserDAO.class;
         }
 
-//        @Override
-//        protected UserEvent createOperationRequestEvent(UserEvent sourceEvent, DbOperationType operation) {
-//            UserModel model = sourceEvent.getModel();
-//            if (null != model) {
-//                return new UserEvent(model, sourceEvent.getSource(), this, operation);
-//            }
-//            return new UserEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
-//        @Override
-//        public SaveDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createSaveTask(UserDAO dao) {
-//            return new SaveTask(RecordModelContext.of(dao), false);
-//        }
-//
-//        @Override
-//        public DeleteDaoTask<UserDAO, ? extends FxRecordModel<UserDAO>, UserEvent> createDeleteTask(UserDAO dao) {
-//            return new DeleteTask(RecordModelContext.of(dao), false);
-//        }
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
@@ -352,6 +335,13 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         public SaveTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
             super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+            UserModel model = target.getFxRecordModel();
+            if (null != model) {
+                UserDAO dao = target.getDataAccessObject();
+                dao.setUserName(model.getUserName());
+                dao.setStatus(model.getStatus());
+                dao.setPassword(model.getPassword());
+            }
         }
 
         @Override

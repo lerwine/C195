@@ -180,6 +180,8 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
                     return DbOperationType.DB_DELETE;
                 }
                 break;
+            default:
+                throw new IllegalArgumentException(String.format("%s is an unsupported event name", eventType.getName()));
         }
         throw new IllegalArgumentException();
     }

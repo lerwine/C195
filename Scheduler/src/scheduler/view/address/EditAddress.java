@@ -198,6 +198,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
     private BooleanBinding showEditCityControls;
+    // FIXME: Do not use weak event handlers
     private WeakEventHandler<AddressSuccessEvent> insertedHandler;
 
     public EditAddress() {
@@ -419,7 +420,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
                 insertedHandler = new WeakEventHandler<>(this::onAddressInserted);
-                model.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
+                model.dataObject().addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
             initializeEditMode();
@@ -429,7 +430,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void onAddressInserted(AddressSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAddressInserted", event);
-        model.removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
+        model.dataObject().removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
         editingCity.set(false);
         restoreNode(customersHeadingLabel);
         restoreNode(customersTableView);
@@ -439,6 +440,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
+        // FIXME: Do not use weak event handlers
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onCustomerAdded));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onCustomerUpdated));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
@@ -446,12 +448,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void onCustomerAdded(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerAdded", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(new CustomerModel(dao));
-            }
+        CustomerDAO dao = event.getDataAccessObject();
+        // XXX: See if we need to get/set model
+        if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+            itemList.add(new CustomerModel(dao));
         }
     }
 
@@ -474,12 +474,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void onCustomerDeleted(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            int pk = dao.getPrimaryKey();
-            itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> itemList.remove(t));
-        }
+        CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
+            itemList.remove(t);
+        });
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {

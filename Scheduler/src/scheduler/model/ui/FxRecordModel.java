@@ -18,11 +18,10 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import javafx.event.Event;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import javafx.event.WeakEventHandler;
 import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -55,7 +54,7 @@ import scheduler.view.ModelFilter;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
  */
-public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRecordModel<T>, EventTarget {
+public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRecordModel<T> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxRecordModel.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(FxRecordModel.class.getName());
@@ -73,7 +72,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
      */
     public static final String PROP_EXISTINGINDB = "existingInDb";
 
-    private final EventHandlerManager eventHandlerManager;
+//    private final EventHandlerManager eventHandlerManager;
     private final T dataObject;
     private final ReadOnlyJavaBeanIntegerProperty primaryKey;
     private final ReadOnlyJavaBeanObjectProperty<DataRowState> rowState;
@@ -97,7 +96,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         if (dao.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
         }
-        eventHandlerManager = new EventHandlerManager(this);
+//        eventHandlerManager = new EventHandlerManager(this);
         dataObject = dao;
         try {
             primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();
@@ -211,56 +210,56 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         return null != model && dataObject.equals(model);
     }
 
-    @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return tail.append(eventHandlerManager);
-    }
-
-    /**
-     * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventHandler The event handler.
-     */
-    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void addEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
-        eventHandlerManager.addEventHandler(type, eventHandler);
-    }
-
-    /**
-     * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventFilter The event handler.
-     */
-    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void addEventFilter(EventType<E> type, WeakEventHandler<E> eventFilter) {
-        eventHandlerManager.addEventFilter(type, eventFilter);
-    }
-
-    /**
-     * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventHandler The event handler.
-     */
-    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void removeEventHandler(EventType<E> type, WeakEventHandler<E> eventHandler) {
-        eventHandlerManager.removeEventHandler(type, eventHandler);
-    }
-
-    /**
-     * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventFilter The event handler.
-     */
-    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void removeEventFilter(EventType<E> type, WeakEventHandler<E> eventFilter) {
-        eventHandlerManager.removeEventFilter(type, eventFilter);
-    }
-
+//    @Override
+//    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+//        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
+//        return tail.append(eventHandlerManager);
+//    }
+    
+//    /**
+//     * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+//     *
+//     * @param <E> The type of {@link ModelEvent}.
+//     * @param type The event type.
+//     * @param eventHandler The event handler.
+//     */
+//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
+//        eventHandlerManager.addEventHandler(type, eventHandler);
+//    }
+    
+//    /**
+//     * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+//     *
+//     * @param <E> The type of {@link ModelEvent}.
+//     * @param type The event type.
+//     * @param eventFilter The event handler.
+//     */
+//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void addEventFilter(EventType<E> type, EventHandler<E> eventFilter) {
+//        eventHandlerManager.addEventFilter(type, eventFilter);
+//    }
+    
+//    /**
+//     * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+//     *
+//     * @param <E> The type of {@link ModelEvent}.
+//     * @param type The event type.
+//     * @param eventHandler The event handler.
+//     */
+//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
+//        eventHandlerManager.removeEventHandler(type, eventHandler);
+//    }
+    
+//    /**
+//     * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
+//     *
+//     * @param <E> The type of {@link ModelEvent}.
+//     * @param type The event type.
+//     * @param eventFilter The event handler.
+//     */
+//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void removeEventFilter(EventType<E> type, EventHandler<E> eventFilter) {
+//        eventHandlerManager.removeEventFilter(type, eventFilter);
+//    }
+    
     public static abstract class FxModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxModelFactory.class.getName()), Level.FINER);
@@ -268,22 +267,20 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         private final EventHandlerManager eventHandlerManager;
 
-        protected FxModelFactory(EventType<E> anyEventType) {
+        protected FxModelFactory() {
             eventHandlerManager = new EventHandlerManager(this);
-            eventHandlerManager.addEventHandler(anyEventType, this::onModelEvent);
+//            eventHandlerManager.addEventHandler(anyEventType, this::onModelEvent);
         }
 
-        private void onModelEvent(E event) {
-            LOG.entering(LOG.getName(), "onModelEvent", event);
-            if (!event.isConsumed()) {
-                M model = event.getFxRecordModel();
-                if (null != model) {
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, model));
-                    Event.fireEvent(model, event);
-                }
-            }
-        }
-
+//        private void onModelEvent(E event) {
+//            LOG.entering(LOG.getName(), "onModelEvent", event);
+//            M model = event.getFxRecordModel();
+//            if (null != model) {
+//                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, model));
+//                Event.fireEvent(model, event.copyFor(this, model));
+//            }
+//        }
+        
         public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();
 
         public abstract M createNew(D dao);
@@ -293,11 +290,43 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         public abstract ModelFilter<D, M, ? extends DaoFilter<D>> getDefaultFilter();
 
         public final Optional<M> find(Iterator<M> source, D dao) {
-            if (null != source) {
-                while (source.hasNext()) {
-                    M m = source.next();
-                    if (null != m && ModelHelper.areSameRecord(m.dataObject(), dao)) {
-                        return Optional.of(m);
+            if (null != source && null != dao) {
+                if (dao.getRowState() == DataRowState.NEW) {
+                    while (source.hasNext()) {
+                        M m = source.next();
+                        if (null != m && ModelHelper.areSameRecord(m.dataObject(), dao)) {
+                            return Optional.of(m);
+                        }
+                    }
+                } else {
+                    int pk = dao.getPrimaryKey();
+                    while (source.hasNext()) {
+                        M m = source.next();
+                        if (null != m && m.getRowState() != DataRowState.NEW && m.getPrimaryKey() == pk) {
+                            return Optional.of(m);
+                        }
+                    }
+                }
+            }
+            return Optional.empty();
+        }
+
+        public final Optional<M> find(Iterator<M> source, M model) {
+            if (null != source && null != model) {
+                if (model.getRowState() == DataRowState.NEW) {
+                    while (source.hasNext()) {
+                        M m = source.next();
+                        if (null != m && ModelHelper.areSameRecord(m.dataObject(), model)) {
+                            return Optional.of(m);
+                        }
+                    }
+                } else {
+                    int pk = model.getPrimaryKey();
+                    while (source.hasNext()) {
+                        M m = source.next();
+                        if (null != m && m.getRowState() != DataRowState.NEW && m.getPrimaryKey() == pk) {
+                            return Optional.of(m);
+                        }
                     }
                 }
             }
@@ -307,6 +336,13 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         public final Optional<M> find(Iterable<M> source, D dao) {
             if (null != source) {
                 return find(source.iterator(), dao);
+            }
+            return Optional.empty();
+        }
+
+        public final Optional<M> find(Iterable<M> source, M model) {
+            if (null != source && null != model) {
+                return find(source.iterator(), model);
             }
             return Optional.empty();
         }
@@ -345,7 +381,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void addEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
+        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -356,7 +392,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void addEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
             eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
@@ -367,7 +403,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void removeEventHandler(EventType<T> type, WeakEventHandler<T> eventHandler) {
+        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -378,7 +414,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void removeEventFilter(EventType<T> type, WeakEventHandler<T> eventFilter) {
+        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
             eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 

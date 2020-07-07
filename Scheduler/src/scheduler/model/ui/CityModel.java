@@ -200,7 +200,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
         // Singleton
         private Factory() {
-            super(CityEvent.CITY_EVENT_TYPE);
+            super();
             if (null != FACTORY) {
                 throw new IllegalStateException();
             }

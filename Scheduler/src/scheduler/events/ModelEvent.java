@@ -2,6 +2,8 @@ package scheduler.events;
 
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
@@ -296,6 +298,9 @@ import scheduler.util.LogHelper;
 public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends Event implements IModelEvent<D, M> {
 
     private static final long serialVersionUID = -6832461936768738020L;
+    
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ModelEvent.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ModelEvent.class.getName());
 
     /**
      * Base {@link EventType} for all {@code ModelEvent}s.
@@ -398,9 +403,17 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
 
     @Override
     public Event copyFor(Object newSource, EventTarget newTarget) {
+        LOG.entering(LOG.getName(), "copyFor", new Object[] { newSource, newTarget });
         @SuppressWarnings("unchecked")
-        ModelEvent<D, M> copy = (ModelEvent<D, M>) super.copyFor(newSource, newTarget);
-        copy.state = state;
+        ModelEvent<D, M> copy;
+        try {
+            copy = (ModelEvent<D, M>) super.copyFor(newSource, newTarget);
+            copy.state = state;
+        } catch (Throwable ex) {
+            LOG.log(Level.SEVERE, String.format("Failure creating copy of %s", this), ex);
+            throw new RuntimeException("Failure creating event copy", ex);
+        }
+        LOG.finer(() -> String.format("Returning %s as copy of %s", copy, this));
         return copy;
     }
 
