@@ -193,7 +193,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<CityDAO, CityModel, CityEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<CityDAO, CityModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -207,7 +207,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CityDAO, CityEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CityDAO> getDaoFactory() {
             return CityDAO.FACTORY;
         }
 

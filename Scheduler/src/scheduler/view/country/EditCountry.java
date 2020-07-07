@@ -44,7 +44,6 @@ import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
 import scheduler.events.CityOpRequestEvent;
 import scheduler.events.CitySuccessEvent;
-import scheduler.events.CountryEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.RecordModelContext;
@@ -91,7 +90,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public final class EditCountry extends VBox implements EditItem.ModelEditor<CountryDAO, CountryModel, CountryEvent> {
+public final class EditCountry extends VBox implements EditItem.ModelEditor<CountryDAO, CountryModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
@@ -291,6 +290,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CityDAO.DeleteTask task = new CityDAO.DeleteTask(target, false);
+            // FIXME: Do not use event handlers
             task.addEventHandler(CityFailedEvent.DELETE_INVALID, (e) -> {
                 scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
             });
@@ -300,8 +300,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private synchronized void onCountryInserted(CountrySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCountryInserted", event);
+        // FIXME: Do not use event handlers
         model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
         windowShowingListener.isInsert = false;
+        // FIXME: Do not use event handlers
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityAdded);
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, this::onCityUpdated);
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, this::onCityDeleted);
@@ -394,7 +396,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<CountryDAO, CountryModel> modelFactory() {
         return CountryModel.FACTORY;
     }
 
@@ -421,10 +423,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 if (!isAttached) {
                     if (isInsert) {
                         if (keepOpen) {
+                            // FIXME: Do not use event handlers
                             model.dataObject().addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCountryInserted);
                             isAttached = true;
                         }
                     } else {
+                        // FIXME: Do not use event handlers
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCityAdded);
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, EditCountry.this::onCityUpdated);
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, EditCountry.this::onCityDeleted);
@@ -433,8 +437,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 }
             } else if (isAttached) {
                 if (isInsert) {
+                    // FIXME: Do not use event handlers
                     model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCountryInserted);
                 } else {
+                    // FIXME: Do not use event handlers
                     CityModel.FACTORY.removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCityAdded);
                     CityModel.FACTORY.removeEventHandler(CitySuccessEvent.UPDATE_SUCCESS, EditCountry.this::onCityUpdated);
                     CityModel.FACTORY.removeEventHandler(CitySuccessEvent.DELETE_SUCCESS, EditCountry.this::onCityDeleted);

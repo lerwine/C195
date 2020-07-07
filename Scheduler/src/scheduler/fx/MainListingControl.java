@@ -94,7 +94,7 @@ import scheduler.view.ModelFilter;
  * @param <E> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
@@ -260,7 +260,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getModelFactory();
+            FxRecordModel.FxModelFactory<D, M> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -269,7 +269,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         return new LoadItemsTask(filter);
     }
 
-    protected void onInsertedEvent(E event) {
+    protected void onInsertedEvent(ModelEvent<D, M> event) {
         LOG.entering(LOG.getName(), "onInsertedEvent", event);
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
@@ -281,11 +281,11 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         }
     }
 
-    protected void onUpdatedEvent(E event) {
+    protected void onUpdatedEvent(ModelEvent<D, M> event) {
         LOG.entering(LOG.getName(), "onUpdatedEvent", event);
         D dao = event.getDataAccessObject();
         // XXX: Check to see if we need to get/update model
-        FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
+        FxRecordModel.FxModelFactory<D, M> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
@@ -303,7 +303,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         }
     }
 
-    protected void onDeletedEvent(E event) {
+    protected void onDeletedEvent(ModelEvent<D, M> event) {
         LOG.entering(LOG.getName(), "onDeletedEvent", event);
         if (!items.isEmpty()) {
             getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> {
@@ -314,7 +314,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract Comparator<? super D> getComparator();
 
-    protected abstract FxRecordModel.FxModelFactory<D, M, E> getModelFactory();
+    protected abstract FxRecordModel.FxModelFactory<D, M> getModelFactory();
 
     protected abstract String getLoadingTitle();
 
@@ -326,16 +326,16 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract void onDeleteItem(RecordModelContext<D, M> item);
 
-    protected abstract EventType<? extends E> getInsertedEventType();
+    protected abstract EventType<? extends ModelEvent<D, M>> getInsertedEventType();
 
-    protected abstract EventType<? extends E> getUpdatedEventType();
+    protected abstract EventType<? extends ModelEvent<D, M>> getUpdatedEventType();
 
-    protected abstract EventType<? extends E> getDeletedEventType();
+    protected abstract EventType<? extends ModelEvent<D, M>> getDeletedEventType();
 
     private class ShowingChangedListener extends ParentWindowShowingListener {
-        
+
         private boolean isAttached = false;
-        
+
         @Override
         protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
             super.onShowingChanged(observable, oldValue, newValue);
@@ -353,7 +353,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 isAttached = false;
             }
         }
-        
+
     }
 
     protected class LoadItemsTask extends Task<List<D>> {

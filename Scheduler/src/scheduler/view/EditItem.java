@@ -59,11 +59,10 @@ import scheduler.view.task.WaitBorderPane;
  * @param <T> The type of data access object that the model represents.
  * @param <U> The type of model being edited.
  * @param <S> The content node.
- * @param <E> The {@link ModelEvent} type.
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
@@ -82,9 +81,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
-        EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
+        EditItem<T, U, S> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
         try {
             AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
@@ -112,7 +111,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -203,9 +202,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
                 resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
                 .ifPresent((t) -> {
                     if (t == ButtonType.YES) {
-                        DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(RecordModelContext.of(model));
+                        DataAccessObject.DeleteDaoTask<T, U, ? extends ModelEvent<T, U>> task = editorRegion.modelFactory().createDeleteTask(RecordModelContext.of(model));
                         task.setOnSucceeded((e) -> {
-                            E result = task.getValue();
+                            ModelEvent<T, U> result = task.getValue();
                             if (result instanceof ModelFailedEvent) {
                                 scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
                             } else {
@@ -222,9 +221,9 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     void onSaveButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onSaveButtonAction", event);
         editorRegion.applyChanges();
-        DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(RecordModelContext.of(model));
+        DataAccessObject.SaveDaoTask<T, U, ? extends ModelEvent<T, U>> task = editorRegion.modelFactory().createSaveTask(RecordModelContext.of(model));
         task.setOnSucceeded((e) -> {
-            E result = task.getValue();
+            ModelEvent<T, U> result = task.getValue();
             if (result instanceof ModelFailedEvent) {
                 scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
             } else {
@@ -311,16 +310,15 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
      * @param <U> The {@link FxRecordModel} type.
-     * @param <E> The {@link ModelEvent} type.
      */
-    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends ModelEvent<T, U>> {
+    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>> {
 
         /**
          * Gets the factory object for managing the current {@link FxRecordModel}.
          *
          * @return The factory object for managing the current {@link FxRecordModel}.
          */
-        FxRecordModel.FxModelFactory<T, U, E> modelFactory();
+        FxRecordModel.FxModelFactory<T, U> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.

@@ -268,7 +268,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -281,7 +281,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CustomerDAO> getDaoFactory() {
             return CustomerDAO.FACTORY;
         }
 

@@ -39,7 +39,6 @@ import scheduler.dao.ICountryDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
-import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.OperationRequestEvent;
@@ -91,7 +90,7 @@ import scheduler.view.export.TsvDataExporter;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
-public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageAppointments.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
@@ -483,7 +482,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
+    protected FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 

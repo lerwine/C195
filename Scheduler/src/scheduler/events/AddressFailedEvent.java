@@ -7,6 +7,7 @@ import scheduler.dao.AddressDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
+// FIXME: Discontinue use of AddressFailedEvent
 /**
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
@@ -55,6 +56,7 @@ import scheduler.model.ui.AddressModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public final class AddressFailedEvent extends AddressEvent implements ModelFailedEvent<AddressDAO, AddressModel> {
 
     private static final long serialVersionUID = 3057696288962212229L;

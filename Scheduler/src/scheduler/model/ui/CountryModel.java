@@ -134,7 +134,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<CountryDAO, CountryModel, CountryEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<CountryDAO, CountryModel> {
 
         // Singleton
         private Factory() {
@@ -145,7 +145,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CountryDAO, CountryEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CountryDAO> getDaoFactory() {
             return CountryDAO.FACTORY;
         }
 

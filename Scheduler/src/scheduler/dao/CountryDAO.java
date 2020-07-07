@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.EventDispatchChain;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.DaoFilter;
@@ -109,12 +108,6 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     }
 
     @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
-    }
-
-    @Override
     public int hashCode() {
         if (getRowState() == DataRowState.NEW) {
             int hash = 5;
@@ -148,7 +141,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
     /**
      * Factory implementation for {@link CountryDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO, CountryEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -289,12 +282,6 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 }
             }
             return null;
-        }
-
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

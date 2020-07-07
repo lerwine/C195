@@ -55,7 +55,6 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
-import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
@@ -117,7 +116,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
-public final class EditCustomer extends VBox implements EditItem.ModelEditor<CustomerDAO, CustomerModel, CustomerEvent> {
+public final class EditCustomer extends VBox implements EditItem.ModelEditor<CustomerDAO, CustomerModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
@@ -224,6 +223,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @FXML // fx:id="addAppointmentButtonBar"
     private ButtonBar addAppointmentButtonBar; // Value injected by FXMLLoader
+    // FIXME: Do not use events
     private WeakEventHandler<CustomerSuccessEvent> insertedHandler;
 
     public EditCustomer() {
@@ -476,6 +476,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
+                // FIXME: Do not use events
                 insertedHandler = new WeakEventHandler<>(this::onCustomerInserted);
                 model.dataObject().addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -495,7 +496,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-        // FIXME: Do not use weak event handlers
+        // FIXME: Do not use event handlers
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
@@ -503,6 +504,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     private void onCustomerInserted(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerInserted", event);
+        // FIXME: Do not use event handlers
         model.dataObject().removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
         restoreNode(appointmentFilterComboBox);
         restoreNode(appointmentsTableView);
@@ -603,7 +605,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel> modelFactory() {
         return CustomerModel.FACTORY;
     }
 

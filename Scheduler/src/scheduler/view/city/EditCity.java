@@ -50,7 +50,6 @@ import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
 import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AddressSuccessEvent;
-import scheduler.events.CityEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.fx.TimeZoneListCellFactory;
 import scheduler.model.CountryProperties;
@@ -105,7 +104,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel, CityEvent> {
+public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel> {
 
     private static final Object TARGET_COUNTRY_KEY = new Object();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
@@ -377,6 +376,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private void onCityInserted(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityInserted", event);
         windowShowingChangedListener.isInsert = false;
+        // FIXME: Do not use event handlers
         model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressAdded);
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, this::onAddressUpdated);
@@ -492,7 +492,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<CityDAO, CityModel> modelFactory() {
         return CityModel.FACTORY;
     }
 
@@ -580,10 +580,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 if (!isAttached) {
                     if (isInsert) {
                         if (keepOpen) {
+                            // FIXME: Do not use event handlers
                             model.dataObject().addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
                             isAttached = true;
                         }
                     } else {
+                        // FIXME: Do not use event handlers
                         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, EditCity.this::onAddressAdded);
                         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, EditCity.this::onAddressUpdated);
                         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, EditCity.this::onAddressDeleted);
@@ -592,8 +594,10 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 }
             } else if (isAttached) {
                 if (isInsert) {
+                    // FIXME: Do not use event handlers
                     model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
                 } else {
+                    // FIXME: Do not use event handlers
                     AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, EditCity.this::onAddressAdded);
                     AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, EditCity.this::onAddressUpdated);
                     AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.DELETE_SUCCESS, EditCity.this::onAddressDeleted);

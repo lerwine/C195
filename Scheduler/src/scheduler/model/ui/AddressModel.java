@@ -397,7 +397,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 .addBoolean(valid);
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<AddressDAO, AddressModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -411,7 +411,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public DataAccessObject.DaoFactory<AddressDAO, AddressEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<AddressDAO> getDaoFactory() {
             return AddressDAO.FACTORY;
         }
 

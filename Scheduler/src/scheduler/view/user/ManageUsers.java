@@ -17,7 +17,6 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.UserDAO;
-import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.fx.MainListingControl;
@@ -40,7 +39,7 @@ import static scheduler.view.user.ManageUsersResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public final class ManageUsers extends MainListingControl<UserDAO, UserModel, UserEvent> {
+public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageUsers.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
@@ -165,7 +164,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
                 UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
-                // FIXME: This isn't going to work. Apparently weak event handlers won't cut it, either
+                // FIXME: Do not use events
                 item.getDataAccessObject().addEventHandler(UserFailedEvent.DELETE_INVALID, (UserFailedEvent e) -> {
                     scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
                 });

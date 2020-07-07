@@ -7,6 +7,7 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
+// FIXME: Discontinue use of AppointmentEvent
 /**
  * Base {@link ModelEvent} for appointment events.
  * <h3>Event Registration</h3>
@@ -30,6 +31,7 @@ import scheduler.model.ui.AppointmentModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, AppointmentModel> {
 
     private static final long serialVersionUID = -3677443789026319836L;

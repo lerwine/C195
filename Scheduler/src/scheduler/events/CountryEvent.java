@@ -7,6 +7,7 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
+// FIXME: Discontinue use of CountryEvent
 /**
  * Base {@link ModelEvent} for appointment events.
  * <h3>Event Registration</h3>
@@ -29,6 +30,7 @@ import scheduler.model.ui.CountryModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> {
 
     private static final long serialVersionUID = -6121391358660436488L;

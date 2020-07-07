@@ -7,6 +7,7 @@ import scheduler.dao.CityDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
+// FIXME: Discontinue use of CityFailedEvent
 /**
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
@@ -55,6 +56,7 @@ import scheduler.model.ui.CityModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public final class CityFailedEvent extends CityEvent implements ModelFailedEvent<CityDAO, CityModel> {
 
     private static final long serialVersionUID = 4383081185660810957L;

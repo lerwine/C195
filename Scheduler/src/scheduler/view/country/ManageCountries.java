@@ -17,7 +17,6 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.fx.MainListingControl;
@@ -41,7 +40,7 @@ import static scheduler.view.country.ManageCountriesResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryEvent> {
+public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCountries.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
@@ -125,6 +124,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
+            // FIXME: Do not use events
             item.getDataAccessObject().addEventHandler(CountryFailedEvent.DELETE_INVALID, (e) -> {
                 LOG.info(() -> String.format("Delete failed; %s", e));
                 scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);

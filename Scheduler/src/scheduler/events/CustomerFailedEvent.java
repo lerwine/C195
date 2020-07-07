@@ -7,6 +7,7 @@ import scheduler.dao.CustomerDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
+// FIXME: Discontinue use of CustomerFailedEvent
 /**
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
@@ -55,6 +56,7 @@ import scheduler.model.ui.CustomerModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public final class CustomerFailedEvent extends CustomerEvent implements ModelFailedEvent<CustomerDAO, CustomerModel> {
 
     private static final long serialVersionUID = -7166159668722232485L;

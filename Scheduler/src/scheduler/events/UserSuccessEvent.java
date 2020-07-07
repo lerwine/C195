@@ -6,6 +6,7 @@ import scheduler.dao.UserDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.UserModel;
 
+// FIXME: Discontinue use of UserSuccessEvent
 /**
  * Represents a successful {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
@@ -30,6 +31,7 @@ import scheduler.model.ui.UserModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public final class UserSuccessEvent extends UserEvent {
 
     private static final long serialVersionUID = 8315764794660229474L;

@@ -6,6 +6,7 @@ import scheduler.dao.AddressDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
+// FIXME: Discontinue use of AddressSuccessEvent
 /**
  * Represents a successful {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
@@ -30,6 +31,7 @@ import scheduler.model.ui.AddressModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public final class AddressSuccessEvent extends AddressEvent {
 
     private static final long serialVersionUID = -4782268395905350399L;

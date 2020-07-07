@@ -13,7 +13,6 @@ import java.util.TimeZone;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.EventDispatchChain;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import static scheduler.ZoneIdMappings.fromZoneId;
@@ -136,12 +135,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     }
 
     @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
-    }
-
-    @Override
     public int hashCode() {
         if (getRowState() == DataRowState.NEW) {
             int hash = 7;
@@ -182,7 +175,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     /**
      * Factory implementation for {@link CityDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO, CityEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -379,20 +372,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 }
             }
             throw new SQLException("Unexpected lack of results from database query");
-        }
-
-//        @Override
-//        protected CityEvent createOperationRequestEvent(CityEvent sourceEvent, DbOperationType operation) {
-//            CityModel model = sourceEvent.getModel();
-//            if (null != model) {
-//                return new CityEvent(model, sourceEvent.getSource(), this, operation);
-//            }
-//            return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-//        }
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

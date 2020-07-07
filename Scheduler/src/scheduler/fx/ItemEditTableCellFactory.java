@@ -9,12 +9,10 @@ import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-//import javafx.event.WeakEventHandler;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
-import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.LogHelper;
@@ -40,7 +38,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>();
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
-            FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getFactory();
+            FxRecordModel.FxModelFactory<D, M> factory = getFactory();
             if (null != oldValue) {
                 eventHandlerManager.removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
             }
@@ -79,7 +77,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         return itemEditTableCell;
     }
 
-    protected abstract FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> getFactory();
+    protected abstract FxRecordModel.FxModelFactory<D, M> getFactory();
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

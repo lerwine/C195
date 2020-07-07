@@ -6,6 +6,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
+// FIXME: Discontinue use of AppointmentSuccessEvent
 /**
  * Represents a successful {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
@@ -31,6 +32,7 @@ import scheduler.model.ui.AppointmentModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public final class AppointmentSuccessEvent extends AppointmentEvent {
 
     private static final long serialVersionUID = 7958190140567903253L;

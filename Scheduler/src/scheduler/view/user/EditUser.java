@@ -3,7 +3,6 @@ package scheduler.view.user;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +46,6 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
-import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.model.RecordModelContext;
 import scheduler.model.UserStatus;
@@ -99,7 +97,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel, UserEvent> {
+public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
@@ -167,7 +165,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
-    // FIXME: Do not use weak event handlers
+    // FIXME: Do not use event handlers
     private WeakEventHandler<UserSuccessEvent> insertedHandler;
 
     public EditUser() {
@@ -235,6 +233,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
                 DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                // FIXME: Do not use events
                 target.getDataAccessObject().addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
                     scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
                 });
@@ -331,6 +330,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
             if (keepOpen) {
                 insertedHandler = new WeakEventHandler<>(this::onUserInserted);
+                // FIXME: Do not use events
                 model.dataObject().addEventFilter(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
@@ -342,6 +342,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     private void onUserInserted(UserSuccessEvent event) {
         LOG.entering(LOG.getName(), "onUserInserted", event);
+        // FIXME: Do not use events
         model.dataObject().removeEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
         changePasswordCheckBox.setDisable(false);
         changePasswordCheckBox.setSelected(false);
@@ -381,7 +382,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                 AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-        // FIXME: Do not use weak event handlers
+        // FIXME: Do not use event handlers
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
@@ -455,7 +456,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<UserDAO, UserModel> modelFactory() {
         return UserModel.FACTORY;
     }
 

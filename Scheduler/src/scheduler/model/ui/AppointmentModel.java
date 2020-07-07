@@ -25,7 +25,6 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
-import scheduler.events.OperationRequestEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
@@ -216,27 +215,27 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                             final LocalDateTime e = end.get();
                             return null != s && null != e && s.compareTo(e) <= 0;
                         }, start, end)).and(Bindings.createBooleanBinding(() -> {
-                            final AppointmentType t = type.get();
-                            final String l = location.get();
-                            final String c = contact.get();
-                            final String u = url.get();
-                            if (null == t || l.isEmpty()) {
+                    final AppointmentType t = type.get();
+                    final String l = location.get();
+                    final String c = contact.get();
+                    final String u = url.get();
+                    if (null == t || l.isEmpty()) {
+                        return false;
+                    }
+                    switch (t) {
+                        case CUSTOMER_SITE:
+                            if (c.isEmpty()) {
                                 return false;
                             }
-                            switch (t) {
-                                case CUSTOMER_SITE:
-                                    if (c.isEmpty()) {
-                                        return false;
-                                    }
-                                    break;
-                                case VIRTUAL:
-                                    if (u.isEmpty()) {
-                                        return false;
-                                    }
-                                    break;
+                            break;
+                        case VIRTUAL:
+                            if (u.isEmpty()) {
+                                return false;
                             }
-                            return true;
-                        }, type, location, contact, url)));
+                            break;
+                    }
+                    return true;
+                }, type, location, contact, url)));
         customer.set(CustomerItem.createModel(dao.getCustomer()));
         user.set(UserItem.createModel(dao.getUser()));
         title.set(dao.getTitle());
@@ -605,7 +604,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     public final static class Factory
-            extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+            extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel> {
 
         private Factory() {
             super();
@@ -615,7 +614,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DataAccessObject.DaoFactory<AppointmentDAO, AppointmentEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<AppointmentDAO> getDaoFactory() {
             return AppointmentDAO.FACTORY;
         }
 

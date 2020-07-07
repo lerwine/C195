@@ -7,6 +7,7 @@ import scheduler.dao.OperationFailureException;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
+// FIXME: Discontinue use of AddressEvent
 /**
  * Base {@link ModelEvent} for appointment events.
  * <h3>Event Registration</h3>
@@ -29,6 +30,7 @@ import scheduler.model.ui.AddressModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public abstract class AddressEvent extends ModelEvent<AddressDAO, AddressModel> {
 
     private static final long serialVersionUID = -3650516330020602507L;

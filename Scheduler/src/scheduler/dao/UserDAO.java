@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.EventDispatchChain;
 import scheduler.Scheduler;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilter;
@@ -137,12 +136,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
     }
 
     @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
-    }
-
-    @Override
     public int hashCode() {
         if (this.getRowState() != DataRowState.NEW) {
             return this.getPrimaryKey();
@@ -183,7 +176,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
     /**
      * Factory implementation for {@link UserDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO, UserEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -315,12 +308,6 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         public Class<? extends UserDAO> getDaoClass() {
             return UserDAO.class;
-        }
-
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

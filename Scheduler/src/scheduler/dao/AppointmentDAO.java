@@ -13,9 +13,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.event.EventDispatchChain;
-import javafx.event.WeakEventHandler;
-import scheduler.AppointmentAlertManager;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -34,7 +31,6 @@ import scheduler.events.UserFailedEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
-import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
 import scheduler.model.RecordModelContext;
 import scheduler.model.User;
@@ -76,10 +72,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     private String url;
     private Timestamp start;
     private Timestamp end;
-    // FIXME: Do not use weak event handlers
-    private WeakEventHandler<CustomerEvent> customerChangeHandler;
-    // FIXME: Do not use weak event handlers
-    private WeakEventHandler<UserEvent> userChangeHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} appointment object.
@@ -114,27 +106,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         ICustomerDAO oldValue = this.customer;
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
-        if (null == customer || customer instanceof CustomerDAO) {
-            if (null != customerChangeHandler) {
-                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
-                customerChangeHandler = null;
-            }
-        } else if (null == customerChangeHandler) {
-            customerChangeHandler = new WeakEventHandler<>(this::onCustomerEvent);
-            CustomerDAO.FACTORY.addEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
-        }
-    }
-
-    private void onCustomerEvent(CustomerEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerEvent", event);
-        ICustomerDAO newValue = event.getDataAccessObject();
-        if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
-            CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
-            customerChangeHandler = null;
-            ICustomerDAO oldValue = customer;
-            customer = newValue;
-            firePropertyChange(PROP_CUSTOMER, oldValue, customer);
-        }
     }
 
     @Override
@@ -151,27 +122,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         IUserDAO oldValue = this.user;
         this.user = user;
         firePropertyChange(PROP_USER, oldValue, this.user);
-        if (null == user || user instanceof UserDAO) {
-            if (null != userChangeHandler) {
-                UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
-                userChangeHandler = null;
-            }
-        } else if (null == userChangeHandler) {
-            userChangeHandler = new WeakEventHandler<>(this::onUserEvent);
-            UserDAO.FACTORY.addEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
-        }
-    }
-
-    private void onUserEvent(UserEvent event) {
-        LOG.entering(LOG.getName(), "onUserEvent", event);
-        IUserDAO newValue = event.getDataAccessObject();
-        if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
-            UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
-            userChangeHandler = null;
-            IUserDAO oldValue = user;
-            user = newValue;
-            firePropertyChange(PROP_ADDRESS, oldValue, user);
-        }
     }
 
     @Override
@@ -351,12 +301,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return AppointmentAlertManager.INSTANCE.buildEventDispatchChain(FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail)));
-    }
-
-    @Override
     public int hashCode() {
         if (getRowState() != DataRowState.NEW) {
             return getPrimaryKey();
@@ -412,7 +356,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     /**
      * Factory implementation for {@link AppointmentDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO, AppointmentEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -789,12 +733,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             toDAO.firePropertyChange(PROP_URL, oldUrl, toDAO.url);
             toDAO.firePropertyChange(PROP_START, oldStart, toDAO.start);
             toDAO.firePropertyChange(PROP_END, oldEnd, toDAO.end);
-        }
-
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
     }

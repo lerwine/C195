@@ -295,10 +295,11 @@ import scheduler.util.LogHelper;
  * @param <D> The type of {@link DataAccessObject}.
  * @param <M> The type of {@link FxRecordModel}.
  */
+@Deprecated
 public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends Event implements IModelEvent<D, M> {
 
     private static final long serialVersionUID = -6832461936768738020L;
-    
+
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ModelEvent.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ModelEvent.class.getName());
 
@@ -309,6 +310,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
             = new EventType<>(ANY, "SCHEDULER_MODEL_EVENT");
 
     @SuppressWarnings("unchecked")
+    @Deprecated
     public static final String getMessage(ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>> event) {
         if (event instanceof ModelFailedEvent) {
             return ((ModelFailedEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>) event).getMessage();
@@ -316,6 +318,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         return "";
     }
 
+    @Deprecated
     public static final <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>, R> R withEvent(E event, Function<E, R> ifFailed,
             R otherwise) {
         if (null == event || event instanceof ModelFailedEvent) {
@@ -362,23 +365,18 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
      * @param operation The database operation associated with the event.
      */
     protected ModelEvent(RecordModelContext<D, M> target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
-        super(source, target.getDataAccessObject(), Objects.requireNonNull(eventType));
-        StateOriginal s = new StateOriginal(target.getDataAccessObject(), operation);
-        s.fxRecordModel = target.getFxRecordModel();
-        state = s;
+        super(source, null, Objects.requireNonNull(eventType));
+        throw new UnsupportedOperationException();
     }
 
     protected ModelEvent(M target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
-        super(source, target.dataObject(), Objects.requireNonNull(eventType));
-        StateOriginal s = new StateOriginal(target.dataObject(), operation);
-        s.fxRecordModel = target;
-        state = s;
+        super(source, null, Objects.requireNonNull(eventType));
+        throw new UnsupportedOperationException();
     }
 
     protected ModelEvent(D target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
-        super(source, target, Objects.requireNonNull(eventType));
-        StateOriginal s = new StateOriginal(target, operation);
-        state = s;
+        super(source, null, Objects.requireNonNull(eventType));
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -403,7 +401,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
 
     @Override
     public Event copyFor(Object newSource, EventTarget newTarget) {
-        LOG.entering(LOG.getName(), "copyFor", new Object[] { newSource, newTarget });
+        LOG.entering(LOG.getName(), "copyFor", new Object[]{newSource, newTarget});
         @SuppressWarnings("unchecked")
         ModelEvent<D, M> copy;
         try {
@@ -454,22 +452,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(getClass().getName()).append("[type=").append(getEventType().getName()).append("; operation=").append(state.getOperation());
-        if (this instanceof ModelFailedEvent) {
-            @SuppressWarnings("unchecked")
-            ModelFailedEvent<D, M> f = (ModelFailedEvent<D, M>) this;
-            sb.append("; failKind=").append(f.getFailKind());
-            if (isConsumed()) {
-                sb.append("; consumed=true");
-            }
-            String s = f.getMessage();
-            if (null != s && !s.isEmpty()) {
-                sb.append("; message=").append(LogHelper.toLogText(s));
-            }
-            Throwable ex = f.getFault();
-            if (null != ex) {
-                sb.append("; fault=").append(ex);
-            }
-        } else if (isConsumed()) {
+        if (isConsumed()) {
             sb.append("; consumed=true");
         }
         M fxRecordModel = getFxRecordModel();

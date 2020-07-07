@@ -1,6 +1,5 @@
 package scheduler.dao;
 
-import com.sun.javafx.event.EventHandlerManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.lang.ref.WeakReference;
@@ -29,9 +28,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
-import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
-import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -67,12 +64,11 @@ import scheduler.view.task.WaitBorderPane;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class DataAccessObject extends PropertyBindable implements DbRecord, EventTarget {
+public abstract class DataAccessObject extends PropertyBindable implements DbRecord {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
 
-    private final EventHandlerManager eventHandlerManager;
     private final OriginalValues originalValues;
     private int primaryKey;
     private Timestamp createDate;
@@ -85,7 +81,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * Initializes a {@link DataRowState#NEW} data access object.
      */
     protected DataAccessObject() {
-        eventHandlerManager = new EventHandlerManager(this);
         primaryKey = Integer.MIN_VALUE;
         lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
@@ -247,9 +242,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
+    // FIXME: Remove this method
+    @Deprecated
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
-        eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
     /**
@@ -259,9 +255,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
+    // FIXME: Remove this method
+    @Deprecated
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void addEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
-        eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
     /**
@@ -271,9 +268,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
+    // FIXME: Remove this method
+    @Deprecated
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
-        eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
     /**
@@ -283,15 +281,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param type The event type.
      * @param eventHandler The event handler.
      */
+    // FIXME: Remove this method
+    @Deprecated
     public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
             void removeEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
-        eventHandlerManager.removeEventFilter(type, eventHandler);
-    }
-
-    @Override
-    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return tail.append(eventHandlerManager);
     }
 
     /**
@@ -308,12 +301,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
 
-        private final DaoFactory<T, ? extends ModelEvent<T, ? extends FxRecordModel<T>>> factory;
+        private final DaoFactory<T> factory;
         private final DaoFilter<T> filter;
         private final Consumer<List<T>> onSuccess;
         private final Consumer<Throwable> onFail;
 
-        LoadTask(DaoFactory<T, ? extends ModelEvent<T, ? extends FxRecordModel<T>>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+        LoadTask(DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
             updateTitle(filter.getLoadingTitle());
             this.factory = Objects.requireNonNull(factory);
             this.filter = Objects.requireNonNull(filter);
@@ -438,17 +431,13 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <D> The type of {@link DataAccessObject} object supported.
      * @param <E> The {@link ModelEvent} type.
      */
-    public static abstract class DaoFactory<D extends DataAccessObject, E extends ModelEvent<D, ? extends FxRecordModel<D>>> implements EventTarget {
+    // FIXME: Discontinue use of ModelEvent
+    public static abstract class DaoFactory<D extends DataAccessObject> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
 
-        private final EventHandlerManager eventHandlerManager;
         private final DataObjectCache<D> dataObjectCache = new DataObjectCache<>();
-
-        protected DaoFactory() {
-            eventHandlerManager = new EventHandlerManager(this);
-        }
 
         /**
          * Loads items from the database.
@@ -767,56 +756,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return null != dao && getDaoClass().isAssignableFrom(dao.getClass());
         }
 
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return tail.append(eventHandlerManager);
-        }
-
-        /**
-         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
-            eventHandlerManager.addEventHandler(type, eventHandler);
-        }
-
-        /**
-         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventFilter The event filter.
-         */
-        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
-            eventHandlerManager.addEventFilter(type, eventFilter);
-        }
-
-        /**
-         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
-            eventHandlerManager.removeEventHandler(type, eventHandler);
-        }
-
-        /**
-         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventFilter The event filter.
-         */
-        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
-            eventHandlerManager.removeEventFilter(type, eventFilter);
-        }
-
     }
 
     /**
@@ -827,6 +766,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <M> The associated {@link FxRecordModel} type.
      * @param <E> The result {@link ModelEvent} type.
      */
+    // FIXME: Discontinue use of ModelEvent
+    @Deprecated
     public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends Task<E> implements RecordModelContext<D, M> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINER);
@@ -913,11 +854,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         public ReadOnlyObjectProperty<E> finalEventProperty() {
             return finalEvent.getReadOnlyProperty();
-        }
-
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            return getDataAccessObject().buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
 
         /**
@@ -1043,13 +979,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <M> The type of associated {@link FxRecordModel}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
+    // FIXME: Discontinue use of ModelEvent
+    @Deprecated
     public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends DaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
-        private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
-        private final ReadOnlyObjectWrapper<FxRecordModel.FxModelFactory<D, M, E>> modelFactory;
+        private final ReadOnlyObjectWrapper<DaoFactory<D>> daoFactory;
+        private final ReadOnlyObjectWrapper<FxRecordModel.FxModelFactory<D, M>> modelFactory;
         private boolean validationSuccessful;
         private final ReadOnlyBooleanWrapper validationFailed;
 
@@ -1062,7 +1000,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
          * perform validation.
          */
-        protected ValidatingDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+        protected ValidatingDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
             super(target, anyEventType);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
@@ -1088,11 +1026,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @return The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
          */
-        public DaoFactory<D, E> getDaoFactory() {
+        public DaoFactory<D> getDaoFactory() {
             return daoFactory.get();
         }
 
-        public ReadOnlyObjectProperty<DaoFactory<D, E>> daoFactoryProperty() {
+        public ReadOnlyObjectProperty<DaoFactory<D>> daoFactoryProperty() {
             return daoFactory.getReadOnlyProperty();
         }
 
@@ -1102,14 +1040,15 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type or {@code null} if a {@link FxRecordModel} was not specified in
          * the constructor.
          */
-        public FxRecordModel.FxModelFactory<D, M, E> getModelFactory() {
+        public FxRecordModel.FxModelFactory<D, M> getModelFactory() {
             return modelFactory.get();
         }
 
-        public ReadOnlyObjectProperty<FxRecordModel.FxModelFactory<D, M, E>> modelFactoryProperty() {
+        public ReadOnlyObjectProperty<FxRecordModel.FxModelFactory<D, M>> modelFactoryProperty() {
             return modelFactory.getReadOnlyProperty();
         }
 
+        // FIXME: Discontinue use of ModelFailedEvent
         @Override
         protected final E call(Connection connection) throws Exception {
             LOG.entering(LOG.getName(), "call", connection);
@@ -1156,6 +1095,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <M> The type of associated {@link FxRecordModel}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
+    // FIXME: Discontinue use of ModelEvent
+    @Deprecated
     public static abstract class SaveDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINER);
@@ -1171,7 +1112,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+        protected SaveDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
             super(target, modelFactory, anyEventType, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
@@ -1188,7 +1129,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @Override
         protected final E onValidated(Connection connection) throws Exception {
             D dao = getDataAccessObject();
-            DaoFactory<D, E> factory = getDaoFactory();
+            DaoFactory<D> factory = getDaoFactory();
             DataAccessObject dataObj = (DataAccessObject) dao;
             Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
             StringBuilder sb = new StringBuilder();
@@ -1306,6 +1247,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             return createSuccessEvent();
         }
 
+        // FIXME: Discontinue use of ModelFailedEvent
         @Override
         protected void succeeded() {
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
@@ -1345,6 +1287,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * @param <M> The type of associated {@link FxRecordModel}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
+    // FIXME: Discontinue use of ModelEvent
+    @Deprecated
     public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINER);
@@ -1361,7 +1305,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+        protected DeleteDaoTask(RecordModelContext<D, M> target, FxRecordModel.FxModelFactory<D, M> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
             super(target, modelFactory, anyEventType, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:
@@ -1374,7 +1318,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @Override
         protected E onValidated(Connection connection) throws Exception {
             D dao = getDataAccessObject();
-            DaoFactory<D, E> factory = getDaoFactory();
+            DaoFactory<D> factory = getDaoFactory();
             StringBuilder sb = new StringBuilder("DELETE FROM ");
             sb.append(factory.getDbTable().getDbName()).append(" WHERE ").append(factory.getPrimaryKeyColumn().getDbName()).append("=?");
             String sql = sb.toString();

@@ -6,6 +6,7 @@ import scheduler.dao.CountryDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
+// FIXME: Discontinue use of CountrySuccessEvent
 /**
  * Represents a successful {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
@@ -30,6 +31,7 @@ import scheduler.model.ui.CountryModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public final class CountrySuccessEvent extends CountryEvent {
 
     private static final long serialVersionUID = -2962871552359511026L;

@@ -7,6 +7,7 @@ import scheduler.dao.UserDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.UserModel;
 
+// FIXME: Discontinue use of UserEvent
 /**
  * Base {@link ModelEvent} for user events.
  * <h3>Event Registration</h3>
@@ -29,6 +30,7 @@ import scheduler.model.ui.UserModel;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
+@Deprecated
 public abstract class UserEvent extends ModelEvent<UserDAO, UserModel> {
 
     private static final long serialVersionUID = -4220071150094259420L;

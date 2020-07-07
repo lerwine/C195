@@ -44,7 +44,6 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
-import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
@@ -104,7 +103,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
-public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel, AddressEvent> {
+public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
@@ -198,7 +197,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
     private BooleanBinding showEditCityControls;
-    // FIXME: Do not use weak event handlers
+    // FIXME: Do not use event handlers
     private WeakEventHandler<AddressSuccessEvent> insertedHandler;
 
     public EditAddress() {
@@ -430,6 +429,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void onAddressInserted(AddressSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAddressInserted", event);
+        // FIXME: Do not use events
         model.dataObject().removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
         editingCity.set(false);
         restoreNode(customersHeadingLabel);
@@ -440,7 +440,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
-        // FIXME: Do not use weak event handlers
+        // FIXME: Do not use event handlers
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onCustomerAdded));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onCustomerUpdated));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
@@ -502,7 +502,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<AddressDAO, AddressModel> modelFactory() {
         return AddressModel.FACTORY;
     }
 
