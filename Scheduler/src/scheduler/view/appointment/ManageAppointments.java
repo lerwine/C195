@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -40,7 +39,6 @@ import scheduler.dao.IUserDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.events.AppointmentFailedEvent;
-import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
@@ -515,7 +513,8 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         }
     }
 
-    @Override
+    @Deprecated
+    // FIXME: Delete this method
     protected void onDeleteItem(RecordModelContext<AppointmentDAO, AppointmentModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
@@ -530,18 +529,8 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected EventType<AppointmentSuccessEvent> getInsertedEventType() {
-        return AppointmentSuccessEvent.INSERT_SUCCESS;
-    }
-
-    @Override
-    protected EventType<AppointmentSuccessEvent> getUpdatedEventType() {
-        return AppointmentSuccessEvent.UPDATE_SUCCESS;
-    }
-
-    @Override
-    protected EventType<AppointmentSuccessEvent> getDeletedEventType() {
-        return AppointmentSuccessEvent.DELETE_SUCCESS;
+    protected void onDeleteItem(AppointmentModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.ManageAppointments#onDeleteItem
     }
 
 }

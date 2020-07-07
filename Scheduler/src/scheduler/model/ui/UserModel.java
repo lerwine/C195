@@ -9,13 +9,9 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
-import scheduler.events.UserEvent;
-import scheduler.events.UserOpRequestEvent;
-import scheduler.model.RecordModelContext;
 import static scheduler.model.User.MAX_LENGTH_PASSWORD;
 import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserStatus;
@@ -196,67 +192,36 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<UserDAO, UserModel, UserEvent> createSaveTask(RecordModelContext<UserDAO, UserModel> model) {
+        public DataAccessObject.SaveDaoTask<UserDAO, UserModel> createSaveTask(UserModel model) {
             return new UserDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<UserDAO, UserModel, UserEvent> createDeleteTask(RecordModelContext<UserDAO, UserModel> model) {
+        public DataAccessObject.DeleteDaoTask<UserDAO, UserModel> createDeleteTask(UserModel model) {
             return new UserDAO.DeleteTask(model, false);
         }
 
         @Override
-        public UserEvent validateForSave(RecordModelContext<UserDAO, UserModel> target) {
-            UserDAO dao = target.getDataAccessObject();
-            String message;
+        public String validateForSave(UserModel target) {
+            UserDAO dao = target.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
-                message = "User has already been deleted";
-            } else {
-                String userName = dao.getUserName();
-                if (userName.isEmpty()) {
-                    message = "User name not defined";
-                } else if (userName.length() > MAX_LENGTH_USERNAME) {
-                    message = "User name too long";
-                } else {
-                    String password = dao.getPassword();
-                    if (password.isEmpty()) {
-                        message = "Password not defined";
-                    } else if (password.length() > MAX_LENGTH_PASSWORD) {
-                        message = "Password length too long";
-                    } else {
-                        return null;
-                    }
-                }
+                return "User has already been deleted";
             }
-            if (dao.getRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertInvalidEvent(target, this, message);
+            String userName = dao.getUserName();
+            if (userName.isEmpty()) {
+                return "User name not defined";
             }
-            return UserEvent.createUpdateInvalidEvent(target, this, message);
-        }
-
-        @Override
-        public UserOpRequestEvent createEditRequestEvent(UserModel model, Object source) {
-            return new UserOpRequestEvent(model, source, false);
-        }
-
-        @Override
-        public UserOpRequestEvent createDeleteRequestEvent(UserModel model, Object source) {
-            return new UserOpRequestEvent(model, source, true);
-        }
-
-        @Override
-        public EventType<UserOpRequestEvent> getBaseRequestEventType() {
-            return UserOpRequestEvent.USER_OP_REQUEST;
-        }
-
-        @Override
-        public EventType<UserOpRequestEvent> getEditRequestEventType() {
-            return UserOpRequestEvent.EDIT_REQUEST;
-        }
-
-        @Override
-        public EventType<UserOpRequestEvent> getDeleteRequestEventType() {
-            return UserOpRequestEvent.DELETE_REQUEST;
+            if (userName.length() > MAX_LENGTH_USERNAME) {
+                return "User name too long";
+            }
+            String password = dao.getPassword();
+            if (password.isEmpty()) {
+                return "Password not defined";
+            }
+            if (password.length() > MAX_LENGTH_PASSWORD) {
+                return "Password length too long";
+            }
+            return null;
         }
 
     }

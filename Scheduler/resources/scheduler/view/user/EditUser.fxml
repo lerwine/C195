@@ -20,8 +20,6 @@
 <?import scheduler.fx.DateTimeTableCellFactory?>
 <?import scheduler.fx.UserStatusListCell?>
 <?import scheduler.fx.UserStatusListCellFactory?>
-<?import scheduler.fx.AppointmentEditTableCellFactory?>
-<?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
 
 
@@ -166,14 +164,6 @@
                     <cellValueFactory>
                         <PropertyValueFactory property="lastUpdateBy" />
                     </cellValueFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="64.0" minWidth="64.0" prefWidth="64.0" sortable="false">
-                    <cellValueFactory>
-                        <RelayCellValueFactory />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
-                    </cellFactory>
                 </TableColumn>
             </columns>
             <contextMenu>

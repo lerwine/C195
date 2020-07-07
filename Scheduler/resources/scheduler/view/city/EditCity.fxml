@@ -18,11 +18,9 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.fx.AddressEditTableCellFactory?>
 <?import scheduler.fx.CountryListCell?>
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.TimeZoneListCell?>
 <?import scheduler.fx.TimeZoneListCellFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
@@ -140,14 +138,6 @@
                     </cellValueFactory>
                     <cellFactory>
                         <WrappingTextTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="64.0" minWidth="64.0" prefWidth="64.0" sortable="false">
-                    <cellValueFactory>
-                        <RelayCellValueFactory />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <AddressEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

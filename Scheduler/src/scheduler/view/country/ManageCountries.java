@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
@@ -18,7 +17,6 @@ import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryFailedEvent;
-import scheduler.events.CountrySuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
 import scheduler.model.RecordModelContext;
@@ -117,7 +115,8 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
         }
     }
 
-    @Override
+    @Deprecated
+    // FIXME: Delete this method
     protected void onDeleteItem(RecordModelContext<CountryDAO, CountryModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
@@ -134,18 +133,8 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     }
 
     @Override
-    protected EventType<CountrySuccessEvent> getInsertedEventType() {
-        return CountrySuccessEvent.INSERT_SUCCESS;
-    }
-
-    @Override
-    protected EventType<CountrySuccessEvent> getUpdatedEventType() {
-        return CountrySuccessEvent.UPDATE_SUCCESS;
-    }
-
-    @Override
-    protected EventType<CountrySuccessEvent> getDeletedEventType() {
-        return CountrySuccessEvent.DELETE_SUCCESS;
+    protected void onDeleteItem(CountryModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.country.ManageCountries#onDeleteItem
     }
 
 }

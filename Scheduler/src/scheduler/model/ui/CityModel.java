@@ -11,27 +11,20 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.CityEvent;
-import scheduler.events.CityOpRequestEvent;
-import scheduler.events.CountryEvent;
-import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -247,110 +240,44 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(RecordModelContext<CityDAO, CityModel> model) {
+        public DataAccessObject.SaveDaoTask<CityDAO, CityModel> createSaveTask(CityModel model) {
             return new CityDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(RecordModelContext<CityDAO, CityModel> model) {
+        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel> createDeleteTask(CityModel model) {
             return new CityDAO.DeleteTask(model, false);
         }
 
         @Override
-        public CityEvent validateForSave(RecordModelContext<CityDAO, CityModel> target) {
-            CityDAO dao = target.getDataAccessObject();
-            String message;
+        public String validateForSave(CityModel fxRecordModel) {
+            CityDAO dao = fxRecordModel.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
-                message = "City has already been deleted";
-            } else {
-                String name = dao.getName();
-                if (name.isEmpty()) {
-                    message = "City name not defined";
-                } else {
-                    TimeZone zoneId = dao.getTimeZone();
-                    if (null == zoneId) {
-                        message = "Zone Id not defined";
-                    } else if ((name.length() + zoneId.toZoneId().getId().length() + 1) > MAX_LENGTH_NAME) {
-                        message = "Name too long";
-                    } else {
-                        ICountryDAO country = dao.getCountry();
-                        if (null == country) {
-                            message = "Country not specified";
-                        } else {
-                            CityModel fxRecordModel = target.getFxRecordModel();
-                            CountryEvent event;
-                            if (null != fxRecordModel) {
-                                CountryItem<? extends ICountryDAO> c = fxRecordModel.getCountry();
-                                if (null != c) {
-                                    if (c instanceof CountryModel) {
-                                        if (null == (event = CountryModel.FACTORY.validateForSave(RecordModelContext.of((CountryModel) c)))) {
-                                            return null;
-                                        }
-                                    } else {
-                                        return null;
-                                    }
-                                } else {
-                                    event = null;
-                                }
-                            } else {
-                                ICountryDAO c = dao.getCountry();
-                                if (null != c) {
-                                    if (c instanceof CountryDAO) {
-                                        if (null == (event = CountryModel.FACTORY.validateForSave(RecordModelContext.of((CountryDAO) c)))) {
-                                            return null;
-                                        }
-                                    } else {
-                                        return null;
-                                    }
-                                } else {
-                                    event = null;
-                                }
-                            }
-                            if (null != event) {
-                                if (event instanceof CountryFailedEvent) {
-                                    if (dao.getRowState() == DataRowState.NEW) {
-                                        return CityEvent.createInsertInvalidEvent(target, this, (CountryFailedEvent) event);
-                                    }
-                                    return CityEvent.createUpdateInvalidEvent(target, this, (CountryFailedEvent) event);
-                                }
-                                return null;
-                            }
-
-                            message = "City not specified.";
-                        }
-                    }
+                return "City has already been deleted";
+            }
+            String name = dao.getName();
+            if (name.isEmpty()) {
+                return "City name not defined";
+            }
+            TimeZone zoneId = dao.getTimeZone();
+            if (null == zoneId) {
+                return "Zone Id not defined";
+            }
+            if ((name.length() + zoneId.toZoneId().getId().length() + 1) > MAX_LENGTH_NAME) {
+                return "Name too long";
+            }
+            CountryItem<? extends ICountryDAO> c = fxRecordModel.getCountry();
+            if (null == c) {
+                return "Country not specified";
+            }
+            if (c instanceof CountryModel) {
+                String message = CountryModel.FACTORY.validateForSave((CountryModel) c);
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
                 }
             }
 
-            if (dao.getRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertInvalidEvent(target, this, message);
-            }
-            return CityEvent.createUpdateInvalidEvent(target, this, message);
-        }
-
-        @Override
-        public CityOpRequestEvent createEditRequestEvent(CityModel model, Object source) {
-            return new CityOpRequestEvent(model, source, false);
-        }
-
-        @Override
-        public CityOpRequestEvent createDeleteRequestEvent(CityModel model, Object source) {
-            return new CityOpRequestEvent(model, source, true);
-        }
-
-        @Override
-        public EventType<CityOpRequestEvent> getBaseRequestEventType() {
-            return CityOpRequestEvent.CITY_OP_REQUEST;
-        }
-
-        @Override
-        public EventType<CityOpRequestEvent> getEditRequestEventType() {
-            return CityOpRequestEvent.EDIT_REQUEST;
-        }
-
-        @Override
-        public EventType<CityOpRequestEvent> getDeleteRequestEventType() {
-            return CityOpRequestEvent.DELETE_REQUEST;
+            return null;
         }
 
     }

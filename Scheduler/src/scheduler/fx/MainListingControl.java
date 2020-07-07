@@ -4,24 +4,20 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -35,7 +31,6 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
-import scheduler.util.ParentWindowShowingListener;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
@@ -91,7 +86,6 @@ import scheduler.view.ModelFilter;
  *
  * @param <D> Data access object type wrapped by the model.
  * @param <M> The FX model type.
- * @param <E> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>> extends StackPane {
@@ -113,21 +107,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     @FXML // fx:id="listingTableView"
     private TableView<M> listingTableView; // Value injected by FXMLLoader
-    private final ShowingChangedListener windowShowingChangedListener;
 
     @SuppressWarnings("LeakingThisInConstructor")
     protected MainListingControl() {
-        addEventHandler(EventType.ROOT, (e) -> {
-            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
-                LOG.finer(() -> String.format("Event handling %s", e));
-            }
-        });
-        addEventFilter(EventType.ROOT, (e) -> {
-            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
-                LOG.finer(() -> String.format("Event filtering %s", e));
-            }
-        });
-        windowShowingChangedListener = new ShowingChangedListener();
         filter = new SimpleObjectProperty<>();
         items = FXCollections.observableArrayList();
         try {
@@ -147,7 +129,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
         listingTableView.setItems(items);
 
-        windowShowingChangedListener.initialize(sceneProperty());
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());
@@ -162,7 +143,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         LOG.entering(LOG.getName(), "onDeleteMenuItemAction", event);
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDeleteItem(RecordModelContext.of(item));
+            onDeleteItem(item);
         }
     }
 
@@ -176,16 +157,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     }
 
     @FXML
-    private void onItemActionRequest(OperationRequestEvent<D, M> event) {
-        LOG.entering(LOG.getName(), "onItemActionRequest", event);
-        if (event.isEdit()) {
-            onEditItem(event.getFxRecordModel());
-        } else {
-            onDeleteItem(event);
-        }
-    }
-
-    @FXML
     @SuppressWarnings("incomplete-switch")
     private void onListingTableViewKeyReleased(KeyEvent event) {
         LOG.entering(LOG.getName(), "onListingTableViewKeyReleased", event);
@@ -195,7 +166,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 case DELETE:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDeleteItem(RecordModelContext.of(item));
+                        onDeleteItem(item);
                     }
                     break;
                 case ENTER:
@@ -269,49 +240,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         return new LoadItemsTask(filter);
     }
 
-    protected void onInsertedEvent(ModelEvent<D, M> event) {
-        LOG.entering(LOG.getName(), "onInsertedEvent", event);
-        ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
-        if (null != f) {
-            D dao = event.getDataAccessObject();
-            // XXX: Check to see if we need to get/update model
-            if (f.getDaoFilter().test(dao)) {
-                items.add(getModelFactory().createNew(dao));
-            }
-        }
-    }
-
-    protected void onUpdatedEvent(ModelEvent<D, M> event) {
-        LOG.entering(LOG.getName(), "onUpdatedEvent", event);
-        D dao = event.getDataAccessObject();
-        // XXX: Check to see if we need to get/update model
-        FxRecordModel.FxModelFactory<D, M> mf = getModelFactory();
-        if (null != mf) {
-            Optional<M> m = mf.find(items, dao);
-            ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
-            if (null != f) {
-                if (m.isPresent()) {
-                    if (!f.getDaoFilter().test(dao)) {
-                        items.remove(m.get());
-                    }
-                } else if (f.getDaoFilter().test(dao)) {
-                    getItems().add(mf.createNew(dao));
-                }
-            } else {
-                getItems().add(mf.createNew(dao));
-            }
-        }
-    }
-
-    protected void onDeletedEvent(ModelEvent<D, M> event) {
-        LOG.entering(LOG.getName(), "onDeletedEvent", event);
-        if (!items.isEmpty()) {
-            getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> {
-                items.remove(t);
-            });
-        }
-    }
-
     protected abstract Comparator<? super D> getComparator();
 
     protected abstract FxRecordModel.FxModelFactory<D, M> getModelFactory();
@@ -324,37 +252,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract void onEditItem(M item);
 
-    protected abstract void onDeleteItem(RecordModelContext<D, M> item);
-
-    protected abstract EventType<? extends ModelEvent<D, M>> getInsertedEventType();
-
-    protected abstract EventType<? extends ModelEvent<D, M>> getUpdatedEventType();
-
-    protected abstract EventType<? extends ModelEvent<D, M>> getDeletedEventType();
-
-    private class ShowingChangedListener extends ParentWindowShowingListener {
-
-        private boolean isAttached = false;
-
-        @Override
-        protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-            super.onShowingChanged(observable, oldValue, newValue);
-            if (newValue) {
-                if (!isAttached) {
-                    addEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                    addEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                    addEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-                    isAttached = true;
-                }
-            } else if (isAttached) {
-                removeEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                removeEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                removeEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-                isAttached = false;
-            }
-        }
-
-    }
+    protected abstract void onDeleteItem(M item);
 
     protected class LoadItemsTask extends Task<List<D>> {
 

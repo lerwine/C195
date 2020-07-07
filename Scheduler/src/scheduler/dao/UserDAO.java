@@ -312,7 +312,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     }
 
-    public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
+    public static class SaveTask extends SaveDaoTask<UserDAO, UserModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -320,8 +320,8 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
         private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
 
-        public SaveTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
-            super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public SaveTask(UserModel target, boolean alreadyValidated) {
+            super(target, UserModel.FACTORY, alreadyValidated);
             UserModel model = target.getFxRecordModel();
             if (null != model) {
                 UserDAO dao = target.getDataAccessObject();
@@ -332,15 +332,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         }
 
         @Override
-        protected UserEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertSuccessEvent(this, this);
-            }
-            return UserEvent.createUpdateSuccessEvent(this, this);
-        }
-
-        @Override
-        protected UserEvent validate(Connection connection) throws Exception {
+        protected String validate(Connection connection) throws Exception {
             UserEvent saveEvent = UserModel.FACTORY.validateForSave(this);
             if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
                 return saveEvent;
@@ -397,7 +389,7 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<UserDAO, UserModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -407,17 +399,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         private static final String REFERENCED_BY_ONE = "Address is referenced by one appointment.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
-            super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(UserModel target, boolean alreadyValidated) {
+            super(target, UserModel.FACTORY, alreadyValidated);
         }
 
         @Override
-        protected UserEvent createSuccessEvent() {
-            return UserEvent.createDeleteSuccessEvent(this, this);
-        }
-
-        @Override
-        protected UserEvent validate(Connection connection) throws Exception {
+        protected String validate(Connection connection) throws Exception {
             UserDAO dao = getDataAccessObject();
             if (dao == Scheduler.getCurrentUser()) {
                 return UserEvent.createDeleteInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);

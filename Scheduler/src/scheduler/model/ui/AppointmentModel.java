@@ -11,27 +11,17 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
-import scheduler.dao.UserDAO;
-import scheduler.events.AppointmentEvent;
-import scheduler.events.AppointmentOpRequestEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.CustomerFailedEvent;
-import scheduler.events.UserEvent;
-import scheduler.events.UserFailedEvent;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.PredefinedData;
-import scheduler.model.RecordModelContext;
 import scheduler.model.UserStatus;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -603,8 +593,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 .addString(lastModifiedByProperty()).addBoolean(valid);
     }
 
-    public final static class Factory
-            extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel> {
 
         private Factory() {
             super();
@@ -634,158 +623,83 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(
-                final RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel> createSaveTask(final AppointmentModel model) {
             return new AppointmentDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(
-                final RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> createDeleteTask(final AppointmentModel model) {
             return new AppointmentDAO.DeleteTask(model, false);
         }
 
         @Override
-        public AppointmentEvent validateForSave(final RecordModelContext<AppointmentDAO, AppointmentModel> target) {
-            final AppointmentDAO dao = target.getDataAccessObject();
-            String message;
+        public String validateForSave(final AppointmentModel fxRecordModel) {
+            final AppointmentDAO dao = fxRecordModel.dataObject();
             String s;
             if (dao.getRowState() == DataRowState.DELETED) {
-                message = "Appointment has already been deleted";
-            } else if ((s = dao.getTitle()).isEmpty()) {
-                message = "Title not defined";
-            } else if (s.length() > MAX_LENGTH_TITLE) {
-                message = "Title too long";
-            } else {
-                final Timestamp start = dao.getStart();
-                Timestamp end;
-                if (null == start) {
-                    message = "Start date/time not defined";
-                } else if (null == (end = dao.getEnd())) {
-                    message = "End date/time not defined";
-                } else if (start.compareTo(end) > 0) {
-                    message = "Start is after end date/time";
-                } else {
-                    message = null;
-                    switch (dao.getType()) {
-                        case CORPORATE_LOCATION:
-                            s = dao.getLocation();
-                            if (s.isEmpty()) {
-                                message = "Location not defined";
-                            } else if (!PredefinedData.getCorporateAddressMap().containsKey(s)) {
-                                message = "Invalid corporate location key";
-                            }
-                            break;
-                        case VIRTUAL:
-                            if (Values.isNullWhiteSpaceOrEmpty(dao.getUrl())) {
-                                message = "URL not defined";
-                            }
-                            break;
-                        case CUSTOMER_SITE:
-                            if (Values.isNullWhiteSpaceOrEmpty(dao.getContact())) {
-                                message = "Contact not defined";
-                            }
-                            break;
-                        default:
-                            if (Values.isNullWhiteSpaceOrEmpty(dao.getLocation())) {
-                                message = "Location not defined";
-                            }
-                            break;
+                return "Appointment has already been deleted";
+            }
+            if ((s = dao.getTitle()).isEmpty()) {
+                return "Title not defined";
+            }
+            if (s.length() > MAX_LENGTH_TITLE) {
+                return "Title too long";
+            }
+            final Timestamp start = dao.getStart();
+            Timestamp end;
+            if (null == start) {
+                return "Start date/time not defined";
+            }
+            if (null == (end = dao.getEnd())) {
+                return "End date/time not defined";
+            }
+            if (start.compareTo(end) > 0) {
+                return "Start is after end date/time";
+            }
+            switch (dao.getType()) {
+                case CORPORATE_LOCATION:
+                    s = dao.getLocation();
+                    if (s.isEmpty()) {
+                        return "Location not defined";
                     }
-                    if (null == message) {
-                        final AppointmentModel fxRecordModel = target.getFxRecordModel();
-                        CustomerEvent customerEvent = null;
-                        UserEvent userEvent = null;
-                        if (null != fxRecordModel) {
-                            final CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
-                            if (null == customer) {
-                                message = "Customer not specified";
-                            } else if (customer instanceof CustomerModel) {
-                                customerEvent = CustomerModel.FACTORY
-                                        .validateForSave(RecordModelContext.of((CustomerModel) customer));
-                                if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
-                                    customerEvent = null;
-                                    final UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
-                                    if (null == user) {
-                                        message = "User not specified";
-                                    } else if (user instanceof UserModel) {
-                                        userEvent = UserModel.FACTORY
-                                                .validateForSave(RecordModelContext.of((UserModel) user));
-                                    }
-                                }
-                            }
-                        } else {
-                            final ICustomerDAO customer = dao.getCustomer();
-                            if (null == customer) {
-                                message = "Customer not specified";
-                            } else if (customer instanceof CustomerDAO) {
-                                customerEvent = CustomerModel.FACTORY
-                                        .validateForSave(RecordModelContext.of((CustomerDAO) customer));
-                                if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
-                                    customerEvent = null;
-                                    final IUserDAO user = dao.getUser();
-                                    if (null == user) {
-                                        message = "User not specified";
-                                    } else if (user instanceof UserDAO) {
-                                        userEvent = UserModel.FACTORY
-                                                .validateForSave(RecordModelContext.of((UserDAO) user));
-                                    }
-                                }
-                            }
-                        }
-
-                        if (null == message) {
-                            if (null != customerEvent) {
-                                if (dao.getRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(target, this,
-                                            (CustomerFailedEvent) customerEvent);
-                                }
-                                return AppointmentEvent.createUpdateInvalidEvent(target, this,
-                                        (CustomerFailedEvent) customerEvent);
-                            }
-                            if (null != userEvent && userEvent instanceof UserFailedEvent) {
-                                if (dao.getRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(target, this,
-                                            (UserFailedEvent) userEvent);
-                                }
-                                return AppointmentEvent.createUpdateInvalidEvent(target, this,
-                                        (UserFailedEvent) userEvent);
-                            }
-                            return null;
-                        }
+                    if (!PredefinedData.getCorporateAddressMap().containsKey(s)) {
+                        return "Invalid corporate location key";
                     }
+                    break;
+                case VIRTUAL:
+                    if (Values.isNullWhiteSpaceOrEmpty(dao.getUrl())) {
+                        return "URL not defined";
+                    }
+                    break;
+                case CUSTOMER_SITE:
+                    if (Values.isNullWhiteSpaceOrEmpty(dao.getContact())) {
+                        return "Contact not defined";
+                    }
+                    break;
+                default:
+                    if (Values.isNullWhiteSpaceOrEmpty(dao.getLocation())) {
+                        return "Location not defined";
+                    }
+                    break;
+            }
+            final CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
+            if (null == customer) {
+                return "Customer not specified";
+            }
+            if (customer instanceof CustomerModel) {
+                String message = CustomerModel.FACTORY.validateForSave((CustomerModel) customer);
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
                 }
             }
-
-            if (dao.getRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertInvalidEvent(target, this, message);
+            final UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
+            if (null == user) {
+                return "User not specified";
             }
-            return AppointmentEvent.createUpdateInvalidEvent(target, this, message);
-        }
-
-        @Override
-        public AppointmentOpRequestEvent createEditRequestEvent(final AppointmentModel model, final Object source) {
-            return new AppointmentOpRequestEvent(model, source, false);
-        }
-
-        @Override
-        public AppointmentOpRequestEvent createDeleteRequestEvent(final AppointmentModel model, final Object source) {
-            return new AppointmentOpRequestEvent(model, source, true);
-        }
-
-        @Override
-        public EventType<AppointmentOpRequestEvent> getBaseRequestEventType() {
-            return AppointmentOpRequestEvent.APPOINTMENT_OP_REQUEST;
-        }
-
-        @Override
-        public EventType<AppointmentOpRequestEvent> getEditRequestEventType() {
-            return AppointmentOpRequestEvent.EDIT_REQUEST;
-        }
-
-        @Override
-        public EventType<AppointmentOpRequestEvent> getDeleteRequestEventType() {
-            return AppointmentOpRequestEvent.DELETE_REQUEST;
+            if (user instanceof UserModel) {
+                return UserModel.FACTORY.validateForSave((UserModel) user);
+            }
+            return null;
         }
 
     }

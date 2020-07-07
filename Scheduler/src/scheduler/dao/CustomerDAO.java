@@ -21,10 +21,6 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.events.AddressEvent;
-import scheduler.events.AddressFailedEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.CustomerFailedEvent;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
@@ -336,7 +332,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
     }
 
-    public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+    public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -344,30 +340,19 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
-        public SaveTask(RecordModelContext<CustomerDAO, CustomerModel> target, boolean alreadyValidated) {
-            super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
-            CustomerModel model = target.getFxRecordModel();
-            if (null != model) {
-                CustomerDAO dao = target.getDataAccessObject();
-                dao.setName(model.getName());
-                dao.setActive(model.isActive());
-                dao.setAddress(model.getAddress().dataObject());
-            }
+        public SaveTask(CustomerModel model, boolean alreadyValidated) {
+            super(model, CustomerModel.FACTORY, alreadyValidated);
+            CustomerDAO dao = model.dataObject();
+            dao.setName(model.getName());
+            dao.setActive(model.isActive());
+            dao.setAddress(model.getAddress().dataObject());
         }
 
         @Override
-        protected CustomerEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertSuccessEvent(this, this);
-            }
-            return CustomerEvent.createUpdateSuccessEvent(this, this);
-        }
-
-        @Override
-        public CustomerEvent validate(Connection connection) throws Exception {
-            CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(this);
-            if (null != saveEvent && saveEvent instanceof CustomerFailedEvent) {
-                return saveEvent;
+        public String validate(Connection connection) throws Exception {
+            String message = CustomerModel.FACTORY.validateForSave(getFxRecordModel());
+            if (null != message && !message.isEmpty()) {
+                return message;
             }
             CustomerDAO dao = getDataAccessObject();
             StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
@@ -397,10 +382,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             if (count > 0) {
-                if (getOriginalRowState() == DataRowState.NEW) {
-                    return CustomerEvent.createInsertInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
-                }
-                return CustomerEvent.createUpdateInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
+                return MATCHING_ITEM_EXISTS;
             }
 
             IAddressDAO address = dao.getAddress();
@@ -417,12 +399,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                             saveTask = new AddressDAO.SaveTask(RecordModelContext.of((AddressDAO) address), false);
                         }
                         saveTask.run();
-                        AddressEvent event = saveTask.get();
-                        if (null != event && event instanceof AddressFailedEvent) {
-                            if (getOriginalRowState() == DataRowState.NEW) {
-                                return CustomerEvent.createInsertInvalidEvent(this, this, (AddressFailedEvent) event);
-                            }
-                            return CustomerEvent.createUpdateInvalidEvent(this, this, (AddressFailedEvent) event);
+                        message = saveTask.get();
+                        if (null != message && !message.trim().isEmpty()) {
+                            return message;
                         }
                         break;
                     default:
@@ -432,25 +411,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return null;
         }
 
-        @Override
-        protected CustomerEvent createFaultedEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertFaultedEvent(this, this, getException());
-            }
-            return CustomerEvent.createUpdateFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected CustomerEvent createCanceledEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertCanceledEvent(this, this);
-            }
-            return CustomerEvent.createUpdateCanceledEvent(this, this);
-        }
-
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -459,17 +422,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private static final String REFERENCED_BY_N = "Customer is referenced by %d other appointments.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(RecordModelContext<CustomerDAO, CustomerModel> target, boolean alreadyValidated) {
-            super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CustomerModel target, boolean alreadyValidated) {
+            super(target, CustomerModel.FACTORY, alreadyValidated);
         }
 
         @Override
-        protected CustomerEvent createSuccessEvent() {
-            return CustomerEvent.createDeleteSuccessEvent(this, this);
-        }
-
-        @Override
-        protected CustomerEvent validate(Connection connection) throws Exception {
+        protected String validate(Connection connection) throws Exception {
             CustomerDAO dao = getDataAccessObject();
             int count;
             try {
@@ -482,21 +440,11 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 case 0:
                     break;
                 case 1:
-                    return CustomerEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return REFERENCED_BY_ONE;
                 default:
-                    return CustomerEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return String.format(REFERENCED_BY_N, count);
             }
             return null;
-        }
-
-        @Override
-        protected CustomerEvent createFaultedEvent() {
-            return CustomerEvent.createDeleteFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected CustomerEvent createCanceledEvent() {
-            return CustomerEvent.createDeleteCanceledEvent(this, this);
         }
 
     }
@@ -507,7 +455,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 //        private static final Logger LOG = Logger.getLogger(Related.class.getName());
 
         private final String name;
-        private IAddressDAO address;
+        private final IAddressDAO address;
         private final boolean active;
         private final int primaryKey;
 

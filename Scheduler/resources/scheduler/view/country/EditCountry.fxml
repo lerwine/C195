@@ -16,10 +16,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.CityEditTableCellFactory?>
 <?import scheduler.fx.LocaleCountryAndLanguageListCell?>
 <?import scheduler.fx.LocaleCountryAndLanguageListCellFactory?>
-<?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.TimeZoneTableCellFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
 
@@ -37,15 +35,15 @@
             </rowConstraints>
             <children>
                 <Label styleClass="leftControlLabel" text="%regionLanguage" />
-                  <ComboBox fx:id="localeComboBox" maxWidth="1.7976931348623157E308" onAction="#onLocaleComboBoxAction"
+                <ComboBox fx:id="localeComboBox" maxWidth="1.7976931348623157E308" onAction="#onLocaleComboBoxAction"
                             styleClass="leftLabeledControl" GridPane.columnIndex="1">
-                      <cellFactory>
-                          <LocaleCountryAndLanguageListCellFactory />
-                      </cellFactory>
-                      <buttonCell>
-                          <LocaleCountryAndLanguageListCell wrapText="true" />
-                      </buttonCell>
-                  </ComboBox>
+                    <cellFactory>
+                        <LocaleCountryAndLanguageListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <LocaleCountryAndLanguageListCell wrapText="true" />
+                    </buttonCell>
+                </ComboBox>
                 <Label fx:id="languageValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <styleClass>
                         <String fx:value="validationMessage" />
@@ -104,14 +102,6 @@
                     </cellValueFactory>
                     <cellFactory>
                         <WrappingTextTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="64.0" minWidth="64.0" prefWidth="64.0" sortable="false">
-                    <cellValueFactory>
-                        <RelayCellValueFactory />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <CityEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

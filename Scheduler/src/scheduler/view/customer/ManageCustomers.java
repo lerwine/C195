@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.RadioButton;
@@ -19,7 +18,6 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
 import scheduler.events.CustomerFailedEvent;
-import scheduler.events.CustomerSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
 import scheduler.model.RecordModelContext;
@@ -161,7 +159,8 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
         }
     }
 
-    @Override
+    @Deprecated
+    // FIXME: Delete this method
     protected void onDeleteItem(RecordModelContext<CustomerDAO, CustomerModel> item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
@@ -176,18 +175,8 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     }
 
     @Override
-    protected EventType<CustomerSuccessEvent> getInsertedEventType() {
-        return CustomerSuccessEvent.INSERT_SUCCESS;
-    }
-
-    @Override
-    protected EventType<CustomerSuccessEvent> getUpdatedEventType() {
-        return CustomerSuccessEvent.UPDATE_SUCCESS;
-    }
-
-    @Override
-    protected EventType<CustomerSuccessEvent> getDeletedEventType() {
-        return CustomerSuccessEvent.DELETE_SUCCESS;
+    protected void onDeleteItem(CustomerModel item) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.customer.ManageCustomers#onDeleteItem
     }
 
 }

@@ -737,69 +737,50 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     }
 
-    public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel> {
 
-        public SaveTask(RecordModelContext<AppointmentDAO, AppointmentModel> target, boolean alreadyValidated) {
-            super(target, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
-            AppointmentModel model = target.getFxRecordModel();
-            if (null != model) {
-                AppointmentDAO dao = target.getDataAccessObject();
-                dao.setType(model.getType());
-                dao.setTitle(model.getTitle());
-                dao.setCustomer(model.getCustomer().dataObject());
-                dao.setUser(model.getUser().dataObject());
-                dao.setContact(model.getContact());
-                dao.setLocation(model.getLocation());
-                dao.setUrl(model.getUrl());
-                dao.setStart(DB.toUtcTimestamp(model.getStart()));
-                dao.setEnd(DB.toUtcTimestamp(model.getEnd()));
-                dao.setDescription(model.getDescription());
+        public SaveTask(AppointmentModel fxRecordModel, boolean alreadyValidated) {
+            super(fxRecordModel, AppointmentModel.FACTORY, alreadyValidated);
+            if (null != fxRecordModel) {
+                AppointmentDAO dao = fxRecordModel.dataObject();
+                dao.setType(fxRecordModel.getType());
+                dao.setTitle(fxRecordModel.getTitle());
+                dao.setCustomer(fxRecordModel.getCustomer().dataObject());
+                dao.setUser(fxRecordModel.getUser().dataObject());
+                dao.setContact(fxRecordModel.getContact());
+                dao.setLocation(fxRecordModel.getLocation());
+                dao.setUrl(fxRecordModel.getUrl());
+                dao.setStart(DB.toUtcTimestamp(fxRecordModel.getStart()));
+                dao.setEnd(DB.toUtcTimestamp(fxRecordModel.getEnd()));
+                dao.setDescription(fxRecordModel.getDescription());
             }
         }
 
         @Override
-        protected AppointmentEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertSuccessEvent(this, this);
-            }
-            return AppointmentEvent.createUpdateSuccessEvent(this, this);
-        }
-
-        @Override
-        protected AppointmentEvent validate(Connection connection) throws Exception {
-            AppointmentEvent event = AppointmentModel.FACTORY.validateForSave(this);
-            if (null != event && event instanceof AppointmentFailedEvent) {
-                return event;
+        protected String validate(Connection connection) throws Exception {
+            String message = AppointmentModel.FACTORY.validateForSave(getFxRecordModel());
+            if (null != message && !message.trim().isEmpty()) {
+                return message;
             }
 
-            AppointmentDAO appointment = getDataAccessObject();
-            ICustomerDAO c = appointment.customer;
-            if (c instanceof CustomerDAO) {
-                switch (c.getRowState()) {
-                    case NEW:
-                    case MODIFIED:
-                        AppointmentModel model = getFxRecordModel();
-                        CustomerItem<? extends ICustomerDAO> cm;
-                        CustomerDAO.SaveTask saveTask;
-                        if (null != model && null != (cm = model.getCustomer()) && cm instanceof CustomerModel) {
-                            saveTask = new CustomerDAO.SaveTask(RecordModelContext.of((CustomerModel) cm), false);
-                        } else {
-                            cm = null;
-                            saveTask = new CustomerDAO.SaveTask(RecordModelContext.of((CustomerDAO) c), false);
-                        }
-                        saveTask.run();
-                        CustomerEvent customerEvent = saveTask.get();
-                        if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
-                            if (getOriginalRowState() == DataRowState.NEW) {
-                                return AppointmentEvent.createInsertInvalidEvent(this, this, (CustomerFailedEvent) customerEvent);
-                            }
-                            return AppointmentEvent.createUpdateInvalidEvent(this, this, (CustomerFailedEvent) customerEvent);
-                        }
-                        break;
-                    default:
-                        break;
+            CustomerItem<? extends ICustomerDAO> c = getFxRecordModel().getCustomer();
+            if (null == c) {
+                return "Customer not specified";
+            }
+            if (c instanceof CustomerModel) {
+                
+            }
+                CustomerDAO.SaveTask saveTask = new CustomerDAO.SaveTask((CustomerModel) c, false);
+                saveTask.run();
+                message = saveTask.get();
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
                 }
+            UserItem<? extends IUserDAO> u = getFxRecordModel().getUser();
+            if (null == u) {
+                return "User not specified";
             }
+            UserDAO.SaveTask saveTask = new UserDAO.SaveTask(RecordModelContext.of((UserModel) um), false);
             IUserDAO u = appointment.user;
             if (u instanceof UserDAO) {
                 switch (u.getRowState()) {
@@ -807,9 +788,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     case MODIFIED:
                         AppointmentModel model = getFxRecordModel();
                         UserItem<? extends IUserDAO> um;
-                        UserDAO.SaveTask saveTask;
-                        if (null != model && null != (um = model.getUser()) && um instanceof UserModel) {
-                            saveTask = new UserDAO.SaveTask(RecordModelContext.of((UserModel) um), false);
+                        
                         } else {
                             saveTask = new UserDAO.SaveTask(RecordModelContext.of((UserDAO) u), false);
                         }
@@ -830,48 +809,17 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             return null;
         }
 
-        @Override
-        protected AppointmentEvent createFaultedEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertFaultedEvent(this, this, getException());
-            }
-            return AppointmentEvent.createUpdateFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected AppointmentEvent createCanceledEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertCanceledEvent(this, this);
-            }
-            return AppointmentEvent.createUpdateCanceledEvent(this, this);
-        }
-
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel> {
 
-        public DeleteTask(RecordModelContext<AppointmentDAO, AppointmentModel> target, boolean alreadyValidated) {
-            super(target, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(AppointmentModel target, boolean alreadyValidated) {
+            super(target, AppointmentModel.FACTORY, alreadyValidated);
         }
 
         @Override
-        protected AppointmentEvent createSuccessEvent() {
-            return AppointmentEvent.createDeleteSuccessEvent(this, this);
-        }
-
-        @Override
-        protected AppointmentEvent validate(Connection connection) throws Exception {
+        protected String validate(Connection connection) throws Exception {
             return null;
-        }
-
-        @Override
-        protected AppointmentEvent createFaultedEvent() {
-            return AppointmentEvent.createDeleteFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected AppointmentEvent createCanceledEvent() {
-            return AppointmentEvent.createDeleteCanceledEvent(this, this);
         }
 
     }

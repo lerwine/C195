@@ -11,21 +11,15 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.CityDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.AddressEvent;
-import scheduler.events.AddressOpRequestEvent;
-import scheduler.events.CityEvent;
-import scheduler.events.CityFailedEvent;
 import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS1;
 import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS2;
 import static scheduler.model.AddressProperties.MAX_LENGTH_PHONE;
@@ -34,7 +28,6 @@ import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
 import scheduler.model.DataObject;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -451,107 +444,50 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(RecordModelContext<AddressDAO, AddressModel> model) {
-            return new AddressDAO.SaveTask(model, false);
-        }
-
-        @Override
-        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(RecordModelContext<AddressDAO, AddressModel> model) {
-            return new AddressDAO.DeleteTask(model, false);
-        }
-
-        @Override
-        public AddressEvent validateForSave(RecordModelContext<AddressDAO, AddressModel> target) {
-            AddressDAO dao = target.getDataAccessObject();
-            String message;
+        public String validateForSave(AddressModel fxRecordModel) {
+            AddressDAO dao = fxRecordModel.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
-                message = "Address has already been deleted";
-            } else {
-                String a = dao.getAddress1();
-                String s = dao.getAddress2();
-                if (Values.isNullWhiteSpaceOrEmpty(a) && Values.isNullWhiteSpaceOrEmpty(s)) {
-                    message = "Street address not defined";
-                } else if (a.length() > MAX_LENGTH_ADDRESS1) {
-                    message = "First address line too long";
-                } else if (s.length() > MAX_LENGTH_ADDRESS2) {
-                    message = "Second address line too long";
-                } else if (dao.getPostalCode().length() > MAX_LENGTH_POSTALCODE) {
-                    message = "Postal code too long";
-                } else if (dao.getPhone().length() > MAX_LENGTH_PHONE) {
-                    message = "Phone number too long";
-                } else {
-                    AddressModel fxRecordModel = target.getFxRecordModel();
-                    CityEvent event;
-                    if (null != fxRecordModel) {
-                        CityItem<? extends ICityDAO> c = fxRecordModel.getCity();
-                        if (null != c) {
-                            if (c instanceof CityModel) {
-                                if (null == (event = CityModel.FACTORY.validateForSave(RecordModelContext.of((CityModel) c)))) {
-                                    return null;
-                                }
-                            } else {
-                                return null;
-                            }
-                        } else {
-                            event = null;
-                        }
-                    } else {
-                        ICityDAO c = dao.getCity();
-                        if (null != c) {
-                            if (c instanceof CityDAO) {
-                                if (null == (event = CityModel.FACTORY.validateForSave(RecordModelContext.of((CityDAO) c)))) {
-                                    return null;
-                                }
-                            } else {
-                                return null;
-                            }
-                        } else {
-                            event = null;
-                        }
-                    }
-                    if (null != event) {
-                        if (event instanceof CityFailedEvent) {
-                            if (dao.getRowState() == DataRowState.NEW) {
-                                return AddressEvent.createInsertInvalidEvent(target, this, (CityFailedEvent) event);
-                            }
-                            return AddressEvent.createUpdateInvalidEvent(target, this, (CityFailedEvent) event);
-                        }
-                        return null;
-                    }
-
-                    message = "City not specified.";
+                return "Address has already been deleted";
+            }
+            String a = dao.getAddress1();
+            String s = dao.getAddress2();
+            if (Values.isNullWhiteSpaceOrEmpty(a) && Values.isNullWhiteSpaceOrEmpty(s)) {
+                return "Street address not defined";
+            }
+            if (a.length() > MAX_LENGTH_ADDRESS1) {
+                return "First address line too long";
+            }
+            if (s.length() > MAX_LENGTH_ADDRESS2) {
+                return "Second address line too long";
+            }
+            if (dao.getPostalCode().length() > MAX_LENGTH_POSTALCODE) {
+                return "Postal code too long";
+            }
+            if (dao.getPhone().length() > MAX_LENGTH_PHONE) {
+                return "Phone number too long";
+            }
+            CityItem<? extends ICityDAO> c = fxRecordModel.getCity();
+            if (null == c) {
+                return "City not specified.";
+            }
+            if (c instanceof CityModel) {
+                String message = CityModel.FACTORY.validateForSave((CityModel) c);
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
                 }
             }
 
-            if (dao.getRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertInvalidEvent(target, this, message);
-            }
-            return AddressEvent.createUpdateInvalidEvent(target, this, message);
+            return null;
         }
 
         @Override
-        public AddressOpRequestEvent createEditRequestEvent(AddressModel model, Object source) {
-            return new AddressOpRequestEvent(model, source, false);
+        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel> createSaveTask(AddressModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createSaveTask
         }
 
         @Override
-        public AddressOpRequestEvent createDeleteRequestEvent(AddressModel model, Object source) {
-            return new AddressOpRequestEvent(model, source, true);
-        }
-
-        @Override
-        public EventType<AddressOpRequestEvent> getBaseRequestEventType() {
-            return AddressOpRequestEvent.ADDRESS_OP_REQUEST;
-        }
-
-        @Override
-        public EventType<AddressOpRequestEvent> getEditRequestEventType() {
-            return AddressOpRequestEvent.EDIT_REQUEST;
-        }
-
-        @Override
-        public EventType<AddressOpRequestEvent> getDeleteRequestEventType() {
-            return AddressOpRequestEvent.DELETE_REQUEST;
+        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel> createDeleteTask(AddressModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createDeleteTask
         }
 
     }

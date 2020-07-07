@@ -21,8 +21,6 @@
 <?import scheduler.fx.CityListCellFactory?>
 <?import scheduler.fx.CountryListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
-<?import scheduler.fx.CustomerEditTableCellFactory?>
-<?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
@@ -151,14 +149,6 @@
                     </cellValueFactory>
                     <cellFactory>
                         <WrappingTextTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="64.0" minWidth="64.0" prefWidth="64.0" sortable="false">
-                    <cellValueFactory>
-                        <RelayCellValueFactory />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <CustomerEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
                     </cellFactory>
                 </TableColumn>
             </columns>

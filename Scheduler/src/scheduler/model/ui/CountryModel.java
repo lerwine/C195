@@ -7,7 +7,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.EventType;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -16,13 +15,10 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.CountryEvent;
-import scheduler.events.CountryOpRequestEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
@@ -185,70 +181,39 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel, CountryEvent> createSaveTask(RecordModelContext<CountryDAO, CountryModel> model) {
+        public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel> createSaveTask(CountryModel model) {
             return new CountryDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> createDeleteTask(RecordModelContext<CountryDAO, CountryModel> model) {
+        public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel> createDeleteTask(CountryModel model) {
             return new CountryDAO.DeleteTask(model, false);
         }
 
         @Override
-        public CountryEvent validateForSave(RecordModelContext<CountryDAO, CountryModel> target) {
-            CountryDAO dao = target.getDataAccessObject();
-            String message;
+        public String validateForSave(CountryModel target) {
+            CountryDAO dao = target.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
-                message = "Country has already been deleted";
-            } else {
-                String name = dao.getName();
-                if (name.isEmpty()) {
-                    message = "Country name not defined";
-                } else if (name.length() > MAX_LENGTH_NAME) {
-                    message = "Name too long";
-                } else {
-                    Locale locale = dao.getLocale();
-                    if (null == locale) {
-                        message = "Locale not defined";
-                    } else if (locale.getDisplayCountry().isEmpty()) {
-                        message = "Locale does not specify a country";
-                    } else if (locale.getDisplayLanguage().isEmpty()) {
-                        message = "Locale does not specify a language";
-                    } else {
-                        return null;
-                    }
-                }
+                return "Country has already been deleted";
             }
-
-            if (dao.getRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertInvalidEvent(target, this, message);
+            String name = dao.getName();
+            if (name.isEmpty()) {
+                return "Country name not defined";
             }
-            return CountryEvent.createUpdateInvalidEvent(target, this, message);
-        }
-
-        @Override
-        public CountryOpRequestEvent createEditRequestEvent(CountryModel model, Object source) {
-            return new CountryOpRequestEvent(model, source, false);
-        }
-
-        @Override
-        public CountryOpRequestEvent createDeleteRequestEvent(CountryModel model, Object source) {
-            return new CountryOpRequestEvent(model, source, true);
-        }
-
-        @Override
-        public EventType<CountryOpRequestEvent> getBaseRequestEventType() {
-            return CountryOpRequestEvent.COUNTRY_OP_REQUEST;
-        }
-
-        @Override
-        public EventType<CountryOpRequestEvent> getEditRequestEventType() {
-            return CountryOpRequestEvent.EDIT_REQUEST;
-        }
-
-        @Override
-        public EventType<CountryOpRequestEvent> getDeleteRequestEventType() {
-            return CountryOpRequestEvent.DELETE_REQUEST;
+            if (name.length() > MAX_LENGTH_NAME) {
+                return "Name too long";
+            }
+            Locale locale = dao.getLocale();
+            if (null == locale) {
+                return "Locale not defined";
+            }
+            if (locale.getDisplayCountry().isEmpty()) {
+                return "Locale does not specify a country";
+            }
+            if (locale.getDisplayLanguage().isEmpty()) {
+                return "Locale does not specify a language";
+            }
+            return null;
         }
 
     }

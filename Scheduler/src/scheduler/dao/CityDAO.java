@@ -376,15 +376,15 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     }
 
-    public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
+    public static class SaveTask extends SaveDaoTask<CityDAO, CityModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
 
-        public SaveTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
-            super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public SaveTask(CityModel target, boolean alreadyValidated) {
+            super(target, CityModel.FACTORY, alreadyValidated);
             CityModel model = target.getFxRecordModel();
             if (null != model) {
                 CityDAO dao = target.getDataAccessObject();
@@ -395,15 +395,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        protected CityEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertSuccessEvent(this, this);
-            }
-            return CityEvent.createUpdateSuccessEvent(this, this);
-        }
-
-        @Override
-        protected CityEvent validate(Connection connection) throws Exception {
+        protected String validate(Connection connection) throws Exception {
             CityEvent saveEvent = CityModel.FACTORY.validateForSave(this);
             if (null != saveEvent && saveEvent instanceof CityFailedEvent) {
                 return saveEvent;
@@ -498,22 +490,17 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CityDAO, CityModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
-        public DeleteTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
-            super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(CityModel target, boolean alreadyValidated) {
+            super(target, CityModel.FACTORY, alreadyValidated);
         }
 
         @Override
-        protected CityEvent createSuccessEvent() {
-            return CityEvent.createDeleteSuccessEvent(this, this);
-        }
-
-        @Override
-        protected CityEvent validate(Connection connection) throws Exception {
+        protected String validate(Connection connection) throws Exception {
             CityDAO dao = getDataAccessObject();
             int count;
             try {

@@ -12,19 +12,12 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventType;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
-import scheduler.events.AddressEvent;
-import scheduler.events.AddressFailedEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.CustomerOpRequestEvent;
 import scheduler.model.AddressProperties;
 import static scheduler.model.Customer.MAX_LENGTH_NAME;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -301,100 +294,40 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createSaveTask(RecordModelContext<CustomerDAO, CustomerModel> model) {
+        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel> createSaveTask(CustomerModel model) {
             return new CustomerDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createDeleteTask(RecordModelContext<CustomerDAO, CustomerModel> model) {
+        public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel> createDeleteTask(CustomerModel model) {
             return new CustomerDAO.DeleteTask(model, false);
         }
 
         @Override
-        public CustomerEvent validateForSave(RecordModelContext<CustomerDAO, CustomerModel> target) {
-            CustomerDAO dao = target.getDataAccessObject();
-            String message;
+        public String validateForSave(CustomerModel fxRecordModel) {
+            CustomerDAO dao = fxRecordModel.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
-                message = "Customer has already been deleted";
-            } else {
-                String name = dao.getName();
-                if (name.isEmpty()) {
-                    message = "Customer name not defined";
-                } else if (name.length() > MAX_LENGTH_NAME) {
-                    message = "Name too long";
-                } else {
-                    CustomerModel fxRecordModel = target.getFxRecordModel();
-                    AddressEvent event;
-                    if (null != fxRecordModel) {
-                        AddressItem<? extends IAddressDAO> a = fxRecordModel.getAddress();
-                        if (null != a) {
-                            if (a instanceof AddressModel) {
-                                if (null == (event = AddressModel.FACTORY.validateForSave(RecordModelContext.of((AddressModel) a)))) {
-                                    return null;
-                                }
-                            } else {
-                                return null;
-                            }
-                        } else {
-                            event = null;
-                        }
-                    } else {
-                        IAddressDAO a = dao.getAddress();
-                        if (null != a) {
-                            if (a instanceof AddressDAO) {
-                                if (null == (event = AddressModel.FACTORY.validateForSave(RecordModelContext.of((AddressDAO) a)))) {
-                                    return null;
-                                }
-                            } else {
-                                return null;
-                            }
-                        } else {
-                            event = null;
-                        }
-                    }
-                    if (null != event) {
-                        if (event instanceof AddressFailedEvent) {
-                            if (dao.getRowState() == DataRowState.NEW) {
-                                return CustomerEvent.createInsertInvalidEvent(target, this, (AddressFailedEvent) event);
-                            }
-                            return CustomerEvent.createUpdateInvalidEvent(target, this, (AddressFailedEvent) event);
-                        }
-                        return null;
-                    }
+                return "Customer has already been deleted";
+            }
 
-                    message = "Address not specified.";
+            String name = dao.getName();
+            if (name.isEmpty()) {
+                return "Customer name not defined";
+            }
+            if (name.length() > MAX_LENGTH_NAME) {
+                return "Name too long";
+            }
+            AddressItem<? extends IAddressDAO> a = fxRecordModel.getAddress();
+            if (null == a) {
+                return "Address not specified.";
+            }
+            if (a instanceof AddressModel) {
+                String message = AddressModel.FACTORY.validateForSave((AddressModel) a);
+                if (null != message && !message.trim().isEmpty()) {
+                    return message;
                 }
             }
-
-            if (dao.getRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertInvalidEvent(target, this, message);
-            }
-            return CustomerEvent.createUpdateInvalidEvent(target, this, message);
-        }
-
-        @Override
-        public CustomerOpRequestEvent createEditRequestEvent(CustomerModel model, Object source) {
-            return new CustomerOpRequestEvent(model, source, false);
-        }
-
-        @Override
-        public CustomerOpRequestEvent createDeleteRequestEvent(CustomerModel model, Object source) {
-            return new CustomerOpRequestEvent(model, source, true);
-        }
-
-        @Override
-        public EventType<CustomerOpRequestEvent> getBaseRequestEventType() {
-            return CustomerOpRequestEvent.CUSTOMER_OP_REQUEST;
-        }
-
-        @Override
-        public EventType<CustomerOpRequestEvent> getEditRequestEventType() {
-            return CustomerOpRequestEvent.EDIT_REQUEST;
-        }
-
-        @Override
-        public EventType<CustomerOpRequestEvent> getDeleteRequestEventType() {
-            return CustomerOpRequestEvent.DELETE_REQUEST;
+            return null;
         }
 
     }

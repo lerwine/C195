@@ -56,7 +56,6 @@ import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
-import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserSuccessEvent;
@@ -102,11 +101,11 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public final class EditAppointment extends StackPane implements EditItem.ModelEditor<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+public final class EditAppointment extends StackPane implements EditItem.ModelEditor<AppointmentDAO, AppointmentModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
-    
+
     public static AppointmentModel editNew(CustomerItem<? extends Customer> customer, UserItem<? extends User> user,
             Window parentWindow, boolean keepOpen) throws IOException {
         AppointmentModel.Factory factory = AppointmentModel.FACTORY;
@@ -134,7 +133,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
-    // FIXME: Do not use weak event handlers
+    // FIXME: Do not use event handlers
     private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
 
     @ModelEditor
@@ -397,6 +396,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
+                // FIXME: Do not use events
                 insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
                 model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -701,13 +701,16 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", event);
+        // FIXME: Do not use events
         model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
         initializeEditMode();
     }
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
+        // FIXME: Do not use event handlers
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
+        // FIXME: Do not use event handlers
         UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onUserDeleted));
     }
 
@@ -870,7 +873,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
+    public FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel> modelFactory() {
         return AppointmentModel.FACTORY;
     }
 

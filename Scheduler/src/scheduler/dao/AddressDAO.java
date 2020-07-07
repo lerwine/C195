@@ -24,15 +24,10 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.events.AddressEvent;
-import scheduler.events.AddressFailedEvent;
-import scheduler.events.CityEvent;
-import scheduler.events.CityFailedEvent;
 import scheduler.model.Address;
 import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
@@ -430,7 +425,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     }
 
-    public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
+    public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -438,32 +433,21 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
 
-        public SaveTask(RecordModelContext<AddressDAO, AddressModel> target, boolean alreadyValidated) {
-            super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
-            AddressModel model = target.getFxRecordModel();
-            if (null != model) {
-                AddressDAO dao = target.getDataAccessObject();
-                dao.setAddress1(model.getAddress1());
-                dao.setAddress2(model.getAddress2());
-                dao.setCity(model.getCity().dataObject());
-                dao.setPostalCode(model.getPostalCode());
-                dao.setPhone(model.getPhone());
-            }
+        public SaveTask(AddressModel model, boolean alreadyValidated) {
+            super(model, AddressModel.FACTORY, alreadyValidated);
+            AddressDAO dao = model.dataObject();
+            dao.setAddress1(model.getAddress1());
+            dao.setAddress2(model.getAddress2());
+            dao.setCity(model.getCity().dataObject());
+            dao.setPostalCode(model.getPostalCode());
+            dao.setPhone(model.getPhone());
         }
 
         @Override
-        protected AddressEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertSuccessEvent(this, this);
-            }
-            return AddressEvent.createUpdateSuccessEvent(this, this);
-        }
-
-        @Override
-        protected AddressEvent validate(Connection connection) throws Exception {
-            AddressEvent saveEvent = AddressModel.FACTORY.validateForSave(this);
-            if (null != saveEvent && saveEvent instanceof AddressFailedEvent) {
-                return saveEvent;
+        protected String validate(Connection connection) throws Exception {
+            String message = AddressModel.FACTORY.validateForSave(getFxRecordModel());
+            if (null != message && !message.isEmpty()) {
+                return message;
             }
             AddressDAO dao = getDataAccessObject();
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
@@ -526,33 +510,23 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             if (count > 0) {
-                if (getOriginalRowState() == DataRowState.NEW) {
-                    return AddressEvent.createInsertInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
-                }
-                return AddressEvent.createUpdateInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
+                return MATCHING_ITEM_EXISTS;
             }
 
-            ICityDAO city = dao.getCity();
+            CityItem<? extends ICityDAO> c = getFxRecordModel().getCity();
 
-            if (city instanceof CityDAO) {
-                switch (city.getRowState()) {
+            if (null == c) {
+                return "City not specified";
+            }
+            if (c instanceof CityModel) {
+                switch (c.getRowState()) {
                     case NEW:
                     case MODIFIED:
-                        CityDAO.SaveTask saveTask;
-                        AddressModel model = getFxRecordModel();
-                        CityItem<? extends ICityDAO> cm;
-                        if (null != model && null != (cm = model.getCity()) && cm instanceof CityModel) {
-                            saveTask = new CityDAO.SaveTask(RecordModelContext.of((CityModel) cm), false);
-                        } else {
-                            saveTask = new CityDAO.SaveTask(RecordModelContext.of((CityDAO) city), false);
-                        }
+                        CityDAO.SaveTask saveTask = new CityDAO.SaveTask((CityModel) c, false);
                         saveTask.run();
-                        CityEvent event = saveTask.get();
-                        if (null != event && event instanceof CityFailedEvent) {
-                            if (getOriginalRowState() == DataRowState.NEW) {
-                                return AddressEvent.createInsertInvalidEvent(this, this, (CityFailedEvent) event);
-                            }
-                            return AddressEvent.createUpdateInvalidEvent(this, this, (CityFailedEvent) event);
+                        message = saveTask.get();
+                        if (null != message && !message.trim().isEmpty()) {
+                            return message;
                         }
                         break;
                     default:
@@ -563,25 +537,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return null;
         }
 
-        @Override
-        protected AddressEvent createFaultedEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertFaultedEvent(this, this, getException());
-            }
-            return AddressEvent.createUpdateFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected AddressEvent createCanceledEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertCanceledEvent(this, this);
-            }
-            return AddressEvent.createUpdateCanceledEvent(this, this);
-        }
-
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -590,17 +548,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private static final String REFERENCED_BY_ONE = "Address is referenced by one customer.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(RecordModelContext<AddressDAO, AddressModel> target, boolean alreadyValidated) {
-            super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+        public DeleteTask(AddressModel target, boolean alreadyValidated) {
+            super(target, AddressModel.FACTORY, alreadyValidated);
         }
 
         @Override
-        protected AddressEvent createSuccessEvent() {
-            return AddressEvent.createDeleteSuccessEvent(this, this);
-        }
-
-        @Override
-        protected AddressEvent validate(Connection connection) throws Exception {
+        protected String validate(Connection connection) throws Exception {
             AddressDAO dao = getDataAccessObject();
             int count;
             try {
@@ -613,22 +566,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 case 0:
                     break;
                 case 1:
-                    return AddressEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return REFERENCED_BY_ONE;
                 default:
-                    return AddressEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return String.format(REFERENCED_BY_N, count);
             }
 
             return null;
-        }
-
-        @Override
-        protected AddressEvent createFaultedEvent() {
-            return AddressEvent.createDeleteFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected AddressEvent createCanceledEvent() {
-            return AddressEvent.createDeleteCanceledEvent(this, this);
         }
 
     }
