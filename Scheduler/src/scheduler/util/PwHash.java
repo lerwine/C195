@@ -75,7 +75,7 @@ public final class PwHash {
         return false;
     }
 
-    private final NonNullableStringProperty encodedHash;
+    private final NonNullableStringProperty encodedData;
     private final ReadOnlyObjectWrapper<ObservableByteArrayList> salt;
     private final ReadOnlyObjectWrapper<ObservableByteArrayList> hash;
     private final ReadOnlyBooleanWrapper valid;
@@ -88,10 +88,10 @@ public final class PwHash {
      */
     public PwHash(String password, boolean isRawPassword) {
         valid = new ReadOnlyBooleanWrapper(false);
-        encodedHash = new NonNullableStringProperty();
+        encodedData = new NonNullableStringProperty();
         salt = new ReadOnlyObjectWrapper<>(null);
         hash = new ReadOnlyObjectWrapper<>(null);
-        encodedHash.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+        encodedData.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             if (newValue.length() == HASHED_STRING_LENGTH) {
                 Base64.Decoder dec = Base64.getDecoder();
                 try {
@@ -134,22 +134,37 @@ public final class PwHash {
         if (isRawPassword) {
             setFromRawPassword(password, false);
         } else {
-            encodedHash.set(password);
+            encodedData.set(password);
         }
     }
 
-    public String getEncodedHash() {
-        return encodedHash.get();
+    /**
+     * Gets the {@link Base64}-encoded bytes of the password salt and cryptographic hash.
+     *
+     * @return The {@link Base64}-encoded bytes of the password salt and cryptographic hash.
+     */
+    public String getEncodedData() {
+        return encodedData.get();
     }
 
-    public void setEncodedHash(String value) {
-        encodedHash.set(value);
+    /**
+     * Sets the {@link Base64}-encoded bytes of the password salt and cryptographic hash.
+     *
+     * @param value The {@link Base64}-encoded bytes of the password salt and cryptographic hash.
+     */
+    public void setEncodedData(String value) {
+        encodedData.set(value);
     }
 
     public StringProperty encodedHashProperty() {
-        return encodedHash;
+        return encodedData;
     }
 
+    /**
+     * Gets the bytes that make up the salt used for creating the encrypted password hash.
+     *
+     * @return The bytes that make up the salt used for creating the encrypted password hash.
+     */
     public ObservableByteArrayList getSalt() {
         return salt.get();
     }
@@ -158,6 +173,11 @@ public final class PwHash {
         return salt.getReadOnlyProperty();
     }
 
+    /**
+     * Gets the bytes that make up the encrypted password hash.
+     *
+     * @return The bytes that make up the encrypted password hash.
+     */
     public ObservableByteArrayList getHash() {
         return hash.get();
     }
@@ -166,6 +186,12 @@ public final class PwHash {
         return hash.getReadOnlyProperty();
     }
 
+    /**
+     * Indicates whether the {@link #encodedData} contains valid base-64 encoded data representing password salt and hash bytes.
+     *
+     * @return {@code true} if the {@link #encodedData} contains valid base-64 encoded data representing password salt and hash bytes; otherwise,
+     * {@code false}.
+     */
     public boolean isValid() {
         return valid.get();
     }
@@ -174,11 +200,17 @@ public final class PwHash {
         return valid.getReadOnlyProperty();
     }
 
+    /**
+     * Changes the cryptographic password hash stored by this object.
+     * 
+     * @param password The raw password.
+     * @param useSameSalt {@code true} to re-use the same salt bytes; otherwise {@code false} to generate a new sequence of bytes for the salt.
+     */
     public void setFromRawPassword(String password, boolean useSameSalt) {
         if (password.isEmpty()) {
             salt.set(null);
             hash.set(null);
-            encodedHash.set("");
+            encodedData.set("");
             return;
         }
         try {
@@ -199,7 +231,7 @@ public final class PwHash {
             byte[] hb = skf.generateSecret(spec).getEncoded();
             hash.set(new ObservableByteArrayList(hb));
             Base64.Encoder enc = Base64.getEncoder();
-            encodedHash.set((enc.encodeToString(sb) + enc.encodeToString(hb)).substring(0, HASHED_STRING_LENGTH));
+            encodedData.set((enc.encodeToString(sb) + enc.encodeToString(hb)).substring(0, HASHED_STRING_LENGTH));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             // This should never occur unless there is a typo or invalid constant in the code.
             LOG.log(Level.SEVERE, "Unexpected failure", ex);
@@ -214,14 +246,14 @@ public final class PwHash {
      */
     @Override
     public String toString() {
-        return encodedHash.get();
+        return encodedData.get();
     }
 
     /**
-     * Determines whether the hash for the specified password matches the current password hash. This uses the current salt sequence to generate a
+     * Determines whether the hash for the specified raw password matches the current password hash. This uses the current salt sequence to generate a
      * hash from the specified password and then compares the resulting bytes with the current hash.
      *
-     * @param password The password to check.
+     * @param password The raw password to check.
      * @return {@code true} if the hash of the specified password matches the current hash; otherwise, {@code false}.
      */
     public boolean test(String password) {
