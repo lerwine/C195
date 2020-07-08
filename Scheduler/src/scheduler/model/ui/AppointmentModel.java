@@ -7,6 +7,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -21,12 +22,14 @@ import scheduler.dao.IUserDAO;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
+import scheduler.model.ModelHelper;
 import scheduler.model.PredefinedData;
 import scheduler.model.UserStatus;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.AnyTrueSet;
 import scheduler.util.DB;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
@@ -98,6 +101,10 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return x.compareTo(y);
     }
 
+    private final AnyTrueSet changeIndicator;
+    private final AnyTrueSet validityIndicator;
+    private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper changed;
     private final SimpleObjectProperty<CustomerItem<? extends ICustomerDAO>> customer;
     private final ReadOnlyStringBindingProperty customerName;
     private final ReadOnlyStringBindingProperty customerAddress1;
@@ -123,12 +130,37 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
     private final ReadOnlyStringBindingProperty effectiveLocation;
-    private final ReadOnlyBooleanBindingProperty valid;
+    private final AnyTrueSet.Node customerChanged;
+    private final AnyTrueSet.Node customerValid;
+    private final AnyTrueSet.Node userChanged;
+    private final AnyTrueSet.Node userValid;
+    private final AnyTrueSet.Node titleChanged;
+    private final AnyTrueSet.Node titleValid;
+    private final AnyTrueSet.Node descriptionChanged;
+    private final AnyTrueSet.Node locationChanged;
+    private final AnyTrueSet.Node locationValid;
+    private final AnyTrueSet.Node typeChanged;
+    private final AnyTrueSet.Node contactChanged;
+    private final AnyTrueSet.Node contactValid;
+    private final AnyTrueSet.Node urlChanged;
+    private final AnyTrueSet.Node urlValid;
+    private final AnyTrueSet.Node startChanged;
+    private final AnyTrueSet.Node startValid;
+    private final AnyTrueSet.Node endChanged;
+    private final AnyTrueSet.Node endValid;
 
     @SuppressWarnings("incomplete-switch")
     public AppointmentModel(final AppointmentDAO dao) {
         super(dao);
-        customer = new SimpleObjectProperty<>(this, "customer");
+        changeIndicator = new AnyTrueSet();
+        validityIndicator = new AnyTrueSet();
+        customer = new SimpleObjectProperty<>(this, "customer", CustomerItem.createModel(dao.getCustomer()));
+        customerChanged = changeIndicator.add(false);
+        customerValid = validityIndicator.add(null != customer.get());
+        customer.addListener((observable, oldValue, newValue) -> {
+            customerValid.setValid(null != newValue);
+            customerChanged.setValid(!ModelHelper.areSameRecord(newValue, dao.getCustomer()));
+        });
         customerName = new ReadOnlyStringBindingProperty(this, "customerName", Bindings.selectString(customer, "name"));
         customerAddress1 = new ReadOnlyStringBindingProperty(this, "customerName",
                 Bindings.selectString(customer, "address1"));
@@ -148,22 +180,138 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 Bindings.selectString(customer, "addressText"));
         customerActive = new ReadOnlyBooleanBindingProperty(this, "customerActive",
                 Bindings.selectBoolean(customer, "active"));
-        user = new SimpleObjectProperty<>(this, "user");
+        user = new SimpleObjectProperty<>(this, "user", UserItem.createModel(dao.getUser()));
+        userChanged = changeIndicator.add(false);
+        userValid = validityIndicator.add(null != user.get());
+        user.addListener((observable, oldValue, newValue) -> {
+            userValid.setValid(null != newValue);
+            userChanged.setValid(!ModelHelper.areSameRecord(newValue, dao.getUser()));
+        });
         userName = new ReadOnlyStringBindingProperty(this, "userName", Bindings.selectString(user, "userName"));
         userStatus = new ReadOnlyObjectBindingProperty<>(this, "userStatus", Bindings.select(user, "status"));
         userStatusDisplay = new ReadOnlyStringBindingProperty(this, "userStatusDisplay",
                 Bindings.selectString(user, "statusDisplay"));
         title = new NonNullableStringProperty(this, "title", dao.getTitle());
+        titleChanged = changeIndicator.add(false);
+        titleValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(title.get()));
+        title.addListener((observable, oldValue, newValue) -> {
+            titleValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
+            String n = dao.getTitle();
+            titleChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        });
         description = new NonNullableStringProperty(this, "description", dao.getDescription());
-        location = new NonNullableStringProperty(this, "location", dao.getLocation());
+        descriptionChanged = changeIndicator.add(false);
+        description.addListener((observable, oldValue, newValue) -> {
+            String n = dao.getDescription();
+            descriptionChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        });
         final AppointmentType at = dao.getType();
         type = new SimpleObjectProperty<>(this, "type", (null == at) ? AppointmentType.OTHER : at);
+        location = new NonNullableStringProperty(this, "location", dao.getLocation());
+        locationChanged = changeIndicator.add(false);
+        locationValid = validityIndicator.add(type.get() == AppointmentType.VIRTUAL || type.get() == AppointmentType.CUSTOMER_SITE ||
+                Values.isNotNullWhiteSpaceOrEmpty(location.get()));
+        location.addListener((observable, oldValue, newValue) -> {
+            locationValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
+            String n = dao.getLocation();
+            locationChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        });
+        typeChanged = changeIndicator.add(false);
         typeDisplay = new ReadOnlyStringBindingProperty(this, "typeDisplay",
                 Bindings.createStringBinding(() -> AppointmentType.toDisplayText(type.get()), type));
-        contact = new NonNullableStringProperty(this, "contact");
-        url = new NonNullableStringProperty(this, "url");
-        start = new SimpleObjectProperty<>(this, "start");
-        end = new SimpleObjectProperty<>(this, "end");
+        contact = new NonNullableStringProperty(this, "contact", dao.getContact());
+        contactChanged = changeIndicator.add(false);
+        contactValid = validityIndicator.add(type.get() != AppointmentType.OTHER || Values.isNotNullWhiteSpaceOrEmpty(contact.get()));
+        contact.addListener((observable, oldValue, newValue) -> {
+            contactValid.setValid(type.get() != AppointmentType.OTHER || Values.isNotNullWhiteSpaceOrEmpty(newValue));
+            String n = dao.getContact();
+            contactChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        });
+        url = new NonNullableStringProperty(this, "url", dao.getUrl());
+        urlChanged = changeIndicator.add(false);
+        urlValid = validityIndicator.add(type.get() != AppointmentType.VIRTUAL || Values.isNotNullWhiteSpaceOrEmpty(url.get()));
+        url.addListener((observable, oldValue, newValue) -> {
+            urlValid.setValid(type.get() != AppointmentType.VIRTUAL || Values.isNotNullWhiteSpaceOrEmpty(newValue));
+            String n = dao.getUrl();
+            urlChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        });
+        start = new SimpleObjectProperty<>(this, "start", DB.toLocalDateTime(dao.getStart()));
+        end = new SimpleObjectProperty<>(this, "end", DB.toLocalDateTime(dao.getEnd()));
+        startChanged = changeIndicator.add(false);
+        startValid = validityIndicator.add(null != start.get() && (null == end.get() || start.get().compareTo(end.get()) <= 0));
+        endChanged = changeIndicator.add(false);
+        endValid = validityIndicator.add(null != end.get());
+        start.addListener((observable, oldValue, newValue) -> {
+            startValid.setValid(null != newValue && (null == end.get() || newValue.compareTo(end.get()) <= 0));
+            Timestamp s = dao.getStart();
+            startChanged.setValid(((null == newValue) ? null == s : null != s && newValue.equals(DB.toLocalDateTime(s))));
+        });
+        end.addListener((observable, oldValue, newValue) -> {
+            Timestamp e = dao.getEnd();
+            endValid.setValid(null != newValue);
+            endChanged.setValid(((null == newValue) ? null == e : null != e && newValue.equals(DB.toLocalDateTime(e))));
+        });
+        type.addListener((observable, oldValue, newValue) -> {
+            switch (newValue) {
+                case VIRTUAL:
+                    urlValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(url.get()));
+                    contactValid.setValid(true);
+                    locationValid.setValid(true);
+                    break;
+                case CUSTOMER_SITE:
+                    urlValid.setValid(true);
+                    contactValid.setValid(true);
+                    locationValid.setValid(true);
+                    break;
+                case OTHER:
+                    urlValid.setValid(true);
+                    contactValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(contact.get()));
+                    locationValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(location.get()));
+                    break;
+                default:
+                    urlValid.setValid(true);
+                    contactValid.setValid(true);
+                    locationValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(location.get()));
+                    break;
+            }
+            typeChanged.setValid(newValue != dao.getType());
+        });
+        
+        dao.addPropertyChangeListener((evt) -> {
+            switch (evt.getPropertyName()) {
+                case PROP_CUSTOMER:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_USER:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_TITLE:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_DESCRIPTION:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_TYPE:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_LOCATION:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_CONTACT:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_URL:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_START:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_END:
+                    // FIXME: update validity and change
+                    break;
+            }
+        });
+        
 
         final StringBinding wsNormalizedLocation = Bindings
                 .createStringBinding(() -> Values.asNonNullAndWsNormalized(location.get()), location);
@@ -197,44 +345,14 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             return l;
         }, type, wsNormalizedLocation, customerAddressText, wsNormalizedUrl);
 
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(title.get()), title)
-                        .and(Bindings.selectBoolean(customer, "valid")).and(Bindings.selectBoolean(user, "valid"))
-                        .and(Bindings.createBooleanBinding(() -> {
-                            final LocalDateTime s = start.get();
-                            final LocalDateTime e = end.get();
-                            return null != s && null != e && s.compareTo(e) <= 0;
-                        }, start, end)).and(Bindings.createBooleanBinding(() -> {
-                    final AppointmentType t = type.get();
-                    final String l = location.get();
-                    final String c = contact.get();
-                    final String u = url.get();
-                    if (null == t || l.isEmpty()) {
-                        return false;
-                    }
-                    switch (t) {
-                        case CUSTOMER_SITE:
-                            if (c.isEmpty()) {
-                                return false;
-                            }
-                            break;
-                        case VIRTUAL:
-                            if (u.isEmpty()) {
-                                return false;
-                            }
-                            break;
-                    }
-                    return true;
-                }, type, location, contact, url)));
-        customer.set(CustomerItem.createModel(dao.getCustomer()));
-        user.set(UserItem.createModel(dao.getUser()));
-        title.set(dao.getTitle());
-        description.set(dao.getDescription());
-        location.set(dao.getLocation());
-        contact.set(dao.getContact());
-        url.set(dao.getUrl());
-        start.set(DB.toLocalDateTime(dao.getStart()));
-        end.set(DB.toLocalDateTime(dao.getEnd()));
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
+        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            valid.set(newValue);
+        });
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
+        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            changed.set(newValue);
+        });
     }
 
     @Override
@@ -535,6 +653,16 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
+    }
+
+    @Override
+    public boolean isChanged() {
+        return changed.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        return changed;
     }
 
     @Override

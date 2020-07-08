@@ -2,9 +2,9 @@ package scheduler.model.ui;
 
 import java.util.Locale;
 import java.util.Objects;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCOUNTRIES;
@@ -19,10 +19,9 @@ import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.AnyTrueSet;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 
 /**
@@ -33,20 +32,45 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     public static final Factory FACTORY = new Factory();
 
+    private final AnyTrueSet changeIndicator;
+    private final AnyTrueSet validityIndicator;
+    private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper changed;
     private final ObjectProperty<Locale> locale;
     private final ReadOnlyStringBindingProperty name;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyBooleanProperty valid;
+    private final AnyTrueSet.Node localeChanged;
+    private final AnyTrueSet.Node localeValid;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        locale = new SimpleObjectProperty<>(this, PROP_LOCALE);
+        changeIndicator = new AnyTrueSet();
+        validityIndicator = new AnyTrueSet();
+        locale = new SimpleObjectProperty<>(this, PROP_LOCALE, dao.getLocale());
+        localeChanged = changeIndicator.add(false);
+        localeValid = validityIndicator.add(null != locale.get());
+        locale.addListener((observable, oldValue, newValue) -> {
+            localeValid.setValid(null != newValue);
+            Locale l = dao.getLocale();
+            localeChanged.setValid((null == newValue) ? null == l : null != l && l.toLanguageTag().equals(newValue.toLanguageTag()));
+        });
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(language.isNotEmpty()));
-        locale.set(dao.getLocale());
+
+        dao.addPropertyChangeListener((evt) -> {
+            if (evt.getPropertyName() == PROP_LOCALE) {
+                // FIXME: update validity and change
+            }
+        });
+
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
+        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            valid.set(newValue);
+        });
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
+        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            changed.set(newValue);
+        });
     }
 
     @Override
@@ -91,6 +115,16 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
+    }
+
+    @Override
+    public boolean isChanged() {
+        return changed.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        return changed;
     }
 
     @Override

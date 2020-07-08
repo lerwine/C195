@@ -1,9 +1,10 @@
 package scheduler.model.ui;
 
 import java.util.Objects;
-import javafx.beans.binding.Bindings;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -15,8 +16,9 @@ import scheduler.dao.UserDAO;
 import static scheduler.model.User.MAX_LENGTH_PASSWORD;
 import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserStatus;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
+import scheduler.observables.property.PasswordHashProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.AnyTrueSet;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.user.UserModelFilter;
@@ -27,22 +29,78 @@ import scheduler.view.user.UserModelFilter;
  */
 public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<UserDAO> {
 
+    private static final Logger LOG = Logger.getLogger(UserModel.class.getName());
+
     public static final Factory FACTORY = new Factory();
 
+    private final AnyTrueSet changeIndicator;
+    private final AnyTrueSet validityIndicator;
+    private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper changed;
     private final SimpleStringProperty userName;
-    private final SimpleStringProperty password;
+    private final AnyTrueSet.Node userIsChanged;
+    private final AnyTrueSet.Node userIsValid;
+    private final PasswordHashProperty password;
+    private final AnyTrueSet.Node passwordIsChanged;
+    private final AnyTrueSet.Node passwordIsValid;
     private final SimpleObjectProperty<UserStatus> status;
+    private final AnyTrueSet.Node statusIsChanged;
     private final ReadOnlyStringBindingProperty statusDisplay;
-    private final ReadOnlyBooleanBindingProperty valid;
+    private final AnyTrueSet.Node rowStateIsChange;
 
     public UserModel(UserDAO dao) {
         super(dao);
+        changeIndicator = new AnyTrueSet();
+        validityIndicator = new AnyTrueSet();
         userName = new ReadOnlyStringWrapper(this, PROP_USERNAME, dao.getUserName());
-        password = new SimpleStringProperty(this, PROP_PASSWORD, "");
+        userIsChanged = changeIndicator.add(false);
+        userIsValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(userName.get()));
+        userName.addListener((observable, oldValue, newValue) -> {
+            userIsValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
+            userIsChanged.setValid(!dao.getUserName().equals(newValue));
+        });
+        password = new PasswordHashProperty(this, PROP_PASSWORD, dao.getPassword());
+        passwordIsChanged = changeIndicator.add(false);
+        passwordIsValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(password.get()));
+        password.addListener((observable, oldValue, newValue) -> {
+            passwordIsValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
+            passwordIsChanged.setValid(!dao.getPassword().equals(newValue));
+        });
         status = new SimpleObjectProperty<>(this, PROP_STATUS, dao.getStatus());
+        statusIsChanged = changeIndicator.add(false);
+        status.addListener((observable, oldValue, newValue) -> {
+            statusIsChanged.setValid(dao.getStatus() != newValue);
+        });
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(userName.get()), userName).and(status.isNull()));
+        rowStateIsChange = changeIndicator.add(DataRowState.isChanged(getRowState()));
+        dao.addPropertyChangeListener((evt) -> {
+            switch (evt.getPropertyName()) {
+                case PROP_USERNAME:
+                    userIsChanged.setValid(!dao.getUserName().equals(getUserName()));
+                    // FIXME: update change
+                    break;
+                case PROP_PASSWORD:
+                    passwordIsChanged.setValid(!dao.getPassword().equals(getPassword()));
+                    // FIXME: update change
+                    break;
+                case PROP_STATUS:
+                    statusIsChanged.setValid(dao.getStatus() != getStatus());
+                    // FIXME: update change
+                    break;
+                case PROP_ROWSTATE:
+                    rowStateIsChange.setValid(DataRowState.isChanged(getRowState()));
+                    // FIXME: update change
+                    break;
+            }
+        });
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
+        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            valid.set(newValue);
+        });
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
+        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            changed.set(newValue);
+        });
     }
 
     @Override
@@ -103,6 +161,16 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
+    }
+
+    @Override
+    public boolean isChanged() {
+        return changed.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        return changed;
     }
 
     @Override

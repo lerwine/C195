@@ -17,14 +17,10 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.ModelEvent;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -79,14 +75,14 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     private final ReadOnlyObjectBindingProperty<LocalDateTime> createDate;
     private final ReadOnlyObjectBindingProperty<LocalDateTime> lastModifiedDate;
     private final ReadOnlyBooleanBindingProperty newRow;
-    private final ReadOnlyBooleanBindingProperty changed;
     private final ReadOnlyBooleanBindingProperty existingInDb;
 
     /**
      * Initializes a new ModelBase object.
      *
      * @param dao The {@link DataAccessObject} to be used for data access operations.
-     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link FxDbModel} objects so the property is updated whenever a change occurs.
+     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link FxDbModel} objects so the property is updated
+     * whenever a change occurs.
      */
     protected FxRecordModel(T dao) {
         if (dao.getRowState() == DataRowState.DELETED) {
@@ -109,7 +105,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         lastModifiedDate = new ReadOnlyObjectBindingProperty<>(this, PROP_LASTMODIFIEDDATE,
                 () -> DB.toLocalDateTime(rawLastModifiedDate.get()), rawLastModifiedDate);
         newRow = new ReadOnlyBooleanBindingProperty(this, PROP_NEWROW, () -> DataRowState.isNewRow(rowState.get()), rowState);
-        changed = new ReadOnlyBooleanBindingProperty(this, PROP_CHANGED, () -> DataRowState.isChanged(rowState.get()), rowState);
         existingInDb = new ReadOnlyBooleanBindingProperty(this, PROP_EXISTINGINDB, () -> DataRowState.existsInDb(rowState.get()), rowState);
     }
 
@@ -186,13 +181,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         return newRow;
     }
 
-    public final boolean isChanged() {
-        return changed.get();
-    }
+    public abstract boolean isChanged();
 
-    public final ReadOnlyBooleanProperty changedProperty() {
-        return changed;
-    }
+    public abstract ReadOnlyBooleanProperty changedProperty();
 
     public final boolean isExistingInDb() {
         return existingInDb.get();
@@ -287,55 +278,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         public abstract DataAccessObject.SaveDaoTask<D, M> createSaveTask(M model, boolean force);
 
         public abstract DataAccessObject.DeleteDaoTask<D, M> createDeleteTask(M model);
-
-        /**
-         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        // FIXME: Remove this method
-        @Deprecated
-        public final <T extends Event> void addEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
-        }
-
-        /**
-         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventFilter The event filter.
-         */
-        // FIXME: Remove this method
-        @Deprecated
-        public final <T extends Event> void addEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
-        }
-
-        /**
-         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventHandler The event handler.
-         */
-        // FIXME: Remove this method
-        @Deprecated
-        public final <T extends Event> void removeEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
-        }
-
-        /**
-         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
-         *
-         * @param <T> The {@link ModelEvent} type.
-         * @param type The event type.
-         * @param eventFilter The event filter.
-         */
-        // FIXME: Remove this method
-        @Deprecated
-        public final <T extends Event> void removeEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
-
-        }
 
         /**
          * Validates the properties of a {@link FxRecordModel}.

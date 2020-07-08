@@ -7,6 +7,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -18,9 +19,11 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.model.AddressProperties;
 import static scheduler.model.Customer.MAX_LENGTH_NAME;
+import scheduler.model.ModelHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
+import scheduler.util.AnyTrueSet;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
@@ -34,6 +37,10 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     public static final Factory FACTORY = new Factory();
 
+    private final AnyTrueSet changeIndicator;
+    private final AnyTrueSet validityIndicator;
+    private final ReadOnlyBooleanWrapper valid;
+    private final ReadOnlyBooleanWrapper changed;
     private final NonNullableStringProperty name;
     private final SimpleObjectProperty<AddressItem<? extends IAddressDAO>> address;
     private final ReadOnlyStringBindingProperty address1;
@@ -46,13 +53,36 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     private final ReadOnlyStringBindingProperty addressText;
     private final SimpleBooleanProperty active;
     private final ReadOnlyStringBindingProperty multiLineAddress;
-    private final ReadOnlyBooleanBindingProperty valid;
+    private final AnyTrueSet.Node nameChanged;
+    private final AnyTrueSet.Node nameValid;
+    private final AnyTrueSet.Node addressChanged;
+    private final AnyTrueSet.Node addressValid;
+    private final AnyTrueSet.Node activeChanged;
 
     public CustomerModel(CustomerDAO dao) {
         super(dao);
+        changeIndicator = new AnyTrueSet();
+        validityIndicator = new AnyTrueSet();
         name = new NonNullableStringProperty(this, PROP_NAME, dao.getName());
+        nameChanged = changeIndicator.add(false);
+        nameValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(name.get()));
+        name.addListener((observable, oldValue, newValue) -> {
+            nameValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
+            String n = dao.getName();
+            nameChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        });
         address = new SimpleObjectProperty<>(this, PROP_ADDRESS, AddressItem.createModel(dao.getAddress()));
+        addressChanged = changeIndicator.add(false);
+        addressValid = validityIndicator.add(null != address.get());
+        address.addListener((observable, oldValue, newValue) -> {
+            addressValid.setValid(null != newValue);
+            addressChanged.setValid(!ModelHelper.areSameRecord(newValue, dao.getAddress()));
+        });
         active = new SimpleBooleanProperty(this, PROP_ACTIVE, dao.isActive());
+        activeChanged = changeIndicator.add(false);
+        active.addListener((observable, oldValue, newValue) -> {
+            activeChanged.setValid(newValue != dao.isActive());
+        });
         address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));
         address2 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS2, Bindings.selectString(address, AddressProperties.PROP_ADDRESS2));
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, AddressItem.PROP_CITYNAME));
@@ -65,9 +95,29 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
                 () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(Bindings.selectBoolean(address, PROP_VALID)).and(Bindings.select(address, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
+        
+        dao.addPropertyChangeListener((evt) -> {
+            switch (evt.getPropertyName()) {
+                case PROP_NAME:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_ADDRESS:
+                    // FIXME: update validity and change
+                    break;
+                case PROP_ACTIVE:
+                    // FIXME: update validity and change
+                    break;
+            }
+        });
+        
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
+        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            valid.set(newValue);
+        });
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
+        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+            changed.set(newValue);
+        });
     }
 
     @Override
@@ -242,6 +292,16 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     @Override
     public ReadOnlyBooleanProperty validProperty() {
         return valid;
+    }
+
+    @Override
+    public boolean isChanged() {
+        return changed.get();
+    }
+
+    @Override
+    public ReadOnlyBooleanProperty changedProperty() {
+        return changed;
     }
 
     @Override
