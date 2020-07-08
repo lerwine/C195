@@ -6,7 +6,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.util.Callback;
 
 /**
- * A cell value factory that returns the row data itself. This is intended to be used with {@link ItemEditTableCellFactory}.
+ * A cell value factory that returns the row data itself.
  * 
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

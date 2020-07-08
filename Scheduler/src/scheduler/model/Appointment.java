@@ -213,6 +213,7 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
     /**
      * Gets the contact for the current appointment. Associated database column definition: <code>`type` text NOT NULL</code>
      * <table border="1" cellspacing="0">
+     * <caption>Type-relative constraints</caption>
      * <tr>
      * <th scope="col" rowspan="2">Value</th>
      * <th scope="col" colspan="3">Field Content / Validation Constraints</th>

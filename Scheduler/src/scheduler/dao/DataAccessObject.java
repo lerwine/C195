@@ -907,7 +907,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param fxRecordModel The {@link FxRecordModel} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
-         * @param force {@code true} to force the save operation even if {@link FxRecordModel#changed} is {@code false}. {@link #validate(Connection)}
+         * @param force {@code true} to force the save operation even if {@link FxRecordModel#isChanged()} is {@code false}. {@link #validate(Connection)}
          * to perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
