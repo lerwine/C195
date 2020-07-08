@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -341,7 +340,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected void updateDataAccessObject(CountryModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#updateDataAccessObject
+            model.dataObject().setLocale(model.getLocale());
         }
 
     }

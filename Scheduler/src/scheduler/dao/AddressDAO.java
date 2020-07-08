@@ -532,7 +532,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected void updateDataAccessObject(AddressModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#updateDataAccessObject
+            AddressDAO dao = model.dataObject();
+            dao.setAddress1(model.getAddress1());
+            dao.setAddress2(model.getAddress2());
+            dao.setCity(model.getCity().dataObject());
+            dao.setPhone(model.getPhone());
+            dao.setPostalCode(model.getPostalCode());
         }
 
     }

@@ -785,7 +785,17 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected void updateDataAccessObject(AppointmentModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#updateDataAccessObject
+            AppointmentDAO dao = model.dataObject();
+            dao.setTitle(model.getTitle());
+            dao.setType(model.getType());
+            dao.setCustomer(model.getCustomer().dataObject());
+            dao.setUser(model.getUser().dataObject());
+            dao.setLocation(model.getLocation());
+            dao.setContact(model.getContact());
+            dao.setStart(DB.toUtcTimestamp(model.getStart()));
+            dao.setEnd(DB.toUtcTimestamp(model.getEnd()));
+            dao.setUrl(model.getUrl());
+            dao.setDescription(model.getDescription());
         }
 
     }

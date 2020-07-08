@@ -368,7 +368,11 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected void updateDataAccessObject(UserModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#updateDataAccessObject
+            UserDAO dao = model.dataObject();
+            dao.setUserName(model.getUserName());
+            dao.setStatus(model.getStatus());
+            // FIXME: Make sure this is correct
+            dao.setPassword(model.getPassword());
         }
 
     }

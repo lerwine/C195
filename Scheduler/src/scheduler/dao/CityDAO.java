@@ -452,7 +452,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected void updateDataAccessObject(CityModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CityDAO.SaveTask#updateDataAccessObject
+            CityDAO dao = model.dataObject();
+            dao.setName(model.getName());
+            dao.setTimeZone(model.getTimeZone());
+            dao.setCountry(model.getCountry().dataObject());
         }
 
     }

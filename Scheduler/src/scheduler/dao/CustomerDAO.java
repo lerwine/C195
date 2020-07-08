@@ -402,7 +402,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         protected void updateDataAccessObject(CustomerModel model) {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#updateDataAccessObject
+            CustomerDAO dao = model.dataObject();
+            dao.setName(model.getName());
+            dao.setActive(model.isActive());
+            dao.setAddress(model.getAddress().dataObject());
         }
 
     }
