@@ -6,6 +6,7 @@ import scheduler.dao.CountryDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
+@Deprecated
 public final class CountryOpRequestEvent extends OperationRequestEvent<CountryDAO, CountryModel> {
 
     private static final long serialVersionUID = 2755073772787755720L;

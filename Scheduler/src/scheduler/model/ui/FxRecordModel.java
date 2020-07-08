@@ -284,7 +284,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
             return Optional.empty();
         }
 
-        public abstract DataAccessObject.SaveDaoTask<D, M> createSaveTask(M model);
+        public abstract DataAccessObject.SaveDaoTask<D, M> createSaveTask(M model, boolean force);
 
         public abstract DataAccessObject.DeleteDaoTask<D, M> createDeleteTask(M model);
 
@@ -338,12 +338,12 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Validates a {@link DataAccessObject} before an insert or update operation.
+         * Validates the properties of a {@link FxRecordModel}.
          *
-         * @param model The {@link FxRecordModel} containing the {@link DataAccessObject} being inserted or updated in the database.
+         * @param model The {@link FxRecordModel} to be validated
          * @return The validation message, which may be {@code null}, empty or white space if there are no validation errors.
          */
-        public abstract String validateForSave(M model);
+        public abstract String validateProperties(M model);
 
     }
 

@@ -52,14 +52,12 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentEvent;
-import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
@@ -94,19 +92,22 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link AppointmentOpRequestEvent} &#123;</dt>
+ * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
+ * {@link AppointmentOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
+ * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(AppointmentOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
- * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST}
- * &#125;</dt>
+ * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
@@ -260,7 +261,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 case DELETE:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteItem(RecordModelContext.of(item));
+                        deleteItem(item);
                     }
                     break;
                 case ENTER:
@@ -278,7 +279,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         LOG.entering(LOG.getName(), "onDeleteAppointmentMenuItemAction", event);
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            deleteItem(RecordModelContext.of(item));
+            deleteItem(item);
         }
     }
 
@@ -299,31 +300,17 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         }
     }
 
-    private void deleteItem(RecordModelContext<AppointmentDAO, AppointmentModel> target) {
+    private void deleteItem(AppointmentModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
-            task.addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(item);
+            task.setOnSucceeded((e) -> {
+                task.getValue().ifPresent((t)
+                        -> scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", t, ButtonType.OK));
             });
             waitBorderPane.startNow(task);
-        }
-    }
-
-    @FXML
-    @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(AppointmentOpRequestEvent event) {
-        LOG.entering(LOG.getName(), "onItemActionRequest", event);
-        if (event.isEdit()) {
-            try {
-                EditAppointment.edit(event.getFxRecordModel(), getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
-            }
-        } else {
-            deleteItem(event);
         }
     }
 

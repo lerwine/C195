@@ -192,17 +192,17 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<UserDAO, UserModel> createSaveTask(UserModel model) {
-            return new UserDAO.SaveTask(model, false);
+        public DataAccessObject.SaveDaoTask<UserDAO, UserModel> createSaveTask(UserModel model, boolean force) {
+            return new UserDAO.SaveTask(model, force);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<UserDAO, UserModel> createDeleteTask(UserModel model) {
-            return new UserDAO.DeleteTask(model, false);
+            return new UserDAO.DeleteTask(model);
         }
 
         @Override
-        public String validateForSave(UserModel target) {
+        public String validateProperties(UserModel target) {
             UserDAO dao = target.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 return "User has already been deleted";

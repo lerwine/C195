@@ -240,17 +240,17 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CityDAO, CityModel> createSaveTask(CityModel model) {
-            return new CityDAO.SaveTask(model, false);
+        public DataAccessObject.SaveDaoTask<CityDAO, CityModel> createSaveTask(CityModel model, boolean force) {
+            return new CityDAO.SaveTask(model, force);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<CityDAO, CityModel> createDeleteTask(CityModel model) {
-            return new CityDAO.DeleteTask(model, false);
+            return new CityDAO.DeleteTask(model);
         }
 
         @Override
-        public String validateForSave(CityModel fxRecordModel) {
+        public String validateProperties(CityModel fxRecordModel) {
             CityDAO dao = fxRecordModel.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 return "City has already been deleted";
@@ -271,7 +271,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                 return "Country not specified";
             }
             if (c instanceof CountryModel) {
-                String message = CountryModel.FACTORY.validateForSave((CountryModel) c);
+                String message = CountryModel.FACTORY.validateProperties((CountryModel) c);
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }

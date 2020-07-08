@@ -16,10 +16,8 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.events.CountryFailedEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
@@ -115,26 +113,19 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
         }
     }
 
-    @Deprecated
-    // FIXME: Delete this method
-    protected void onDeleteItem(RecordModelContext<CountryDAO, CountryModel> item) {
+    @Override
+    protected void onDeleteItem(CountryModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
-            // FIXME: Do not use events
-            item.getDataAccessObject().addEventHandler(CountryFailedEvent.DELETE_INVALID, (e) -> {
-                LOG.info(() -> String.format("Delete failed; %s", e));
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item);
+            task.setOnSucceeded((e) -> {
+                task.getValue().ifPresent((t)
+                        -> scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", t, ButtonType.OK));
             });
             MainController.startBusyTaskNow(task);
         }
-    }
-
-    @Override
-    protected void onDeleteItem(CountryModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.country.ManageCountries#onDeleteItem
     }
 
 }

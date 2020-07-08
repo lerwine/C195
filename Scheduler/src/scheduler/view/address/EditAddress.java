@@ -45,14 +45,12 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.events.AddressSuccessEvent;
-import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
@@ -83,20 +81,25 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_CUSTOMER_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #customersTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CustomerOpRequestEvent} &#123;</dt>
+ * <dt>{@link #customersTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
+ * {@link CustomerOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#CUSTOMER_OP_REQUEST "SCHEDULER_CUSTOMER_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
+ * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(CustomerOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditCustomer#edit(CustomerModel, javafx.stage.Window) EditCustomer.edit}(({@link CustomerModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
  * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
- * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr; {@link scheduler.model.ui.CustomerModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
+ * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -225,7 +228,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         LOG.entering(LOG.getName(), "onCustomerDeleteMenuItemAction", event);
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDelete(RecordModelContext.of(item));
+            onDelete(item);
         }
     }
 
@@ -248,7 +251,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDelete(RecordModelContext.of(item));
+                        onDelete(item);
                     }
                     break;
                 case ENTER:
@@ -275,27 +278,17 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    private void onDelete(RecordModelContext<CustomerDAO, CustomerModel> item) {
+    private void onDelete(CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-            task.addEventHandler(CustomerFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item);
+            task.setOnSucceeded((e) -> {
+                task.getValue().ifPresent((t)
+                        -> scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", t, ButtonType.OK));
             });
             waitBorderPane.startNow(task);
-        }
-    }
-
-    @FXML
-    @SuppressWarnings("incomplete-switch")
-    private void onItemActionRequest(CustomerOpRequestEvent event) {
-        LOG.entering(LOG.getName(), "onItemActionRequest", event);
-        if (event.isEdit()) {
-            onEdit(event.getFxRecordModel());
-        } else {
-            onDelete(event);
         }
     }
 

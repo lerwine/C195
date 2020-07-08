@@ -6,6 +6,7 @@ import scheduler.model.RecordModelContext;
 import scheduler.dao.UserDAO;
 import scheduler.model.ui.UserModel;
 
+@Deprecated
 public final class UserOpRequestEvent extends OperationRequestEvent<UserDAO, UserModel> {
 
     private static final long serialVersionUID = -7155468722667631823L;

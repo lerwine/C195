@@ -6,6 +6,7 @@ import scheduler.dao.CityDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
+@Deprecated
 public final class CityOpRequestEvent extends OperationRequestEvent<CityDAO, CityModel> {
 
     private static final long serialVersionUID = 4423298918901986199L;

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -296,9 +297,12 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected String validate(Connection connection) throws Exception {
-            String message = CountryModel.FACTORY.validateForSave(getFxRecordModel());
-            if (null != message && !message.isEmpty()) {
+            String message = CountryModel.FACTORY.validateProperties(getFxRecordModel());
+            if (Values.isNotNullWhiteSpaceOrEmpty(message)) {
                 return message;
+            }
+            if (isCancelled()) {
+                return null;
             }
             CountryDAO dao = getDataAccessObject();
             StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.COUNTRY_ID.getDbName())
@@ -335,6 +339,11 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return null;
         }
 
+        @Override
+        protected void updateDataAccessObject(CountryModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CountryDAO.SaveTask#updateDataAccessObject
+        }
+
     }
 
     public static final class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel> {
@@ -344,8 +353,8 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(CountryModel target, boolean alreadyValidated) {
-            super(target, CountryModel.FACTORY, alreadyValidated);
+        public DeleteTask(CountryModel target) {
+            super(target, CountryModel.FACTORY);
         }
 
         @Override

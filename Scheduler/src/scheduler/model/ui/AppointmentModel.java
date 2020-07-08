@@ -623,17 +623,17 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel> createSaveTask(final AppointmentModel model) {
-            return new AppointmentDAO.SaveTask(model, false);
+        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel> createSaveTask(final AppointmentModel model, boolean force) {
+            return new AppointmentDAO.SaveTask(model, force);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> createDeleteTask(final AppointmentModel model) {
-            return new AppointmentDAO.DeleteTask(model, false);
+            return new AppointmentDAO.DeleteTask(model);
         }
 
         @Override
-        public String validateForSave(final AppointmentModel fxRecordModel) {
+        public String validateProperties(final AppointmentModel fxRecordModel) {
             final AppointmentDAO dao = fxRecordModel.dataObject();
             String s;
             if (dao.getRowState() == DataRowState.DELETED) {
@@ -687,7 +687,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 return "Customer not specified";
             }
             if (customer instanceof CustomerModel) {
-                String message = CustomerModel.FACTORY.validateForSave((CustomerModel) customer);
+                String message = CustomerModel.FACTORY.validateProperties((CustomerModel) customer);
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
@@ -697,7 +697,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 return "User not specified";
             }
             if (user instanceof UserModel) {
-                return UserModel.FACTORY.validateForSave((UserModel) user);
+                return UserModel.FACTORY.validateProperties((UserModel) user);
             }
             return null;
         }

@@ -6,6 +6,7 @@ import scheduler.dao.CustomerDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
+@Deprecated
 public final class CustomerOpRequestEvent extends OperationRequestEvent<CustomerDAO, CustomerModel> {
 
     private static final long serialVersionUID = -8689654096247827717L;

@@ -16,9 +16,7 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.UserDAO;
-import scheduler.events.UserFailedEvent;
 import scheduler.fx.MainListingControl;
-import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
@@ -155,33 +153,16 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
         }
     }
 
-    @Deprecated
-    // FIXME: Delete this method
-    protected void onDeleteItem(RecordModelContext<UserDAO, UserModel> item) {
-        AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
-            if (response == ButtonType.YES) {
-                UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
-                // FIXME: Do not use events
-                item.getDataAccessObject().addEventHandler(UserFailedEvent.DELETE_INVALID, (UserFailedEvent e) -> {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
-                });
-                MainController.startBusyTaskNow(task);
-            }
-        });
-    }
-
     @Override
     protected void onDeleteItem(UserModel item) {
         AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
-                UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
-                // FIXME: Do not use events
-                item.getDataAccessObject().addEventHandler(UserFailedEvent.DELETE_INVALID, (UserFailedEvent e) -> {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+                UserDAO.DeleteTask task = new UserDAO.DeleteTask(item);
+                task.setOnSucceeded((e) -> {
+                    task.getValue().ifPresent((t)
+                            -> scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", t, ButtonType.OK));
                 });
                 MainController.startBusyTaskNow(task);
             }

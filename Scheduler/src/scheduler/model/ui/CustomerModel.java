@@ -294,17 +294,17 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel> createSaveTask(CustomerModel model) {
-            return new CustomerDAO.SaveTask(model, false);
+        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel> createSaveTask(CustomerModel model, boolean force) {
+            return new CustomerDAO.SaveTask(model, force);
         }
 
         @Override
         public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel> createDeleteTask(CustomerModel model) {
-            return new CustomerDAO.DeleteTask(model, false);
+            return new CustomerDAO.DeleteTask(model);
         }
 
         @Override
-        public String validateForSave(CustomerModel fxRecordModel) {
+        public String validateProperties(CustomerModel fxRecordModel) {
             CustomerDAO dao = fxRecordModel.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 return "Customer has already been deleted";
@@ -322,7 +322,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                 return "Address not specified.";
             }
             if (a instanceof AddressModel) {
-                String message = AddressModel.FACTORY.validateForSave((AddressModel) a);
+                String message = AddressModel.FACTORY.validateProperties((AddressModel) a);
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }

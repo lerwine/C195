@@ -445,9 +445,12 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected String validate(Connection connection) throws Exception {
-            String message = AddressModel.FACTORY.validateForSave(getFxRecordModel());
-            if (null != message && !message.isEmpty()) {
+            String message = AddressModel.FACTORY.validateProperties(getFxRecordModel());
+            if (Values.isNotNullWhiteSpaceOrEmpty(message)) {
                 return message;
+            }
+            if (isCancelled()) {
+                return null;
             }
             AddressDAO dao = getDataAccessObject();
             StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.ADDRESS_ID.getDbName())
@@ -519,22 +522,17 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 return "City not specified";
             }
             if (c instanceof CityModel) {
-                switch (c.getRowState()) {
-                    case NEW:
-                    case MODIFIED:
-                        CityDAO.SaveTask saveTask = new CityDAO.SaveTask((CityModel) c, false);
-                        saveTask.run();
-                        message = saveTask.get();
-                        if (null != message && !message.trim().isEmpty()) {
-                            return message;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                CityDAO.SaveTask saveTask = new CityDAO.SaveTask((CityModel) c, false);
+                saveTask.run();
+                return saveTask.get().orElse(null);
             }
 
             return null;
+        }
+
+        @Override
+        protected void updateDataAccessObject(AddressModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AddressDAO.SaveTask#updateDataAccessObject
         }
 
     }
@@ -548,8 +546,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private static final String REFERENCED_BY_ONE = "Address is referenced by one customer.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(AddressModel target, boolean alreadyValidated) {
-            super(target, AddressModel.FACTORY, alreadyValidated);
+        public DeleteTask(AddressModel target) {
+            super(target, AddressModel.FACTORY);
         }
 
         @Override
@@ -584,7 +582,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private final int primaryKey;
         private final String address1;
         private final String address2;
-        private ICityDAO city;
+        private final ICityDAO city;
         private final String postalCode;
         private final String phone;
 

@@ -17,10 +17,8 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
-import scheduler.events.CustomerFailedEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
@@ -159,24 +157,19 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
         }
     }
 
-    @Deprecated
-    // FIXME: Delete this method
-    protected void onDeleteItem(RecordModelContext<CustomerDAO, CustomerModel> item) {
+    @Override
+    protected void onDeleteItem(CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
-            CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-            task.addEventHandler(CustomerFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item);
+            task.setOnSucceeded((e) -> {
+                task.getValue().ifPresent((t)
+                        -> scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", t, ButtonType.OK));
             });
             MainController.startBusyTaskNow(task);
         }
-    }
-
-    @Override
-    protected void onDeleteItem(CustomerModel item) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.customer.ManageCustomers#onDeleteItem
     }
 
 }

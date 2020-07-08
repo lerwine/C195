@@ -20,10 +20,7 @@ import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
-import scheduler.events.UserEvent;
-import scheduler.events.UserFailedEvent;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.UserModel;
@@ -31,6 +28,7 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
@@ -320,22 +318,22 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
         private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
 
-        public SaveTask(UserModel target, boolean alreadyValidated) {
-            super(target, UserModel.FACTORY, alreadyValidated);
-            UserModel model = target.getFxRecordModel();
-            if (null != model) {
-                UserDAO dao = target.getDataAccessObject();
-                dao.setUserName(model.getUserName());
-                dao.setStatus(model.getStatus());
-                dao.setPassword(model.getPassword());
-            }
+        public SaveTask(UserModel model, boolean alreadyValidated) {
+            super(model, UserModel.FACTORY, alreadyValidated);
+            UserDAO dao = model.dataObject();
+            dao.setUserName(model.getUserName());
+            dao.setStatus(model.getStatus());
+            dao.setPassword(model.getPassword());
         }
 
         @Override
         protected String validate(Connection connection) throws Exception {
-            UserEvent saveEvent = UserModel.FACTORY.validateForSave(this);
-            if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
-                return saveEvent;
+            String message = UserModel.FACTORY.validateProperties(getFxRecordModel());
+            if (Values.isNotNullWhiteSpaceOrEmpty(message)) {
+                return message;
+            }
+            if (isCancelled()) {
+                return null;
             }
             UserDAO dao = getDataAccessObject();
             StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.USER_ID.getDbName())
@@ -363,28 +361,14 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             if (count > 0) {
-                if (getOriginalRowState() == DataRowState.NEW) {
-                    return UserEvent.createInsertInvalidEvent(this, this, ANOTHER_USER_HAS_SAME_NAME);
-                }
-                return UserEvent.createUpdateInvalidEvent(this, this, ANOTHER_USER_HAS_SAME_NAME);
+                return ANOTHER_USER_HAS_SAME_NAME;
             }
             return null;
         }
 
         @Override
-        protected UserEvent createFaultedEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertFaultedEvent(this, this, getException());
-            }
-            return UserEvent.createUpdateFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected UserEvent createCanceledEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertCanceledEvent(this, this);
-            }
-            return UserEvent.createUpdateCanceledEvent(this, this);
+        protected void updateDataAccessObject(UserModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.UserDAO.SaveTask#updateDataAccessObject
         }
 
     }
@@ -399,15 +383,15 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         private static final String REFERENCED_BY_ONE = "Address is referenced by one appointment.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(UserModel target, boolean alreadyValidated) {
-            super(target, UserModel.FACTORY, alreadyValidated);
+        public DeleteTask(UserModel target) {
+            super(target, UserModel.FACTORY);
         }
 
         @Override
         protected String validate(Connection connection) throws Exception {
             UserDAO dao = getDataAccessObject();
             if (dao == Scheduler.getCurrentUser()) {
-                return UserEvent.createDeleteInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
+                return CANNOT_DELETE_YOUR_OWN_ACCOUNT;
             }
 
             int count;
@@ -421,21 +405,11 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 case 0:
                     break;
                 case 1:
-                    return UserEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return REFERENCED_BY_ONE;
                 default:
-                    return UserEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return String.format(REFERENCED_BY_N, count);
             }
             return null;
-        }
-
-        @Override
-        protected UserEvent createFaultedEvent() {
-            return UserEvent.createDeleteFaultedEvent(this, this, getException());
-        }
-
-        @Override
-        protected UserEvent createCanceledEvent() {
-            return UserEvent.createDeleteCanceledEvent(this, this);
         }
 
     }

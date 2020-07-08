@@ -25,7 +25,6 @@ import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
@@ -33,6 +32,7 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
@@ -350,9 +350,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public String validate(Connection connection) throws Exception {
-            String message = CustomerModel.FACTORY.validateForSave(getFxRecordModel());
-            if (null != message && !message.isEmpty()) {
+            String message = CustomerModel.FACTORY.validateProperties(getFxRecordModel());
+            if (Values.isNotNullWhiteSpaceOrEmpty(message)) {
                 return message;
+            }
+            if (isCancelled()) {
+                return null;
             }
             CustomerDAO dao = getDataAccessObject();
             StringBuilder sb = new StringBuilder("SELECT COUNT(").append(DbColumn.CUSTOMER_ID.getDbName())
@@ -385,30 +388,21 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 return MATCHING_ITEM_EXISTS;
             }
 
-            IAddressDAO address = dao.getAddress();
-            if (address instanceof AddressDAO) {
-                switch (address.getRowState()) {
-                    case NEW:
-                    case UNMODIFIED:
-                        AddressDAO.SaveTask saveTask;
-                        CustomerModel model = getFxRecordModel();
-                        AddressItem<? extends IAddressDAO> am;
-                        if (null != model && null != (am = model.getAddress()) && am instanceof AddressModel) {
-                            saveTask = new AddressDAO.SaveTask(RecordModelContext.of((AddressModel) am), false);
-                        } else {
-                            saveTask = new AddressDAO.SaveTask(RecordModelContext.of((AddressDAO) address), false);
-                        }
-                        saveTask.run();
-                        message = saveTask.get();
-                        if (null != message && !message.trim().isEmpty()) {
-                            return message;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            AddressItem<? extends IAddressDAO> am = getFxRecordModel().getAddress();
+            if (null == am) {
+                return "Address not specified.";
+            }
+            if (am instanceof AddressModel) {
+                AddressDAO.SaveTask saveTask = new AddressDAO.SaveTask((AddressModel) am, false);
+                saveTask.run();
+                return saveTask.get().orElse(null);
             }
             return null;
+        }
+
+        @Override
+        protected void updateDataAccessObject(CustomerModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.CustomerDAO.SaveTask#updateDataAccessObject
         }
 
     }
@@ -422,8 +416,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private static final String REFERENCED_BY_N = "Customer is referenced by %d other appointments.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(CustomerModel target, boolean alreadyValidated) {
-            super(target, CustomerModel.FACTORY, alreadyValidated);
+        public DeleteTask(CustomerModel target) {
+            super(target, CustomerModel.FACTORY);
         }
 
         @Override

@@ -22,17 +22,10 @@ import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
-import scheduler.events.AppointmentEvent;
-import scheduler.events.AppointmentFailedEvent;
-import scheduler.events.CustomerEvent;
-import scheduler.events.CustomerFailedEvent;
-import scheduler.events.UserEvent;
-import scheduler.events.UserFailedEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerItem;
@@ -43,6 +36,7 @@ import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
@@ -741,26 +735,27 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         public SaveTask(AppointmentModel fxRecordModel, boolean alreadyValidated) {
             super(fxRecordModel, AppointmentModel.FACTORY, alreadyValidated);
-            if (null != fxRecordModel) {
-                AppointmentDAO dao = fxRecordModel.dataObject();
-                dao.setType(fxRecordModel.getType());
-                dao.setTitle(fxRecordModel.getTitle());
-                dao.setCustomer(fxRecordModel.getCustomer().dataObject());
-                dao.setUser(fxRecordModel.getUser().dataObject());
-                dao.setContact(fxRecordModel.getContact());
-                dao.setLocation(fxRecordModel.getLocation());
-                dao.setUrl(fxRecordModel.getUrl());
-                dao.setStart(DB.toUtcTimestamp(fxRecordModel.getStart()));
-                dao.setEnd(DB.toUtcTimestamp(fxRecordModel.getEnd()));
-                dao.setDescription(fxRecordModel.getDescription());
-            }
+            AppointmentDAO dao = fxRecordModel.dataObject();
+            dao.setType(fxRecordModel.getType());
+            dao.setTitle(fxRecordModel.getTitle());
+            dao.setCustomer(fxRecordModel.getCustomer().dataObject());
+            dao.setUser(fxRecordModel.getUser().dataObject());
+            dao.setContact(fxRecordModel.getContact());
+            dao.setLocation(fxRecordModel.getLocation());
+            dao.setUrl(fxRecordModel.getUrl());
+            dao.setStart(DB.toUtcTimestamp(fxRecordModel.getStart()));
+            dao.setEnd(DB.toUtcTimestamp(fxRecordModel.getEnd()));
+            dao.setDescription(fxRecordModel.getDescription());
         }
 
         @Override
         protected String validate(Connection connection) throws Exception {
-            String message = AppointmentModel.FACTORY.validateForSave(getFxRecordModel());
-            if (null != message && !message.trim().isEmpty()) {
+            String message = AppointmentModel.FACTORY.validateProperties(getFxRecordModel());
+            if (Values.isNotNullWhiteSpaceOrEmpty(message)) {
                 return message;
+            }
+            if (isCancelled()) {
+                return null;
             }
 
             CustomerItem<? extends ICustomerDAO> c = getFxRecordModel().getCustomer();
@@ -768,53 +763,37 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 return "Customer not specified";
             }
             if (c instanceof CustomerModel) {
-                
-            }
                 CustomerDAO.SaveTask saveTask = new CustomerDAO.SaveTask((CustomerModel) c, false);
                 saveTask.run();
-                message = saveTask.get();
-                if (null != message && !message.trim().isEmpty()) {
+                message = saveTask.get().orElse(null);
+                if (null != message) {
                     return message;
                 }
-            UserItem<? extends IUserDAO> u = getFxRecordModel().getUser();
-            if (null == u) {
+            }
+            UserItem<? extends IUserDAO> um = getFxRecordModel().getUser();
+            if (null == um) {
                 return "User not specified";
             }
-            UserDAO.SaveTask saveTask = new UserDAO.SaveTask(RecordModelContext.of((UserModel) um), false);
-            IUserDAO u = appointment.user;
-            if (u instanceof UserDAO) {
-                switch (u.getRowState()) {
-                    case NEW:
-                    case MODIFIED:
-                        AppointmentModel model = getFxRecordModel();
-                        UserItem<? extends IUserDAO> um;
-                        
-                        } else {
-                            saveTask = new UserDAO.SaveTask(RecordModelContext.of((UserDAO) u), false);
-                        }
-                        saveTask.run();
-                        UserEvent userEvent = saveTask.get();
-                        if (null != userEvent && userEvent instanceof UserFailedEvent) {
-                            if (getOriginalRowState() == DataRowState.NEW) {
-                                return AppointmentEvent.createInsertInvalidEvent(this, this, (UserFailedEvent) userEvent);
-                            }
-                            return AppointmentEvent.createUpdateInvalidEvent(this, this, (UserFailedEvent) userEvent);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            if (um instanceof UserModel) {
+                UserDAO.SaveTask saveTask = new UserDAO.SaveTask((UserModel) um, false);
+                saveTask.run();
+                return saveTask.get().orElse(null);
             }
 
             return null;
+        }
+
+        @Override
+        protected void updateDataAccessObject(AppointmentModel model) {
+            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.dao.AppointmentDAO.SaveTask#updateDataAccessObject
         }
 
     }
 
     public static final class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel> {
 
-        public DeleteTask(AppointmentModel target, boolean alreadyValidated) {
-            super(target, AppointmentModel.FACTORY, alreadyValidated);
+        public DeleteTask(AppointmentModel target) {
+            super(target, AppointmentModel.FACTORY);
         }
 
         @Override

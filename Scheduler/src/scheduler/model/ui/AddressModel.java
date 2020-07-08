@@ -99,7 +99,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
      * Formats address as a multi-line string.
      *
      * @param address A 1 or 2 line white-space-normalized string, usually formatted using {@link #calculateAddressLines(String, String)}.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
+     * {@link #calculateCityZipCountry(String, String, String)}.
      * @param phone The phone number string which will be normalized in this method.
      * @return A multi-line white-space-normalized address string.
      */
@@ -125,7 +126,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
      *
      * @param address1 The first line of the street address which will be normalized by this method.
      * @param address2 The second line of the street address which will be normalized by this method.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
+     * {@link #calculateCityZipCountry(String, String, String)}.
      * @param phone The phone number string which will be normalized in this method.
      * @return The address formatted as a single line white-space-normalized string.
      */
@@ -444,7 +446,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public String validateForSave(AddressModel fxRecordModel) {
+        public String validateProperties(AddressModel fxRecordModel) {
             AddressDAO dao = fxRecordModel.dataObject();
             if (dao.getRowState() == DataRowState.DELETED) {
                 return "Address has already been deleted";
@@ -471,7 +473,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 return "City not specified.";
             }
             if (c instanceof CityModel) {
-                String message = CityModel.FACTORY.validateForSave((CityModel) c);
+                String message = CityModel.FACTORY.validateProperties((CityModel) c);
                 if (null != message && !message.trim().isEmpty()) {
                     return message;
                 }
@@ -481,7 +483,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel> createSaveTask(AddressModel model) {
+        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel> createSaveTask(AddressModel model, boolean force) {
             throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel.Factory#createSaveTask
         }
 

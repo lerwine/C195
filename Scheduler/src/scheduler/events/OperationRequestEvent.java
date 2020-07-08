@@ -95,7 +95,9 @@ import scheduler.model.ui.FxRecordModel;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <D> The type of {@link DataAccessObject}.
  * @param <M> The type of {@link FxRecordModel}.
+ * @deprecated
  */
+@Deprecated
 public abstract class OperationRequestEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends ModelEvent<D, M> {
 
     private static final long serialVersionUID = 6645421544057756121L;

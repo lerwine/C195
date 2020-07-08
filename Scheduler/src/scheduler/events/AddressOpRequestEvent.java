@@ -6,6 +6,7 @@ import scheduler.dao.AddressDAO;
 import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
+@Deprecated
 public final class AddressOpRequestEvent extends OperationRequestEvent<AddressDAO, AddressModel> {
 
     private static final long serialVersionUID = -4154574893417109831L;

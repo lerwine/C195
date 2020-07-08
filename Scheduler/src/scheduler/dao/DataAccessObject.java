@@ -36,6 +36,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.ModelEvent;
 import scheduler.model.DataObject;
+import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DB;
@@ -43,14 +44,17 @@ import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
+import scheduler.util.Values;
+import static scheduler.util.Values.asNonNullAndTrimmed;
 import scheduler.view.MainController;
 import scheduler.view.task.WaitBorderPane;
 
 /**
  * Data access object that represents all columns from a data row.
  * <p>
- * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each class must also have an
- * associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static {@code getFactory()} method.</p>
+ * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each
+ * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
+ * {@code getFactory()} method.</p>
  * <p>
  * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  *
@@ -81,21 +85,22 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s will be deferred while this is
-     * invoked.
+     * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s
+     * will be deferred while this is invoked.
      */
     protected abstract void onAcceptChanges();
 
     private void acceptChanges() {
         onAcceptChanges();
-        originalValues.createDate = createDate;
-        originalValues.createdBy = createdBy;
-        originalValues.lastModifiedDate = lastModifiedDate;
-        originalValues.lastModifiedBy = lastModifiedBy;
+        originalValues.createDate = getCreateDate();
+        originalValues.createdBy = getCreatedBy();
+        originalValues.lastModifiedDate = getLastModifiedDate();
+        originalValues.lastModifiedBy = getLastModifiedBy();
     }
 
     /**
-     * This gets called when property changes are rejected and are to be restored to their original values. {@link PropertyChangeEvent}s will be deferred while this is invoked.
+     * This gets called when property changes are rejected and are to be restored to their original values. {@link PropertyChangeEvent}s will be
+     * deferred while this is invoked.
      */
     protected abstract void onRejectChanges();
 
@@ -105,24 +110,16 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     @SuppressWarnings("try")
     public void rejectChanges() {
         try (ChangeEventDeferral eventDeferral = deferChangeEvents()) {
-            Timestamp oldCreateDate = createDate;
-            String oldCreatedBy = createdBy;
-            Timestamp oldLastModifiedDate = lastModifiedDate;
-            String oldLastModifiedBy = lastModifiedBy;
             DataRowState oldRowState = rowState;
             onRejectChanges();
-            createDate = originalValues.createDate;
-            createdBy = originalValues.createdBy;
-            lastModifiedDate = originalValues.lastModifiedDate;
-            lastModifiedBy = originalValues.lastModifiedBy;
+            setCreateDate(originalValues.createDate);
+            setCreatedBy(originalValues.createdBy);
+            setLastModifiedDate(originalValues.lastModifiedDate);
+            setLastModifiedBy(originalValues.lastModifiedBy);
             if (rowState == DataRowState.MODIFIED) {
                 rowState = DataRowState.UNMODIFIED;
+                firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
             }
-            firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
-            firePropertyChange(PROP_CREATEDBY, oldCreatedBy, createdBy);
-            firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, lastModifiedDate);
-            firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, lastModifiedBy);
-            firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Unxpected exception in change deferral", ex);
         }
@@ -138,9 +135,21 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         return createDate;
     }
 
+    private void setCreateDate(Timestamp value) {
+        Timestamp oldValue = createDate;
+        createDate = Objects.requireNonNull(value);
+        firePropertyChange(PROP_CREATEDATE, oldValue, createDate);
+    }
+
     @Override
     public final String getCreatedBy() {
         return createdBy;
+    }
+
+    private void setCreatedBy(String value) {
+        String oldValue = createdBy;
+        createdBy = asNonNullAndTrimmed(value);
+        firePropertyChange(PROP_CREATEDBY, oldValue, createdBy);
     }
 
     @Override
@@ -148,9 +157,21 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         return lastModifiedDate;
     }
 
+    private void setLastModifiedDate(Timestamp value) {
+        Timestamp oldValue = lastModifiedDate;
+        lastModifiedDate = Objects.requireNonNull(value);
+        firePropertyChange(PROP_LASTMODIFIEDDATE, oldValue, lastModifiedDate);
+    }
+
     @Override
     public final String getLastModifiedBy() {
         return lastModifiedBy;
+    }
+
+    private void setLastModifiedBy(String value) {
+        String oldValue = lastModifiedBy;
+        lastModifiedBy = asNonNullAndTrimmed(value);
+        firePropertyChange(PROP_LASTMODIFIEDBY, oldValue, lastModifiedBy);
     }
 
     @Override
@@ -177,8 +198,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
      *
      * @param propertyName The name of the target property.
-     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
-     * to leave {@link #rowState} unchanged.
+     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to
+     * {@link DataRowState#MODIFIED}; otherwise, {@code false} to leave {@link #rowState} unchanged.
      */
     protected boolean propertyChangeModifiesState(String propertyName) {
         switch (propertyName) {
@@ -199,11 +220,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         String propertyName = event.getPropertyName();
         if ((null == propertyName || propertyChangeModifiesState(propertyName)) && !arePropertyChangeEventsDeferred()) {
             UserDAO currentUser = Scheduler.getCurrentUser();
-            String oldModifiedby = lastModifiedBy;
-            Timestamp oldModifiedDate = lastModifiedDate;
             DataRowState oldRowState = rowState;
-            lastModifiedBy = (null == currentUser) ? "admin" : currentUser.getUserName();
-            lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
+            setLastModifiedBy((null == currentUser) ? "admin" : currentUser.getUserName());
+            setLastModifiedDate(DB.toUtcTimestamp(LocalDateTime.now()));
             switch (rowState) {
                 case DELETED:
                 case MODIFIED:
@@ -212,17 +231,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                     rowState = DataRowState.MODIFIED;
                     break;
                 default:
-                    String oldCreatedby = createdBy;
-                    Timestamp oldCreateDate = createDate;
-                    createdBy = lastModifiedBy;
-                    createDate = lastModifiedDate;
+                    setCreatedBy(getLastModifiedBy());
+                    setCreateDate(getLastModifiedDate());
                     rowState = DataRowState.NEW;
-                    firePropertyChange(PROP_CREATEDBY, oldCreatedby, createdBy);
-                    firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
                     break;
             }
-            firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedby, lastModifiedBy);
-            firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, lastModifiedDate);
             firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
         }
     }
@@ -284,10 +297,17 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
      */
     public synchronized void resetRowState() {
         if (rowState == DataRowState.DELETED) {
+            int oldPrimaryKey = getPrimaryKey();
             primaryKey = Integer.MIN_VALUE;
-            lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
-            lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
+            Timestamp ts = DB.toUtcTimestamp(LocalDateTime.now());
+            String s = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
+            setLastModifiedDate(ts);
+            setCreateDate(ts);
+            setLastModifiedBy(s);
+            setCreatedBy(s);
             rowState = DataRowState.NEW;
+            firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, primaryKey);
+            firePropertyChange(PROP_ROWSTATE, DataRowState.DELETED, rowState);
         }
     }
 
@@ -417,8 +437,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * Base factory class for CRUD operations on {@link DataAccessObject} objects. This maintains a {@link WeakReference} cache of loaded {@link DataAccessObject}s so that there
-     * will only ever be one instance of a {@link DataAccessObject} for each record in the database.
+     * Base factory class for CRUD operations on {@link DataAccessObject} objects. This maintains a {@link WeakReference} cache of loaded
+     * {@link DataAccessObject}s so that there will only ever be one instance of a {@link DataAccessObject} for each record in the database.
      *
      * @param <D> The type of {@link DataAccessObject} object supported.
      */
@@ -526,29 +546,16 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             DataAccessObject d1 = (DataAccessObject) fromDAO;
             DataAccessObject d2 = (DataAccessObject) toDAO;
             try (ChangeEventDeferral eventDeferral = d2.deferChangeEvents()) {
-                Timestamp oldCreateDate = d2.createDate;
-                String oldCreatedBy = d2.createdBy;
-                Timestamp oldLastModifiedDate = d2.lastModifiedDate;
-                String oldLastModifiedBy = d2.lastModifiedBy;
-                int oldPrimaryKey = d2.primaryKey;
+                d2.setCreateDate(d1.getCreateDate());
+                d2.setCreatedBy(d1.getCreatedBy());
+                d2.setLastModifiedDate(d1.getLastModifiedDate());
+                d2.setLastModifiedBy(d1.getLastModifiedBy());
+                int oldPrimaryKey = d2.getPrimaryKey();
                 DataRowState oldRowState = d2.rowState;
-                d2.createDate = d1.createDate;
-                d2.createdBy = d1.createdBy;
-                d2.lastModifiedDate = d1.lastModifiedDate;
-                d2.lastModifiedBy = d1.lastModifiedBy;
-                d2.primaryKey = d1.primaryKey;
-                d2.originalValues.createDate = d1.originalValues.createDate;
-                d2.originalValues.createdBy = d1.originalValues.createdBy;
-                d2.originalValues.lastModifiedDate = d1.originalValues.lastModifiedDate;
-                d2.originalValues.lastModifiedBy = d1.originalValues.lastModifiedBy;
-                d2.primaryKey = d1.primaryKey;
+                d2.primaryKey = d1.getPrimaryKey();
                 d2.rowState = d1.rowState;
                 onCloneProperties(fromDAO, toDAO);
-                d2.firePropertyChange(PROP_CREATEDATE, oldCreateDate, d2.createDate);
-                d2.firePropertyChange(PROP_CREATEDBY, oldCreatedBy, d2.createdBy);
-                d2.firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, d2.lastModifiedDate);
-                d2.firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, d2.lastModifiedBy);
-                d2.firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, d2.primaryKey);
+                d2.firePropertyChange(PROP_PRIMARYKEY, oldPrimaryKey, d2.getPrimaryKey());
                 d2.firePropertyChange(PROP_ROWSTATE, oldRowState, d2.rowState);
             } catch (Exception ex) {
                 LOG.log(Level.SEVERE, "Unxpected exception in change deferral", ex);
@@ -556,7 +563,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         }
 
         /**
-         * This gets called when the properties of one {@link DataAccessObject} are being copied to another. {@link PropertyChangeEvent}s will be deferred while this is invoked.
+         * This gets called when the properties of one {@link DataAccessObject} are being copied to another. {@link PropertyChangeEvent}s will be
+         * deferred while this is invoked.
          *
          * @param fromDAO The source {@link DataAccessObject} to be copied from.
          * @param toDAO The target {@link DataAccessObject} to be copied to.
@@ -589,10 +597,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             try (ChangeEventDeferral eventDeferral = dataAccessObject.deferChangeEvents()) {
                 Consumer<PropertyChangeSupport> consumer;
                 synchronized (dao) {
-                    obj.createDate = rs.getTimestamp(DbName.CREATE_DATE.toString());
-                    obj.createdBy = rs.getString(DbName.CREATED_BY.toString());
-                    obj.lastModifiedDate = rs.getTimestamp(DbName.LAST_UPDATE.toString());
-                    obj.lastModifiedBy = rs.getString(DbName.LAST_UPDATE_BY.toString());
+                    obj.setCreateDate(rs.getTimestamp(DbName.CREATE_DATE.toString()));
+                    obj.setCreatedBy(rs.getString(DbName.CREATED_BY.toString()));
+                    obj.setLastModifiedDate(rs.getTimestamp(DbName.LAST_UPDATE.toString()));
+                    obj.setLastModifiedBy(rs.getString(DbName.LAST_UPDATE_BY.toString()));
                     obj.rowState = DataRowState.UNMODIFIED;
                     consumer = onInitializeFromResultSet(dao, rs);
                 }
@@ -642,8 +650,9 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
-         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow implementing classes to put fields
-         * directly while property change events are deferred. This value can be {@code null} if it is not applicable.
+         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
+         * implementing classes to put fields directly while property change events are deferred. This value can be {@code null} if it is not
+         * applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
         protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(D dao, ResultSet rs) throws SQLException;
@@ -694,7 +703,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Indicates whether {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables.
          *
-         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise, {@code false}.
+         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise,
+         * {@code false}.
          */
         public abstract boolean isCompoundSelect();
 
@@ -749,14 +759,14 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on a {@link DataAccessObject}. When
-     * completed, the {@link #finalEvent} is fired on the {@link DaoTask} and the target {@link DataAccessObject}.
+     * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on a
+     * {@link DataAccessObject}.
      *
      * @param <D> The target {@link DataAccessObject} type.
      * @param <M> The associated {@link FxRecordModel} type.
      * @param <R> The result type.
      */
-    public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, R> extends Task<R> {
+    public static abstract class DaoTask<D extends DataAccessObject, M extends FxRecordModel<D>, R> extends Task<Optional<R>> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoTask.class.getName());
@@ -787,7 +797,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Gets the {@link FxRecordModel} that wraps the target {@link DataAccessObject}.
          *
-         * @return The {@link FxRecordModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target {@link DataAccessObject} was provided to this task.
+         * @return The {@link FxRecordModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target
+         * {@link DataAccessObject} was provided to this task.
          */
         public M getFxRecordModel() {
             return fxRecordModel;
@@ -809,35 +820,45 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * @return The {@link ModelEvent} for a successful task completion. This should never return a {@code null} value.
          * @throws Exception if an un-handled exception occurred during the task operation.
          */
-        protected abstract R call(Connection connection) throws Exception;
+        protected abstract Optional<R> call(Connection connection) throws Exception;
 
         @Override
         @SuppressWarnings("try")
-        protected R call() throws Exception {
-            if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
-                throw new IllegalStateException("Row state has changed");
-            }
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                if (isCancelled()) {
-                    return null;
+        protected final Optional<R> call() throws Exception {
+            synchronized (getFxRecordModel()) {
+                if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
+                    throw new IllegalStateException("Row state has changed");
                 }
-                try (ChangeEventDeferral eventDeferral = ((DataAccessObject) dataAccessObject).deferChangeEvents()) {
-                    synchronized (dataAccessObject) {
-                        return call(dbConnector.getConnection());
+                Optional<R> result = onBeforeDbConnect();
+                if (result.isPresent()) {
+                    return result;
+                }
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+                try (DbConnector dbConnector = new DbConnector()) {
+                    updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                    if (!isCancelled()) {
+                        try (ChangeEventDeferral eventDeferral = ((DataAccessObject) dataAccessObject).deferChangeEvents()) {
+                            synchronized (dataAccessObject) {
+                                result = call(dbConnector.getConnection());
+                                if (null != result && !isCancelled()) {
+                                    return result;
+                                }
+                            }
+                        }
                     }
                 }
             }
+            return Optional.empty();
         }
 
+        protected abstract Optional<R> onBeforeDbConnect();
     }
 
     /**
-     * A {@link DaoTask} that allows for validation before the actual operation is performed. This provides an opened database {@link Connection} and defers the firing of
-     * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link ValidatingDaoTask} and the
-     * target {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also
-     * produced for task failures and cancellations.
+     * A {@link DaoTask} that allows for validation before the actual operation is performed. This provides an opened database {@link Connection} and
+     * defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, {@link #getValue()} will
+     * return the validation message if validation has failed. If this is null, empty or contains only whitespace, then that indicates that validation
+     * has succeeded and that the {@link #onValidated(Connection)} has been invoked, unless the task itself has failed or has been canceled.
      *
      * @param <D> The type of the target {@link DataAccessObject}.
      * @param <M> The type of associated {@link FxRecordModel}, if applicable.
@@ -856,13 +877,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param fxRecordModel The {@link FxRecordModel} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
-         * perform validation.
+         * {@link #validate(Connection)} to perform validation.
          */
-        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M> modelFactory, boolean skipValidation) {
+        protected ValidatingDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M> modelFactory) {
             super(fxRecordModel);
             daoFactory = (this.modelFactory = modelFactory).getDaoFactory();
-            validationSuccessful = skipValidation;
+            validationSuccessful = false;
         }
 
         /**
@@ -877,41 +897,32 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         /**
          * Gets the {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
          *
-         * @return The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type or {@code null} if a {@link FxRecordModel} was not specified in
-         * the constructor.
+         * @return The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type or {@code null} if a
+         * {@link FxRecordModel} was not specified in the constructor.
          */
         public FxRecordModel.FxModelFactory<D, M> getModelFactory() {
             return modelFactory;
         }
 
         @Override
-        protected final String call(Connection connection) throws Exception {
+        protected final Optional<String> call(Connection connection) throws Exception {
             LOG.entering(LOG.getName(), "call", connection);
-            String message;
-            if (validationSuccessful) {
-                message = null;
-            } else {
-                LOG.fine("Validating");
-                message = validate(connection);
-                validationSuccessful = null != message && message.trim().isEmpty();
-            }
-            LOG.fine("Validated");
-
+            LOG.fine("Validating");
+            String message = validate(connection);
             if (!isCancelled()) {
+                validationSuccessful = Values.isNullWhiteSpaceOrEmpty(message);
+                LOG.fine("Validated");
                 if (validationSuccessful) {
                     onValidated(connection);
-                    if (!isCancelled()) {
-                        return "";
-                    }
                 } else {
-                    return message;
+                    return Optional.of(message);
                 }
             }
-            return null;
+            return Optional.empty();
         }
 
         /**
-         * This gets called to validateForSave the current {@link DataAccessObject}.
+         * This gets called to validateProperties the current {@link DataAccessObject}.
          *
          * @param connection The opened database {@link Connection}.
          * @return The validation event, which can be {@code null} if the target {@link DataAccessObject} is valid.
@@ -930,10 +941,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * A {@link ValidatingDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database {@link Connection} and defers the firing of
-     * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link SaveDaoTask} and the target
-     * {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced
-     * for task failures and cancellations. If successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#UNMODIFIED}.
+     * A {@link ValidatingDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database
+     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed,
+     * {@link #getValue()} will return the validation message if validation has failed. If this is null, empty or contains only whitespace, then that
+     * indicates that validation has succeeded and that changes have been saved to the database, unless the task itself has failed or has been
+     * canceled. If successful, the target {@link FxRecordModel#rowState} will be set to {@link DataRowState#UNMODIFIED}.
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
      * @param <M> The type of associated {@link FxRecordModel}, if applicable.
@@ -942,29 +954,58 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
+        private boolean force;
+        private int originalPk;
 
         /**
          * Creates a new {@code SaveDaoTask} for the {@link FxRecordModel#dataObject DataAccessObject} of a {@link FxRecordModel}.
          *
          * @param fxRecordModel The {@link FxRecordModel} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
-         * perform validation.
+         * @param force {@code true} to force the save operation even if {@link FxRecordModel#changed} is {@code false}. {@link #validate(Connection)}
+         * to perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M> modelFactory, boolean skipValidation) {
-            super(fxRecordModel, modelFactory, skipValidation);
+        protected SaveDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M> modelFactory, boolean force) {
+            super(fxRecordModel, modelFactory);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
             }
+            originalPk = fxRecordModel.getPrimaryKey();
+            this.force = force;
         }
+
+        @Override
+        protected Optional<String> onBeforeDbConnect() {
+            if (force || getFxRecordModel().isChanged()) {
+                return Optional.empty();
+            }
+            return Optional.of("");
+        }
+
+        /**
+         * This gets called to update the {@link FxRecordModel#dataObject} with the changes to the {@link FxRecordModel}.
+         *
+         * @param model The {@link FxRecordModel} that wraps the {@link DataAccessObject} to be updated.
+         */
+        protected abstract void updateDataAccessObject(M model);
 
         @Override
         protected final void onValidated(Connection connection) throws Exception {
             D dao = getDataAccessObject();
-            DaoFactory<D> factory = getDaoFactory();
             DataAccessObject dataObj = (DataAccessObject) dao;
-            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
+            DaoFactory<D> factory = getDaoFactory();
+            M model = getFxRecordModel();
+            String n = Scheduler.getCurrentUser().getUserName();
+            Timestamp ts = DB.toUtcTimestamp(LocalDateTime.now());
+            if (model.getRowState() == DataRowState.NEW) {
+                dataObj.setCreatedBy(n);
+                dataObj.setCreateDate(ts);
+            }
+            dataObj.setLastModifiedBy(n);
+            dataObj.setLastModifiedDate(ts);
+            updateDataAccessObject(model);
+
             StringBuilder sb = new StringBuilder();
             DbColumn[] columns;
             Iterator<DbColumn> iterator;
@@ -1015,20 +1056,16 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                         if (column.getUsageCategory() == ColumnCategory.AUDIT) {
                             switch (column.getDbName()) {
                                 case CREATE_DATE:
-                                    dataObj.createDate = timeStamp;
-                                    ps.setTimestamp(index++, dataObj.createDate);
+                                    ps.setTimestamp(index++, dataObj.getCreateDate());
                                     break;
                                 case CREATED_BY:
-                                    dataObj.createdBy = Scheduler.getCurrentUser().getUserName();
-                                    ps.setString(index++, dataObj.createdBy);
+                                    ps.setString(index++, dataObj.getCreatedBy());
                                     break;
                                 case LAST_UPDATE:
-                                    dataObj.lastModifiedDate = timeStamp;
-                                    ps.setTimestamp(index++, dataObj.lastModifiedDate);
+                                    ps.setTimestamp(index++, dataObj.getLastModifiedDate());
                                     break;
                                 case LAST_UPDATE_BY:
-                                    dataObj.lastModifiedBy = Scheduler.getCurrentUser().getUserName();
-                                    ps.setString(index++, dataObj.lastModifiedBy);
+                                    ps.setString(index++, dataObj.getLastModifiedBy());
                                     break;
                                 default:
                                     LogHelper.logWarnings(connection, LOG);
@@ -1045,7 +1082,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                 if (getOriginalRowState() != DataRowState.NEW) {
                     try {
                         LOG.fine(String.format("Setting value primary key at index %d", index));
-                        ps.setInt(index, dataObj.primaryKey);
+                        ps.setInt(index, dataObj.getPrimaryKey());
                     } catch (SQLException ex) {
                         LogHelper.logWarnings(connection, LOG);
                         throw new Exception("Error setting value for primary key column", ex);
@@ -1063,6 +1100,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                         if (!rs.next()) {
                             throw new SQLException("No primary key returned");
                         }
+                        // FIXME: Make sure change events get fired
                         dataObj.primaryKey = rs.getInt(1);
                         dataObj.rowState = DataRowState.UNMODIFIED;
                         factory.dataObjectCache.put(dao);
@@ -1082,14 +1120,16 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @Override
         protected void succeeded() {
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
-            String result = getValue();
-            LOG.fine(() -> String.format("Task succeeded: %s", result));
-            if (null != result && result.isEmpty()) {
+            String result = getValue().orElse(null);
+            if (null != result) {
+                obj.rejectChanges();
+                LOG.fine(() -> String.format("Task succeeded, but invalid: %s", result));
+            } else {
+                LOG.fine("Task succeeded");
                 obj.acceptChanges();
                 obj.rowState = DataRowState.UNMODIFIED;
+                obj.firePropertyChange(PROP_PRIMARYKEY, originalPk, obj.primaryKey);
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
-            } else {
-                obj.rejectChanges();
             }
             super.succeeded();
         }
@@ -1109,10 +1149,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
     }
 
     /**
-     * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database {@link Connection} and defers the firing of
-     * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link DeleteDaoTask} and the target
-     * {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced
-     * for task failures and cancellations. If successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
+     * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database
+     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
+     * {@link #finalEvent} is fired on the {@link DeleteDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task
+     * will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations. If
+     * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
      * @param <M> The type of associated {@link FxRecordModel}, if applicable.
@@ -1127,13 +1168,12 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          *
          * @param fxRecordModel The {@link FxRecordModel} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link FxRecordModel.FxModelFactory} associated with the source {@link FxRecordModel} type.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
-         * perform validation.
-         * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or {@link DataRowState#NEW}.
+         * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or
+         * {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M> modelFactory, boolean skipValidation) {
-            super(fxRecordModel, modelFactory, skipValidation);
+        protected DeleteDaoTask(M fxRecordModel, FxRecordModel.FxModelFactory<D, M> modelFactory) {
+            super(fxRecordModel, modelFactory);
             switch (getOriginalRowState()) {
                 case DELETED:
                     throw new IllegalArgumentException("Record was already deleted");
@@ -1150,7 +1190,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             sb.append(factory.getDbTable().getDbName()).append(" WHERE ").append(factory.getPrimaryKeyColumn().getDbName()).append("=?");
             String sql = sb.toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, ((DataAccessObject) dao).primaryKey);
+                ps.setInt(1, ((DataAccessObject) dao).getPrimaryKey());
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 if (ps.executeUpdate() < 1) {
                     LogHelper.logWarnings(connection, LOG);
@@ -1165,13 +1205,14 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         @Override
         protected void succeeded() {
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
-            String result = getValue();
-            LOG.fine(() -> String.format("Task succeeded: %s", result));
-            if (null != result && result.isEmpty()) {
+            String result = getValue().orElse(null);
+            if (null == result) {
+                LOG.fine("Task succeeded");
                 obj.acceptChanges();
                 obj.rowState = DataRowState.DELETED;
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             } else {
+                LOG.fine(() -> String.format("Task succeeded, but invalid: %s", result));
                 obj.rejectChanges();
             }
             super.succeeded();
@@ -1189,6 +1230,11 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             super.failed();
         }
 
+        @Override
+        protected Optional<String> onBeforeDbConnect() {
+            return Optional.empty();
+        }
+
     }
 
     private class OriginalValues {
@@ -1199,10 +1245,10 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         private String lastModifiedBy;
 
         private OriginalValues() {
-            this.createDate = DataAccessObject.this.createDate;
-            this.createdBy = DataAccessObject.this.createdBy;
-            this.lastModifiedDate = DataAccessObject.this.lastModifiedDate;
-            this.lastModifiedBy = DataAccessObject.this.lastModifiedBy;
+            this.createDate = DataAccessObject.this.getCreateDate();
+            this.createdBy = DataAccessObject.this.getCreatedBy();
+            this.lastModifiedDate = DataAccessObject.this.getLastModifiedDate();
+            this.lastModifiedBy = DataAccessObject.this.getLastModifiedBy();
         }
     }
 }
