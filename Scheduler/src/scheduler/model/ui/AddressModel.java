@@ -28,13 +28,11 @@ import static scheduler.model.AddressProperties.MAX_LENGTH_POSTALCODE;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
-import scheduler.model.DataObject;
 import scheduler.model.ModelHelper;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.AnyTrueSet;
+import scheduler.util.BooleanAggregate;
 import scheduler.util.LogHelper;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.util.ToStringPropertyBuilder;
@@ -166,8 +164,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 : String.format("%s, %s, %s, %s", address1, address2, cityZipCountry, phone);
     }
 
-    private final AnyTrueSet changeIndicator;
-    private final AnyTrueSet validityIndicator;
+    private final BooleanAggregate unmodifiedIndicator;
+    private final BooleanAggregate validityIndicator;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper changed;
     private final NonNullableStringProperty address1;
@@ -181,15 +179,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
     private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
-    private final AnyTrueSet.Node address1Changed;
-    private final AnyTrueSet.Node address2Changed;
-    private final AnyTrueSet.Node cityChanged;
-    private final AnyTrueSet.Node postalCodeChanged;
-    private final AnyTrueSet.Node phoneChanged;
-    private final AnyTrueSet.Node addressValid;
-    private final AnyTrueSet.Node cityValid;
-    private final AnyTrueSet.Node postalCodeValid;
-    private final AnyTrueSet.Node phoneValid;
 
     /**
      * FX model for {@link scheduler.model.Address} objects.
@@ -198,82 +187,61 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
      */
     public AddressModel(AddressDAO dao) {
         super(dao);
-        changeIndicator = new AnyTrueSet();
-        validityIndicator = new AnyTrueSet();
+        unmodifiedIndicator = new BooleanAggregate();
+        validityIndicator = new BooleanAggregate();
         address1 = new NonNullableStringProperty(this, PROP_ADDRESS1, dao.getAddress1());
-        address1Changed = changeIndicator.add(false);
         address2 = new NonNullableStringProperty(this, PROP_ADDRESS2, dao.getAddress2());
-        address2Changed = changeIndicator.add(false);
+        unmodifiedIndicator.register(address1, dao, PROP_ADDRESS1, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
+        });
+        validityIndicator.register(address1, address2, (t, u) -> {
+            if (Values.isNullWhiteSpaceOrEmpty(t)) {
+                return !Values.isNullWhiteSpaceOrEmpty(u);
+            }
+            return t.length() <= MAX_LENGTH_ADDRESS1;
+        });
+        unmodifiedIndicator.register(address2, dao, PROP_ADDRESS2, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
+        });
+        validityIndicator.register(address2, (t) -> {
+            return Values.isNullWhiteSpaceOrEmpty(t) || t.length() <= MAX_LENGTH_ADDRESS2;
+        });
         addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
                 () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
-        addressValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(addressLines.get()));
-        address1.addListener((observable, oldValue, newValue) -> {
-            addressValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(addressLines.get()));
-            String n = dao.getAddress1();
-            address1Changed.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
-        });
-        address2.addListener((observable, oldValue, newValue) -> {
-            addressValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(addressLines.get()));
-            String n = dao.getAddress2();
-            address2Changed.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
-        });
         city = new SimpleObjectProperty<>(this, PROP_CITY, CityItem.createModel(dao.getCity()));
-        cityChanged = changeIndicator.add(false);
-        cityValid = validityIndicator.add(null != city.get());
-        city.addListener((observable, oldValue, newValue) -> {
-            cityValid.setValid(null != newValue);
-            cityChanged.setValid(!ModelHelper.areSameRecord(newValue, dao.getCity()));
+        unmodifiedIndicator.register(city, dao, PROP_CITY, (t, u) -> {
+            Object v = u.getNewValue();
+            return (null == v || v instanceof ICityDAO) && ModelHelper.areSameRecord((ICityDAO) v, t);
         });
+        validityIndicator.register(city, (t) -> null != t);
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(city, CityProperties.PROP_NAME));
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, CityItem.PROP_COUNTRYNAME));
         postalCode = new NonNullableStringProperty(this, PROP_POSTALCODE, dao.getPostalCode());
-        postalCodeChanged = changeIndicator.add(false);
-        postalCodeValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(postalCode.get()));
-        postalCode.addListener((observable, oldValue, newValue) -> {
-            postalCodeValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
-            String n = dao.getPostalCode();
-            postalCodeChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        unmodifiedIndicator.register(postalCode, dao, PROP_POSTALCODE, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
+        });
+        validityIndicator.register(postalCode, (t) -> {
+            return Values.isNullWhiteSpaceOrEmpty(t) || t.length() <= MAX_LENGTH_POSTALCODE;
         });
         phone = new NonNullableStringProperty(this, PROP_PHONE, dao.getPhone());
-        phoneChanged = changeIndicator.add(false);
-        phoneValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(phone.get()));
-        phone.addListener((observable, oldValue, newValue) -> {
-            phoneValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
-            String n = dao.getPhone();
-            phoneChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        unmodifiedIndicator.register(phone, dao, PROP_PHONE, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
+        });
+        validityIndicator.register(phone, (t) -> {
+            return Values.isNullWhiteSpaceOrEmpty(t) || t.length() <= MAX_LENGTH_PHONE;
         });
         cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY,
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, CityItem.PROP_LANGUAGE));
         timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityItem.PROP_TIMEZONE));
-        
-        dao.addPropertyChangeListener((evt) -> {
-            switch (evt.getPropertyName()) {
-                case PROP_ADDRESS1:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_ADDRESS2:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_CITY:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_POSTALCODE:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_PHONE:
-                    // FIXME: update validity and change
-                    break;
-            }
-        });
-        
-        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
-        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isAnyTrue());
+        validityIndicator.anyTrueProperty().addListener((observable, oldValue, newValue) -> {
             valid.set(newValue);
         });
-        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
-        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, unmodifiedIndicator.isAnyFalse());
+        unmodifiedIndicator.anyFalseProperty().addListener((observable, oldValue, newValue) -> {
             changed.set(newValue);
         });
     }

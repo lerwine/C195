@@ -26,9 +26,8 @@ import scheduler.model.CityProperties;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.AnyTrueSet;
+import scheduler.util.BooleanAggregate;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
@@ -42,8 +41,8 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
     public static final Factory FACTORY = new Factory();
 
-    private final AnyTrueSet changeIndicator;
-    private final AnyTrueSet validityIndicator;
+    private final BooleanAggregate unmodifiedIndicator;
+    private final BooleanAggregate validityIndicator;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper changed;
     private final StringProperty name;
@@ -52,69 +51,43 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     private final ReadOnlyStringBindingProperty timeZoneDisplay;
     private final ReadOnlyStringBindingProperty countryName;
     private final ReadOnlyStringBindingProperty language;
-    private final AnyTrueSet.Node nameChanged;
-    private final AnyTrueSet.Node nameValid;
-    private final AnyTrueSet.Node timeZoneChanged;
-    private final AnyTrueSet.Node timeZoneValid;
-    private final AnyTrueSet.Node countryValid;
-    private final AnyTrueSet.Node countryChanged;
 
     public CityModel(CityDAO dao) {
         super(dao);
-        changeIndicator = new AnyTrueSet();
-        validityIndicator = new AnyTrueSet();
-        name = new SimpleStringProperty(this, PROP_NAME);
-        nameChanged = changeIndicator.add(false);
-        nameValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(name.get()));
-        name.addListener((observable, oldValue, newValue) -> {
-            nameValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
-            String n = dao.getName();
-            nameChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        unmodifiedIndicator = new BooleanAggregate();
+        validityIndicator = new BooleanAggregate();
+        name = new SimpleStringProperty(this, PROP_NAME, dao.getName());
+        unmodifiedIndicator.register(name, dao, PROP_NAME, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
         });
-        timeZone = new SimpleObjectProperty<>();
-        timeZoneChanged = changeIndicator.add(false);
-        timeZoneValid = validityIndicator.add(null != timeZone.get());
-        timeZone.addListener((observable, oldValue, newValue) -> {
-            timeZoneValid.setValid(null != newValue);
-            TimeZone t = dao.getTimeZone();
-            timeZoneChanged.setValid((null == newValue) ? null == t : null != t && newValue.getID().equals(t.getID()));
+        validityIndicator.register(name, (t) -> Values.isNotNullWhiteSpaceOrEmpty(t) && t.length() <= MAX_LENGTH_NAME);
+        timeZone = new SimpleObjectProperty<>(this, PROP_TIMEZONE, dao.getTimeZone());
+        unmodifiedIndicator.register(timeZone, dao, PROP_TIMEZONE, (t, u) -> {
+            Object obj = u.getNewValue();
+            if (null != obj && obj instanceof TimeZone) {
+                return null != t && ((TimeZone) obj).toZoneId().getId().equals(t.toZoneId().getId());
+            }
+            return null == t;
         });
-        country = new SimpleObjectProperty<>();
-        countryValid = validityIndicator.add(null != country.get());
-        countryChanged = changeIndicator.add(false);
-        country.addListener((observable, oldValue, newValue) -> {
-            countryValid.setValid(null != newValue);
-            countryChanged.setValid(!ModelHelper.areSameRecord(newValue, dao.getCountry()));
+        country = new SimpleObjectProperty<>(this, PROP_COUNTRY, CountryItem.createModel(dao.getCountry()));
+        unmodifiedIndicator.register(country, dao, PROP_COUNTRY, (t, u) -> {
+            Object v = u.getNewValue();
+            return (null == v || v instanceof ICountryDAO) && ModelHelper.areSameRecord((ICountryDAO) v, t);
         });
+        validityIndicator.register(country, (t) -> null != t);
+        unmodifiedIndicator.register(dao, PROP_ROWSTATE, (e) -> Objects.equals(DataRowState.UNMODIFIED, e.getNewValue()));
         timeZoneDisplay = new ReadOnlyStringBindingProperty(this, PROP_TIMEZONEDISPLAY, () -> {
             return CityProperties.getTimeZoneDisplayText(timeZone.get());
         }, timeZone);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, CountryItem.PROP_LANGUAGE));
-        name.set(dao.getName());
-        timeZone.set(dao.getTimeZone());
-        country.set(CountryItem.createModel(dao.getCountry()));
-        
-        dao.addPropertyChangeListener((evt) -> {
-            switch (evt.getPropertyName()) {
-                case PROP_NAME:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_TIMEZONE:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_COUNTRY:
-                    // FIXME: update validity and change
-                    break;
-            }
-        });
-        
-        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
-        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isAnyTrue());
+        validityIndicator.anyTrueProperty().addListener((observable, oldValue, newValue) -> {
             valid.set(newValue);
         });
-        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
-        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, unmodifiedIndicator.isAnyFalse());
+        unmodifiedIndicator.anyFalseProperty().addListener((observable, oldValue, newValue) -> {
             changed.set(newValue);
         });
     }

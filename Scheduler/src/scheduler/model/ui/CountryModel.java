@@ -20,7 +20,7 @@ import scheduler.model.CountryProperties;
 import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.AnyTrueSet;
+import scheduler.util.BooleanAggregate;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.view.ModelFilter;
 
@@ -32,43 +32,34 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     public static final Factory FACTORY = new Factory();
 
-    private final AnyTrueSet changeIndicator;
-    private final AnyTrueSet validityIndicator;
+    private final BooleanAggregate unmodifiedIndicator;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper changed;
     private final ObjectProperty<Locale> locale;
     private final ReadOnlyStringBindingProperty name;
     private final ReadOnlyStringBindingProperty language;
-    private final AnyTrueSet.Node localeChanged;
-    private final AnyTrueSet.Node localeValid;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        changeIndicator = new AnyTrueSet();
-        validityIndicator = new AnyTrueSet();
+        unmodifiedIndicator = new BooleanAggregate();
         locale = new SimpleObjectProperty<>(this, PROP_LOCALE, dao.getLocale());
-        localeChanged = changeIndicator.add(false);
-        localeValid = validityIndicator.add(null != locale.get());
-        locale.addListener((observable, oldValue, newValue) -> {
-            localeValid.setValid(null != newValue);
-            Locale l = dao.getLocale();
-            localeChanged.setValid((null == newValue) ? null == l : null != l && l.toLanguageTag().equals(newValue.toLanguageTag()));
+        unmodifiedIndicator.register(locale, dao, PROP_LOCALE, (t, u) -> {
+            Object obj = u.getNewValue();
+            if (null != obj && obj instanceof Locale) {
+                return null != t && ((Locale) obj).toLanguageTag().equals(t.toLanguageTag());
+            }
+            return null == t;
         });
+        unmodifiedIndicator.register(dao, PROP_ROWSTATE, (e) -> Objects.equals(DataRowState.UNMODIFIED, e.getNewValue()));
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
 
-        dao.addPropertyChangeListener((evt) -> {
-            if (evt.getPropertyName() == PROP_LOCALE) {
-                // FIXME: update validity and change
-            }
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, null != locale.get());
+        locale.addListener((observable, oldValue, newValue) -> {
+            valid.set(null != newValue);
         });
-
-        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
-        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
-            valid.set(newValue);
-        });
-        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
-        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, unmodifiedIndicator.isAnyFalse());
+        unmodifiedIndicator.anyFalseProperty().addListener((observable, oldValue, newValue) -> {
             changed.set(newValue);
         });
     }

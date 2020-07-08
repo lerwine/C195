@@ -23,7 +23,7 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.AnyTrueSet;
+import scheduler.util.BooleanAggregate;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
@@ -37,8 +37,8 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
 
     public static final Factory FACTORY = new Factory();
 
-    private final AnyTrueSet changeIndicator;
-    private final AnyTrueSet validityIndicator;
+    private final BooleanAggregate unmodifiedIndicator;
+    private final BooleanAggregate validityIndicator;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper changed;
     private final NonNullableStringProperty name;
@@ -53,36 +53,27 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     private final ReadOnlyStringBindingProperty addressText;
     private final SimpleBooleanProperty active;
     private final ReadOnlyStringBindingProperty multiLineAddress;
-    private final AnyTrueSet.Node nameChanged;
-    private final AnyTrueSet.Node nameValid;
-    private final AnyTrueSet.Node addressChanged;
-    private final AnyTrueSet.Node addressValid;
-    private final AnyTrueSet.Node activeChanged;
 
     public CustomerModel(CustomerDAO dao) {
         super(dao);
-        changeIndicator = new AnyTrueSet();
-        validityIndicator = new AnyTrueSet();
+        unmodifiedIndicator = new BooleanAggregate();
+        validityIndicator = new BooleanAggregate();
         name = new NonNullableStringProperty(this, PROP_NAME, dao.getName());
-        nameChanged = changeIndicator.add(false);
-        nameValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(name.get()));
-        name.addListener((observable, oldValue, newValue) -> {
-            nameValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
-            String n = dao.getName();
-            nameChanged.setValid((null == newValue || newValue.isEmpty()) ? n.isEmpty() : newValue.equals(n));
+        unmodifiedIndicator.register(name, dao, PROP_NAME, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
         });
+        validityIndicator.register(name, (t) -> Values.isNotNullWhiteSpaceOrEmpty(t) && t.length() <= MAX_LENGTH_NAME);
         address = new SimpleObjectProperty<>(this, PROP_ADDRESS, AddressItem.createModel(dao.getAddress()));
-        addressChanged = changeIndicator.add(false);
-        addressValid = validityIndicator.add(null != address.get());
-        address.addListener((observable, oldValue, newValue) -> {
-            addressValid.setValid(null != newValue);
-            addressChanged.setValid(!ModelHelper.areSameRecord(newValue, dao.getAddress()));
+        unmodifiedIndicator.register(address, dao, PROP_ADDRESS, (t, u) -> {
+            Object v = u.getNewValue();
+            return (null == v || v instanceof IAddressDAO) && ModelHelper.areSameRecord((IAddressDAO)v, t);
         });
+        validityIndicator.register(address, (t) -> null != t);
         active = new SimpleBooleanProperty(this, PROP_ACTIVE, dao.isActive());
-        activeChanged = changeIndicator.add(false);
-        active.addListener((observable, oldValue, newValue) -> {
-            activeChanged.setValid(newValue != dao.isActive());
+        unmodifiedIndicator.register(active, dao, PROP_ACTIVE, (t, u) -> {
+            return Objects.equals(u.getNewValue(), t);
         });
+        unmodifiedIndicator.register(dao, PROP_ROWSTATE, (e) -> Objects.equals(DataRowState.UNMODIFIED, e.getNewValue()));
         address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));
         address2 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS2, Bindings.selectString(address, AddressProperties.PROP_ADDRESS2));
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, AddressItem.PROP_CITYNAME));
@@ -96,26 +87,12 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                 () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
         
-        dao.addPropertyChangeListener((evt) -> {
-            switch (evt.getPropertyName()) {
-                case PROP_NAME:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_ADDRESS:
-                    // FIXME: update validity and change
-                    break;
-                case PROP_ACTIVE:
-                    // FIXME: update validity and change
-                    break;
-            }
-        });
-        
-        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
-        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isAnyTrue());
+        validityIndicator.anyTrueProperty().addListener((observable, oldValue, newValue) -> {
             valid.set(newValue);
         });
-        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
-        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, unmodifiedIndicator.isAnyFalse());
+        unmodifiedIndicator.anyFalseProperty().addListener((observable, oldValue, newValue) -> {
             changed.set(newValue);
         });
     }

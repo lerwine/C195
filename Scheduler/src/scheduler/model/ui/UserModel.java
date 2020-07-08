@@ -18,7 +18,7 @@ import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.PasswordHashProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.AnyTrueSet;
+import scheduler.util.BooleanAggregate;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.user.UserModelFilter;
@@ -33,72 +33,41 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
 
     public static final Factory FACTORY = new Factory();
 
-    private final AnyTrueSet changeIndicator;
-    private final AnyTrueSet validityIndicator;
+    private final BooleanAggregate unmodifiedIndicator;
+    private final BooleanAggregate validityIndicator;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper changed;
     private final SimpleStringProperty userName;
-    private final AnyTrueSet.Node userIsChanged;
-    private final AnyTrueSet.Node userIsValid;
     private final PasswordHashProperty password;
-    private final AnyTrueSet.Node passwordIsChanged;
-    private final AnyTrueSet.Node passwordIsValid;
     private final SimpleObjectProperty<UserStatus> status;
-    private final AnyTrueSet.Node statusIsChanged;
     private final ReadOnlyStringBindingProperty statusDisplay;
-    private final AnyTrueSet.Node rowStateIsChange;
 
     public UserModel(UserDAO dao) {
         super(dao);
-        changeIndicator = new AnyTrueSet();
-        validityIndicator = new AnyTrueSet();
+        unmodifiedIndicator = new BooleanAggregate();
+        validityIndicator = new BooleanAggregate();
         userName = new ReadOnlyStringWrapper(this, PROP_USERNAME, dao.getUserName());
-        userIsChanged = changeIndicator.add(false);
-        userIsValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(userName.get()));
-        userName.addListener((observable, oldValue, newValue) -> {
-            userIsValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
-            userIsChanged.setValid(!dao.getUserName().equals(newValue));
+        unmodifiedIndicator.register(userName, dao, PROP_USERNAME, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
         });
+        validityIndicator.register(userName, (t) -> Values.isNotNullWhiteSpaceOrEmpty(t) && t.length() <= MAX_LENGTH_USERNAME);
         password = new PasswordHashProperty(this, PROP_PASSWORD, dao.getPassword());
-        passwordIsChanged = changeIndicator.add(false);
-        passwordIsValid = validityIndicator.add(Values.isNotNullWhiteSpaceOrEmpty(password.get()));
-        password.addListener((observable, oldValue, newValue) -> {
-            passwordIsValid.setValid(Values.isNotNullWhiteSpaceOrEmpty(newValue));
-            passwordIsChanged.setValid(!dao.getPassword().equals(newValue));
+        unmodifiedIndicator.register(password, dao, PROP_PASSWORD, (t, u) -> {
+            return Objects.equals(u.getNewValue(), Values.asNonNullAndTrimmed(t));
         });
+        validityIndicator.register(password, (t) -> Values.isNotNullWhiteSpaceOrEmpty(t));
         status = new SimpleObjectProperty<>(this, PROP_STATUS, dao.getStatus());
-        statusIsChanged = changeIndicator.add(false);
-        status.addListener((observable, oldValue, newValue) -> {
-            statusIsChanged.setValid(dao.getStatus() != newValue);
+        unmodifiedIndicator.register(status, dao, PROP_STATUS, (t, u) -> {
+            return Objects.equals(u.getNewValue(), t);
         });
+        unmodifiedIndicator.register(dao, PROP_ROWSTATE, (e) -> Objects.equals(DataRowState.UNMODIFIED, e.getNewValue()));
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
-        rowStateIsChange = changeIndicator.add(DataRowState.isChanged(getRowState()));
-        dao.addPropertyChangeListener((evt) -> {
-            switch (evt.getPropertyName()) {
-                case PROP_USERNAME:
-                    userIsChanged.setValid(!dao.getUserName().equals(getUserName()));
-                    // FIXME: update change
-                    break;
-                case PROP_PASSWORD:
-                    passwordIsChanged.setValid(!dao.getPassword().equals(getPassword()));
-                    // FIXME: update change
-                    break;
-                case PROP_STATUS:
-                    statusIsChanged.setValid(dao.getStatus() != getStatus());
-                    // FIXME: update change
-                    break;
-                case PROP_ROWSTATE:
-                    rowStateIsChange.setValid(DataRowState.isChanged(getRowState()));
-                    // FIXME: update change
-                    break;
-            }
-        });
-        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isValid());
-        validityIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+        valid = new ReadOnlyBooleanWrapper(this, PROP_VALID, validityIndicator.isAnyTrue());
+        validityIndicator.anyTrueProperty().addListener((observable, oldValue, newValue) -> {
             valid.set(newValue);
         });
-        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, changeIndicator.isValid());
-        changeIndicator.validProperty().addListener((observable, oldValue, newValue) -> {
+        changed = new ReadOnlyBooleanWrapper(this, PROP_CHANGED, unmodifiedIndicator.isAnyFalse());
+        unmodifiedIndicator.anyFalseProperty().addListener((observable, oldValue, newValue) -> {
             changed.set(newValue);
         });
     }
