@@ -118,7 +118,7 @@ public class FXMLDocumentController {
 
     @FXML
     void getHashButtonClick(ActionEvent event) {
-        hashTextBox.setText((new PwHash(inputTextBox.getText(), true)).getEncodedHash());
+        hashTextBox.setText((new PwHash(inputTextBox.getText(), true)).getEncodedData());
     }
 
     @FXML

@@ -27,7 +27,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -48,7 +47,6 @@ import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICustomerDAO;
@@ -56,9 +54,6 @@ import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.UserFilter;
-import scheduler.events.AppointmentSuccessEvent;
-import scheduler.events.CustomerSuccessEvent;
-import scheduler.events.UserSuccessEvent;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
@@ -133,8 +128,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
-    // FIXME: Do not use event handlers
-    private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
 
     @ModelEditor
     private AppointmentModel model;
@@ -395,11 +388,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
-            if (keepOpen) {
-                // FIXME: Do not use events
-                insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
-                model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            }
         } else {
             windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
             initializeEditMode();
@@ -699,41 +687,33 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         dateRangeControl.setConflictCheckStatus(appointmentConflicts.getConflictCheckStatus());
     }
 
-    private void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-        // FIXME: Do not use events
-        model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
-        initializeEditMode();
-    }
-
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
-        // FIXME: Do not use event handlers
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
-        // FIXME: Do not use event handlers
-        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onUserDeleted));
     }
 
-    private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            int pk = dao.getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
-        }
-    }
-
-    private void onUserDeleted(UserSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onUserDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            UserDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            int pk = dao.getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
-        }
-    }
-
+//    private void onAppointmentInserted(AppointmentSuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
+//        model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+//        initializeEditMode();
+//    }
+//
+//    private void onCustomerDeleted(CustomerSuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
+//        if (model.getRowState() != DataRowState.NEW) {
+//            CustomerDAO dao = event.getDataAccessObject();
+//            int pk = dao.getPrimaryKey();
+//            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+//        }
+//    }
+//
+//    private void onUserDeleted(UserSuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onUserDeleted", event);
+//        if (model.getRowState() != DataRowState.NEW) {
+//            UserDAO dao = event.getDataAccessObject();
+//            int pk = dao.getPrimaryKey();
+//            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+//        }
+//    }
     public boolean applyChangesToModel() {
         ZonedAppointmentTimeSpan ts = dateRangeControl.getTimeSpan();
         LocalDateTime apptStart = ts.toZonedStartDateTime().withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();

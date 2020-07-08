@@ -14,7 +14,6 @@ import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
@@ -24,7 +23,6 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -46,9 +44,6 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
-import scheduler.events.AddressOpRequestEvent;
-import scheduler.events.AddressSuccessEvent;
-import scheduler.events.CitySuccessEvent;
 import scheduler.fx.TimeZoneListCellFactory;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -62,7 +57,6 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ParentWindowShowingListener;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
@@ -78,29 +72,6 @@ import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
- * <h3>Event Handling</h3>
- * <h4>SCHEDULER_ADDRESS_OP_REQUEST</h4>
- * <dl>
- * <dt>{@link #addressesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
- * {@link AddressOpRequestEvent} &#123;</dt>
- * <dd>{@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#ADDRESS_OP_REQUEST "SCHEDULER_ADDRESS_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
- * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
- * </dd>
- * </dl>
- * &#125; (fires) {@link #onItemActionRequest(AddressOpRequestEvent)}
- * <dl>
- * <dt>SCHEDULER_ADDRESS_EDIT_REQUEST {@link AddressOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link EditAddress#edit(AddressModel, javafx.stage.Window) EditAddress.edit}(({@link AddressModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
- * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
- * {@link scheduler.model.ui.AddressModel.Factory}</dd>
- * <dt>SCHEDULER_ADDRESS_DELETE_REQUEST {@link AddressOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.AddressDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AddressDAO.DeleteTask}({@link AddressOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
- * {@link scheduler.model.ui.AddressModel.Factory}</dd>
- * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -360,20 +331,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         windowShowingChangedListener.initialize(sceneProperty());
     }
 
-    private void onCityInserted(CitySuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCityInserted", event);
-        windowShowingChangedListener.isInsert = false;
-        // FIXME: Do not use event handlers
-        model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressAdded);
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, this::onAddressUpdated);
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, this::onAddressDeleted);
-        restoreNode(addressesLabel);
-        restoreNode(addressesTableView);
-        restoreNode(addCityButtonBar);
-        initializeEditMode();
-    }
-
     private void editItem(AddressModel item) {
         try {
             EditAddress.edit(item, getScene().getWindow());
@@ -446,39 +403,51 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         }
     }
 
-    private void onAddressAdded(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressAdded", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            AddressDAO dao = event.getDataAccessObject();
-            if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                addressItemList.add(new AddressModel(dao));
-            }
-        }
-    }
-
-    private void onAddressUpdated(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressUpdated", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            AddressDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
-            AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
-            if (null != m) {
-                if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
-                    addressItemList.remove(m);
-                }
-            } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                addressItemList.add(new AddressModel(dao));
-            }
-        }
-    }
-
-    private void onAddressDeleted(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressDeleted", event);
-        AddressModel.FACTORY.find(addressItemList, event.getDataAccessObject()).ifPresent((t) -> {
-            addressItemList.remove(t);
-        });
-    }
-
+//    private void onCityInserted(CitySuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onCityInserted", event);
+//        windowShowingChangedListener.isInsert = false;
+//        model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
+//        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressAdded);
+//        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, this::onAddressUpdated);
+//        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, this::onAddressDeleted);
+//        restoreNode(addressesLabel);
+//        restoreNode(addressesTableView);
+//        restoreNode(addCityButtonBar);
+//        initializeEditMode();
+//    }
+//
+//    private void onAddressAdded(AddressSuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onAddressAdded", event);
+//        if (model.getRowState() != DataRowState.NEW) {
+//            AddressDAO dao = event.getDataAccessObject();
+//            if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+//                addressItemList.add(new AddressModel(dao));
+//            }
+//        }
+//    }
+//
+//    private void onAddressUpdated(AddressSuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onAddressUpdated", event);
+//        if (model.getRowState() != DataRowState.NEW) {
+//            AddressDAO dao = event.getDataAccessObject();
+//            int pk = dao.getPrimaryKey();
+//            AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+//            if (null != m) {
+//                if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
+//                    addressItemList.remove(m);
+//                }
+//            } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+//                addressItemList.add(new AddressModel(dao));
+//            }
+//        }
+//    }
+//
+//    private void onAddressDeleted(AddressSuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onAddressDeleted", event);
+//        AddressModel.FACTORY.find(addressItemList, event.getDataAccessObject()).ifPresent((t) -> {
+//            addressItemList.remove(t);
+//        });
+//    }
     @Override
     public FxRecordModel.FxModelFactory<CityDAO, CityModel> modelFactory() {
         return CityModel.FACTORY;
@@ -552,46 +521,10 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
 
     private class ShowingChangedListener extends ParentWindowShowingListener {
 
-        private boolean isAttached = false;
-        private boolean isInsert;
-
-        @Override
-        public void initialize(ReadOnlyObjectProperty<Scene> sceneProperty) {
-            isInsert = model.isNewRow();
-            super.initialize(sceneProperty);
-        }
-
         @Override
         protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
             super.onShowingChanged(observable, oldValue, newValue);
-            if (newValue) {
-                if (!isAttached) {
-                    if (isInsert) {
-                        if (keepOpen) {
-                            // FIXME: Do not use event handlers
-                            model.dataObject().addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
-                            isAttached = true;
-                        }
-                    } else {
-                        // FIXME: Do not use event handlers
-                        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, EditCity.this::onAddressAdded);
-                        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, EditCity.this::onAddressUpdated);
-                        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, EditCity.this::onAddressDeleted);
-                        isAttached = true;
-                    }
-                }
-            } else if (isAttached) {
-                if (isInsert) {
-                    // FIXME: Do not use event handlers
-                    model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
-                } else {
-                    // FIXME: Do not use event handlers
-                    AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, EditCity.this::onAddressAdded);
-                    AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, EditCity.this::onAddressUpdated);
-                    AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.DELETE_SUCCESS, EditCity.this::onAddressDeleted);
-                }
-                isAttached = false;
-            }
+            // TODO: Attach event handlers as needed
         }
 
     }

@@ -38,11 +38,9 @@ import scheduler.dao.ICountryDAO;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
-import scheduler.events.OperationRequestEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityItem;
@@ -66,26 +64,6 @@ import scheduler.view.export.TsvDataExporter;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
- * <h3>Event Handling</h3>
- * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
- * <dl>
- * <dt>{@link #listingTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
- * {@link scheduler.events.AppointmentOpRequestEvent} &#123;</dt>
- * <dd>
- * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"}
- * &larr; {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
- * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
- * </dd>
- * </dl>
- * &#125; (fires) {@link #onItemActionRequest(OperationRequestEvent) onItemActionRequest}({@link scheduler.events.AppointmentOpRequestEvent})
- * <dl>
- * <dt>{@link scheduler.events.AppointmentOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link #onEditItem(AppointmentModel) onEditItem}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()}</dd>
- * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}}
- * &#125;</dt>
- * <dd>&rarr; {@link #onDeleteItem(RecordModelContext) onDeleteItem}({@link scheduler.events.AppointmentOpRequestEvent})</dd>
- * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */

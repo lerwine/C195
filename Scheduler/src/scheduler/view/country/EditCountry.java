@@ -14,7 +14,6 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
@@ -24,7 +23,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -40,10 +38,6 @@ import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
-import scheduler.events.CityEvent;
-import scheduler.events.CityOpRequestEvent;
-import scheduler.events.CitySuccessEvent;
-import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
@@ -52,7 +46,6 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ParentWindowShowingListener;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
@@ -66,29 +59,6 @@ import scheduler.view.task.WaitTitledPane;
 
 /**
  * FXML Controller class for editing a {@link CountryModel}.
- * <h3>Event Handling</h3>
- * <h4>SCHEDULER_CITY_OP_REQUEST</h4>
- * <dl>
- * <dt>{@link #citiesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CityOpRequestEvent}
- * &#123;</dt>
- * <dd>{@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#CITY_OP_REQUEST "SCHEDULER_CITY_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
- * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
- * </dd>
- * </dl>
- * &#125; (fires) {@link #onItemActionRequest(CityOpRequestEvent)}
- * <dl>
- * <dt>SCHEDULER_CITY_EDIT_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#EDIT_REQUEST}
- * &#125;</dt>
- * <dd>&rarr; {@link EditCity#edit(CityModel, javafx.stage.Window) EditCity.edit}(({@link CityModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
- * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
- * {@link scheduler.model.ui.CityModel.Factory}</dd>
- * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
- * {@link scheduler.model.ui.CityModel.Factory}</dd>
- * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -288,73 +258,70 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
-    private synchronized void onCountryInserted(CountrySuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCountryInserted", event);
-        // FIXME: Do not use event handlers
-        model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
-        windowShowingListener.isInsert = false;
-        // FIXME: Do not use event handlers
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityAdded);
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, this::onCityUpdated);
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, this::onCityDeleted);
-        restoreNode(citiesLabel);
-        restoreNode(citiesTableView);
-        restoreNode(newButtonBar);
-        initializeEditMode();
-    }
-
     private void initializeEditMode() {
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
     }
 
-    private void onCityAdded(CitySuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCityAdded", event);
-        CityModel m = event.getFxRecordModel();
-        if (null == m) {
-            CityDAO dao = event.getDataAccessObject();
-            if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(new CityModel(dao));
-            }
-        } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-            itemList.add(m);
-        }
-    }
-
-    private void onCityUpdated(CitySuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCityUpdated", event);
-        CityModel item = event.getFxRecordModel();
-        if (null == item) {
-            CityDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
-            item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
-            if (null == item) {
-                if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(new CityModel(dao));
-                }
-                return;
-            }
-        }
-        if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
-            itemList.remove(item);
-        } else if (!itemList.contains(item)) {
-            int pk = item.getPrimaryKey();
-            CityModel existing = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
-            if (null == existing) {
-                itemList.add(item);
-            } else {
-                itemList.set(itemList.indexOf(existing), item);
-            }
-        }
-    }
-
-    private void onCityDeleted(CityEvent event) {
-        LOG.entering(LOG.getName(), "onCityDeleted", event);
-        CityModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
-            itemList.remove(t);
-        });
-    }
-
+//    private synchronized void onCountryInserted(CountrySuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onCountryInserted", event);
+//        model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
+//        windowShowingListener.isInsert = false;
+//        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityAdded);
+//        CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, this::onCityUpdated);
+//        CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, this::onCityDeleted);
+//        restoreNode(citiesLabel);
+//        restoreNode(citiesTableView);
+//        restoreNode(newButtonBar);
+//        initializeEditMode();
+//    }
+//
+//    private void onCityAdded(CitySuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onCityAdded", event);
+//        CityModel m = event.getFxRecordModel();
+//        if (null == m) {
+//            CityDAO dao = event.getDataAccessObject();
+//            if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+//                itemList.add(new CityModel(dao));
+//            }
+//        } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+//            itemList.add(m);
+//        }
+//    }
+//
+//    private void onCityUpdated(CitySuccessEvent event) {
+//        LOG.entering(LOG.getName(), "onCityUpdated", event);
+//        CityModel item = event.getFxRecordModel();
+//        if (null == item) {
+//            CityDAO dao = event.getDataAccessObject();
+//            int pk = dao.getPrimaryKey();
+//            item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+//            if (null == item) {
+//                if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+//                    itemList.add(new CityModel(dao));
+//                }
+//                return;
+//            }
+//        }
+//        if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
+//            itemList.remove(item);
+//        } else if (!itemList.contains(item)) {
+//            int pk = item.getPrimaryKey();
+//            CityModel existing = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+//            if (null == existing) {
+//                itemList.add(item);
+//            } else {
+//                itemList.set(itemList.indexOf(existing), item);
+//            }
+//        }
+//    }
+//
+//    private void onCityDeleted(CityEvent event) {
+//        LOG.entering(LOG.getName(), "onCityDeleted", event);
+//        CityModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
+//            itemList.remove(t);
+//        });
+//    }
     @Override
     public boolean isValid() {
         return valid.get();
@@ -397,46 +364,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private class ShowingChangedListener extends ParentWindowShowingListener {
 
-        private boolean isAttached = false;
-        private boolean isInsert;
-
-        @Override
-        public void initialize(ReadOnlyObjectProperty<Scene> sceneProperty) {
-            isInsert = model.isNewRow();
-            super.initialize(sceneProperty);
-        }
-
         @Override
         protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
             super.onShowingChanged(observable, oldValue, newValue);
-            if (newValue) {
-                if (!isAttached) {
-                    if (isInsert) {
-                        if (keepOpen) {
-                            // FIXME: Do not use event handlers
-                            model.dataObject().addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCountryInserted);
-                            isAttached = true;
-                        }
-                    } else {
-                        // FIXME: Do not use event handlers
-                        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCityAdded);
-                        CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, EditCountry.this::onCityUpdated);
-                        CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, EditCountry.this::onCityDeleted);
-                        isAttached = true;
-                    }
-                }
-            } else if (isAttached) {
-                if (isInsert) {
-                    // FIXME: Do not use event handlers
-                    model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCountryInserted);
-                } else {
-                    // FIXME: Do not use event handlers
-                    CityModel.FACTORY.removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCityAdded);
-                    CityModel.FACTORY.removeEventHandler(CitySuccessEvent.UPDATE_SUCCESS, EditCountry.this::onCityUpdated);
-                    CityModel.FACTORY.removeEventHandler(CitySuccessEvent.DELETE_SUCCESS, EditCountry.this::onCityDeleted);
-                }
-                isAttached = false;
-            }
+            // TODO: Attach event handlers as needed
         }
 
     }

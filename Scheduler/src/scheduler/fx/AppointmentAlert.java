@@ -43,7 +43,6 @@ import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.events.AppointmentSuccessEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.ui.AppointmentModel;
@@ -118,15 +117,10 @@ public class AppointmentAlert extends BorderPane {
             i = 2;
         }
         checkFrequency = i;
-        addEventFilter(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
-        addEventFilter(AppointmentSuccessEvent.UPDATE_SUCCESS, this::onAppointmentUpdated);
-        addEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
     }
 
-    private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-        AppointmentDAO dao = event.getDataAccessObject();
-        // XXX: Check for model
+    private synchronized void onAppointmentInserted(AppointmentDAO dao) {
+        LOG.entering(LOG.getName(), "onAppointmentInserted", dao);
         LocalDateTime start = LocalDateTime.now();
         if (start.compareTo(DB.toLocalDateTime(dao.getEnd())) < 0) {
             LocalDateTime end = start.plusMinutes(alertLeadtime);
@@ -149,10 +143,8 @@ public class AppointmentAlert extends BorderPane {
         }
     }
 
-    private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
-        AppointmentDAO dao = event.getDataAccessObject();
-        // XXX: Check for model
+    private synchronized void onAppointmentUpdated(AppointmentDAO dao) {
+        LOG.entering(LOG.getName(), "onAppointmentUpdated", dao);
         int key = dao.getPrimaryKey();
         FlowPane view = getViewNode(key);
         ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
@@ -199,10 +191,8 @@ public class AppointmentAlert extends BorderPane {
         }
     }
 
-    private synchronized void onAppointmentDeleted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
-        AppointmentDAO dao = event.getDataAccessObject();
-        // XXX: Check for model
+    private synchronized void onAppointmentDeleted(AppointmentDAO dao) {
+        LOG.entering(LOG.getName(), "onAppointmentDeleted", dao);
         int pk = dao.getPrimaryKey();
         if (dismissed.contains(pk)) {
             dismissed.remove(pk);

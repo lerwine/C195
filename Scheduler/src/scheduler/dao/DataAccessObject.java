@@ -22,8 +22,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.concurrent.Task;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -34,7 +32,6 @@ import scheduler.dao.schema.DbName;
 import scheduler.dao.schema.DbTable;
 import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
-import scheduler.events.ModelEvent;
 import scheduler.model.DataObject;
 import static scheduler.model.DataObject.PROP_ROWSTATE;
 import scheduler.model.ui.FxRecordModel;
@@ -238,58 +235,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
             }
             firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
         }
-    }
-
-    /**
-     * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventHandler The event handler.
-     */
-    // FIXME: Remove this method
-    @Deprecated
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
-    }
-
-    /**
-     * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventHandler The event handler.
-     */
-    // FIXME: Remove this method
-    @Deprecated
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void addEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
-    }
-
-    /**
-     * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventHandler The event handler.
-     */
-    // FIXME: Remove this method
-    @Deprecated
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
-    }
-
-    /**
-     * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
-     *
-     * @param <E> The type of {@link ModelEvent}.
-     * @param type The event type.
-     * @param eventHandler The event handler.
-     */
-    // FIXME: Remove this method
-    @Deprecated
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>>
-            void removeEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
     }
 
     /**
@@ -817,7 +762,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
          *
          * @param connection The database {@link Connection}.
-         * @return The {@link ModelEvent} for a successful task completion. This should never return a {@code null} value.
+         * @return The object for a successful task completion. This should never return a {@code null} value.
          * @throws Exception if an un-handled exception occurred during the task operation.
          */
         protected abstract Optional<R> call(Connection connection) throws Exception;
@@ -1100,7 +1045,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
                         if (!rs.next()) {
                             throw new SQLException("No primary key returned");
                         }
-                        // FIXME: Make sure change events get fired
                         dataObj.primaryKey = rs.getInt(1);
                         dataObj.rowState = DataRowState.UNMODIFIED;
                         factory.dataObjectCache.put(dao);
@@ -1150,10 +1094,8 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     /**
      * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database
-     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
-     * {@link #finalEvent} is fired on the {@link DeleteDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task
-     * will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations. If
-     * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
+     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. If successful, the
+     * target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
      * @param <M> The type of associated {@link FxRecordModel}, if applicable.
