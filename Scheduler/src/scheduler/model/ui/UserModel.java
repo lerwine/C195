@@ -1,9 +1,7 @@
 package scheduler.model.ui;
 
 import java.util.Objects;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -18,10 +16,8 @@ import scheduler.events.UserOpRequestEvent;
 import static scheduler.model.User.MAX_LENGTH_PASSWORD;
 import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserStatus;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 import scheduler.view.user.UserModelFilter;
 
 /**
@@ -36,7 +32,6 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     private final SimpleStringProperty password;
     private final SimpleObjectProperty<UserStatus> status;
     private final ReadOnlyStringBindingProperty statusDisplay;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     public UserModel(UserDAO dao) {
         super(dao);
@@ -44,8 +39,6 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         password = new SimpleStringProperty(this, PROP_PASSWORD, "");
         status = new SimpleObjectProperty<>(this, PROP_STATUS, dao.getStatus());
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(userName.get()), userName).and(status.isNull()));
     }
 
     @Override
@@ -96,16 +89,6 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
     @Override
     public ReadOnlyStringProperty statusDisplayProperty() {
         return statusDisplay;
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
     }
 
     @Override
@@ -160,8 +143,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
                 .addLocalDateTime(createDateProperty())
                 .addString(createdByProperty())
                 .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty())
-                .addBoolean(valid);
+                .addString(lastModifiedByProperty());
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<UserDAO, UserModel, UserEvent> {

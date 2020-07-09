@@ -130,7 +130,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final SimpleObjectProperty<LocalDateTime> start;
     private final SimpleObjectProperty<LocalDateTime> end;
     private final ReadOnlyStringBindingProperty effectiveLocation;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     @SuppressWarnings("incomplete-switch")
     public AppointmentModel(final AppointmentDAO dao) {
@@ -204,35 +203,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             return l;
         }, type, wsNormalizedLocation, customerAddressText, wsNormalizedUrl);
 
-        valid = new ReadOnlyBooleanBindingProperty(this, "valid",
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(title.get()), title)
-                        .and(Bindings.selectBoolean(customer, "valid")).and(Bindings.selectBoolean(user, "valid"))
-                        .and(Bindings.createBooleanBinding(() -> {
-                            final LocalDateTime s = start.get();
-                            final LocalDateTime e = end.get();
-                            return null != s && null != e && s.compareTo(e) <= 0;
-                        }, start, end)).and(Bindings.createBooleanBinding(() -> {
-                    final AppointmentType t = type.get();
-                    final String l = location.get();
-                    final String c = contact.get();
-                    final String u = url.get();
-                    if (null == t || l.isEmpty()) {
-                        return false;
-                    }
-                    switch (t) {
-                        case CUSTOMER_SITE:
-                            if (c.isEmpty()) {
-                                return false;
-                            }
-                            break;
-                        case VIRTUAL:
-                            if (u.isEmpty()) {
-                                return false;
-                            }
-                            break;
-                    }
-                    return true;
-                }, type, location, contact, url)));
         customer.set(CustomerItem.createModel(dao.getCustomer()));
         user.set(UserItem.createModel(dao.getUser()));
         title.set(dao.getTitle());
@@ -535,16 +505,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
-    }
-
-    @Override
     public int hashCode() {
         if (isNewRow()) {
             int hash = 7;
@@ -597,7 +557,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 .addString(title).addString(description).addString(location).addString(contact).addEnum(type)
                 .addString(url).addLocalDateTime(start).addLocalDateTime(end).addLocalDateTime(createDateProperty())
                 .addString(createdByProperty()).addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty()).addBoolean(valid);
+                .addString(lastModifiedByProperty());
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {

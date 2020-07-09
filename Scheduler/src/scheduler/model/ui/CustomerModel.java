@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -24,11 +23,9 @@ import scheduler.events.CustomerOpRequestEvent;
 import scheduler.model.AddressProperties;
 import static scheduler.model.Customer.MAX_LENGTH_NAME;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 import scheduler.view.customer.CustomerModelFilter;
 
 /**
@@ -51,7 +48,6 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     private final ReadOnlyStringBindingProperty addressText;
     private final SimpleBooleanProperty active;
     private final ReadOnlyStringBindingProperty multiLineAddress;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     public CustomerModel(CustomerDAO dao) {
         super(dao);
@@ -70,9 +66,6 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
                 () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(Bindings.selectBoolean(address, PROP_VALID)).and(Bindings.select(address, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -240,16 +233,6 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
-    }
-
-    @Override
     public ToStringPropertyBuilder toStringBuilder() {
         ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
         if (getRowState() != DataRowState.NEW) {
@@ -262,8 +245,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                 .addLocalDateTime(createDateProperty())
                 .addString(createdByProperty())
                 .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty())
-                .addBoolean(valid);
+                .addString(lastModifiedByProperty());
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {

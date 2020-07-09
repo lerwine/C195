@@ -3,8 +3,6 @@ package scheduler.model.ui;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
@@ -14,10 +12,8 @@ import scheduler.dao.ICountryDAO;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 
 /**
  *
@@ -30,7 +26,6 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
     private final ReadOnlyJavaBeanObjectProperty<Locale> locale;
     private final ReadOnlyStringBindingProperty name;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyBooleanProperty valid;
 
     public RelatedCountry(ICountryDAO rowData) {
         super(rowData);
@@ -44,11 +39,6 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
             return CountryProperties.getCountryDisplayText(locale.get());
         }, locale);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> {
-                    return Values.isNotNullWhiteSpaceOrEmpty(name.get());
-                }, name)
-                        .and(language.isNotEmpty()));
     }
 
     @Override
@@ -79,16 +69,6 @@ public class RelatedCountry extends RelatedModel<ICountryDAO> implements Country
     @Override
     public ReadOnlyObjectProperty<Locale> localeProperty() {
         return locale;
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
     }
 
     @Override

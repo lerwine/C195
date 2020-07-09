@@ -1,6 +1,5 @@
 package scheduler.model.ui;
 
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import scheduler.dao.DataRowState;
@@ -43,17 +42,6 @@ public interface FxDbModel<T extends DbObject> extends DataObject {
     T dataObject();
 
     ReadOnlyIntegerProperty primaryKeyProperty();
-
-    // FIXME: This may not be necessary
-    /**
-     * Gets a value indicating if all model properties are valid.
-     *
-     * @return {@code true} if all properties are valid; otherwise, {@code false} if one or more properties are not valid.
-     */
-    boolean isValid();
-
-    // FIXME: This may not be necessary
-    ReadOnlyBooleanProperty validProperty();
 
     @Override
     DataRowState getRowState();

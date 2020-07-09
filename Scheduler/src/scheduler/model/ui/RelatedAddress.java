@@ -4,24 +4,20 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.CityProperties;
 import scheduler.model.ModelHelper;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 
 /**
  *
@@ -43,7 +39,6 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
     private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     public RelatedAddress(IAddressDAO rowData) {
         super(rowData);
@@ -68,10 +63,6 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, CityItem.PROP_LANGUAGE));
         timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityProperties.PROP_TIMEZONE));
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address1.get()), address1)
-                        .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
-                        .and(Bindings.selectBoolean(city, PROP_VALID)).and(Bindings.select(city, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -181,16 +172,6 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     @Override
     public ReadOnlyStringProperty languageProperty() {
         return language;
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
     }
 
     @Override

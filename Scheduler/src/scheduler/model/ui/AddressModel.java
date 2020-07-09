@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -32,9 +31,7 @@ import static scheduler.model.AddressProperties.MAX_LENGTH_POSTALCODE;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
-import scheduler.model.DataObject;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -179,7 +176,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
     private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     /**
      * FX model for {@link scheduler.model.Address} objects.
@@ -202,10 +198,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, CityItem.PROP_LANGUAGE));
         timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityItem.PROP_TIMEZONE));
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address1.get()), address1)
-                        .or(Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(address2.get()), address2))
-                        .and(Bindings.selectBoolean(city, PROP_VALID)).and(Bindings.select(city, DataObject.PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -338,16 +330,6 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
-    }
-
-    @Override
     public int hashCode() {
         int hash = 3;
         hash = 23 * hash + Objects.hashCode(this.address1);
@@ -393,8 +375,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 .addLocalDateTime(createDateProperty())
                 .addString(createdByProperty())
                 .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty())
-                .addBoolean(valid);
+                .addString(lastModifiedByProperty());
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> {

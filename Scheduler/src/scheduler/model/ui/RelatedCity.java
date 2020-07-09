@@ -4,25 +4,21 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 
 /**
  *
@@ -35,7 +31,6 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     private final ReadOnlyJavaBeanStringProperty name;
     private final ReadOnlyJavaBeanObjectProperty<TimeZone> timeZone;
     private final ReadOnlyStringProperty timeZoneDisplay;
-    private final ReadOnlyBooleanProperty valid;
     private final ReadOnlyJavaBeanObjectProperty<ICountryDAO> countryDAO;
     private final ReadOnlyObjectBindingProperty<CountryItem<? extends ICountryDAO>> country;
     private final ReadOnlyStringBindingProperty countryName;
@@ -57,10 +52,6 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
         }, timeZone);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, CountryProperties.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, CountryItem.PROP_LANGUAGE));
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, PROP_VALID))
-                        .and(Bindings.select(country, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -121,16 +112,6 @@ public class RelatedCity extends RelatedModel<ICityDAO> implements CityItem<ICit
     @Override
     public ReadOnlyStringProperty timeZoneDisplayProperty() {
         return timeZoneDisplay;
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
     }
 
     @Override

@@ -3,8 +3,6 @@ package scheduler.model.ui;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
@@ -15,10 +13,8 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.IUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 
 /**
  *
@@ -31,7 +27,6 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
     private final ReadOnlyJavaBeanStringProperty userName;
     private final ReadOnlyJavaBeanObjectProperty<UserStatus> status;
     private final ReadOnlyStringBindingProperty statusDisplay;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     public RelatedUser(IUserDAO rowData) {
         super(rowData);
@@ -43,9 +38,6 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
             throw new RuntimeException(ex);
         }
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(userName.get()), userName)
-                        .and(status.isNull()));
     }
 
     @Override
@@ -76,16 +68,6 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
     @Override
     public ReadOnlyStringProperty statusDisplayProperty() {
         return statusDisplay;
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
     }
 
     @Override

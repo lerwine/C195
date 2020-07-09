@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -30,11 +29,9 @@ import scheduler.model.CityProperties;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 
 /**
@@ -51,7 +48,6 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     private final ReadOnlyStringBindingProperty timeZoneDisplay;
     private final ReadOnlyStringBindingProperty countryName;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     public CityModel(CityDAO dao) {
         super(dao);
@@ -66,9 +62,6 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         name.set(dao.getName());
         timeZone.set(dao.getTimeZone());
         country.set(CountryItem.createModel(dao.getCountry()));
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(timeZoneDisplay.isNotEmpty()).and(Bindings.selectBoolean(country, PROP_VALID)));
     }
 
     @Override
@@ -144,16 +137,6 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     }
 
     @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
     }
@@ -187,8 +170,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                 .addLocalDateTime(createDateProperty())
                 .addString(createdByProperty())
                 .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty())
-                .addBoolean(valid);
+                .addString(lastModifiedByProperty());
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<CityDAO, CityModel, CityEvent> {

@@ -13,15 +13,12 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import scheduler.dao.DataRowState;
 import scheduler.dao.IAddressDAO;
 import scheduler.dao.ICustomerDAO;
 import scheduler.model.AddressProperties;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 
 /**
  *
@@ -44,7 +41,6 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     private final ReadOnlyStringBindingProperty addressText;
     private final ReadOnlyJavaBeanBooleanProperty active;
     private final ReadOnlyStringBindingProperty multiLineAddress;
-    private final ReadOnlyBooleanBindingProperty valid;
 
     public RelatedCustomer(ICustomerDAO rowData) {
         super(rowData);
@@ -69,9 +65,6 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
                 () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(Bindings.selectBoolean(address, PROP_VALID)).and(Bindings.select(address, PROP_ROWSTATE).isNotEqualTo(DataRowState.DELETED)));
     }
 
     @Override
@@ -192,16 +185,6 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     @Override
     public ReadOnlyProperty<String> multiLineAddressProperty() {
         return multiLineAddress;
-    }
-
-    @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
     }
 
     @Override

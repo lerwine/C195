@@ -2,9 +2,7 @@ package scheduler.model.ui;
 
 import java.util.Locale;
 import java.util.Objects;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventType;
@@ -22,10 +20,8 @@ import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
-import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.util.Values;
 import scheduler.view.ModelFilter;
 
 /**
@@ -39,16 +35,12 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     private final ObjectProperty<Locale> locale;
     private final ReadOnlyStringBindingProperty name;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyBooleanProperty valid;
 
     public CountryModel(CountryDAO dao) {
         super(dao);
         locale = new SimpleObjectProperty<>(this, PROP_LOCALE);
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
-        valid = new ReadOnlyBooleanBindingProperty(this, PROP_VALID,
-                Bindings.createBooleanBinding(() -> Values.isNotNullWhiteSpaceOrEmpty(name.get()), name)
-                        .and(language.isNotEmpty()));
         locale.set(dao.getLocale());
     }
 
@@ -87,16 +79,6 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
     }
 
     @Override
-    public boolean isValid() {
-        return valid.get();
-    }
-
-    @Override
-    public ReadOnlyBooleanProperty validProperty() {
-        return valid;
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof Country && ModelHelper.areSameRecord(this, (Country) obj);
     }
@@ -129,8 +111,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
                 .addLocalDateTime(createDateProperty())
                 .addString(createdByProperty())
                 .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty())
-                .addBoolean(valid);
+                .addString(lastModifiedByProperty());
     }
 
     public final static class Factory extends FxRecordModel.FxModelFactory<CountryDAO, CountryModel, CountryEvent> {
