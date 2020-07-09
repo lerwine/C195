@@ -320,7 +320,8 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent validate(Connection connection) throws Exception {
-            CountryEvent saveEvent = CountryModel.FACTORY.validateForSave(getFxRecordModel());
+            CountryModel targetModel = getFxRecordModel();
+            CountryEvent saveEvent = CountryModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CountryFailedEvent) {
                 return saveEvent;
             }
@@ -355,9 +356,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CountryEvent.createInsertInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                    return CountryEvent.createInsertInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
                 }
-                return CountryEvent.createUpdateInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                return CountryEvent.createUpdateInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
             }
             return null;
         }

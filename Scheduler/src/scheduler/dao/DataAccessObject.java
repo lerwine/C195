@@ -638,21 +638,6 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
          */
         public abstract D createNew();
 
-//        /**
-//         * Creates a new {@link SaveDaoTask} for saving changes to a {@link DataAccessObject} to the database.
-//         *
-//         * @param target The {@link FxRecordModel} that contains the {@link DataAccessObject} to be saved the database.
-//         * @return A {@link SaveDaoTask} for saving changes to a {@link DataAccessObject} to the database.
-//         */
-//        public abstract SaveDaoTask<D, ? extends FxRecordModel<D>, E> createSaveTask(FxRecordModel<D, ? extends FxRecordModel<D>> target);
-//
-//        /**
-//         * Creates a new {@link SaveDaoTask} for deleting a {@link DataAccessObject} from the database.
-//         *
-//         * @param target The {@link FxRecordModel} that contains the {@link DataAccessObject} to be saved the database.
-//         * @return A {@link SaveDaoTask} for deleting a {@link DataAccessObject} from the database.
-//         */
-//        public abstract DeleteDaoTask<D, ? extends FxRecordModel<D>, E> createDeleteTask(FxRecordModel<D, ? extends FxRecordModel<D>> target);
         /**
          * Gets a {@link DaoFilter} for returning all items.
          *
@@ -855,7 +840,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
         protected DaoTask(M target, EventType<E> anyEventType) {
             Objects.requireNonNull(anyEventType);
             dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", target.dataObject());
-            this.fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", target);
+            fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", target);
             originalRowState = dataAccessObject.get().getRowState();
             finalEvent = new ReadOnlyObjectWrapper<>(this, "finalEvent", null);
             onFinished = new SimpleObjectProperty<>(this, "onFinished", null);

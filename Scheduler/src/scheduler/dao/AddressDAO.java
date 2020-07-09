@@ -474,17 +474,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
 
-        public SaveTask(AddressModel target, boolean alreadyValidated) {
-            super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
-            AddressModel model = target;
-            if (null != model) {
-                AddressDAO dao = target.dataObject();
-                dao.setAddress1(model.getAddress1());
-                dao.setAddress2(model.getAddress2());
-                dao.setCity(model.getCity().dataObject());
-                dao.setPostalCode(model.getPostalCode());
-                dao.setPhone(model.getPhone());
-            }
+        public SaveTask(AddressModel model, boolean alreadyValidated) {
+            super(model, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+            AddressDAO dao = model.dataObject();
+            dao.setAddress1(model.getAddress1());
+            dao.setAddress2(model.getAddress2());
+            dao.setCity(model.getCity().dataObject());
+            dao.setPostalCode(model.getPostalCode());
+            dao.setPhone(model.getPhone());
         }
 
         @Override
@@ -497,7 +494,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected AddressEvent validate(Connection connection) throws Exception {
-            AddressEvent saveEvent = AddressModel.FACTORY.validateForSave(getFxRecordModel());
+            AddressModel targetModel = getFxRecordModel();
+            AddressEvent saveEvent = AddressModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof AddressFailedEvent) {
                 return saveEvent;
             }
@@ -563,30 +561,25 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             }
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return AddressEvent.createInsertInvalidEvent(getFxRecordModel(), this, MATCHING_ITEM_EXISTS);
+                    return AddressEvent.createInsertInvalidEvent(targetModel, this, MATCHING_ITEM_EXISTS);
                 }
-                return AddressEvent.createUpdateInvalidEvent(getFxRecordModel(), this, MATCHING_ITEM_EXISTS);
+                return AddressEvent.createUpdateInvalidEvent(targetModel, this, MATCHING_ITEM_EXISTS);
             }
 
-            ICityDAO city = dao.getCity();
+            CityItem<? extends ICityDAO> cityModel = targetModel.getCity();
 
-            if (city instanceof CityDAO) {
-                switch (city.getRowState()) {
+            if (cityModel instanceof CityModel) {
+                switch (cityModel.getRowState()) {
                     case NEW:
                     case MODIFIED:
-                        CityDAO.SaveTask saveTask;
-                        AddressModel model = getFxRecordModel();
-                        CityItem<? extends ICityDAO> cm;
-                        if (null != model && null != (cm = model.getCity()) && cm instanceof CityModel) {
-                            saveTask = new CityDAO.SaveTask((CityModel) cm, false);
-                            saveTask.run();
-                            CityEvent event = saveTask.get();
-                            if (null != event && event instanceof CityFailedEvent) {
-                                if (getOriginalRowState() == DataRowState.NEW) {
-                                    return AddressEvent.createInsertInvalidEvent(getFxRecordModel(), this, (CityFailedEvent) event);
-                                }
-                                return AddressEvent.createUpdateInvalidEvent(getFxRecordModel(), this, (CityFailedEvent) event);
+                        CityDAO.SaveTask saveTask = new CityDAO.SaveTask((CityModel) cityModel, false);
+                        saveTask.run();
+                        CityEvent event = saveTask.get();
+                        if (null != event && event instanceof CityFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return AddressEvent.createInsertInvalidEvent(targetModel, this, (CityFailedEvent) event);
                             }
+                            return AddressEvent.createUpdateInvalidEvent(targetModel, this, (CityFailedEvent) event);
                         }
                         break;
                     default:

@@ -332,15 +332,12 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
         private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
 
-        public SaveTask(UserModel target, boolean alreadyValidated) {
-            super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
-            UserModel model = target;
-            if (null != model) {
-                UserDAO dao = target.dataObject();
-                dao.setUserName(model.getUserName());
-                dao.setStatus(model.getStatus());
-                dao.setPassword(model.getPassword());
-            }
+        public SaveTask(UserModel model, boolean alreadyValidated) {
+            super(model, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+            UserDAO dao = model.dataObject();
+            dao.setUserName(model.getUserName());
+            dao.setStatus(model.getStatus());
+            dao.setPassword(model.getPassword());
         }
 
         @Override
@@ -353,7 +350,8 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
-            UserEvent saveEvent = UserModel.FACTORY.validateForSave(getFxRecordModel());
+            UserModel targetModel = getFxRecordModel();
+            UserEvent saveEvent = UserModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
                 return saveEvent;
             }
@@ -384,9 +382,9 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             }
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return UserEvent.createInsertInvalidEvent(getFxRecordModel(), this, ANOTHER_USER_HAS_SAME_NAME);
+                    return UserEvent.createInsertInvalidEvent(targetModel, this, ANOTHER_USER_HAS_SAME_NAME);
                 }
-                return UserEvent.createUpdateInvalidEvent(getFxRecordModel(), this, ANOTHER_USER_HAS_SAME_NAME);
+                return UserEvent.createUpdateInvalidEvent(targetModel, this, ANOTHER_USER_HAS_SAME_NAME);
             }
             return null;
         }

@@ -380,15 +380,12 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
-        public SaveTask(CustomerModel target, boolean alreadyValidated) {
-            super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
-            CustomerModel model = target;
-            if (null != model) {
-                CustomerDAO dao = target.dataObject();
-                dao.setName(model.getName());
-                dao.setActive(model.isActive());
-                dao.setAddress(model.getAddress().dataObject());
-            }
+        public SaveTask(CustomerModel model, boolean alreadyValidated) {
+            super(model, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+            CustomerDAO dao = model.dataObject();
+            dao.setName(model.getName());
+            dao.setActive(model.isActive());
+            dao.setAddress(model.getAddress().dataObject());
         }
 
         @Override
@@ -401,7 +398,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         public CustomerEvent validate(Connection connection) throws Exception {
-            CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(getFxRecordModel());
+            CustomerModel targetModel = getFxRecordModel();
+            CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CustomerFailedEvent) {
                 return saveEvent;
             }
@@ -434,29 +432,24 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             }
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CustomerEvent.createInsertInvalidEvent(getFxRecordModel(), this, MATCHING_ITEM_EXISTS);
+                    return CustomerEvent.createInsertInvalidEvent(targetModel, this, MATCHING_ITEM_EXISTS);
                 }
-                return CustomerEvent.createUpdateInvalidEvent(getFxRecordModel(), this, MATCHING_ITEM_EXISTS);
+                return CustomerEvent.createUpdateInvalidEvent(targetModel, this, MATCHING_ITEM_EXISTS);
             }
 
-            IAddressDAO address = dao.getAddress();
-            if (address instanceof AddressDAO) {
-                switch (address.getRowState()) {
+            AddressItem<? extends IAddressDAO> addressModel = targetModel.getAddress();
+            if (addressModel instanceof AddressModel) {
+                switch (addressModel.getRowState()) {
                     case NEW:
                     case UNMODIFIED:
-                        AddressDAO.SaveTask saveTask;
-                        CustomerModel model = getFxRecordModel();
-                        AddressItem<? extends IAddressDAO> am;
-                        if (null != model && null != (am = model.getAddress()) && am instanceof AddressModel) {
-                            saveTask = new AddressDAO.SaveTask((AddressModel) am, false);
-                            saveTask.run();
-                            AddressEvent event = saveTask.get();
-                            if (null != event && event instanceof AddressFailedEvent) {
-                                if (getOriginalRowState() == DataRowState.NEW) {
-                                    return CustomerEvent.createInsertInvalidEvent(getFxRecordModel(), this, (AddressFailedEvent) event);
-                                }
-                                return CustomerEvent.createUpdateInvalidEvent(getFxRecordModel(), this, (AddressFailedEvent) event);
+                        AddressDAO.SaveTask saveTask = new AddressDAO.SaveTask((AddressModel) addressModel, false);
+                        saveTask.run();
+                        AddressEvent event = saveTask.get();
+                        if (null != event && event instanceof AddressFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return CustomerEvent.createInsertInvalidEvent(targetModel, this, (AddressFailedEvent) event);
                             }
+                            return CustomerEvent.createUpdateInvalidEvent(targetModel, this, (AddressFailedEvent) event);
                         }
                         break;
                     default:

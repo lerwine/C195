@@ -824,54 +824,44 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected AppointmentEvent validate(Connection connection) throws Exception {
-            AppointmentEvent event = AppointmentModel.FACTORY.validateForSave(getFxRecordModel());
+            AppointmentModel targetModel = getFxRecordModel();
+            AppointmentEvent event = AppointmentModel.FACTORY.validateForSave(targetModel);
             if (null != event && event instanceof AppointmentFailedEvent) {
                 return event;
             }
 
-            AppointmentDAO appointment = getDataAccessObject();
-            ICustomerDAO c = appointment.customer;
-            if (c instanceof CustomerDAO) {
+            CustomerItem<? extends ICustomerDAO> c = targetModel.getCustomer();
+            if (c instanceof CustomerModel) {
                 switch (c.getRowState()) {
                     case NEW:
                     case MODIFIED:
-                        AppointmentModel model = getFxRecordModel();
-                        CustomerItem<? extends ICustomerDAO> cm;
-                        CustomerDAO.SaveTask saveTask;
-                        if (null != model && null != (cm = model.getCustomer()) && cm instanceof CustomerModel) {
-                            saveTask = new CustomerDAO.SaveTask((CustomerModel) cm, false);
-                            saveTask.run();
-                            CustomerEvent customerEvent = saveTask.get();
-                            if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
-                                if (getOriginalRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(getFxRecordModel(), this, (CustomerFailedEvent) customerEvent);
-                                }
-                                return AppointmentEvent.createUpdateInvalidEvent(getFxRecordModel(), this, (CustomerFailedEvent) customerEvent);
+                        CustomerDAO.SaveTask saveTask = new CustomerDAO.SaveTask((CustomerModel) c, false);
+                        saveTask.run();
+                        CustomerEvent customerEvent = saveTask.get();
+                        if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return AppointmentEvent.createInsertInvalidEvent(targetModel, this, (CustomerFailedEvent) customerEvent);
                             }
+                            return AppointmentEvent.createUpdateInvalidEvent(targetModel, this, (CustomerFailedEvent) customerEvent);
                         }
                         break;
                     default:
                         break;
                 }
             }
-            IUserDAO u = appointment.user;
-            if (u instanceof UserDAO) {
+            UserItem<? extends IUserDAO> u = targetModel.getUser();
+            if (u instanceof UserModel) {
                 switch (u.getRowState()) {
                     case NEW:
                     case MODIFIED:
-                        AppointmentModel model = getFxRecordModel();
-                        UserItem<? extends IUserDAO> um;
-                        UserDAO.SaveTask saveTask;
-                        if (null != model && null != (um = model.getUser()) && um instanceof UserModel) {
-                            saveTask = new UserDAO.SaveTask((UserModel) um, false);
-                            saveTask.run();
-                            UserEvent userEvent = saveTask.get();
-                            if (null != userEvent && userEvent instanceof UserFailedEvent) {
-                                if (getOriginalRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(getFxRecordModel(), this, (UserFailedEvent) userEvent);
-                                }
-                                return AppointmentEvent.createUpdateInvalidEvent(getFxRecordModel(), this, (UserFailedEvent) userEvent);
+                        UserDAO.SaveTask saveTask = new UserDAO.SaveTask((UserModel) u, false);
+                        saveTask.run();
+                        UserEvent userEvent = saveTask.get();
+                        if (null != userEvent && userEvent instanceof UserFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return AppointmentEvent.createInsertInvalidEvent(targetModel, this, (UserFailedEvent) userEvent);
                             }
+                            return AppointmentEvent.createUpdateInvalidEvent(targetModel, this, (UserFailedEvent) userEvent);
                         }
                         break;
                     default:

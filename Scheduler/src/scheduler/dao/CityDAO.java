@@ -395,15 +395,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
 
-        public SaveTask(CityModel target, boolean alreadyValidated) {
-            super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
-            CityModel model = target;
-            if (null != model) {
-                CityDAO dao = target.dataObject();
-                dao.setName(model.getName());
-                dao.setTimeZone(model.getTimeZone());
-                dao.setCountry(model.getCountry().dataObject());
-            }
+        public SaveTask(CityModel model, boolean alreadyValidated) {
+            super(model, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+            CityDAO dao = model.dataObject();
+            dao.setName(model.getName());
+            dao.setTimeZone(model.getTimeZone());
+            dao.setCountry(model.getCountry().dataObject());
         }
 
         @Override
@@ -416,7 +413,8 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected CityEvent validate(Connection connection) throws Exception {
-            CityEvent saveEvent = CityModel.FACTORY.validateForSave(getFxRecordModel());
+            CityModel targetModel = getFxRecordModel();
+            CityEvent saveEvent = CityModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CityFailedEvent) {
                 return saveEvent;
             }
@@ -457,29 +455,24 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CityEvent.createInsertInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                    return CityEvent.createInsertInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
                 }
-                return CityEvent.createUpdateInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                return CityEvent.createUpdateInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
             }
 
-            ICountryDAO c = dao.country;
-            if (c instanceof CountryDAO) {
+            CountryItem<? extends ICountryDAO> c = targetModel.getCountry();
+            if (c instanceof CountryModel) {
                 switch (c.getRowState()) {
                     case NEW:
                     case MODIFIED:
-                        CityModel model = getFxRecordModel();
-                        CountryItem<? extends ICountryDAO> cm;
-                        CountryDAO.SaveTask saveTask;
-                        if (null != model && null != (cm = model.getCountry()) && cm instanceof CountryModel) {
-                            saveTask = new CountryDAO.SaveTask((CountryModel) cm, false);
-                            saveTask.run();
-                            CountryEvent event = saveTask.get();
-                            if (null != event && event instanceof CountryFailedEvent) {
-                                if (getOriginalRowState() == DataRowState.NEW) {
-                                    return CityEvent.createInsertInvalidEvent(getFxRecordModel(), this, (CountryFailedEvent) event);
-                                }
-                                return CityEvent.createUpdateInvalidEvent(getFxRecordModel(), this, (CountryFailedEvent) event);
+                        CountryDAO.SaveTask saveTask = new CountryDAO.SaveTask((CountryModel) c, false);
+                        saveTask.run();
+                        CountryEvent event = saveTask.get();
+                        if (null != event && event instanceof CountryFailedEvent) {
+                            if (getOriginalRowState() == DataRowState.NEW) {
+                                return CityEvent.createInsertInvalidEvent(targetModel, this, (CountryFailedEvent) event);
                             }
+                            return CityEvent.createUpdateInvalidEvent(targetModel, this, (CountryFailedEvent) event);
                         }
                         break;
                     default:
