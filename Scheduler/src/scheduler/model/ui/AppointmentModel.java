@@ -25,10 +25,13 @@ import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
+import scheduler.model.Address;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
+import scheduler.model.Customer;
 import scheduler.model.PredefinedData;
+import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -134,48 +137,48 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     @SuppressWarnings("incomplete-switch")
     public AppointmentModel(final AppointmentDAO dao) {
         super(dao);
-        customer = new SimpleObjectProperty<>(this, "customer");
-        customerName = new ReadOnlyStringBindingProperty(this, "customerName", Bindings.selectString(customer, "name"));
-        customerAddress1 = new ReadOnlyStringBindingProperty(this, "customerName",
-                Bindings.selectString(customer, "address1"));
-        customerAddress2 = new ReadOnlyStringBindingProperty(this, "customerAddress2",
-                Bindings.selectString(customer, "address2"));
-        customerCityName = new ReadOnlyStringBindingProperty(this, "customerCityName",
-                Bindings.selectString(customer, "cityName"));
-        customerCountryName = new ReadOnlyStringBindingProperty(this, "customerCountryName",
-                Bindings.selectString(customer, "countryName"));
-        customerPostalCode = new ReadOnlyStringBindingProperty(this, "customerPostalCode",
-                Bindings.selectString(customer, "postalCode"));
-        customerPhone = new ReadOnlyStringBindingProperty(this, "customerPhone",
-                Bindings.selectString(customer, "phone"));
-        customerCityZipCountry = new ReadOnlyStringBindingProperty(this, "customerCityZipCountry",
-                Bindings.selectString(customer, "cityZipCountry"));
-        customerAddressText = new ReadOnlyStringBindingProperty(this, "customerAddressText",
-                Bindings.selectString(customer, "addressText"));
-        customerActive = new ReadOnlyBooleanBindingProperty(this, "customerActive",
-                Bindings.selectBoolean(customer, "active"));
-        user = new SimpleObjectProperty<>(this, "user");
-        userName = new ReadOnlyStringBindingProperty(this, "userName", Bindings.selectString(user, "userName"));
-        userStatus = new ReadOnlyObjectBindingProperty<>(this, "userStatus", Bindings.select(user, "status"));
-        userStatusDisplay = new ReadOnlyStringBindingProperty(this, "userStatusDisplay",
-                Bindings.selectString(user, "statusDisplay"));
-        title = new NonNullableStringProperty(this, "title", dao.getTitle());
-        description = new NonNullableStringProperty(this, "description", dao.getDescription());
-        location = new NonNullableStringProperty(this, "location", dao.getLocation());
+        customer = new SimpleObjectProperty<>(this, PROP_CUSTOMER, CustomerItem.createModel(dao.getCustomer()));
+        customerName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERNAME, Bindings.selectString(customer, Customer.PROP_NAME));
+        customerAddress1 = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERADDRESS1,
+                Bindings.selectString(customer, Address.PROP_ADDRESS1));
+        customerAddress2 = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERADDRESS2,
+                Bindings.selectString(customer, Address.PROP_ADDRESS2));
+        customerCityName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERCITYNAME,
+                Bindings.selectString(customer, CustomerItem.PROP_CITYNAME));
+        customerCountryName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERCOUNTRYNAME,
+                Bindings.selectString(customer, CustomerItem.PROP_COUNTRYNAME));
+        customerPostalCode = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERPOSTALCODE,
+                Bindings.selectString(customer, Address.PROP_POSTALCODE));
+        customerPhone = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERPHONE,
+                Bindings.selectString(customer, Address.PROP_PHONE));
+        customerCityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERCITYZIPCOUNTRY,
+                Bindings.selectString(customer, CustomerItem.PROP_CITYZIPCOUNTRY));
+        customerAddressText = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERADDRESSTEXT,
+                Bindings.selectString(customer, CustomerItem.PROP_ADDRESSTEXT));
+        customerActive = new ReadOnlyBooleanBindingProperty(this, PROP_CUSTOMERACTIVE,
+                Bindings.selectBoolean(customer, Customer.PROP_ACTIVE));
+        user = new SimpleObjectProperty<>(this, PROP_USER, UserItem.createModel(dao.getUser()));
+        userName = new ReadOnlyStringBindingProperty(this, PROP_USERNAME, Bindings.selectString(user, User.PROP_USERNAME));
+        userStatus = new ReadOnlyObjectBindingProperty<>(this, PROP_USERSTATUS, Bindings.select(user, User.PROP_STATUS));
+        userStatusDisplay = new ReadOnlyStringBindingProperty(this, PROP_USERSTATUSDISPLAY,
+                Bindings.selectString(user, UserItem.PROP_STATUSDISPLAY));
+        title = new NonNullableStringProperty(this, PROP_TYPE, dao.getTitle());
+        description = new NonNullableStringProperty(this, PROP_DESCRIPTION, dao.getDescription());
+        location = new NonNullableStringProperty(this, PROP_LOCATION, dao.getLocation());
         final AppointmentType at = dao.getType();
-        type = new SimpleObjectProperty<>(this, "type", (null == at) ? AppointmentType.OTHER : at);
-        typeDisplay = new ReadOnlyStringBindingProperty(this, "typeDisplay",
+        type = new SimpleObjectProperty<>(this, PROP_TYPE, (null == at) ? AppointmentType.OTHER : at);
+        typeDisplay = new ReadOnlyStringBindingProperty(this, PROP_TYPEDISPLAY,
                 Bindings.createStringBinding(() -> AppointmentType.toDisplayText(type.get()), type));
-        contact = new NonNullableStringProperty(this, "contact");
-        url = new NonNullableStringProperty(this, "url");
-        start = new SimpleObjectProperty<>(this, "start");
-        end = new SimpleObjectProperty<>(this, "end");
+        contact = new NonNullableStringProperty(this, PROP_CONTACT, dao.getContact());
+        url = new NonNullableStringProperty(this, PROP_URL, dao.getUrl());
+        start = new SimpleObjectProperty<>(this, PROP_START, DB.toLocalDateTime(dao.getStart()));
+        end = new SimpleObjectProperty<>(this, PROP_END, DB.toLocalDateTime(dao.getEnd()));
 
         final StringBinding wsNormalizedLocation = Bindings
                 .createStringBinding(() -> Values.asNonNullAndWsNormalized(location.get()), location);
         final StringBinding wsNormalizedUrl = Bindings
                 .createStringBinding(() -> Values.asNonNullAndWsNormalized(url.get()), url);
-        effectiveLocation = new ReadOnlyStringBindingProperty(this, "effectiveLocation", () -> {
+        effectiveLocation = new ReadOnlyStringBindingProperty(this, PROP_EFFECTIVELOCATION, () -> {
             final AppointmentType t = type.get();
             final String l = wsNormalizedLocation.get();
             final String c = customerAddressText.get();
@@ -203,15 +206,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             return l;
         }, type, wsNormalizedLocation, customerAddressText, wsNormalizedUrl);
 
-        customer.set(CustomerItem.createModel(dao.getCustomer()));
-        user.set(UserItem.createModel(dao.getUser()));
-        title.set(dao.getTitle());
-        description.set(dao.getDescription());
-        location.set(dao.getLocation());
-        contact.set(dao.getContact());
-        url.set(dao.getUrl());
-        start.set(DB.toLocalDateTime(dao.getStart()));
-        end.set(DB.toLocalDateTime(dao.getEnd()));
     }
 
     @Override

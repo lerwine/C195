@@ -38,10 +38,9 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
 
     public CountryModel(CountryDAO dao) {
         super(dao);
-        locale = new SimpleObjectProperty<>(this, PROP_LOCALE);
+        locale = new SimpleObjectProperty<>(this, PROP_LOCALE, dao.getLocale());
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
-        locale.set(dao.getLocale());
     }
 
     @Override

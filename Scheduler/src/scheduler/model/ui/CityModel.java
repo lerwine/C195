@@ -51,17 +51,14 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
 
     public CityModel(CityDAO dao) {
         super(dao);
-        name = new SimpleStringProperty(this, PROP_NAME);
-        timeZone = new SimpleObjectProperty<>();
-        country = new SimpleObjectProperty<>();
+        name = new SimpleStringProperty(this, PROP_NAME, dao.getName());
+        timeZone = new SimpleObjectProperty<>(this, PROP_TIMEZONE, dao.getTimeZone());
+        country = new SimpleObjectProperty<>(this, PROP_COUNTRY, CountryItem.createModel(dao.getCountry()));
         timeZoneDisplay = new ReadOnlyStringBindingProperty(this, PROP_TIMEZONEDISPLAY, () -> {
             return CityProperties.getTimeZoneDisplayText(timeZone.get());
         }, timeZone);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, CountryItem.PROP_LANGUAGE));
-        name.set(dao.getName());
-        timeZone.set(dao.getTimeZone());
-        country.set(CountryItem.createModel(dao.getCountry()));
     }
 
     @Override

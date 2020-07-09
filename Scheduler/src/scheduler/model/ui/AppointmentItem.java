@@ -24,6 +24,22 @@ import scheduler.util.DB;
  */
 public interface AppointmentItem<T extends IAppointmentDAO> extends Appointment<LocalDateTime>, FxDbModel<T> {
 
+    public static final String PROP_EFFECTIVELOCATION = "effectiveLocation";
+    public static final String PROP_TYPEDISPLAY = "typeDisplay";
+    public static final String PROP_USERSTATUSDISPLAY = "userStatusDisplay";
+    public static final String PROP_USERSTATUS = "userStatus";
+    public static final String PROP_USERNAME = "userName";
+    public static final String PROP_CUSTOMERACTIVE = "customerActive";
+    public static final String PROP_CUSTOMERADDRESSTEXT = "customerAddressText";
+    public static final String PROP_CUSTOMERCITYZIPCOUNTRY = "customerCityZipCountry";
+    public static final String PROP_CUSTOMERPHONE = "customerPhone";
+    public static final String PROP_CUSTOMERPOSTALCODE = "customerPostalCode";
+    public static final String PROP_CUSTOMERCOUNTRYNAME = "customerCountryName";
+    public static final String PROP_CUSTOMERCITYNAME = "customerCityName";
+    public static final String PROP_CUSTOMERADDRESS2 = "customerAddress2";
+    public static final String PROP_CUSTOMERADDRESS1 = "customerAddress1";
+    public static final String PROP_CUSTOMERNAME = "customerName";
+    
     @Override
     CustomerItem<? extends Customer> getCustomer();
 
