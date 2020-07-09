@@ -322,28 +322,26 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                     message = "Name too long";
                 } else {
                     AddressEvent event;
-                    if (null != fxRecordModel) {
-                        AddressItem<? extends IAddressDAO> a = fxRecordModel.getAddress();
-                        if (null != a) {
-                            if (a instanceof AddressModel) {
-                                if (null == (event = AddressModel.FACTORY.validateForSave((AddressModel) a))) {
-                                    return null;
-                                }
-                            } else {
+                    AddressItem<? extends IAddressDAO> a = fxRecordModel.getAddress();
+                    if (null != a) {
+                        if (a instanceof AddressModel) {
+                            if (null == (event = AddressModel.FACTORY.validateForSave((AddressModel) a))) {
                                 return null;
                             }
                         } else {
-                            event = null;
-                        }
-                        if (null != event) {
-                            if (event instanceof AddressFailedEvent) {
-                                if (dao.getRowState() == DataRowState.NEW) {
-                                    return CustomerEvent.createInsertInvalidEvent(fxRecordModel, this, (AddressFailedEvent) event);
-                                }
-                                return CustomerEvent.createUpdateInvalidEvent(fxRecordModel, this, (AddressFailedEvent) event);
-                            }
                             return null;
                         }
+                    } else {
+                        event = null;
+                    }
+                    if (null != event) {
+                        if (event instanceof AddressFailedEvent) {
+                            if (dao.getRowState() == DataRowState.NEW) {
+                                return CustomerEvent.createInsertInvalidEvent(fxRecordModel, this, (AddressFailedEvent) event);
+                            }
+                            return CustomerEvent.createUpdateInvalidEvent(fxRecordModel, this, (AddressFailedEvent) event);
+                        }
+                        return null;
                     }
 
                     message = "Address not specified.";

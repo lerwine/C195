@@ -481,28 +481,26 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                     message = "Phone number too long";
                 } else {
                     CityEvent event;
-                    if (null != fxRecordModel) {
-                        CityItem<? extends ICityDAO> c = fxRecordModel.getCity();
-                        if (null != c) {
-                            if (c instanceof CityModel) {
-                                if (null == (event = CityModel.FACTORY.validateForSave((CityModel) c))) {
-                                    return null;
-                                }
-                            } else {
+                    CityItem<? extends ICityDAO> c = fxRecordModel.getCity();
+                    if (null != c) {
+                        if (c instanceof CityModel) {
+                            if (null == (event = CityModel.FACTORY.validateForSave((CityModel) c))) {
                                 return null;
                             }
                         } else {
-                            event = null;
-                        }
-                        if (null != event) {
-                            if (event instanceof CityFailedEvent) {
-                                if (dao.getRowState() == DataRowState.NEW) {
-                                    return AddressEvent.createInsertInvalidEvent(fxRecordModel, this, (CityFailedEvent) event);
-                                }
-                                return AddressEvent.createUpdateInvalidEvent(fxRecordModel, this, (CityFailedEvent) event);
-                            }
                             return null;
                         }
+                    } else {
+                        event = null;
+                    }
+                    if (null != event) {
+                        if (event instanceof CityFailedEvent) {
+                            if (dao.getRowState() == DataRowState.NEW) {
+                                return AddressEvent.createInsertInvalidEvent(fxRecordModel, this, (CityFailedEvent) event);
+                            }
+                            return AddressEvent.createUpdateInvalidEvent(fxRecordModel, this, (CityFailedEvent) event);
+                        }
+                        return null;
                     }
 
                     message = "City not specified.";

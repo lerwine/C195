@@ -276,28 +276,26 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                             message = "Country not specified";
                         } else {
                             CountryEvent event;
-                            if (null != fxRecordModel) {
-                                CountryItem<? extends ICountryDAO> c = fxRecordModel.getCountry();
-                                if (null != c) {
-                                    if (c instanceof CountryModel) {
-                                        if (null == (event = CountryModel.FACTORY.validateForSave((CountryModel) c))) {
-                                            return null;
-                                        }
-                                    } else {
+                            CountryItem<? extends ICountryDAO> c = fxRecordModel.getCountry();
+                            if (null != c) {
+                                if (c instanceof CountryModel) {
+                                    if (null == (event = CountryModel.FACTORY.validateForSave((CountryModel) c))) {
                                         return null;
                                     }
                                 } else {
-                                    event = null;
-                                }
-                                if (null != event) {
-                                    if (event instanceof CountryFailedEvent) {
-                                        if (dao.getRowState() == DataRowState.NEW) {
-                                            return CityEvent.createInsertInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
-                                        }
-                                        return CityEvent.createUpdateInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
-                                    }
                                     return null;
                                 }
+                            } else {
+                                event = null;
+                            }
+                            if (null != event) {
+                                if (event instanceof CountryFailedEvent) {
+                                    if (dao.getRowState() == DataRowState.NEW) {
+                                        return CityEvent.createInsertInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
+                                    }
+                                    return CityEvent.createUpdateInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
+                                }
+                                return null;
                             }
 
                             message = "City not specified.";

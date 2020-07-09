@@ -689,20 +689,18 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                     if (null == message) {
                         CustomerEvent customerEvent = null;
                         UserEvent userEvent = null;
-                        if (null != fxRecordModel) {
-                            final CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
-                            if (null == customer) {
-                                message = "Customer not specified";
-                            } else if (customer instanceof CustomerModel) {
-                                customerEvent = CustomerModel.FACTORY.validateForSave((CustomerModel) customer);
-                                if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
-                                    customerEvent = null;
-                                    final UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
-                                    if (null == user) {
-                                        message = "User not specified";
-                                    } else if (user instanceof UserModel) {
-                                        userEvent = UserModel.FACTORY.validateForSave((UserModel) user);
-                                    }
+                        final CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
+                        if (null == customer) {
+                            message = "Customer not specified";
+                        } else if (customer instanceof CustomerModel) {
+                            customerEvent = CustomerModel.FACTORY.validateForSave((CustomerModel) customer);
+                            if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
+                                customerEvent = null;
+                                final UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
+                                if (null == user) {
+                                    message = "User not specified";
+                                } else if (user instanceof UserModel) {
+                                    userEvent = UserModel.FACTORY.validateForSave((UserModel) user);
                                 }
                             }
                         }
