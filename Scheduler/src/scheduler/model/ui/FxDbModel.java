@@ -44,6 +44,7 @@ public interface FxDbModel<T extends DbObject> extends DataObject {
 
     ReadOnlyIntegerProperty primaryKeyProperty();
 
+    // FIXME: This may not be necessary
     /**
      * Gets a value indicating if all model properties are valid.
      *
@@ -51,6 +52,7 @@ public interface FxDbModel<T extends DbObject> extends DataObject {
      */
     boolean isValid();
 
+    // FIXME: This may not be necessary
     ReadOnlyBooleanProperty validProperty();
 
     @Override
