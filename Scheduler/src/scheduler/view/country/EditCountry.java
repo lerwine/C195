@@ -296,9 +296,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CityDAO.DeleteTask task = new CityDAO.DeleteTask(target, false);
-            // FIXME: This event is never fired on the task object. Handle completed event, instead.
-            task.addEventHandler(CityFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            task.setOnSucceeded((e) -> {
+                CityEvent cityEvent = task.getValue();
+                if (null != cityEvent && cityEvent instanceof CityFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                            ((CityFailedEvent) cityEvent).getMessage(), ButtonType.OK);
+                }
             });
             waitBorderPane.startNow(task);
         }

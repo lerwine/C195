@@ -268,7 +268,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             LOG.entering(LOG.getName(), "onCustomerDeleted", event);
             if (model.getRowState() != DataRowState.NEW) {
                 CustomerDAO dao = event.getDataAccessObject();
-                // XXX: See if we need to get/set model
                 int pk = dao.getPrimaryKey();
                 customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
             }
@@ -277,7 +276,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             LOG.entering(LOG.getName(), "onUserDeleted", event);
             if (model.getRowState() != DataRowState.NEW) {
                 UserDAO dao = event.getDataAccessObject();
-                // XXX: See if we need to get/set model
                 int pk = dao.getPrimaryKey();
                 customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
             }

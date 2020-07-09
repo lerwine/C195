@@ -405,9 +405,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> task = AddressModel.FACTORY.createDeleteTask(target);
-            // FIXME: This event is never fired on the task object. Handle completed event, instead.
-            task.addEventHandler(AddressFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            task.setOnSucceeded((e) -> {
+                AddressEvent addressEvent = task.getValue();
+                if (null != addressEvent && addressEvent instanceof AddressFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                            ((AddressFailedEvent) addressEvent).getMessage(), ButtonType.OK);
+                }
             });
             waitBorderPane.startNow(task);
         }

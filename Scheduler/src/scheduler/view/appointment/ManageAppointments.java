@@ -526,9 +526,12 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             AppointmentDAO.DeleteTask task = new AppointmentDAO.DeleteTask(item, false);
-            // FIXME: This event is never fired on the task object. Handle completed event, instead.
-            task.addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            task.setOnSucceeded((e) -> {
+                AppointmentEvent appointmentEvent = task.getValue();
+                if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                            ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+                }
             });
             MainController.startBusyTaskNow(task);
         }

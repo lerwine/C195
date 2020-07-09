@@ -260,7 +260,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             LOG.entering(LOG.getName(), "onAppointmentAdded", event);
             if (model.getRowState() != DataRowState.NEW) {
                 AppointmentDAO dao = event.getDataAccessObject();
-                // XXX: See if we need to get/set model
                 AppointmentFilterItem filter = selectedFilter.get();
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
                     customerAppointments.add(new AppointmentModel(dao));
@@ -271,7 +270,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
             if (model.getRowState() != DataRowState.NEW) {
                 AppointmentDAO dao = event.getDataAccessObject();
-                // XXX: See if we need to get/set model
                 AppointmentFilterItem filter = selectedFilter.get();
                 AppointmentModel m = AppointmentModel.FACTORY.find(customerAppointments, dao).orElse(null);
                 if (null != m) {
@@ -357,9 +355,12 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
-            // FIXME: This event never gets fired on the task. Handle completed event, instead.
-            task.addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            task.setOnSucceeded((e) -> {
+                AppointmentEvent appointmentEvent = task.getValue();
+                if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                            ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+                }
             });
             waitBorderPane.startNow(task);
         }

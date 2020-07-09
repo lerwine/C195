@@ -47,6 +47,7 @@ import scheduler.dao.ICityDAO;
 import scheduler.dao.ICountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
+import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
@@ -230,7 +231,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         onCustomerAdded = (CustomerSuccessEvent event) -> {
             LOG.entering(LOG.getName(), "onCustomerAdded", event);
             CustomerDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
             if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
                 itemList.add(new CustomerModel(dao));
             }
@@ -239,7 +239,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             LOG.entering(LOG.getName(), "onCustomerUpdated", event);
             if (model.getRowState() != DataRowState.NEW) {
                 CustomerDAO dao = event.getDataAccessObject();
-                // XXX: See if we need to get/set model
                 int pk = dao.getPrimaryKey();
                 CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
                 if (null != m) {
@@ -329,9 +328,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-            // FIXME: This event is never fired on the task object. Handle completed event, instead.
-            task.addEventHandler(CustomerFailedEvent.DELETE_INVALID, (e) -> {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+            task.setOnSucceeded((e) -> {
+                CustomerEvent customerEvent = task.getValue();
+                if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
+                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                            ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);
+                }
             });
             waitBorderPane.startNow(task);
         }
