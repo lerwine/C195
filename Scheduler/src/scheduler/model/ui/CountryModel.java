@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
@@ -17,6 +18,7 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryOpRequestEvent;
 import scheduler.model.Country;
+import scheduler.model.CountryEntity;
 import scheduler.model.CountryProperties;
 import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
@@ -28,7 +30,7 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CountryModel extends FxRecordModel<CountryDAO> implements CountryItem<CountryDAO> {
+public final class CountryModel extends EntityModelImpl<CountryDAO> implements PartialCountryModel<CountryDAO>, CountryEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -113,7 +115,7 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<CountryDAO, CountryModel, CountryEvent> {
+    public final static class Factory extends EntityModelImpl.FxModelFactory<CountryDAO, CountryModel, CountryEvent> {
 
         // Singleton
         private Factory() {

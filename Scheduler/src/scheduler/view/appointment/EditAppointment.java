@@ -50,9 +50,6 @@ import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
@@ -69,14 +66,10 @@ import scheduler.model.PredefinedData;
 import scheduler.model.SupportedCityDefinition;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.model.ui.UserItem;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
@@ -95,6 +88,13 @@ import scheduler.view.appointment.edit.DateRangeControl;
 import scheduler.view.appointment.edit.ZonedAppointmentTimeSpan;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCustomerDAO;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
+import scheduler.model.ui.PartialAddressModel;
 
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
@@ -108,7 +108,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
 
-    public static AppointmentModel editNew(CustomerItem<? extends Customer> customer, UserItem<? extends User> user,
+    public static AppointmentModel editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
             Window parentWindow, boolean keepOpen) throws IOException {
         AppointmentModel.Factory factory = AppointmentModel.FACTORY;
         AppointmentModel model = factory.createNew(factory.getDaoFactory().createNew());
@@ -457,7 +457,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
         customerComboBox.setItems(customerModelList);
         SingleSelectionModel<CustomerModel> selectionModel = customerComboBox.getSelectionModel();
-        CustomerItem<? extends Customer> customer = model.getCustomer();
+        PartialCustomerModel<? extends Customer> customer = model.getCustomer();
         if (null != customer) {
             int cpk = customer.getPrimaryKey();
             customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
@@ -478,7 +478,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         }
         userComboBox.setItems(userModelList);
         SingleSelectionModel<UserModel> selectionModel = userComboBox.getSelectionModel();
-        UserItem<? extends User> user = model.getUser();
+        PartialUserModel<? extends User> user = model.getUser();
         int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
         userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
                 -> userComboBox.getSelectionModel().select(t));
@@ -494,12 +494,12 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private void initializeDateRangeControl() {
         LocalDateTime start = model.getStart();
         LocalDateTime end = model.getEnd();
-        CustomerItem<? extends ICustomerDAO> c = model.getCustomer();
+        PartialCustomerModel<? extends PartialCustomerDAO> c = model.getCustomer();
         TimeZone selectedTimeZone = null;
         if (null != c) {
-            AddressItem<? extends IAddressDAO> a = c.getAddress();
+            PartialAddressModel<? extends PartialAddressDAO> a = c.getAddress();
             if (null != a) {
-                CityItem<? extends ICityDAO> t = a.getCity();
+                PartialCityModel<? extends PartialCityDAO> t = a.getCity();
                 if (null != t) {
                     selectedTimeZone = t.getTimeZone();
                 }
@@ -868,7 +868,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
+    public EntityModelImpl.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
         return AppointmentModel.FACTORY;
     }
 
@@ -1036,9 +1036,9 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             customerDaoList = null;
             userDaoList = null;
-            CustomerItem<? extends Customer> customer = model.getCustomer();
+            PartialCustomerModel<? extends Customer> customer = model.getCustomer();
             appointmentCustomer = (null == customer) ? null : customer.dataObject();
-            UserItem<? extends User> user = model.getUser();
+            PartialUserModel<? extends User> user = model.getUser();
             appointmentUser = (null == user) ? null : user.dataObject();
             customerLoadOption = showActiveCustomers;
             userLoadOption = showActiveUsers;

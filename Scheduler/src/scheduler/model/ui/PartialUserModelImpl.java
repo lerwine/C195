@@ -10,25 +10,25 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.DataRowState;
-import scheduler.dao.IUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.dao.PartialUserDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUserDAO> {
+public class PartialUserModelImpl extends RelatedModel<PartialUserDAO> implements PartialUserModel<PartialUserDAO> {
 
-    private static final Logger LOG = Logger.getLogger(RelatedUser.class.getName());
+    private static final Logger LOG = Logger.getLogger(PartialUserModelImpl.class.getName());
 
     private final ReadOnlyJavaBeanStringProperty userName;
     private final ReadOnlyJavaBeanObjectProperty<UserStatus> status;
     private final ReadOnlyStringBindingProperty statusDisplay;
 
-    public RelatedUser(IUserDAO rowData) {
+    public PartialUserModelImpl(PartialUserDAO rowData) {
         super(rowData);
         try {
             userName = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_USERNAME).build();
@@ -86,9 +86,9 @@ public class RelatedUser extends RelatedModel<IUserDAO> implements UserItem<IUse
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof UserItem) {
+        if (null != obj && obj instanceof PartialUserModel) {
             @SuppressWarnings("unchecked")
-            final UserItem<? extends UserDAO> other = (UserItem<? extends UserDAO>) obj;
+            final PartialUserModel<? extends UserDAO> other = (PartialUserModel<? extends UserDAO>) obj;
             if (getRowState() == DataRowState.NEW) {
                 return other.getRowState() == DataRowState.NEW && userName.isEqualTo(other.userNameProperty()).get()
                         && status.isEqualTo(other.statusProperty()).get();

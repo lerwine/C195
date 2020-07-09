@@ -36,7 +36,6 @@ import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -44,6 +43,7 @@ import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
+import scheduler.model.ui.PartialCityModel;
 
 /**
  * Data access object for the {@code address} database table.
@@ -51,7 +51,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.ADDRESS)
-public final class AddressDAO extends DataAccessObject implements AddressDbRecord {
+public final class AddressDAO extends DataAccessObject implements IAddressDAO {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AddressDAO.class.getName()), Level.FINER);
@@ -59,7 +59,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
     private String address1;
     private String address2;
-    private ICityDAO city;
+    private PartialCityDAO city;
     private String postalCode;
     private String phone;
     private final OriginalPropertyValues originalValues;
@@ -78,11 +78,11 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         originalValues = new OriginalPropertyValues();
         onCityEvent = (CityEvent event) -> {
             LOG.entering(LOG.getName(), "onCityEvent", event);
-            ICityDAO newValue = event.getDataAccessObject();
+            PartialCityDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
                 CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
                 cityChangeHandler = null;
-                ICityDAO oldValue = city;
+                PartialCityDAO oldValue = city;
                 city = newValue;
                 firePropertyChange(PROP_CITY, oldValue, city);
             }
@@ -122,7 +122,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     }
 
     @Override
-    public ICityDAO getCity() {
+    public PartialCityDAO getCity() {
         return city;
     }
 
@@ -131,8 +131,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
      *
      * @param city new value of city
      */
-    private synchronized void setCity(ICityDAO city) {
-        ICityDAO oldValue = this.city;
+    private synchronized void setCity(PartialCityDAO city) {
+        PartialCityDAO oldValue = this.city;
         this.city = city;
         firePropertyChange(PROP_CITY, oldValue, this.city);
         if (null == city || city instanceof CityDAO) {
@@ -191,7 +191,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
     protected void onRejectChanges() {
         String oldAddress1 = address1;
         String oldAddress2 = address2;
-        ICityDAO oldCity = city;
+        PartialCityDAO oldCity = city;
         String oldPostalCode = postalCode;
         String oldPhone = phone;
         address1 = originalValues.address1;
@@ -319,9 +319,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             while (iterator.hasNext()) {
                 AddressDAO result = iterator.next();
                 if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
-                    ICityDAO c = result.getCity();
+                    PartialCityDAO c = result.getCity();
                     if (null != c && c.getName().equals(cityName)) {
-                        ICountryDAO n = c.getCountry();
+                        PartialCountryDAO n = c.getCountry();
                         if (null != n && n.getLocale().getCountry().equals(regionCode)) {
                             return result;
                         }
@@ -338,9 +338,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             while (iterator.hasNext()) {
                 AddressDAO result = iterator.next();
                 if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
-                    ICityDAO c = result.getCity();
+                    PartialCityDAO c = result.getCity();
                     if (null != c && c.getName().equals(cityName)) {
-                        ICountryDAO n = c.getCountry();
+                        PartialCountryDAO n = c.getCountry();
                         if (null != n && n.getPrimaryKey() == countryPk) {
                             return result;
                         }
@@ -356,7 +356,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             while (iterator.hasNext()) {
                 AddressDAO result = iterator.next();
                 if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
-                    ICityDAO c = result.getCity();
+                    PartialCityDAO c = result.getCity();
                     if (null != c && c.getPrimaryKey() == cityPk) {
                         return result;
                     }
@@ -426,8 +426,8 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             return propertyChanges;
         }
 
-        IAddressDAO fromJoinedResultSet(ResultSet resultSet) throws SQLException {
-            return new Related(resultSet.getInt(DbColumn.CUSTOMER_ADDRESS.toString()),
+        PartialAddressDAO fromJoinedResultSet(ResultSet resultSet) throws SQLException {
+            return new Partial(resultSet.getInt(DbColumn.CUSTOMER_ADDRESS.toString()),
                     asNonNullAndWsNormalized(resultSet.getString(DbColumn.ADDRESS1.toString())),
                     asNonNullAndWsNormalized(resultSet.getString(DbColumn.ADDRESS2.toString())),
                     CityDAO.FACTORY.fromJoinedResultSet(resultSet),
@@ -487,14 +487,14 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         @Override
         protected AddressEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertSuccessEvent(getFxRecordModel(), this);
+                return AddressEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return AddressEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
+            return AddressEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected AddressEvent validate(Connection connection) throws Exception {
-            AddressModel targetModel = getFxRecordModel();
+            AddressModel targetModel = getEntityModel();
             AddressEvent saveEvent = AddressModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof AddressFailedEvent) {
                 return saveEvent;
@@ -566,7 +566,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 return AddressEvent.createUpdateInvalidEvent(targetModel, this, MATCHING_ITEM_EXISTS);
             }
 
-            CityItem<? extends ICityDAO> cityModel = targetModel.getCity();
+            PartialCityModel<? extends PartialCityDAO> cityModel = targetModel.getCity();
 
             if (cityModel instanceof CityModel) {
                 switch (cityModel.getRowState()) {
@@ -593,17 +593,17 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         @Override
         protected AddressEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
+                return AddressEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
             }
-            return AddressEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
+            return AddressEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected AddressEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertCanceledEvent(getFxRecordModel(), this);
+                return AddressEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
-            return AddressEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
+            return AddressEvent.createUpdateCanceledEvent(getEntityModel(), this);
         }
 
     }
@@ -623,7 +623,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected AddressEvent createSuccessEvent() {
-            return AddressEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
+            return AddressEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -640,9 +640,9 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
                 case 0:
                     break;
                 case 1:
-                    return AddressEvent.createDeleteInvalidEvent(getFxRecordModel(), this, REFERENCED_BY_ONE);
+                    return AddressEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
                 default:
-                    return AddressEvent.createDeleteInvalidEvent(getFxRecordModel(), this, String.format(REFERENCED_BY_N, count));
+                    return AddressEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
             }
 
             return null;
@@ -650,31 +650,31 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         @Override
         protected AddressEvent createFaultedEvent() {
-            return AddressEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
+            return AddressEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected AddressEvent createCanceledEvent() {
-            return AddressEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
+            return AddressEvent.createDeleteCanceledEvent(getEntityModel(), this);
         }
 
     }
 
-    public static class Related extends PropertyBindable implements IAddressDAO {
+    public static class Partial extends PropertyBindable implements PartialAddressDAO {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Related.class.getName()), Level.FINER);
-//        private static final Logger LOG = Logger.getLogger(Related.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final int primaryKey;
         private final String address1;
         private final String address2;
-        private ICityDAO city;
+        private PartialCityDAO city;
         private final String postalCode;
         private final String phone;
         private final EventHandler<CityEvent> onCityEvent;
         private WeakEventHandler<CityEvent> cityChangeHandler;
 
-        private Related(int primaryKey, String address1, String address2, ICityDAO city, String postalCode, String phone) {
+        private Partial(int primaryKey, String address1, String address2, PartialCityDAO city, String postalCode, String phone) {
             this.primaryKey = primaryKey;
             this.address1 = asNonNullAndWsNormalized(address1);
             this.address2 = asNonNullAndWsNormalized(address2);
@@ -683,11 +683,11 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
             this.phone = asNonNullAndWsNormalized(phone);
             onCityEvent = (CityEvent event) -> {
                 LOG.entering(LOG.getName(), "onCityEvent", event);
-                ICityDAO newValue = event.getDataAccessObject();
+                PartialCityDAO newValue = event.getDataAccessObject();
                 if (newValue.getPrimaryKey() == this.city.getPrimaryKey()) {
                     CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
                     cityChangeHandler = null;
-                    ICityDAO oldValue = this.city;
+                    PartialCityDAO oldValue = this.city;
                     this.city = newValue;
                     firePropertyChange(PROP_CITY, oldValue, this.city);
                 }
@@ -704,7 +704,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
         }
 
         @Override
-        public ICityDAO getCity() {
+        public PartialCityDAO getCity() {
             return city;
         }
 
@@ -760,7 +760,7 @@ public final class AddressDAO extends DataAccessObject implements AddressDbRecor
 
         private String address1;
         private String address2;
-        private ICityDAO city;
+        private PartialCityDAO city;
         private String postalCode;
         private String phone;
 

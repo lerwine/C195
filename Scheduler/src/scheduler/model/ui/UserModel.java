@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -15,6 +16,7 @@ import scheduler.events.UserEvent;
 import scheduler.events.UserOpRequestEvent;
 import static scheduler.model.User.MAX_LENGTH_PASSWORD;
 import static scheduler.model.User.MAX_LENGTH_USERNAME;
+import scheduler.model.UserEntity;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
@@ -24,7 +26,7 @@ import scheduler.view.user.UserModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<UserDAO> {
+public final class UserModel extends EntityModelImpl<UserDAO> implements PartialUserModel<UserDAO>, UserEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -108,8 +110,8 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         if (this == obj) {
             return true;
         }
-        if (null != obj && obj instanceof UserItem) {
-            final UserItem<? extends UserDAO> other = (UserModel) obj;
+        if (null != obj && obj instanceof PartialUserModel) {
+            final PartialUserModel<? extends UserDAO> other = (UserModel) obj;
             if (isNewRow()) {
                 if (other.getRowState() == DataRowState.NEW && userName.isEqualTo(other.userNameProperty()).get()
                         && status.isEqualTo(other.statusProperty()).get()) {
@@ -146,7 +148,7 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<UserDAO, UserModel, UserEvent> {
+    public final static class Factory extends EntityModelImpl.FxModelFactory<UserDAO, UserModel, UserEvent> {
 
         // Singleton
         private Factory() {

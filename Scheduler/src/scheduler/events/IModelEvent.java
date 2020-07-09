@@ -2,15 +2,15 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <D> The target {@link DataAccessObject} type.
- * @param <M> The associated {@link FxRecordModel} type.
+ * @param <M> The associated {@link EntityModelImpl} type.
  */
-interface IModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends Cloneable, java.io.Serializable {
+interface IModelEvent<D extends DataAccessObject, M extends EntityModelImpl<D>> extends Cloneable, java.io.Serializable {
 
     Object getSource();
 
@@ -21,10 +21,10 @@ interface IModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> ex
     void consume();
 
     default D getDataAccessObject() {
-        return getFxRecordModel().dataObject();
+        return getEntityModel().dataObject();
     }
 
-    M getFxRecordModel();
+    M getEntityModel();
 
     DbOperationType getOperation();
 }

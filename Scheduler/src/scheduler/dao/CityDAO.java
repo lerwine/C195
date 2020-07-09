@@ -36,7 +36,6 @@ import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
@@ -49,6 +48,7 @@ import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.RESOURCEKEY_CITYNAMEINUSE;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.EditCountryResourceKeys;
+import scheduler.model.ui.PartialCountryModel;
 
 /**
  * Data access object for the {@code city} database table.
@@ -56,7 +56,7 @@ import scheduler.view.country.EditCountryResourceKeys;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CITY)
-public final class CityDAO extends DataAccessObject implements CityDbRecord {
+public final class CityDAO extends DataAccessObject implements ICityDAO {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CityDAO.class.getName()), Level.FINER);
@@ -68,7 +68,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
     private final OriginalValues originalValues;
     private String name;
-    private ICountryDAO country;
+    private PartialCountryDAO country;
     private TimeZone timeZone;
 
     /**
@@ -93,12 +93,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     }
 
     @Override
-    public ICountryDAO getCountry() {
+    public PartialCountryDAO getCountry() {
         return country;
     }
 
-    private void setCountry(ICountryDAO country) {
-        ICountryDAO oldValue = this.country;
+    private void setCountry(PartialCountryDAO country) {
+        PartialCountryDAO oldValue = this.country;
         this.country = country;
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
     }
@@ -124,7 +124,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     @Override
     protected void onRejectChanges() {
         String oldName = name;
-        ICountryDAO oldCountry = country;
+        PartialCountryDAO oldCountry = country;
         TimeZone oldTimeZone = timeZone;
         name = originalValues.name;
         country = originalValues.country;
@@ -234,13 +234,13 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                             (CityDAO t) -> ModelHelper.getPrimaryKey(t.getCountry())));
         }
 
-        ICityDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
+        PartialCityDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             String s = rs.getString(DbColumn.CITY_NAME.toString());
             int i = s.lastIndexOf(";");
             if (i < 0) {
-                return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s, CountryDAO.FACTORY.fromJoinedResultSet(rs), null);
+                return new Partial(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s, CountryDAO.FACTORY.fromJoinedResultSet(rs), null);
             }
-            return new Related(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s.substring(0, i).trim(), CountryDAO.FACTORY.fromJoinedResultSet(rs),
+            return new Partial(rs.getInt(DbColumn.ADDRESS_CITY.toString()), s.substring(0, i).trim(), CountryDAO.FACTORY.fromJoinedResultSet(rs),
                     TimeZone.getTimeZone(ZoneId.of(toZoneId(s.substring(i + 1).trim()))));
         }
 
@@ -252,7 +252,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         @Override
         protected void onCloneProperties(CityDAO fromDAO, CityDAO toDAO) {
             String oldName = toDAO.name;
-            ICountryDAO oldCountry = toDAO.country;
+            PartialCountryDAO oldCountry = toDAO.country;
             TimeZone oldZoneId = toDAO.timeZone;
             toDAO.name = fromDAO.name;
             toDAO.country = fromDAO.country;
@@ -317,7 +317,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             while (iterator.hasNext()) {
                 CityDAO result = iterator.next();
                 if (result.name.equals(name)) {
-                    ICountryDAO c = result.getCountry();
+                    PartialCountryDAO c = result.getCountry();
                     if (null != c && c.getLocale().getCountry().equals(regionCode)) {
                         return result;
                     }
@@ -332,7 +332,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             while (iterator.hasNext()) {
                 CityDAO result = iterator.next();
                 if (result.name.equals(name)) {
-                    ICountryDAO c = result.getCountry();
+                    PartialCountryDAO c = result.getCountry();
                     if (null != c && c.getPrimaryKey() == countryPk) {
                         return result;
                     }
@@ -406,14 +406,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         @Override
         protected CityEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertSuccessEvent(getFxRecordModel(), this);
+                return CityEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return CityEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
+            return CityEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected CityEvent validate(Connection connection) throws Exception {
-            CityModel targetModel = getFxRecordModel();
+            CityModel targetModel = getEntityModel();
             CityEvent saveEvent = CityModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CityFailedEvent) {
                 return saveEvent;
@@ -460,7 +460,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 return CityEvent.createUpdateInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
             }
 
-            CountryItem<? extends ICountryDAO> c = targetModel.getCountry();
+            PartialCountryModel<? extends PartialCountryDAO> c = targetModel.getCountry();
             if (c instanceof CountryModel) {
                 switch (c.getRowState()) {
                     case NEW:
@@ -486,17 +486,17 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         @Override
         protected CityEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
+                return CityEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
             }
-            return CityEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
+            return CityEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected CityEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertCanceledEvent(getFxRecordModel(), this);
+                return CityEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
-            return CityEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
+            return CityEvent.createUpdateCanceledEvent(getEntityModel(), this);
         }
 
     }
@@ -512,7 +512,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected CityEvent createSuccessEvent() {
-            return CityEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
+            return CityEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -529,10 +529,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 case 0:
                     break;
                 case 1:
-                    return CityEvent.createDeleteInvalidEvent(getFxRecordModel(), this,
+                    return CityEvent.createDeleteInvalidEvent(getEntityModel(), this,
                             ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
                 default:
-                    return CityEvent.createDeleteInvalidEvent(getFxRecordModel(), this,
+                    return CityEvent.createDeleteInvalidEvent(getEntityModel(), this,
                             ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
             }
 
@@ -541,27 +541,27 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected CityEvent createFaultedEvent() {
-            return CityEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
+            return CityEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected CityEvent createCanceledEvent() {
-            return CityEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
+            return CityEvent.createDeleteCanceledEvent(getEntityModel(), this);
         }
 
     }
 
-    public static final class Related extends PropertyBindable implements ICityDAO {
+    public static final class Partial extends PropertyBindable implements PartialCityDAO {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Related.class.getName()), Level.FINER);
-//        private static final Logger LOG = Logger.getLogger(Related.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final int primaryKey;
         private final String name;
-        private ICountryDAO country;
+        private PartialCountryDAO country;
         private final TimeZone timeZone;
 
-        private Related(int primaryKey, String name, ICountryDAO country, TimeZone zoneId) {
+        private Partial(int primaryKey, String name, PartialCountryDAO country, TimeZone zoneId) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.country = country;
@@ -579,7 +579,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         }
 
         @Override
-        public ICountryDAO getCountry() {
+        public PartialCountryDAO getCountry() {
             return country;
         }
 
@@ -616,7 +616,7 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
     private class OriginalValues {
 
         private String name;
-        private ICountryDAO country;
+        private PartialCountryDAO country;
         private TimeZone timeZone;
 
         private OriginalValues() {

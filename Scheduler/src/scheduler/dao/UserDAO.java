@@ -41,7 +41,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.USER)
-public final class UserDAO extends DataAccessObject implements UserDbRecord {
+public final class UserDAO extends DataAccessObject implements IUserDAO {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(UserDAO.class.getName()), Level.FINER);
@@ -275,8 +275,8 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             return propertyChanges;
         }
 
-        IUserDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new Related(rs.getInt(DbColumn.APPOINTMENT_USER.toString()), asNonNullAndTrimmed(rs.getString(DbColumn.USER_NAME.toString())),
+        PartialUserDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new Partial(rs.getInt(DbColumn.APPOINTMENT_USER.toString()), asNonNullAndTrimmed(rs.getString(DbColumn.USER_NAME.toString())),
                     UserStatus.of(rs.getInt(DbColumn.STATUS.toString()), UserStatus.INACTIVE));
         }
 
@@ -343,14 +343,14 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         protected UserEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertSuccessEvent(getFxRecordModel(), this);
+                return UserEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return UserEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
+            return UserEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
-            UserModel targetModel = getFxRecordModel();
+            UserModel targetModel = getEntityModel();
             UserEvent saveEvent = UserModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
                 return saveEvent;
@@ -392,17 +392,17 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         protected UserEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
+                return UserEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
             }
-            return UserEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
+            return UserEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected UserEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertCanceledEvent(getFxRecordModel(), this);
+                return UserEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
-            return UserEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
+            return UserEvent.createUpdateCanceledEvent(getEntityModel(), this);
         }
 
     }
@@ -423,14 +423,14 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
 
         @Override
         protected UserEvent createSuccessEvent() {
-            return UserEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
+            return UserEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
             UserDAO dao = getDataAccessObject();
             if (dao == Scheduler.getCurrentUser()) {
-                return UserEvent.createDeleteInvalidEvent(getFxRecordModel(), this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
+                return UserEvent.createDeleteInvalidEvent(getEntityModel(), this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
             }
 
             int count;
@@ -444,32 +444,32 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 case 0:
                     break;
                 case 1:
-                    return UserEvent.createDeleteInvalidEvent(getFxRecordModel(), this, REFERENCED_BY_ONE);
+                    return UserEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
                 default:
-                    return UserEvent.createDeleteInvalidEvent(getFxRecordModel(), this, String.format(REFERENCED_BY_N, count));
+                    return UserEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
             }
             return null;
         }
 
         @Override
         protected UserEvent createFaultedEvent() {
-            return UserEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
+            return UserEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected UserEvent createCanceledEvent() {
-            return UserEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
+            return UserEvent.createDeleteCanceledEvent(getEntityModel(), this);
         }
 
     }
 
-    public static final class Related extends PropertyBindable implements IUserDAO {
+    public static final class Partial extends PropertyBindable implements PartialUserDAO {
 
         private final int primaryKey;
         private final String userName;
         private final UserStatus status;
 
-        private Related(int primaryKey, String userName, UserStatus status) {
+        private Partial(int primaryKey, String userName, UserStatus status) {
             this.primaryKey = primaryKey;
             this.userName = userName;
             this.status = status;

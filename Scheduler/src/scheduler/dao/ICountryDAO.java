@@ -1,11 +1,12 @@
 package scheduler.dao;
 
-import scheduler.model.Country;
+import java.sql.Timestamp;
+import scheduler.model.CountryEntity;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ICountryDAO extends DbObject, Country {
+public interface ICountryDAO extends PartialCountryDAO, IDataAccessObject, CountryEntity<Timestamp> {
 
 }

@@ -3,11 +3,11 @@ package scheduler.model;
 import java.util.Objects;
 
 /**
- * Interface for objects that contain either partial or complete information from the {@code user} database entity.
+ * Base interface for objects that represent a {@code user} database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface User extends DataObject {
+public interface User extends PartialDataEntity {
 
     public static final int MAX_LENGTH_USERNAME = 50;
 

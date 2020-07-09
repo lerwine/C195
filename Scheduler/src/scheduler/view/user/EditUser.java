@@ -51,7 +51,7 @@ import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
@@ -87,7 +87,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  * <dl>
  * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; null {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * <dd>&rarr; null {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
  * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
@@ -299,12 +299,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
-                EditAppointment.edit(event.getFxRecordModel(), getScene().getWindow());
+                EditAppointment.edit(event.getEntityModel(), getScene().getWindow());
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            deleteAppointment(event.getFxRecordModel());
+            deleteAppointment(event.getEntityModel());
         }
     }
 
@@ -457,7 +457,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
+    public EntityModelImpl.FxModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
         return UserModel.FACTORY;
     }
 

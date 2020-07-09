@@ -43,8 +43,6 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CustomerEvent;
@@ -56,12 +54,10 @@ import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -79,6 +75,10 @@ import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCountryModel;
 
 /**
  * FXML Controller class for editing an {@link AddressModel}.
@@ -96,7 +96,7 @@ import scheduler.view.task.WaitTitledPane;
  * <dl>
  * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link EditCustomer#edit(CustomerModel, javafx.stage.Window) EditCustomer.edit}(({@link CustomerModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * <dd>&rarr; {@link EditCustomer#edit(CustomerModel, javafx.stage.Window) EditCustomer.edit}(({@link CustomerModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
  * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
  * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
@@ -344,9 +344,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private void onItemActionRequest(CustomerOpRequestEvent event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
-            onEdit(event.getFxRecordModel());
+            onEdit(event.getEntityModel());
         } else {
-            onDelete(event.getFxRecordModel());
+            onDelete(event.getEntityModel());
         }
     }
 
@@ -362,7 +362,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
         if (null != c) {
             allCities.add(c);
-            CountryItem<? extends ICountryDAO> n = c.getCountry();
+            PartialCountryModel<? extends PartialCountryDAO> n = c.getCountry();
             int pk = n.getPrimaryKey();
             CountryModel sn = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != sn) {
@@ -418,8 +418,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
         selectedCity.addListener(this::onSelectedCityChanged);
         StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
-            CityItem<? extends ICityDAO> c = selectedCity.get();
-            CountryItem<? extends ICountryDAO> n = selectedCountry.get();
+            PartialCityModel<? extends PartialCityDAO> c = selectedCity.get();
+            PartialCountryModel<? extends PartialCountryDAO> n = selectedCountry.get();
             String result;
             if (null == n) {
                 result = "Country must be selected, first";
@@ -508,7 +508,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
+    public EntityModelImpl.FxModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
         return AddressModel.FACTORY;
     }
 
@@ -563,9 +563,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         updateValidation();
     }
 
-    private void initializeCountriesAndCities(List<CountryDAO> countryDaoList, List<CityDAO> cityDaoList, CityItem<? extends ICityDAO> targetCity) {
+    private void initializeCountriesAndCities(List<CountryDAO> countryDaoList, List<CityDAO> cityDaoList, PartialCityModel<? extends PartialCityDAO> targetCity) {
         CountryModel.Factory nf = CountryModel.FACTORY;
-        CountryItem<? extends ICountryDAO> countryItem = (null == targetCity) ? null : targetCity.getCountry();
+        PartialCountryModel<? extends PartialCountryDAO> countryItem = (null == targetCity) ? null : targetCity.getCountry();
         if (null != countryDaoList && !countryDaoList.isEmpty()) {
             if (null != countryItem && countryItem instanceof CountryModel) {
                 int pk = countryItem.getPrimaryKey();
@@ -692,7 +692,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         protected void succeeded() {
             Tuple<List<CountryDAO>, List<CityDAO>> result = getValue();
             ObservableMap<Object, Object> properties = EditAddress.this.getProperties();
-            CityItem<? extends ICityDAO> targetCity;
+            PartialCityModel<? extends PartialCityDAO> targetCity;
             if (properties.containsKey(TARGET_CITY_KEY)) {
                 targetCity = (CityModel) properties.get(TARGET_CITY_KEY);
                 properties.remove(TARGET_CITY_KEY);

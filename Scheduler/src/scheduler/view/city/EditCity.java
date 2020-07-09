@@ -45,7 +45,6 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.dao.ICountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
 import scheduler.events.AddressOpRequestEvent;
@@ -57,9 +56,8 @@ import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -78,6 +76,8 @@ import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
+import scheduler.dao.PartialCountryDAO;
+import scheduler.model.ui.PartialCountryModel;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
@@ -95,7 +95,7 @@ import scheduler.view.task.WaitTitledPane;
  * <dl>
  * <dt>SCHEDULER_ADDRESS_EDIT_REQUEST {@link AddressOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link EditAddress#edit(AddressModel, javafx.stage.Window) EditAddress.edit}(({@link AddressModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * <dd>&rarr; {@link EditAddress#edit(AddressModel, javafx.stage.Window) EditAddress.edit}(({@link AddressModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
  * {@link scheduler.model.ui.AddressModel.Factory}</dd>
  * <dt>SCHEDULER_ADDRESS_DELETE_REQUEST {@link AddressOpRequestEvent} &#123;
@@ -119,7 +119,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return EditItem.showAndWait(parentWindow, EditCity.class, model, false);
     }
 
-    public static CityModel editNew(CountryItem<? extends ICountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
+    public static CityModel editNew(PartialCountryModel<? extends PartialCountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
         CityModel.Factory factory = CityModel.FACTORY;
         CityModel model = factory.createNew(factory.getDaoFactory().createNew());
         EditCity control = new EditCity();
@@ -269,12 +269,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
-                EditAddress.edit(event.getFxRecordModel(), getScene().getWindow());
+                EditAddress.edit(event.getEntityModel(), getScene().getWindow());
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            deleteItem(event.getFxRecordModel());
+            deleteItem(event.getEntityModel());
         }
     }
 
@@ -500,7 +500,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
+    public EntityModelImpl.FxModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
         return CityModel.FACTORY;
     }
 
@@ -534,7 +534,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         return windowTitle.getReadOnlyProperty();
     }
 
-    private void loadCountries(List<CountryDAO> result, CountryItem<? extends ICountryDAO> country) {
+    private void loadCountries(List<CountryDAO> result, PartialCountryModel<? extends PartialCountryDAO> country) {
         HashMap<String, CountryModel> map = new HashMap<>();
         CountryModel.Factory factory = CountryModel.FACTORY;
         for (Locale al : Locale.getAvailableLocales()) {
@@ -658,7 +658,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         protected void succeeded() {
             super.succeeded();
             List<CountryDAO> result = getValue();
-            CountryItem<? extends ICountryDAO> targetCountry = model.getCountry();
+            PartialCountryModel<? extends PartialCountryDAO> targetCountry = model.getCountry();
             if (null == targetCountry) {
                 ObservableMap<Object, Object> properties = getProperties();
                 if (properties.containsKey(TARGET_COUNTRY_KEY)) {

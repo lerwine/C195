@@ -33,10 +33,6 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICountryDAO;
-import scheduler.dao.IUserDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.events.AppointmentEvent;
@@ -46,13 +42,8 @@ import scheduler.events.OperationRequestEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
-import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CountryItem;
-import scheduler.model.ui.CustomerItem;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.model.ui.UserItem;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -66,6 +57,15 @@ import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
 import scheduler.view.export.TsvDataExporter;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
+import scheduler.dao.PartialUserDAO;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
+import scheduler.model.ui.PartialAddressModel;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
@@ -84,7 +84,7 @@ import scheduler.view.export.TsvDataExporter;
  * <dl>
  * <dt>{@link scheduler.events.AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link #onEditItem(AppointmentModel) onEditItem}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()}</dd>
+ * <dd>&rarr; {@link #onEditItem(AppointmentModel) onEditItem}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()}</dd>
  * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}}
  * &#125;</dt>
  * <dd>&rarr; {@link #onDeleteItem(scheduler.model.ui.AppointmentModel) onDeleteItem}({@link scheduler.events.AppointmentOpRequestEvent})</dd>
@@ -315,9 +315,9 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
                     @Override
                     public String getColumnText(AppointmentModel item, DbColumn column) {
-                        CustomerItem<? extends Customer> customer;
-                        AddressItem<? extends IAddressDAO> address;
-                        CityItem<? extends ICityDAO> city;
+                        PartialCustomerModel<? extends Customer> customer;
+                        PartialAddressModel<? extends PartialAddressDAO> address;
+                        PartialCityModel<? extends PartialCityDAO> city;
                         switch (column) {
                             case APPOINTMENT_CUSTOMER:
                                 customer = item.getCustomer();
@@ -358,7 +358,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                                     if (null != address) {
                                         city = address.getCity();
                                         if (null != city) {
-                                            CountryItem<? extends ICountryDAO> country = city.getCountry();
+                                            PartialCountryModel<? extends PartialCountryDAO> country = city.getCountry();
                                             if (null != country) {
                                                 return numberFormat.format(country.getPrimaryKey());
                                             }
@@ -379,7 +379,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                                 }
                                 return "";
                             case APPOINTMENT_USER:
-                                UserItem<? extends IUserDAO> user = item.getUser();
+                                PartialUserModel<? extends PartialUserDAO> user = item.getUser();
                                 return (null == user) ? "" : numberFormat.format(user.getPrimaryKey());
                             case USER_NAME:
                                 return item.getUserName();
@@ -486,7 +486,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
+    protected EntityModelImpl.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 

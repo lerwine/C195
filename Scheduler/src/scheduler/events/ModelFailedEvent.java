@@ -1,7 +1,7 @@
 package scheduler.events;
 
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 
 /**
  *
@@ -9,7 +9,7 @@ import scheduler.model.ui.FxRecordModel;
  * @param <D>
  * @param <M>
  */
-public interface ModelFailedEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends IModelEvent<D, M> {
+public interface ModelFailedEvent<D extends DataAccessObject, M extends EntityModelImpl<D>> extends IModelEvent<D, M> {
 
     String getMessage();
 

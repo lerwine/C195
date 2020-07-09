@@ -8,26 +8,26 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.ICountryDAO;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.dao.PartialCountryDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedCountry extends RelatedModel<ICountryDAO> implements CountryItem<ICountryDAO> {
+public class PartialCountryModelImpl extends RelatedModel<PartialCountryDAO> implements PartialCountryModel<PartialCountryDAO> {
 
-    private static final Logger LOG = Logger.getLogger(RelatedCountry.class.getName());
+    private static final Logger LOG = Logger.getLogger(PartialCountryModelImpl.class.getName());
 
     private final ReadOnlyJavaBeanObjectProperty<Locale> locale;
     private final ReadOnlyStringBindingProperty name;
     private final ReadOnlyStringBindingProperty language;
 
-    public RelatedCountry(ICountryDAO rowData) {
+    public PartialCountryModelImpl(PartialCountryDAO rowData) {
         super(rowData);
         try {
             locale = ReadOnlyJavaBeanObjectPropertyBuilder.<Locale>create().bean(rowData).name(CountryDAO.PROP_LOCALE).build();

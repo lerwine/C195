@@ -39,15 +39,15 @@ import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.UserItem;
 import scheduler.model.ui.UserModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
 
 /**
  * Data access object for the {@code appointment} database table.
@@ -55,7 +55,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.APPOINTMENT)
-public final class AppointmentDAO extends DataAccessObject implements AppointmentDbRecord {
+public final class AppointmentDAO extends DataAccessObject implements IAppointmentDAO {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINER);
@@ -68,8 +68,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     private final OriginalValues originalValues;
     private final EventHandler<CustomerEvent> onCustomerEvent;
     private final EventHandler<UserEvent> onUserEvent;
-    private ICustomerDAO customer;
-    private IUserDAO user;
+    private PartialCustomerDAO customer;
+    private PartialUserDAO user;
     private String title;
     private String description;
     private String location;
@@ -100,22 +100,22 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         originalValues = new OriginalValues();
         onCustomerEvent = (CustomerEvent event) -> {
             LOG.entering(LOG.getName(), "onCustomerEvent", event);
-            ICustomerDAO newValue = event.getDataAccessObject();
+            PartialCustomerDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
                 CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
                 customerChangeHandler = null;
-                ICustomerDAO oldValue = customer;
+                PartialCustomerDAO oldValue = customer;
                 customer = newValue;
                 firePropertyChange(PROP_CUSTOMER, oldValue, customer);
             }
         };
         onUserEvent = (UserEvent event) -> {
             LOG.entering(LOG.getName(), "onUserEvent", event);
-            IUserDAO newValue = event.getDataAccessObject();
+            PartialUserDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
                 UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
                 userChangeHandler = null;
-                IUserDAO oldValue = user;
+                PartialUserDAO oldValue = user;
                 user = newValue;
                 firePropertyChange(PROP_ADDRESS, oldValue, user);
             }
@@ -123,7 +123,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     @Override
-    public ICustomerDAO getCustomer() {
+    public PartialCustomerDAO getCustomer() {
         return customer;
     }
 
@@ -132,8 +132,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param customer new value of customer
      */
-    private void setCustomer(ICustomerDAO customer) {
-        ICustomerDAO oldValue = this.customer;
+    private void setCustomer(PartialCustomerDAO customer) {
+        PartialCustomerDAO oldValue = this.customer;
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
         if (null == customer || customer instanceof CustomerDAO) {
@@ -148,7 +148,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     @Override
-    public IUserDAO getUser() {
+    public PartialUserDAO getUser() {
         return user;
     }
 
@@ -157,8 +157,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param user new value of user
      */
-    private void setUser(IUserDAO user) {
-        IUserDAO oldValue = this.user;
+    private void setUser(PartialUserDAO user) {
+        PartialUserDAO oldValue = this.user;
         this.user = user;
         firePropertyChange(PROP_USER, oldValue, this.user);
         if (null == user || user instanceof UserDAO) {
@@ -316,8 +316,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     protected void onRejectChanges() {
-        ICustomerDAO oldCustomer = customer;
-        IUserDAO oldUser = user;
+        PartialCustomerDAO oldCustomer = customer;
+        PartialUserDAO oldUser = user;
         String oldTitle = title;
         String oldDescription = description;
         String oldLocation = location;
@@ -748,7 +748,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         protected void onCloneProperties(AppointmentDAO fromDAO, AppointmentDAO toDAO) {
             String oldContact = toDAO.contact;
-            ICustomerDAO oldCustomer = toDAO.customer;
+            PartialCustomerDAO oldCustomer = toDAO.customer;
             String oldDescription = toDAO.description;
             Timestamp oldEnd = toDAO.end;
             String oldLocation = toDAO.location;
@@ -756,7 +756,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
             String oldTitle = toDAO.title;
             AppointmentType oldType = toDAO.type;
             String oldUrl = toDAO.url;
-            IUserDAO oldUser = toDAO.user;
+            PartialUserDAO oldUser = toDAO.user;
             toDAO.contact = fromDAO.contact;
             toDAO.customer = fromDAO.customer;
             toDAO.description = fromDAO.description;
@@ -817,20 +817,20 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         protected AppointmentEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertSuccessEvent(getFxRecordModel(), this);
+                return AppointmentEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return AppointmentEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
+            return AppointmentEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected AppointmentEvent validate(Connection connection) throws Exception {
-            AppointmentModel targetModel = getFxRecordModel();
+            AppointmentModel targetModel = getEntityModel();
             AppointmentEvent event = AppointmentModel.FACTORY.validateForSave(targetModel);
             if (null != event && event instanceof AppointmentFailedEvent) {
                 return event;
             }
 
-            CustomerItem<? extends ICustomerDAO> c = targetModel.getCustomer();
+            PartialCustomerModel<? extends PartialCustomerDAO> c = targetModel.getCustomer();
             if (c instanceof CustomerModel) {
                 switch (c.getRowState()) {
                     case NEW:
@@ -849,7 +849,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                         break;
                 }
             }
-            UserItem<? extends IUserDAO> u = targetModel.getUser();
+            PartialUserModel<? extends PartialUserDAO> u = targetModel.getUser();
             if (u instanceof UserModel) {
                 switch (u.getRowState()) {
                     case NEW:
@@ -875,17 +875,17 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         protected AppointmentEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
+                return AppointmentEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
             }
-            return AppointmentEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
+            return AppointmentEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected AppointmentEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertCanceledEvent(getFxRecordModel(), this);
+                return AppointmentEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
-            return AppointmentEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
+            return AppointmentEvent.createUpdateCanceledEvent(getEntityModel(), this);
         }
 
     }
@@ -898,7 +898,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected AppointmentEvent createSuccessEvent() {
-            return AppointmentEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
+            return AppointmentEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -908,20 +908,20 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected AppointmentEvent createFaultedEvent() {
-            return AppointmentEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
+            return AppointmentEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected AppointmentEvent createCanceledEvent() {
-            return AppointmentEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
+            return AppointmentEvent.createDeleteCanceledEvent(getEntityModel(), this);
         }
 
     }
 
     private class OriginalValues {
 
-        private ICustomerDAO customer;
-        private IUserDAO user;
+        private PartialCustomerDAO customer;
+        private PartialUserDAO user;
         private String title;
         private String description;
         private String location;

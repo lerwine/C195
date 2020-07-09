@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyProperty;
-import scheduler.model.DataObject;
+import scheduler.model.PartialDataEntity;
 
 /**
  * Utility class to create a string representation of an object for debugging/reporting purposes.
@@ -237,14 +237,14 @@ public class ToStringPropertyBuilder {
         return addLocalDateTime(property.getName(), property.getValue());
     }
 
-    public ToStringPropertyBuilder addDataObject(String propertyName, DataObject value) {
+    public ToStringPropertyBuilder addDataObject(String propertyName, PartialDataEntity value) {
         if (null == value) {
             return addNull(propertyName);
         }
         return addToStringPropertyBuilder(propertyName, value.toStringBuilder());
     }
 
-    public ToStringPropertyBuilder addDataObject(ReadOnlyProperty<? extends DataObject> property) {
+    public ToStringPropertyBuilder addDataObject(ReadOnlyProperty<? extends PartialDataEntity> property) {
         if (null == property) {
             return this;
         }

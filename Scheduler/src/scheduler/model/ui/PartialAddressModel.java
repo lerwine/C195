@@ -7,8 +7,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.value.ObservableValue;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
 import scheduler.model.Address;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.view.address.EditAddress;
@@ -19,7 +19,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T> {
+public interface PartialAddressModel<T extends PartialAddressDAO> extends Address, PartialEntityModel<T> {
 
     /**
      * The name of the 'addressLines' property.
@@ -51,7 +51,7 @@ public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T
      */
     public static final String PROP_LANGUAGE = "language";
 
-    public static AddressItem<? extends IAddressDAO> createModel(IAddressDAO t) {
+    public static PartialAddressModel<? extends PartialAddressDAO> createModel(PartialAddressDAO t) {
         if (null == t) {
             return null;
         }
@@ -59,7 +59,7 @@ public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T
             return new AddressModel((AddressDAO) t);
         }
 
-        return new RelatedAddress(t);
+        return new PartialAddressModelImpl(t);
     }
 
     public static StringBinding createMultiLineAddressBinding(ObservableValue<String> address1, ObservableValue<String> address2,
@@ -115,14 +115,14 @@ public interface AddressItem<T extends IAddressDAO> extends Address, FxDbModel<T
     ReadOnlyStringProperty addressLinesProperty();
 
     @Override
-    public CityItem<? extends ICityDAO> getCity();
+    public PartialCityModel<? extends PartialCityDAO> getCity();
 
     /**
      * Gets the property that contains the city model for the address.
      *
      * @return The property that contains the city model for the address.
      */
-    ReadOnlyObjectProperty<? extends CityItem<? extends ICityDAO>> cityProperty();
+    ReadOnlyObjectProperty<? extends PartialCityModel<? extends PartialCityDAO>> cityProperty();
 
     /**
      * Gets the property that contains the postal code for the address.

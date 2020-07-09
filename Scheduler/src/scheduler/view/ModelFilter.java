@@ -3,17 +3,17 @@ package scheduler.view;
 import java.util.function.Predicate;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 
 /**
  * View model filter interface.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The {@link DataAccessObject} type that the model supports.
- * @param <U> The type of {@link FxRecordModel}.
+ * @param <U> The type of {@link EntityModelImpl}.
  * @param <S> The type of underlying {@link DaoFilter}.
  */
-public interface ModelFilter<T extends DataAccessObject, U extends FxRecordModel<T>, S extends DaoFilter<T>> extends Predicate<U> {
+public interface ModelFilter<T extends DataAccessObject, U extends EntityModelImpl<T>, S extends DaoFilter<T>> extends Predicate<U> {
 
     /**
      * Gets the heading text to display in listing views.

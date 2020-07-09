@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -18,12 +19,13 @@ import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.dao.ICityDAO;
+import scheduler.dao.PartialCityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
+import scheduler.model.AddressEntity;
 import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS1;
 import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS2;
 import static scheduler.model.AddressProperties.MAX_LENGTH_PHONE;
@@ -47,7 +49,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AddressModel extends FxRecordModel<AddressDAO> implements AddressItem<AddressDAO> {
+public final class AddressModel extends EntityModelImpl<AddressDAO> implements PartialAddressModel<AddressDAO>, AddressEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -168,7 +170,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     private final NonNullableStringProperty address1;
     private final NonNullableStringProperty address2;
     private final ReadOnlyStringBindingProperty addressLines;
-    private final SimpleObjectProperty<CityItem<? extends ICityDAO>> city;
+    private final SimpleObjectProperty<PartialCityModel<? extends PartialCityDAO>> city;
     private final ReadOnlyStringBindingProperty cityName;
     private final ReadOnlyStringBindingProperty countryName;
     private final NonNullableStringProperty postalCode;
@@ -188,16 +190,16 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         address2 = new NonNullableStringProperty(this, PROP_ADDRESS2, dao.getAddress2());
         addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
                 () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
-        city = new SimpleObjectProperty<>(this, PROP_CITY, CityItem.createModel(dao.getCity()));
+        city = new SimpleObjectProperty<>(this, PROP_CITY, PartialCityModel.createModel(dao.getCity()));
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(city, CityProperties.PROP_NAME));
-        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, CityItem.PROP_COUNTRYNAME));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, PartialCityModel.PROP_COUNTRYNAME));
         postalCode = new NonNullableStringProperty(this, PROP_POSTALCODE, dao.getPostalCode());
         phone = new NonNullableStringProperty(this, PROP_PHONE, dao.getPhone());
         cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY,
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
-        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, CityItem.PROP_LANGUAGE));
-        timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityItem.PROP_TIMEZONE));
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
+        timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, PartialCityModel.PROP_TIMEZONE));
     }
 
     @Override
@@ -238,16 +240,16 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
     }
 
     @Override
-    public CityItem<? extends ICityDAO> getCity() {
+    public PartialCityModel<? extends PartialCityDAO> getCity() {
         return city.get();
     }
 
-    public void setCity(CityItem<? extends ICityDAO> value) {
+    public void setCity(PartialCityModel<? extends PartialCityDAO> value) {
         city.set(value);
     }
 
     @Override
-    public ObjectProperty<CityItem<? extends ICityDAO>> cityProperty() {
+    public ObjectProperty<PartialCityModel<? extends PartialCityDAO>> cityProperty() {
         return city;
     }
 
@@ -378,7 +380,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<AddressDAO, AddressModel, AddressEvent> {
+    public final static class Factory extends EntityModelImpl.FxModelFactory<AddressDAO, AddressModel, AddressEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -462,7 +464,7 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                     message = "Phone number too long";
                 } else {
                     CityEvent event;
-                    CityItem<? extends ICityDAO> c = fxRecordModel.getCity();
+                    PartialCityModel<? extends PartialCityDAO> c = fxRecordModel.getCity();
                     if (null != c) {
                         if (c instanceof CityModel) {
                             if (null == (event = CityModel.FACTORY.validateForSave((CityModel) c))) {

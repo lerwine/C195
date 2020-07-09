@@ -3,24 +3,24 @@ package scheduler.model;
 import java.util.Objects;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 
 /**
- * Helper class for getting information about {@link DataObject} objects.
+ * Helper class for getting information about {@link PartialDataEntity} objects.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class ModelHelper {
 
     /**
-     * Tests whether two {@link DataObject} objects represent the same database entity.
+     * Tests whether two {@link PartialDataEntity} objects represent the same database entity.
      *
-     * @param <T> The {@link DataObject} type.
-     * @param a The first {@link DataObject} compare.
-     * @param b The second {@link DataObject} to compare.
-     * @return {@code true} if both {@link DataObject}s represent the same database entity; otherwise, {@code false}.
+     * @param <T> The {@link PartialDataEntity} type.
+     * @param a The first {@link PartialDataEntity} compare.
+     * @param b The second {@link PartialDataEntity} to compare.
+     * @return {@code true} if both {@link PartialDataEntity}s represent the same database entity; otherwise, {@code false}.
      */
-    public static <T extends DataObject> boolean areSameRecord(T a, T b) {
+    public static <T extends PartialDataEntity> boolean areSameRecord(T a, T b) {
         if (null == a) {
             return null == b;
         }
@@ -63,23 +63,23 @@ public class ModelHelper {
     }
 
     /**
-     * Gets the primary key value for a {@link DataObject} object. If the target object has never been saved to the database or if it has been
+     * Gets the primary key value for a {@link PartialDataEntity} object. If the target object has never been saved to the database or if it has been
      * deleted, then this will return {@link Integer#MIN_VALUE}.
      *
-     * @param obj The target {@link DataObject} object.
-     * @return The value from {@link DataObject#getPrimaryKey()} or {@link Integer#MIN_VALUE} if the object does not have a valid primary key value.
+     * @param obj The target {@link PartialDataEntity} object.
+     * @return The value from {@link PartialDataEntity#getPrimaryKey()} or {@link Integer#MIN_VALUE} if the object does not have a valid primary key value.
      */
-    public static int getPrimaryKey(DataObject obj) {
+    public static int getPrimaryKey(PartialDataEntity obj) {
         if (existsInDatabase(obj)) {
             return obj.getPrimaryKey();
         }
         return Integer.MIN_VALUE;
     }
 
-    public static boolean existsInDatabase(DataObject obj) {
+    public static boolean existsInDatabase(PartialDataEntity obj) {
         if (null != obj) {
-            if (obj instanceof DataRecord) {
-                switch (((DataRecord<?>) obj).getRowState()) {
+            if (obj instanceof DataEntity) {
+                switch (((DataEntity<?>) obj).getRowState()) {
                     case MODIFIED:
                     case UNMODIFIED:
                         return true;
@@ -93,16 +93,16 @@ public class ModelHelper {
     }
 
     /**
-     * Asserts that the properties of a {@link DataAccessObject} can be applied to a {@link FxRecordModel}.
+     * Asserts that the properties of a {@link DataAccessObject} can be applied to a {@link EntityModelImpl}.
      *
      * @param <T> The {@link DataAccessObject} type.
-     * @param <U> The {@link FxRecordModel} type.
+     * @param <U> The {@link EntityModelImpl} type.
      * @param source The source {@link DataAccessObject}.
-     * @param targetFxModel The target {@link FxRecordModel}.
-     * @return The target {@link FxRecordModel}.
+     * @param targetFxModel The target {@link EntityModelImpl}.
+     * @return The target {@link EntityModelImpl}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>> U requiresAssignable(T source, U targetFxModel) {
+    public static <T extends DataAccessObject, U extends EntityModelImpl<T>> U requiresAssignable(T source, U targetFxModel) {
         Objects.requireNonNull(source);
         if (null != targetFxModel && targetFxModel.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
                 || targetFxModel.getPrimaryKey() != source.getPrimaryKey())) {
@@ -112,16 +112,16 @@ public class ModelHelper {
     }
 
     /**
-     * Asserts that the properties of a {@link FxRecordModel} can be applied to a {@link DataAccessObject}.
+     * Asserts that the properties of a {@link EntityModelImpl} can be applied to a {@link DataAccessObject}.
      *
-     * @param <T> The {@link FxRecordModel} type.
+     * @param <T> The {@link EntityModelImpl} type.
      * @param <U> The {@link DataAccessObject} type.
-     * @param source The source {@link FxRecordModel}.
+     * @param source The source {@link EntityModelImpl}.
      * @param targetDataAccessObject The target {@link DataAccessObject}.
      * @return The target {@link DataAccessObject}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends FxRecordModel<U>, U extends DataAccessObject> U requiresAssignable(T source, U targetDataAccessObject) {
+    public static <T extends EntityModelImpl<U>, U extends DataAccessObject> U requiresAssignable(T source, U targetDataAccessObject) {
         Objects.requireNonNull(source);
         if (null != targetDataAccessObject && targetDataAccessObject.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
                 || targetDataAccessObject.getPrimaryKey() != source.getPrimaryKey())) {

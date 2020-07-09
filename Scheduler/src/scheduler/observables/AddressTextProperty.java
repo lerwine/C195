@@ -4,11 +4,11 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import scheduler.dao.IAddressDAO;
 import scheduler.model.Customer;
-import scheduler.model.ui.CustomerItem;
 import scheduler.util.Values;
-import scheduler.model.ui.AddressItem;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialAddressModel;
 
 /**
  *
@@ -16,7 +16,7 @@ import scheduler.model.ui.AddressItem;
  */
 public class AddressTextProperty extends StringBinding implements ReadOnlyProperty<String> {
 
-    public static String convertToString(AddressItem<? extends IAddressDAO> address) {
+    public static String convertToString(PartialAddressModel<? extends PartialAddressDAO> address) {
         if (null == address) {
             return "";
         }
@@ -56,7 +56,7 @@ public class AddressTextProperty extends StringBinding implements ReadOnlyProper
     private final ReadOnlyProperty<String> cityZipCountry;
     private final ReadOnlyProperty<String> phone;
 
-    public AddressTextProperty(Object bean, String name, CustomerItem<? extends Customer> customer) {
+    public AddressTextProperty(Object bean, String name, PartialCustomerModel<? extends Customer> customer) {
         this.bean = bean;
         this.name = (null == name) ? "" : name;
         address1 = customer.address1Property();

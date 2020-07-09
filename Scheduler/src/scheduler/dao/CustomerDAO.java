@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -30,11 +29,10 @@ import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.model.Address;
 import scheduler.model.Customer;
-import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.PartialAddressModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -47,7 +45,7 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CUSTOMER)
-public final class CustomerDAO extends DataAccessObject implements ICustomerDAO, CustomerRecord<Timestamp> {
+public final class CustomerDAO extends DataAccessObject implements ICustomerDAO {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerDAO.class.getName()), Level.FINER);
@@ -60,7 +58,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     private final OriginalValues originalValues;
     private final EventHandler<AddressEvent> onAddressEvent;
     private String name;
-    private IAddressDAO address;
+    private PartialAddressDAO address;
     private boolean active;
     private WeakEventHandler<AddressEvent> addressChangeHandler;
 
@@ -75,11 +73,11 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         originalValues = new OriginalValues();
         onAddressEvent = (AddressEvent event) -> {
             LOG.entering(LOG.getName(), "onAddressEvent", event);
-            IAddressDAO newValue = event.getDataAccessObject();
+            PartialAddressDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
                 AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
                 addressChangeHandler = null;
-                IAddressDAO oldValue = address;
+                PartialAddressDAO oldValue = address;
                 address = newValue;
                 firePropertyChange(PROP_ADDRESS, oldValue, address);
             }
@@ -103,7 +101,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     }
 
     @Override
-    public IAddressDAO getAddress() {
+    public PartialAddressDAO getAddress() {
         return address;
     }
 
@@ -112,8 +110,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
      *
      * @param address new value of address
      */
-    private void setAddress(IAddressDAO address) {
-        IAddressDAO oldValue = this.address;
+    private void setAddress(PartialAddressDAO address) {
+        PartialAddressDAO oldValue = this.address;
         this.address = address;
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
         if (null == address || address instanceof AddressDAO) {
@@ -153,7 +151,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     @Override
     protected void onRejectChanges() {
         String oldName = name;
-        IAddressDAO oldAddress = address;
+        PartialAddressDAO oldAddress = address;
         boolean oldActive = active;
         name = originalValues.name;
         address = originalValues.address;
@@ -274,7 +272,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         protected void onCloneProperties(CustomerDAO fromDAO, CustomerDAO toDAO) {
             String oldName = toDAO.name;
-            IAddressDAO oldAddress = toDAO.address;
+            PartialAddressDAO oldAddress = toDAO.address;
             boolean oldActive = toDAO.active;
             toDAO.name = fromDAO.name;
             toDAO.address = fromDAO.address;
@@ -316,8 +314,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             return propertyChanges;
         }
 
-        ICustomerDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
-            return new Related(rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString()),
+        PartialCustomerDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
+            return new Partial(rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString()),
                     asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString())),
                     AddressDAO.FACTORY.fromJoinedResultSet(rs), rs.getBoolean(DbColumn.ACTIVE.toString()));
         }
@@ -391,14 +389,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         protected CustomerEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertSuccessEvent(getFxRecordModel(), this);
+                return CustomerEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return CustomerEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
+            return CustomerEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         public CustomerEvent validate(Connection connection) throws Exception {
-            CustomerModel targetModel = getFxRecordModel();
+            CustomerModel targetModel = getEntityModel();
             CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CustomerFailedEvent) {
                 return saveEvent;
@@ -437,7 +435,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 return CustomerEvent.createUpdateInvalidEvent(targetModel, this, MATCHING_ITEM_EXISTS);
             }
 
-            AddressItem<? extends IAddressDAO> addressModel = targetModel.getAddress();
+            PartialAddressModel<? extends PartialAddressDAO> addressModel = targetModel.getAddress();
             if (addressModel instanceof AddressModel) {
                 switch (addressModel.getRowState()) {
                     case NEW:
@@ -462,17 +460,17 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         protected CustomerEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
+                return CustomerEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
             }
-            return CustomerEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
+            return CustomerEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected CustomerEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertCanceledEvent(getFxRecordModel(), this);
+                return CustomerEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
-            return CustomerEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
+            return CustomerEvent.createUpdateCanceledEvent(getEntityModel(), this);
         }
 
     }
@@ -492,7 +490,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 
         @Override
         protected CustomerEvent createSuccessEvent() {
-            return CustomerEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
+            return CustomerEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -509,49 +507,49 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 case 0:
                     break;
                 case 1:
-                    return CustomerEvent.createDeleteInvalidEvent(getFxRecordModel(), this, REFERENCED_BY_ONE);
+                    return CustomerEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
                 default:
-                    return CustomerEvent.createDeleteInvalidEvent(getFxRecordModel(), this, String.format(REFERENCED_BY_N, count));
+                    return CustomerEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
             }
             return null;
         }
 
         @Override
         protected CustomerEvent createFaultedEvent() {
-            return CustomerEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
+            return CustomerEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected CustomerEvent createCanceledEvent() {
-            return CustomerEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
+            return CustomerEvent.createDeleteCanceledEvent(getEntityModel(), this);
         }
 
     }
 
-    public static class Related extends PropertyBindable implements ICustomerDAO {
+    public static class Partial extends PropertyBindable implements PartialCustomerDAO {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Related.class.getName()), Level.FINER);
-//        private static final Logger LOG = Logger.getLogger(Related.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final String name;
         private final EventHandler<AddressEvent> onAddressEvent;
-        private IAddressDAO address;
+        private PartialAddressDAO address;
         private final boolean active;
         private final int primaryKey;
         private WeakEventHandler<AddressEvent> addressChangeHandler;
 
-        private Related(int primaryKey, String name, IAddressDAO address, boolean active) {
+        private Partial(int primaryKey, String name, PartialAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.address = address;
             this.active = active;
             onAddressEvent = (AddressEvent event) -> {
                 LOG.entering(LOG.getName(), "onAddressEvent", event);
-                IAddressDAO newValue = event.getDataAccessObject();
+                PartialAddressDAO newValue = event.getDataAccessObject();
                 if (newValue.getPrimaryKey() == this.address.getPrimaryKey()) {
                     AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
                     addressChangeHandler = null;
-                    IAddressDAO oldValue = this.address;
+                    PartialAddressDAO oldValue = this.address;
                     this.address = newValue;
                     firePropertyChange(PROP_ADDRESS, oldValue, this.address);
                 }
@@ -568,7 +566,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         }
 
         @Override
-        public IAddressDAO getAddress() {
+        public PartialAddressDAO getAddress() {
             return address;
         }
 
@@ -611,7 +609,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     private class OriginalValues {
 
         private String name;
-        private IAddressDAO address;
+        private PartialAddressDAO address;
         private boolean active;
 
         private OriginalValues() {

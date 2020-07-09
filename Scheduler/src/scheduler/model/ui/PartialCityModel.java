@@ -5,16 +5,16 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CityDAO;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICountryDAO;
 import scheduler.model.City;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
+public interface PartialCityModel<T extends PartialCityDAO> extends City, PartialEntityModel<T> {
 
     /**
      * The name of the 'countryName' property.
@@ -29,7 +29,7 @@ public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
      */
     public static final String PROP_TIMEZONEDISPLAY = "timeZoneDisplay";
 
-    public static CityItem<? extends ICityDAO> createModel(ICityDAO t) {
+    public static PartialCityModel<? extends PartialCityDAO> createModel(PartialCityDAO t) {
         if (null == t) {
             return null;
         }
@@ -37,15 +37,15 @@ public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
             return new CityModel((CityDAO) t);
         }
 
-        return new RelatedCity(t);
+        return new PartialCityModelImpl(t);
     }
 
     ReadOnlyStringProperty nameProperty();
 
     @Override
-    public CountryItem<? extends ICountryDAO> getCountry();
+    public PartialCountryModel<? extends PartialCountryDAO> getCountry();
 
-    ReadOnlyProperty<? extends CountryItem<? extends ICountryDAO>> countryProperty();
+    ReadOnlyProperty<? extends PartialCountryModel<? extends PartialCountryDAO>> countryProperty();
 
     String getCountryName();
 
@@ -62,9 +62,9 @@ public interface CityItem<T extends ICityDAO> extends City, FxDbModel<T> {
     ReadOnlyStringProperty languageProperty();
 
     /**
-     * Gets the backing {@link ICityDAO} data access object.
+     * Gets the backing {@link PartialCityDAO} data access object.
      *
-     * @return The backing {@link ICityDAO} data access object.
+     * @return The backing {@link PartialCityDAO} data access object.
      */
     @Override
     T dataObject();

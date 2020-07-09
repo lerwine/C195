@@ -42,7 +42,7 @@ import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECON
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.COUNTRY)
-public final class CountryDAO extends DataAccessObject implements CountryDbRecord {
+public final class CountryDAO extends DataAccessObject implements ICountryDAO {
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CountryDAO.class.getName()), Level.FINER);
@@ -195,9 +195,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
-        ICountryDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
+        PartialCountryDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             String n = rs.getString(DbColumn.COUNTRY_NAME.toString());
-            return new Related(rs.getInt(DbColumn.CITY_COUNTRY.toString()), Locale.forLanguageTag(n));
+            return new Partial(rs.getInt(DbColumn.CITY_COUNTRY.toString()), Locale.forLanguageTag(n));
         }
 
         @Override
@@ -313,14 +313,14 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         @Override
         protected CountryEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertSuccessEvent(getFxRecordModel(), this);
+                return CountryEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return CountryEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
+            return CountryEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected CountryEvent validate(Connection connection) throws Exception {
-            CountryModel targetModel = getFxRecordModel();
+            CountryModel targetModel = getEntityModel();
             CountryEvent saveEvent = CountryModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CountryFailedEvent) {
                 return saveEvent;
@@ -366,17 +366,17 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         @Override
         protected CountryEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
+                return CountryEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
             }
-            return CountryEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
+            return CountryEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected CountryEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertCanceledEvent(getFxRecordModel(), this);
+                return CountryEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
-            return CountryEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
+            return CountryEvent.createUpdateCanceledEvent(getEntityModel(), this);
         }
 
     }
@@ -394,7 +394,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         @Override
         protected CountryEvent createSuccessEvent() {
-            return CountryEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
+            return CountryEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -411,32 +411,32 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 case 0:
                     break;
                 case 1:
-                    return CountryEvent.createDeleteInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                    return CountryEvent.createDeleteInvalidEvent(getEntityModel(), this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
                 default:
-                    return CountryEvent.createDeleteInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+                    return CountryEvent.createDeleteInvalidEvent(getEntityModel(), this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
             }
             return null;
         }
 
         @Override
         protected CountryEvent createFaultedEvent() {
-            return CountryEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
+            return CountryEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
         }
 
         @Override
         protected CountryEvent createCanceledEvent() {
-            return CountryEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
+            return CountryEvent.createDeleteCanceledEvent(getEntityModel(), this);
         }
 
     }
 
-    public final static class Related extends PropertyBindable implements ICountryDAO {
+    public final static class Partial extends PropertyBindable implements PartialCountryDAO {
 
         private final int primaryKey;
         private final String name;
         private final Locale locale;
 
-        private Related(int primaryKey, Locale locale) {
+        private Partial(int primaryKey, Locale locale) {
             this.primaryKey = primaryKey;
             this.locale = locale;
             this.name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);

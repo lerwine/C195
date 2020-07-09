@@ -1,16 +1,16 @@
 package scheduler.fx;
 
 import javafx.scene.control.ListCell;
-import scheduler.dao.ICountryDAO;
 import scheduler.model.CountryProperties;
-import scheduler.model.ui.CountryItem;
+import scheduler.dao.PartialCountryDAO;
+import scheduler.model.ui.PartialCountryModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class CountryListCell<T extends CountryItem<? extends ICountryDAO>> extends ListCell<T> {
+public class CountryListCell<T extends PartialCountryModel<? extends PartialCountryDAO>> extends ListCell<T> {
 
     @Override
     protected void updateItem(T item, boolean empty) {

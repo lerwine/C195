@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,13 +16,14 @@ import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.dao.IAddressDAO;
+import scheduler.dao.PartialAddressDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerOpRequestEvent;
 import scheduler.model.AddressProperties;
 import static scheduler.model.Customer.MAX_LENGTH_NAME;
+import scheduler.model.CustomerEntity;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -32,12 +34,12 @@ import scheduler.view.customer.CustomerModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CustomerModel extends FxRecordModel<CustomerDAO> implements CustomerItem<CustomerDAO> {
+public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements PartialCustomerModel<CustomerDAO>, CustomerEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
     private final NonNullableStringProperty name;
-    private final SimpleObjectProperty<AddressItem<? extends IAddressDAO>> address;
+    private final SimpleObjectProperty<PartialAddressModel<? extends PartialAddressDAO>> address;
     private final ReadOnlyStringBindingProperty address1;
     private final ReadOnlyStringBindingProperty address2;
     private final ReadOnlyStringBindingProperty cityName;
@@ -52,15 +54,15 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     public CustomerModel(CustomerDAO dao) {
         super(dao);
         name = new NonNullableStringProperty(this, PROP_NAME, dao.getName());
-        address = new SimpleObjectProperty<>(this, PROP_ADDRESS, AddressItem.createModel(dao.getAddress()));
+        address = new SimpleObjectProperty<>(this, PROP_ADDRESS, PartialAddressModel.createModel(dao.getAddress()));
         active = new SimpleBooleanProperty(this, PROP_ACTIVE, dao.isActive());
         address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));
         address2 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS2, Bindings.selectString(address, AddressProperties.PROP_ADDRESS2));
-        cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, AddressItem.PROP_CITYNAME));
-        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(address, AddressItem.PROP_COUNTRYNAME));
+        cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, PartialAddressModel.PROP_CITYNAME));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(address, PartialAddressModel.PROP_COUNTRYNAME));
         postalCode = new ReadOnlyStringBindingProperty(this, PROP_POSTALCODE, Bindings.selectString(address, AddressProperties.PROP_POSTALCODE));
         phone = new ReadOnlyStringBindingProperty(this, PROP_PHONE, Bindings.selectString(address, AddressProperties.PROP_PHONE));
-        cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY, Bindings.selectString(address, AddressItem.PROP_CITYZIPCOUNTRY));
+        cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY, Bindings.selectString(address, PartialAddressModel.PROP_CITYZIPCOUNTRY));
         addressText = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSTEXT,
                 () -> AddressModel.calculateSingleLineAddress(address1.get(), address2.get(), cityZipCountry.get(), phone.get()));
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
@@ -93,16 +95,16 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
     }
 
     @Override
-    public AddressItem<? extends IAddressDAO> getAddress() {
+    public PartialAddressModel<? extends PartialAddressDAO> getAddress() {
         return address.get();
     }
 
-    public void setAddress(AddressItem<? extends IAddressDAO> value) {
+    public void setAddress(PartialAddressModel<? extends PartialAddressDAO> value) {
         address.set(value);
     }
 
     @Override
-    public ObjectProperty<AddressItem<? extends IAddressDAO>> addressProperty() {
+    public ObjectProperty<PartialAddressModel<? extends PartialAddressDAO>> addressProperty() {
         return address;
     }
 
@@ -248,7 +250,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
+    public final static class Factory extends EntityModelImpl.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -304,7 +306,7 @@ public final class CustomerModel extends FxRecordModel<CustomerDAO> implements C
                     message = "Name too long";
                 } else {
                     AddressEvent event;
-                    AddressItem<? extends IAddressDAO> a = fxRecordModel.getAddress();
+                    PartialAddressModel<? extends PartialAddressDAO> a = fxRecordModel.getAddress();
                     if (null != a) {
                         if (a instanceof AddressModel) {
                             if (null == (event = AddressModel.FACTORY.validateForSave((AddressModel) a))) {

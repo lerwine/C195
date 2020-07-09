@@ -9,14 +9,14 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanIntegerPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import scheduler.dao.DataRowState;
-import scheduler.dao.DbObject;
+import scheduler.dao.PartialDataAccessObject;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public abstract class RelatedModel<T extends DbObject> implements FxDbModel<T> {
+public abstract class RelatedModel<T extends PartialDataAccessObject> implements PartialEntityModel<T> {
 
     private static final Logger LOG = Logger.getLogger(RelatedModel.class.getName());
 

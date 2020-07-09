@@ -48,9 +48,6 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
@@ -61,15 +58,12 @@ import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -89,6 +83,12 @@ import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.ui.PartialAddressModel;
 
 /**
  * FXML Controller class for editing a {@link CustomerModel}.
@@ -106,7 +106,7 @@ import scheduler.view.task.WaitTitledPane;
  * <dl>
  * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * <dd>&rarr; {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
  * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
@@ -125,7 +125,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
 
-    public static CustomerModel editNew(AddressItem<? extends IAddressDAO> address, Window parentWindow, boolean keepOpen) throws IOException {
+    public static CustomerModel editNew(PartialAddressModel<? extends PartialAddressDAO> address, Window parentWindow, boolean keepOpen) throws IOException {
         CustomerModel.Factory factory = CustomerModel.FACTORY;
         CustomerModel model = factory.createNew(factory.getDaoFactory().createNew());
         if (null != address) {
@@ -372,12 +372,12 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
-                EditAppointment.edit(event.getFxRecordModel(), getScene().getWindow());
+                EditAppointment.edit(event.getEntityModel(), getScene().getWindow());
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            deleteItem(event.getFxRecordModel());
+            deleteItem(event.getEntityModel());
         }
     }
 
@@ -393,7 +393,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         }
         if (null != c) {
             allCities.add(c);
-            CountryItem<? extends ICountryDAO> n = c.getCountry();
+            PartialCountryModel<? extends PartialCountryDAO> n = c.getCountry();
             int pk = n.getPrimaryKey();
             CountryModel sn = allCountries.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElseGet(() -> {
                 if (n instanceof CountryModel) {
@@ -484,8 +484,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         selectedCountry.addListener(this::onSelectedCountryChanged);
         selectedCity.addListener(this::onSelectedCityChanged);
         StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
-            CityItem<? extends ICityDAO> c = selectedCity.get();
-            CountryItem<? extends ICountryDAO> n = selectedCountry.get();
+            PartialCityModel<? extends PartialCityDAO> c = selectedCity.get();
+            PartialCountryModel<? extends PartialCountryDAO> n = selectedCountry.get();
             if (null == n) {
                 return "Country must be selected, first";
             }
@@ -554,8 +554,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
-    private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable,
-            CountryItem<? extends ICountryDAO> oldValue, CountryItem<? extends ICountryDAO> newValue) {
+    private void onSelectedCountryChanged(ObservableValue<? extends PartialCountryModel<? extends PartialCountryDAO>> observable,
+            PartialCountryModel<? extends PartialCountryDAO> oldValue, PartialCountryModel<? extends PartialCountryDAO> newValue) {
         LOG.fine(() -> String.format("Country selection changed from %s to %s", LogHelper.toLogText(oldValue), LogHelper.toLogText(newValue)));
         cityComboBox.getSelectionModel().clearSelection();
         cityOptions.clear();
@@ -566,8 +566,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         updateValidation();
     }
 
-    private void onSelectedCityChanged(ObservableValue<? extends CityItem<? extends ICityDAO>> observable, CityItem<? extends ICityDAO> oldValue,
-            CityItem<? extends ICityDAO> newValue) {
+    private void onSelectedCityChanged(ObservableValue<? extends PartialCityModel<? extends PartialCityDAO>> observable, PartialCityModel<? extends PartialCityDAO> oldValue,
+            PartialCityModel<? extends PartialCityDAO> newValue) {
         updateValidation();
     }
 
@@ -607,13 +607,13 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
+    public EntityModelImpl.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
         return CustomerModel.FACTORY;
     }
 
     private void loadData(int sameAddr, Tuple<AddressDAO, List<CityDAO>> addressAndCities, List<CountryDAO> countries) {
         addressCustomerCount.set(sameAddr);
-        AddressItem<? extends IAddressDAO> addrItem = model.getAddress();
+        PartialAddressModel<? extends PartialAddressDAO> addrItem = model.getAddress();
         AddressModel address;
         if (null != addrItem && addrItem instanceof AddressModel) {
             address = (AddressModel) addrItem;
@@ -621,8 +621,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             address = new AddressModel(addressAndCities.getValue1());
         }
         selectedAddress.set(address);
-        CityItem<? extends ICityDAO> city;
-        CountryItem<? extends ICountryDAO> country;
+        PartialCityModel<? extends PartialCityDAO> city;
+        PartialCountryModel<? extends PartialCountryDAO> country;
         city = address.getCity();
         if (null != city) {
             country = city.getCountry();
@@ -721,7 +721,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private class EditDataLoadTask extends Task<Quadruplet<List<AppointmentDAO>, Tuple<List<CustomerDAO>, Integer>, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>>> {
 
         private final AppointmentFilter filter;
-        private final IAddressDAO address;
+        private final PartialAddressDAO address;
         private final CustomerDAO dao;
 
         private EditDataLoadTask() {
@@ -786,7 +786,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     private class NewDataLoadTask extends Task<Quadruplet<List<CustomerDAO>, Integer, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>>> {
 
-        private final IAddressDAO address;
+        private final PartialAddressDAO address;
 
         private NewDataLoadTask() {
             address = model.dataObject().getAddress();
@@ -868,7 +868,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     // PENDING: (FIXME) The type EditCustomer.AddressCustomerLoadTask is never used locally
     private class AddressCustomerLoadTask extends Task<Integer> {
 
-        private final IAddressDAO address;
+        private final PartialAddressDAO address;
 
         private AddressCustomerLoadTask() {
             address = model.dataObject().getAddress();

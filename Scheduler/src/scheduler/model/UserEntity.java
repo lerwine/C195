@@ -7,6 +7,6 @@ import java.io.Serializable;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of object for date/time values
  */
-public interface CustomerRecord<T extends Serializable & Comparable<? super T>> extends DataRecord<T>, Customer {
+public interface UserEntity<T extends Serializable & Comparable<? super T>> extends DataEntity<T>, User {
 
 }

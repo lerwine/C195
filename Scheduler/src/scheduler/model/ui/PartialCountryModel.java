@@ -4,22 +4,22 @@ import java.util.Locale;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.ICountryDAO;
 import scheduler.model.Country;
+import scheduler.dao.PartialCountryDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T> {
+public interface PartialCountryModel<T extends PartialCountryDAO> extends Country, PartialEntityModel<T> {
 
     /**
      * The name of the 'language' property.
      */
     public static final String PROP_LANGUAGE = "language";
 
-    public static CountryItem<? extends ICountryDAO> createModel(ICountryDAO t) {
+    public static PartialCountryModel<? extends PartialCountryDAO> createModel(PartialCountryDAO t) {
         if (null == t) {
             return null;
         }
@@ -27,7 +27,7 @@ public interface CountryItem<T extends ICountryDAO> extends Country, FxDbModel<T
             return new CountryModel((CountryDAO) t);
         }
 
-        return new RelatedCountry(t);
+        return new PartialCountryModelImpl(t);
     }
 
     ReadOnlyStringProperty nameProperty();

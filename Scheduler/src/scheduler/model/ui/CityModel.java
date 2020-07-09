@@ -1,5 +1,6 @@
 package scheduler.model.ui;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -18,13 +19,14 @@ import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.dao.ICountryDAO;
+import scheduler.dao.PartialCountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CityEvent;
 import scheduler.events.CityOpRequestEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
+import scheduler.model.CityEntity;
 import scheduler.model.CityProperties;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
@@ -38,13 +40,13 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<CityDAO> {
+public final class CityModel extends EntityModelImpl<CityDAO> implements PartialCityModel<CityDAO>, CityEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
     private final StringProperty name;
     private final ObjectProperty<TimeZone> timeZone;
-    private final ObjectProperty<CountryItem<? extends ICountryDAO>> country;
+    private final ObjectProperty<PartialCountryModel<? extends PartialCountryDAO>> country;
     private final ReadOnlyStringBindingProperty timeZoneDisplay;
     private final ReadOnlyStringBindingProperty countryName;
     private final ReadOnlyStringBindingProperty language;
@@ -53,12 +55,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         super(dao);
         name = new SimpleStringProperty(this, PROP_NAME, dao.getName());
         timeZone = new SimpleObjectProperty<>(this, PROP_TIMEZONE, dao.getTimeZone());
-        country = new SimpleObjectProperty<>(this, PROP_COUNTRY, CountryItem.createModel(dao.getCountry()));
+        country = new SimpleObjectProperty<>(this, PROP_COUNTRY, PartialCountryModel.createModel(dao.getCountry()));
         timeZoneDisplay = new ReadOnlyStringBindingProperty(this, PROP_TIMEZONEDISPLAY, () -> {
             return CityProperties.getTimeZoneDisplayText(timeZone.get());
         }, timeZone);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
-        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, CountryItem.PROP_LANGUAGE));
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, PartialCountryModel.PROP_LANGUAGE));
     }
 
     @Override
@@ -76,16 +78,16 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
     }
 
     @Override
-    public CountryItem<? extends ICountryDAO> getCountry() {
+    public PartialCountryModel<? extends PartialCountryDAO> getCountry() {
         return country.get();
     }
 
-    public void setCountry(CountryItem<? extends ICountryDAO> value) {
+    public void setCountry(PartialCountryModel<? extends PartialCountryDAO> value) {
         country.set(value);
     }
 
     @Override
-    public ObjectProperty<CountryItem<? extends ICountryDAO>> countryProperty() {
+    public ObjectProperty<PartialCountryModel<? extends PartialCountryDAO>> countryProperty() {
         return country;
     }
 
@@ -170,7 +172,7 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<CityDAO, CityModel, CityEvent> {
+    public final static class Factory extends EntityModelImpl.FxModelFactory<CityDAO, CityModel, CityEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -250,12 +252,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                     } else if ((name.length() + zoneId.toZoneId().getId().length() + 1) > MAX_LENGTH_NAME) {
                         message = "Name too long";
                     } else {
-                        ICountryDAO country = dao.getCountry();
+                        PartialCountryDAO country = dao.getCountry();
                         if (null == country) {
                             message = "Country not specified";
                         } else {
                             CountryEvent event;
-                            CountryItem<? extends ICountryDAO> c = fxRecordModel.getCountry();
+                            PartialCountryModel<? extends PartialCountryDAO> c = fxRecordModel.getCountry();
                             if (null != c) {
                                 if (c instanceof CountryModel) {
                                     if (null == (event = CountryModel.FACTORY.validateForSave((CountryModel) c))) {

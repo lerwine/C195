@@ -15,7 +15,7 @@ import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.LogHelper;
 
 /**
@@ -25,7 +25,7 @@ import scheduler.util.LogHelper;
  * @param <M> The target item type.
  * @param <E> The event type.
  */
-public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends OperationRequestEvent<D, M>>
+public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends OperationRequestEvent<D, M>>
         implements Callback<TableColumn<M, M>, TableCell<M, M>>, EventTarget {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);
@@ -39,7 +39,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>();
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
-            FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getFactory();
+            EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getFactory();
             if (null != oldValue) {
                 eventHandlerManager.removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
             }
@@ -76,7 +76,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         return new ItemEditTableCell<>(this);
     }
 
-    public abstract FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> getFactory();
+    public abstract EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> getFactory();
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

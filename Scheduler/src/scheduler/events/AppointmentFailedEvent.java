@@ -341,7 +341,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         hash = 79 * hash + Objects.hashCode(failKind);
         hash = 79 * hash + Objects.hashCode(getOperation());
         hash = 79 * hash + Objects.hashCode(getDataAccessObject());
-        hash = 79 * hash + Objects.hashCode(getFxRecordModel());
+        hash = 79 * hash + Objects.hashCode(getEntityModel());
         hash = 79 * hash + Objects.hashCode(getEventType().getName());
         hash = 79 * hash + Objects.hashCode(getTarget());
         hash = 79 * hash + Objects.hashCode(getSource());

@@ -28,7 +28,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.LogHelper;
@@ -44,14 +44,14 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.WaitBorderPane;
 
 /**
- * The parent FXML custom control for editing {@link FxRecordModel} items in a new modal window.
+ * The parent FXML custom control for editing {@link EntityModelImpl} items in a new modal window.
  * <p>
  * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
- * values for the {@link FxRecordModel#getCreatedBy()}, {@link FxRecordModel#getCreateDate()}, {@link FxRecordModel#getLastModifiedBy()} and
- * {@link FxRecordModel#getLastModifiedDate()} properties. Properties that are specific to the {@link FxRecordModel} type are edited in a child
+ * values for the {@link EntityModelImpl#getCreatedBy()}, {@link EntityModelImpl#getCreateDate()}, {@link EntityModelImpl#getLastModifiedBy()} and
+ * {@link EntityModelImpl#getLastModifiedDate()} properties. Properties that are specific to the {@link EntityModelImpl} type are edited in a child
  * {@link EditItem.ModelEditor} custom control.</p>
  * <p>
- * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method.</p>
+ * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method.</p>
  * <p>
  * The view for this controller is {@code /resources/scheduler/view/EditItem.fxml}.</p>
  *
@@ -63,16 +63,16 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
     /**
-     * Opens a new window for editing an {@link FxRecordModel} item.
+     * Opens a new window for editing an {@link EntityModelImpl} item.
      *
      * @param <T> The type of data access object.
-     * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
+     * @param <U> The type of {@link EntityModelImpl} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditor} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window
@@ -82,7 +82,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
@@ -99,10 +99,10 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     }
 
     /**
-     * Opens a new window for editing an {@link FxRecordModel} item.
+     * Opens a new window for editing an {@link EntityModelImpl} item.
      *
      * @param <T> The type of data access object.
-     * @param <U> The type of {@link FxRecordModel} that corresponds to the data access object.
+     * @param <U> The type of {@link EntityModelImpl} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditor} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window
@@ -112,7 +112,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
      * @return
      * @throws IOException
      */
-    public static <T extends DataAccessObject, U extends FxRecordModel<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -306,22 +306,22 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
     }
 
     /**
-     * Base class for editing specific {@link FxRecordModel} items. Derived controls are intended to be instantiated through the
-     * {@link EditItem#showAndWait(Window, Class, FxRecordModel, boolean)} method. This control will be inserted as the first child node of the parent
+     * Base class for editing specific {@link EntityModelImpl} items. Derived controls are intended to be instantiated through the
+     * {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method. This control will be inserted as the first child node of the parent
      * {@code EditItem} control.
      *
-     * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link FxRecordModel}.
-     * @param <U> The {@link FxRecordModel} type.
+     * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link EntityModelImpl}.
+     * @param <U> The {@link EntityModelImpl} type.
      * @param <E> The {@link ModelEvent} type.
      */
-    public interface ModelEditor<T extends DataAccessObject, U extends FxRecordModel<T>, E extends ModelEvent<T, U>> {
+    public interface ModelEditor<T extends DataAccessObject, U extends EntityModelImpl<T>, E extends ModelEvent<T, U>> {
 
         /**
-         * Gets the factory object for managing the current {@link FxRecordModel}.
+         * Gets the factory object for managing the current {@link EntityModelImpl}.
          *
-         * @return The factory object for managing the current {@link FxRecordModel}.
+         * @return The factory object for managing the current {@link EntityModelImpl}.
          */
-        FxRecordModel.FxModelFactory<T, U, E> modelFactory();
+        EntityModelImpl.FxModelFactory<T, U, E> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.
@@ -354,7 +354,7 @@ public final class EditItem<T extends DataAccessObject, U extends FxRecordModel<
         ReadOnlyBooleanProperty modifiedProperty();
 
         /**
-         * Applies changes to the underlying {@link FxRecordModel}.
+         * Applies changes to the underlying {@link EntityModelImpl}.
          */
         void applyChanges();
     }

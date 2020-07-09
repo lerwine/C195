@@ -17,8 +17,8 @@ import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.dao.ICustomerDAO;
-import scheduler.dao.IUserDAO;
+import scheduler.dao.PartialCustomerDAO;
+import scheduler.dao.PartialUserDAO;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.CustomerEvent;
@@ -27,6 +27,7 @@ import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.model.Address;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
+import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
@@ -47,7 +48,8 @@ import scheduler.view.appointment.AppointmentModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implements AppointmentItem<AppointmentDAO> {
+public final class AppointmentModel extends EntityModelImpl<AppointmentDAO> implements PartialAppointmentModel<AppointmentDAO>,
+        AppointmentEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -108,7 +110,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         return x.compareTo(y);
     }
 
-    private final SimpleObjectProperty<CustomerItem<? extends ICustomerDAO>> customer;
+    private final SimpleObjectProperty<PartialCustomerModel<? extends PartialCustomerDAO>> customer;
     private final ReadOnlyStringBindingProperty customerName;
     private final ReadOnlyStringBindingProperty customerAddress1;
     private final ReadOnlyStringBindingProperty customerAddress2;
@@ -119,7 +121,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     private final ReadOnlyStringBindingProperty customerAddressText;
     private final ReadOnlyStringBindingProperty customerCityZipCountry;
     private final ReadOnlyBooleanBindingProperty customerActive;
-    private final SimpleObjectProperty<UserItem<? extends IUserDAO>> user;
+    private final SimpleObjectProperty<PartialUserModel<? extends PartialUserDAO>> user;
     private final ReadOnlyStringBindingProperty userName;
     private final ReadOnlyObjectBindingProperty<UserStatus> userStatus;
     private final ReadOnlyStringBindingProperty userStatusDisplay;
@@ -137,31 +139,31 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     @SuppressWarnings("incomplete-switch")
     public AppointmentModel(final AppointmentDAO dao) {
         super(dao);
-        customer = new SimpleObjectProperty<>(this, PROP_CUSTOMER, CustomerItem.createModel(dao.getCustomer()));
+        customer = new SimpleObjectProperty<>(this, PROP_CUSTOMER, PartialCustomerModel.createModel(dao.getCustomer()));
         customerName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERNAME, Bindings.selectString(customer, Customer.PROP_NAME));
         customerAddress1 = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERADDRESS1,
                 Bindings.selectString(customer, Address.PROP_ADDRESS1));
         customerAddress2 = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERADDRESS2,
                 Bindings.selectString(customer, Address.PROP_ADDRESS2));
         customerCityName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERCITYNAME,
-                Bindings.selectString(customer, CustomerItem.PROP_CITYNAME));
+                Bindings.selectString(customer, PartialCustomerModel.PROP_CITYNAME));
         customerCountryName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERCOUNTRYNAME,
-                Bindings.selectString(customer, CustomerItem.PROP_COUNTRYNAME));
+                Bindings.selectString(customer, PartialCustomerModel.PROP_COUNTRYNAME));
         customerPostalCode = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERPOSTALCODE,
                 Bindings.selectString(customer, Address.PROP_POSTALCODE));
         customerPhone = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERPHONE,
                 Bindings.selectString(customer, Address.PROP_PHONE));
         customerCityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERCITYZIPCOUNTRY,
-                Bindings.selectString(customer, CustomerItem.PROP_CITYZIPCOUNTRY));
+                Bindings.selectString(customer, PartialCustomerModel.PROP_CITYZIPCOUNTRY));
         customerAddressText = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERADDRESSTEXT,
-                Bindings.selectString(customer, CustomerItem.PROP_ADDRESSTEXT));
+                Bindings.selectString(customer, PartialCustomerModel.PROP_ADDRESSTEXT));
         customerActive = new ReadOnlyBooleanBindingProperty(this, PROP_CUSTOMERACTIVE,
                 Bindings.selectBoolean(customer, Customer.PROP_ACTIVE));
-        user = new SimpleObjectProperty<>(this, PROP_USER, UserItem.createModel(dao.getUser()));
+        user = new SimpleObjectProperty<>(this, PROP_USER, PartialUserModel.createModel(dao.getUser()));
         userName = new ReadOnlyStringBindingProperty(this, PROP_USERNAME, Bindings.selectString(user, User.PROP_USERNAME));
         userStatus = new ReadOnlyObjectBindingProperty<>(this, PROP_USERSTATUS, Bindings.select(user, User.PROP_STATUS));
         userStatusDisplay = new ReadOnlyStringBindingProperty(this, PROP_USERSTATUSDISPLAY,
-                Bindings.selectString(user, UserItem.PROP_STATUSDISPLAY));
+                Bindings.selectString(user, PartialUserModel.PROP_STATUSDISPLAY));
         title = new NonNullableStringProperty(this, PROP_TYPE, dao.getTitle());
         description = new NonNullableStringProperty(this, PROP_DESCRIPTION, dao.getDescription());
         location = new NonNullableStringProperty(this, PROP_LOCATION, dao.getLocation());
@@ -209,16 +211,16 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public CustomerItem<? extends ICustomerDAO> getCustomer() {
+    public PartialCustomerModel<? extends PartialCustomerDAO> getCustomer() {
         return customer.get();
     }
 
-    public void setCustomer(final CustomerItem<? extends ICustomerDAO> value) {
+    public void setCustomer(final PartialCustomerModel<? extends PartialCustomerDAO> value) {
         customer.set(value);
     }
 
     @Override
-    public ObjectProperty<? extends CustomerItem<? extends ICustomerDAO>> customerProperty() {
+    public ObjectProperty<? extends PartialCustomerModel<? extends PartialCustomerDAO>> customerProperty() {
         return customer;
     }
 
@@ -323,16 +325,16 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
     }
 
     @Override
-    public UserItem<? extends IUserDAO> getUser() {
+    public PartialUserModel<? extends PartialUserDAO> getUser() {
         return user.get();
     }
 
-    public void setUser(final UserItem<? extends IUserDAO> value) {
+    public void setUser(final PartialUserModel<? extends PartialUserDAO> value) {
         user.set(value);
     }
 
     @Override
-    public ObjectProperty<UserItem<? extends IUserDAO>> userProperty() {
+    public ObjectProperty<PartialUserModel<? extends PartialUserDAO>> userProperty() {
         return user;
     }
 
@@ -554,7 +556,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public final static class Factory extends EntityModelImpl.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
             super();
@@ -643,14 +645,14 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                     if (null == message) {
                         CustomerEvent customerEvent = null;
                         UserEvent userEvent = null;
-                        final CustomerItem<? extends ICustomerDAO> customer = fxRecordModel.getCustomer();
+                        final PartialCustomerModel<? extends PartialCustomerDAO> customer = fxRecordModel.getCustomer();
                         if (null == customer) {
                             message = "Customer not specified";
                         } else if (customer instanceof CustomerModel) {
                             customerEvent = CustomerModel.FACTORY.validateForSave((CustomerModel) customer);
                             if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
                                 customerEvent = null;
-                                final UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
+                                final PartialUserModel<? extends PartialUserDAO> user = fxRecordModel.getUser();
                                 if (null == user) {
                                     message = "User not specified";
                                 } else if (user instanceof UserModel) {

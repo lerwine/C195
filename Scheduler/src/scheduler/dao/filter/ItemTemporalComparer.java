@@ -5,16 +5,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import scheduler.dao.DataAccessObject;
 import scheduler.util.DB;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 
 /**
- * Compares {@link DataAccessObject} and {@link FxRecordModel} to {@link LocalDateTime}, {@link LocalDate} and {@link Timestamp} values.
+ * Compares {@link DataAccessObject} and {@link EntityModelImpl} to {@link LocalDateTime}, {@link LocalDate} and {@link Timestamp} values.
  *
  * @param <T> The type of {@link DataAccessObject} object.
- * @param <U> The type of {@link FxRecordModel} object.
+ * @param <U> The type of {@link EntityModelImpl} object.
  @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRecordModel<T>> extends ItemValueComparer<T, U, LocalDateTime> {
+public interface ItemTemporalComparer<T extends DataAccessObject, U extends EntityModelImpl<T>> extends ItemValueComparer<T, U, LocalDateTime> {
 
     @Override
     public default LocalDateTime get(T dao) {
@@ -30,20 +30,20 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     Timestamp getTimestamp(T dao);
 
     /**
-     * Gets the {@link Timestamp} value associated with the target {@link FxRecordModel}.
+     * Gets the {@link Timestamp} value associated with the target {@link EntityModelImpl}.
      *
-     * @param model The target {@link FxRecordModel}.
-     * @return The value associated with the target {@link FxRecordModel}.
+     * @param model The target {@link EntityModelImpl}.
+     * @return The value associated with the target {@link EntityModelImpl}.
      */
     default Timestamp getTimestamp(U model) {
         return DB.toUtcTimestamp(get(model));
     }
 
     /**
-     * Gets the {@link LocalDate} value associated with the target {@link FxRecordModel}.
+     * Gets the {@link LocalDate} value associated with the target {@link EntityModelImpl}.
      *
-     * @param model The target {@link FxRecordModel}.
-     * @return The value associated with the target {@link FxRecordModel}.
+     * @param model The target {@link EntityModelImpl}.
+     * @return The value associated with the target {@link EntityModelImpl}.
      */
     default LocalDate getLocalDate(U model) {
         return get(model).toLocalDate();
@@ -99,11 +99,11 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     /**
      * Compares the value associated with a {@link DataAccessObject} object a {@link LocalDateTime} value.
      *
-     * @param model The target {@link FxRecordModel}.
+     * @param model The target {@link EntityModelImpl}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link FxRecordModel} object is equal to {@code value}. If the value associated with a
-     * {@link FxRecordModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link FxRecordModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModelImpl} object is equal to {@code value}. If the value associated with a
+     * {@link EntityModelImpl} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link EntityModelImpl} object is greater than {@code value}.
      */
     default int compareTo(U model, LocalDateTime value) {
         LocalDateTime s = get(model);
@@ -133,11 +133,11 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     /**
      * Compares the value associated with a {@link DataAccessObject} object a {@link LocalDate} value.
      *
-     * @param model The target {@link FxRecordModel}.
+     * @param model The target {@link EntityModelImpl}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link FxRecordModel} object is equal to {@code value}. If the value associated with a
-     * {@link FxRecordModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link FxRecordModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModelImpl} object is equal to {@code value}. If the value associated with a
+     * {@link EntityModelImpl} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link EntityModelImpl} object is greater than {@code value}.
      */
     default int compareTo(U model, LocalDate value) {
         LocalDate s = getLocalDate(model);
@@ -167,11 +167,11 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends FxRe
     /**
      * Compares the value associated with a {@link DataAccessObject} object a {@link Timestamp} value.
      *
-     * @param model The target {@link FxRecordModel}.
+     * @param model The target {@link EntityModelImpl}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link FxRecordModel} object is equal to {@code value}. If the value associated with a
-     * {@link FxRecordModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link FxRecordModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModelImpl} object is equal to {@code value}. If the value associated with a
+     * {@link EntityModelImpl} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link EntityModelImpl} object is greater than {@code value}.
      */
     default int compareTo(U model, Timestamp value) {
         Timestamp s = getTimestamp(model);

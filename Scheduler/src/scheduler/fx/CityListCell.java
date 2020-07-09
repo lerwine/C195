@@ -2,16 +2,16 @@ package scheduler.fx;
 
 import java.util.logging.Logger;
 import javafx.scene.control.ListCell;
-import scheduler.dao.ICityDAO;
-import scheduler.model.ui.CityItem;
 import scheduler.util.LogHelper;
+import scheduler.dao.PartialCityDAO;
+import scheduler.model.ui.PartialCityModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class CityListCell<T extends CityItem<? extends ICityDAO>> extends ListCell<T> {
+public class CityListCell<T extends PartialCityModel<? extends PartialCityDAO>> extends ListCell<T> {
 
     @Override
     protected void updateItem(T item, boolean empty) {

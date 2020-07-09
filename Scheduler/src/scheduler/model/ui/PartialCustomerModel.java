@@ -3,16 +3,16 @@ package scheduler.model.ui;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ObservableBooleanValue;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICustomerDAO;
 import scheduler.model.Customer;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCustomerDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbModel<T> {
+public interface PartialCustomerModel<T extends PartialCustomerDAO> extends Customer, PartialEntityModel<T> {
 
     /**
      * The name of the 'address1' property.
@@ -59,7 +59,7 @@ public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbMode
      */
     public static final String PROP_PHONE = "phone";
 
-    public static CustomerItem<? extends ICustomerDAO> createModel(ICustomerDAO t) {
+    public static PartialCustomerModel<? extends PartialCustomerDAO> createModel(PartialCustomerDAO t) {
         if (null == t) {
             return null;
         }
@@ -67,7 +67,7 @@ public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbMode
             return new CustomerModel((CustomerDAO) t);
         }
 
-        return new RelatedCustomer(t);
+        return new PartialCustomerModelImpl(t);
     }
 
     /**
@@ -78,14 +78,14 @@ public interface CustomerItem<T extends ICustomerDAO> extends Customer, FxDbMode
     ReadOnlyProperty<String> nameProperty();
 
     @Override
-    public AddressItem<? extends IAddressDAO> getAddress();
+    public PartialAddressModel<? extends PartialAddressDAO> getAddress();
 
     /**
      * Gets the property that contains the address model associated with the customer.
      *
      * @return The property that contains the address model associated with the customer.
      */
-    ReadOnlyProperty<? extends AddressItem<? extends IAddressDAO>> addressProperty();
+    ReadOnlyProperty<? extends PartialAddressModel<? extends PartialAddressDAO>> addressProperty();
 
     String getAddressText();
 

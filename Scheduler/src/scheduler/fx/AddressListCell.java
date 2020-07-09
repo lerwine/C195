@@ -1,18 +1,18 @@
 package scheduler.fx;
 
 import javafx.scene.control.ListCell;
-import scheduler.dao.IAddressDAO;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
-import scheduler.model.ui.AddressItem;
 import scheduler.model.CountryProperties;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.model.ui.PartialAddressModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class AddressListCell<T extends AddressItem<? extends IAddressDAO>> extends ListCell<T> {
+public class AddressListCell<T extends PartialAddressModel<? extends PartialAddressDAO>> extends ListCell<T> {
 
     @Override
     protected void updateItem(T item, boolean empty) {

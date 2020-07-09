@@ -6,7 +6,7 @@ import scheduler.util.ToStringPropertyBuilder;
 /**
  * Base interface for all objects that represent a database entity.
  */
-public interface DataObject {
+public interface PartialDataEntity {
 
     /**
      * The name of the 'primaryKey' property.

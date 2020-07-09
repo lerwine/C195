@@ -41,10 +41,8 @@ import scheduler.dao.DataAccessObject;
 import scheduler.model.Customer;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CustomerItem;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.FxRecordModel;
-import scheduler.model.ui.UserItem;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.model.ui.UserModel;
 import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
@@ -52,6 +50,8 @@ import scheduler.util.ResourceBundleHelper;
 import scheduler.util.TernarySelective;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
 
 /**
  * Binding to validate date and time controls.
@@ -432,7 +432,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
 
             if (observable instanceof ReadOnlyObjectProperty) {
                 list = conflictingAppointments;
-                FxRecordModel<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends FxRecordModel<? extends DataAccessObject>>) observable).get();
+                EntityModelImpl<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends EntityModelImpl<? extends DataAccessObject>>) observable).get();
                 if (null != obj) {
                     if (obj instanceof CustomerModel) {
                         sc = (CustomerModel) obj;
@@ -470,8 +470,8 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
                 int upk = su.getPrimaryKey();
                 while (iterator.hasNext()) {
                     AppointmentModel m = iterator.next();
-                    CustomerItem<? extends Customer> cm = m.getCustomer();
-                    UserItem<? extends User> um = m.getUser();
+                    PartialCustomerModel<? extends Customer> cm = m.getCustomer();
+                    PartialUserModel<? extends User> um = m.getUser();
                     if (null == cm || cm.getPrimaryKey() != cpk) {
                         uc++;
                     } else {

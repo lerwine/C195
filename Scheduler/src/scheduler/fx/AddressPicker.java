@@ -28,13 +28,7 @@ import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
-import scheduler.dao.ICountryDAO;
 import static scheduler.fx.AddressPickerResourceKeys.*;
-import scheduler.model.ui.AddressItem;
-import scheduler.model.ui.CityItem;
-import scheduler.model.ui.CountryItem;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -43,6 +37,12 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.WaitBorderPane;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.ui.PartialAddressModel;
 
 /**
  * FXML Controller class
@@ -55,13 +55,13 @@ public class AddressPicker extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(AddressPicker.class.getName());
 
-    private final ObjectProperty<AddressItem<? extends IAddressDAO>> selectedAddress;
-    private final ObservableList<CityItem<? extends ICityDAO>> allCities;
-    private final ObservableList<CityItem<? extends ICityDAO>> cityOptions;
-    private final ObservableList<CountryItem<? extends ICountryDAO>> allCountries;
-    private final ObservableList<AddressItem<? extends IAddressDAO>> allAddresses;
-    private final ObservableList<AddressItem<? extends IAddressDAO>> addressOptions;
-    private ObjectBinding<AddressItem<? extends IAddressDAO>> candidateAddress;
+    private final ObjectProperty<PartialAddressModel<? extends PartialAddressDAO>> selectedAddress;
+    private final ObservableList<PartialCityModel<? extends PartialCityDAO>> allCities;
+    private final ObservableList<PartialCityModel<? extends PartialCityDAO>> cityOptions;
+    private final ObservableList<PartialCountryModel<? extends PartialCountryDAO>> allCountries;
+    private final ObservableList<PartialAddressModel<? extends PartialAddressDAO>> allAddresses;
+    private final ObservableList<PartialAddressModel<? extends PartialAddressDAO>> addressOptions;
+    private ObjectBinding<PartialAddressModel<? extends PartialAddressDAO>> candidateAddress;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -70,13 +70,13 @@ public class AddressPicker extends BorderPane {
     private Button selectButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="countryListView"
-    private ListView<CountryItem<? extends ICountryDAO>> countryListView; // Value injected by FXMLLoader
+    private ListView<PartialCountryModel<? extends PartialCountryDAO>> countryListView; // Value injected by FXMLLoader
 
     @FXML // fx:id="cityListView"
-    private ListView<CityItem<? extends ICityDAO>> cityListView; // Value injected by FXMLLoader
+    private ListView<PartialCityModel<? extends PartialCityDAO>> cityListView; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressesTableView"
-    private TableView<AddressItem<? extends IAddressDAO>> addressesTableView; // Value injected by FXMLLoader
+    private TableView<PartialAddressModel<? extends PartialAddressDAO>> addressesTableView; // Value injected by FXMLLoader
 
     @FXML // fx:id="addressesPlaceHolderLabel"
     private Label addressesPlaceHolderLabel; // Value injected by FXMLLoader
@@ -119,8 +119,8 @@ public class AddressPicker extends BorderPane {
 
         collapseNode(this);
 
-        ObjectBinding<CountryItem<? extends ICountryDAO>> selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
-        ObjectBinding<CityItem<? extends ICityDAO>> selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
+        ObjectBinding<PartialCountryModel<? extends PartialCountryDAO>> selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
+        ObjectBinding<PartialCityModel<? extends PartialCityDAO>> selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
         candidateAddress = Bindings.select(addressesTableView.selectionModelProperty(), "selectedItem");
         StringBinding placeHolderTextBinding = Bindings.when(selectedCountry.isNull())
                 .then(resources.getString(RESOURCEKEY_COUNTRYNOTSELECTED))
@@ -135,20 +135,20 @@ public class AddressPicker extends BorderPane {
         cityListView.setItems(cityOptions);
     }
 
-    public AddressItem<? extends IAddressDAO> getSelectedAddress() {
+    public PartialAddressModel<? extends PartialAddressDAO> getSelectedAddress() {
         return selectedAddress.get();
     }
 
-    public void setSelectedAddress(AddressItem<? extends IAddressDAO> value) {
+    public void setSelectedAddress(PartialAddressModel<? extends PartialAddressDAO> value) {
         selectedAddress.set(value);
     }
 
-    public ObjectProperty<AddressItem<? extends IAddressDAO>> selectedAddressProperty() {
+    public ObjectProperty<PartialAddressModel<? extends PartialAddressDAO>> selectedAddressProperty() {
         return selectedAddress;
     }
 
-    private void onSelectedCountryChanged(ObservableValue<? extends CountryItem<? extends ICountryDAO>> observable,
-            CountryItem<? extends ICountryDAO> oldValue, CountryItem<? extends ICountryDAO> newValue) {
+    private void onSelectedCountryChanged(ObservableValue<? extends PartialCountryModel<? extends PartialCountryDAO>> observable,
+            PartialCountryModel<? extends PartialCountryDAO> oldValue, PartialCountryModel<? extends PartialCountryDAO> newValue) {
         addressesTableView.getSelectionModel().clearSelection();
         cityListView.getSelectionModel().clearSelection();
         cityOptions.clear();
@@ -156,20 +156,20 @@ public class AddressPicker extends BorderPane {
         if (null != newValue) {
             int pk = newValue.getPrimaryKey();
             allCities.stream().filter((t) -> {
-                CountryItem<? extends ICountryDAO> c = t.getCountry();
+                PartialCountryModel<? extends PartialCountryDAO> c = t.getCountry();
                 return null != c && c.getPrimaryKey() == pk;
             }).forEach((t) -> cityOptions.add(t));
         }
     }
 
-    private void onSelectedCityChanged(ObservableValue<? extends CityItem<? extends ICityDAO>> observable,
-            CityItem<? extends ICityDAO> oldValue, CityItem<? extends ICityDAO> newValue) {
+    private void onSelectedCityChanged(ObservableValue<? extends PartialCityModel<? extends PartialCityDAO>> observable,
+            PartialCityModel<? extends PartialCityDAO> oldValue, PartialCityModel<? extends PartialCityDAO> newValue) {
         addressesTableView.getSelectionModel().clearSelection();
         addressOptions.clear();
         if (null != newValue) {
             int pk = newValue.getPrimaryKey();
             allAddresses.stream().filter((t) -> {
-                CityItem<? extends ICityDAO> c = t.getCity();
+                PartialCityModel<? extends PartialCityDAO> c = t.getCity();
                 return null != c && c.getPrimaryKey() == pk;
             }).forEach((t) -> addressOptions.add(t));
         }
@@ -191,40 +191,40 @@ public class AddressPicker extends BorderPane {
     }
 
     private void loadOptions(List<AddressDAO> addresses, List<CityDAO> cities, List<CountryDAO> countries) {
-        AddressItem<? extends IAddressDAO> addr = selectedAddress.get();
-        CityItem<? extends ICityDAO> selectedCity;
+        PartialAddressModel<? extends PartialAddressDAO> addr = selectedAddress.get();
+        PartialCityModel<? extends PartialCityDAO> selectedCity;
         if (null == addr) {
             selectedCity = null;
-            addresses.forEach((t) -> allAddresses.add(AddressItem.createModel(t)));
+            addresses.forEach((t) -> allAddresses.add(PartialAddressModel.createModel(t)));
         } else {
             selectedCity = addr.getCity();
             if (addr.getRowState() == DataRowState.NEW) {
-                addresses.forEach((t) -> allAddresses.add(AddressItem.createModel(t)));
+                addresses.forEach((t) -> allAddresses.add(PartialAddressModel.createModel(t)));
             } else {
                 final int pk = addr.getPrimaryKey();
-                addresses.forEach((t) -> allAddresses.add((pk == t.getPrimaryKey()) ? addr : AddressItem.createModel(t)));
+                addresses.forEach((t) -> allAddresses.add((pk == t.getPrimaryKey()) ? addr : PartialAddressModel.createModel(t)));
             }
         }
 
-        CountryItem<? extends ICountryDAO> selectedCountry;
+        PartialCountryModel<? extends PartialCountryDAO> selectedCountry;
         if (null == selectedCity) {
             selectedCountry = null;
-            cities.forEach((t) -> allCities.add(CityItem.createModel(t)));
+            cities.forEach((t) -> allCities.add(PartialCityModel.createModel(t)));
         } else {
             selectedCountry = selectedCity.getCountry();
             if (selectedCity.getRowState() == DataRowState.NEW) {
-                cities.forEach((t) -> allCities.add(CityItem.createModel(t)));
+                cities.forEach((t) -> allCities.add(PartialCityModel.createModel(t)));
             } else {
                 final int pk = selectedCity.getPrimaryKey();
-                cities.forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? selectedCity : CityItem.createModel(t)));
+                cities.forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? selectedCity : PartialCityModel.createModel(t)));
             }
         }
 
         if (null == selectedCountry || selectedCountry.getRowState() == DataRowState.NEW) {
-            countries.forEach((t) -> allCountries.add(CountryItem.createModel(t)));
+            countries.forEach((t) -> allCountries.add(PartialCountryModel.createModel(t)));
         } else {
             final int pk = selectedCountry.getPrimaryKey();
-            countries.forEach((t) -> allCountries.add((t.getPrimaryKey() == pk) ? selectedCountry : CountryItem.createModel(t)));
+            countries.forEach((t) -> allCountries.add((t.getPrimaryKey() == pk) ? selectedCountry : PartialCountryModel.createModel(t)));
             countryListView.getSelectionModel().select(selectedCountry);
             if (null != selectedCity && selectedCity.getRowState() != DataRowState.NEW) {
                 cityListView.getSelectionModel().select(selectedCity);

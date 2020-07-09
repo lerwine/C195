@@ -16,7 +16,7 @@ import javafx.scene.layout.HBox;
 import scheduler.dao.DataAccessObject;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.LogHelper;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.createSymbolButton;
@@ -29,20 +29,20 @@ import scheduler.view.SymbolText;
  * @param <M> The target item type.
  * @param <E> The event type.
  */
-public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRecordModel<D>, E extends OperationRequestEvent<D, M>>
+public final class ItemEditTableCell<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends OperationRequestEvent<D, M>>
         extends TableCell<M, M> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
-    private final FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> modelFactory;
+    private final EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> modelFactory;
     private final HBox graphic;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
     private final WeakReference<? extends ItemEditTableCellFactory<D, M, ? extends OperationRequestEvent<D, M>>> cellFactory;
 
     @SuppressWarnings("unchecked")
     public ItemEditTableCell(ItemEditTableCellFactory<D, M, ? extends ModelEvent<D, M>> factory) {
-//    public ItemEditTableCell(FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
+//    public ItemEditTableCell(EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
         onItemActionRequest = new SimpleObjectProperty<>();
         cellFactory = new WeakReference<>(factory);
         modelFactory = factory.getFactory();

@@ -4,12 +4,12 @@ import java.io.Serializable;
 import scheduler.dao.DataRowState;
 
 /**
- * Interface for a {@code DataObject} that contains all columns of a data base entity.
+ * Base interface for {@code PartialDataEntity} objects that contains all data for a database entity.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of object for date/time values
  */
-public interface DataRecord<T extends Serializable & Comparable<? super T>> extends DataObject {
+public interface DataEntity<T extends Serializable & Comparable<? super T>> extends PartialDataEntity {
 
     /**
      * The name of the 'createDate' property.

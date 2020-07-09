@@ -9,20 +9,20 @@ import java.util.Date;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import scheduler.dao.IAppointmentDAO;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.util.DB;
+import scheduler.dao.PartialAppointmentDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> Type of object for database access.
  */
-public interface AppointmentItem<T extends IAppointmentDAO> extends Appointment<LocalDateTime>, FxDbModel<T> {
+public interface PartialAppointmentModel<T extends PartialAppointmentDAO> extends Appointment<LocalDateTime>, PartialEntityModel<T> {
 
     public static final String PROP_EFFECTIVELOCATION = "effectiveLocation";
     public static final String PROP_TYPEDISPLAY = "typeDisplay";
@@ -41,9 +41,9 @@ public interface AppointmentItem<T extends IAppointmentDAO> extends Appointment<
     public static final String PROP_CUSTOMERNAME = "customerName";
     
     @Override
-    CustomerItem<? extends Customer> getCustomer();
+    PartialCustomerModel<? extends Customer> getCustomer();
 
-    ReadOnlyObjectProperty<? extends CustomerItem<? extends Customer>> customerProperty();
+    ReadOnlyObjectProperty<? extends PartialCustomerModel<? extends Customer>> customerProperty();
 
     ReadOnlyStringProperty customerNameProperty();
 
@@ -85,7 +85,7 @@ public interface AppointmentItem<T extends IAppointmentDAO> extends Appointment<
 
     ReadOnlyBooleanProperty customerActiveProperty();
 
-    ReadOnlyObjectProperty<? extends UserItem<? extends User>> userProperty();
+    ReadOnlyObjectProperty<? extends PartialUserModel<? extends User>> userProperty();
 
     String getUserName();
 

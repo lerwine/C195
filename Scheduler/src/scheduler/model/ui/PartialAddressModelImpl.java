@@ -10,28 +10,28 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICityDAO;
 import scheduler.model.Address;
 import scheduler.model.CityProperties;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedAddress extends RelatedModel<IAddressDAO> implements AddressItem<IAddressDAO> {
+public class PartialAddressModelImpl extends RelatedModel<PartialAddressDAO> implements PartialAddressModel<PartialAddressDAO> {
 
-    private static final Logger LOG = Logger.getLogger(RelatedAddress.class.getName());
+    private static final Logger LOG = Logger.getLogger(PartialAddressModelImpl.class.getName());
 
     private final ReadOnlyJavaBeanStringProperty address1;
     private final ReadOnlyJavaBeanStringProperty address2;
     private final ReadOnlyStringBindingProperty addressLines;
-    private final ReadOnlyJavaBeanObjectProperty<ICityDAO> cityDAO;
-    private final ReadOnlyObjectBindingProperty<CityItem<? extends ICityDAO>> city;
+    private final ReadOnlyJavaBeanObjectProperty<PartialCityDAO> cityDAO;
+    private final ReadOnlyObjectBindingProperty<PartialCityModel<? extends PartialCityDAO>> city;
     private final ReadOnlyStringBindingProperty cityName;
     private final ReadOnlyStringBindingProperty countryName;
     private final ReadOnlyJavaBeanStringProperty postalCode;
@@ -40,13 +40,13 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     private final ReadOnlyStringBindingProperty language;
     private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
 
-    public RelatedAddress(IAddressDAO rowData) {
+    public PartialAddressModelImpl(PartialAddressDAO rowData) {
         super(rowData);
 
         try {
             address1 = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_ADDRESS1).build();
             address2 = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_ADDRESS2).build();
-            cityDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<ICityDAO>create().bean(rowData).name(PROP_CITY).build();
+            cityDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<PartialCityDAO>create().bean(rowData).name(PROP_CITY).build();
             postalCode = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_POSTALCODE).build();
             phone = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_PHONE).build();
         } catch (NoSuchMethodException ex) {
@@ -55,13 +55,13 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
         }
         addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
                 () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
-        city = new ReadOnlyObjectBindingProperty<>(this, PROP_CITY, () -> CityItem.createModel(cityDAO.get()), cityDAO);
+        city = new ReadOnlyObjectBindingProperty<>(this, PROP_CITY, () -> PartialCityModel.createModel(cityDAO.get()), cityDAO);
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(city, CityProperties.PROP_NAME));
-        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, CityItem.PROP_COUNTRYNAME));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, PartialCityModel.PROP_COUNTRYNAME));
         cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY,
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
-        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, CityItem.PROP_LANGUAGE));
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
         timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityProperties.PROP_TIMEZONE));
     }
 
@@ -95,12 +95,12 @@ public class RelatedAddress extends RelatedModel<IAddressDAO> implements Address
     }
 
     @Override
-    public CityItem<? extends ICityDAO> getCity() {
+    public PartialCityModel<? extends PartialCityDAO> getCity() {
         return city.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<CityItem<? extends ICityDAO>> cityProperty() {
+    public ReadOnlyObjectProperty<PartialCityModel<? extends PartialCityDAO>> cityProperty() {
         return city;
     }
 

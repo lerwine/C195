@@ -8,11 +8,11 @@ import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.LogHelper;
 
 /**
- * Base class for {@code Event}s that affect {@link DataAccessObject}s and can also include an associated {@link FxRecordModel}.
+ * Base class for {@code Event}s that affect {@link DataAccessObject}s and can also include an associated {@link EntityModelImpl}.
  * <h3>Event Registration</h3>
  * <ul class="list-style:none">
  * <li>{@link javafx.event.Event} &rArr; {@link javafx.event.Event#ANY "EVENT"}
@@ -292,9 +292,9 @@ import scheduler.util.LogHelper;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <D> The type of {@link DataAccessObject}.
- * @param <M> The type of {@link FxRecordModel}.
+ * @param <M> The type of {@link EntityModelImpl}.
  */
-public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends Event implements IModelEvent<D, M> {
+public abstract class ModelEvent<D extends DataAccessObject, M extends EntityModelImpl<D>> extends Event implements IModelEvent<D, M> {
 
     private static final long serialVersionUID = -6832461936768738020L;
 
@@ -304,18 +304,18 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     /**
      * Base {@link EventType} for all {@code ModelEvent}s.
      */
-    public static final EventType<ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>> MODEL_EVENT_TYPE
+    public static final EventType<ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>> MODEL_EVENT_TYPE
             = new EventType<>(ANY, "SCHEDULER_MODEL_EVENT");
 
     @SuppressWarnings("unchecked")
-    public static final String getMessage(ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>> event) {
+    public static final String getMessage(ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>> event) {
         if (event instanceof ModelFailedEvent) {
-            return ((ModelFailedEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>) event).getMessage();
+            return ((ModelFailedEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>) event).getMessage();
         }
         return "";
     }
 
-    public static final <E extends ModelEvent<? extends DataAccessObject, ? extends FxRecordModel<? extends DataAccessObject>>, R> R withEvent(E event, Function<E, R> ifFailed,
+    public static final <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>, R> R withEvent(E event, Function<E, R> ifFailed,
             R otherwise) {
         if (null == event || event instanceof ModelFailedEvent) {
             return ifFailed.apply(event);
@@ -326,9 +326,9 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     private State state;
 
     /**
-     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link FxRecordModel} as another {@link ModelEvent}.
+     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link EntityModelImpl} as another {@link ModelEvent}.
      *
-     * @param event The event that will share the same {@link DataAccessObject} and {@link FxRecordModel}.
+     * @param event The event that will share the same {@link DataAccessObject} and {@link EntityModelImpl}.
      * @param source The object which sent the event or {@code null} to use the same source as the {@code event} parameter.
      * @param target The target to associate with the event or {@code null} to use the same target as the {@code event} parameter.
      * @param eventType The event type.
@@ -341,9 +341,9 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     }
 
     /**
-     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link FxRecordModel} as another {@link ModelEvent}.
+     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link EntityModelImpl} as another {@link ModelEvent}.
      *
-     * @param event The event that will share the same {@link DataAccessObject} and {@link FxRecordModel}.
+     * @param event The event that will share the same {@link DataAccessObject} and {@link EntityModelImpl}.
      * @param eventType The event type.
      * @param operation The database operation associated with the event {@code null} to use the same operation as the {@code event} parameter.
      */
@@ -363,7 +363,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     }
 
     @Override
-    public M getFxRecordModel() {
+    public M getEntityModel() {
         return state.getFxRecordModel();
     }
 
@@ -416,7 +416,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         final ModelEvent<D, M> other = (ModelEvent<D, M>) obj;
         if (this.getOperation() == other.getOperation() && Objects.equals(getEventType(), other.getEventType())) {
             M model = state.getFxRecordModel();
-            if (Objects.equals(model, other.getFxRecordModel()) && (null != model || Objects.equals(state.getDataAccessObject(), other.getDataAccessObject()))) {
+            if (Objects.equals(model, other.getEntityModel()) && (null != model || Objects.equals(state.getDataAccessObject(), other.getDataAccessObject()))) {
                 return Objects.equals(target, other.getTarget()) && Objects.equals(source, other.getSource());
             }
         }
@@ -444,7 +444,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         } else if (isConsumed()) {
             sb.append("; consumed=true");
         }
-        M fxRecordModel = getFxRecordModel();
+        M fxRecordModel = getEntityModel();
         if (null == fxRecordModel) {
             sb.append("; dataAccessObject=").append(state.getDataAccessObject());
         } else {

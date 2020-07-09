@@ -29,7 +29,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -56,7 +56,7 @@ import scheduler.view.ModelFilter;
  * <dl>
  * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#NONE}
  * &#125;</dt>
- * <dd>&rarr; {@link #onEditItem(FxRecordModel) onEditItem}({@link ModelEvent#getFxRecordModel()})
+ * <dd>&rarr; {@link #onEditItem(EntityModelImpl) onEditItem}({@link ModelEvent#getEntityModel()})
  * <dl>
  * <dt>(&rarr;) {@link scheduler.events.AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST "SCHEDULER_APPOINTMENT_EDIT_REQUEST"}
@@ -75,7 +75,7 @@ import scheduler.view.ModelFilter;
  * </dd>
  * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}}
  * &#125;</dt>
- * <dd>&rarr; {@link #onDeleteItem(FxRecordModel) onDeleteItem}({@link OperationRequestEvent})
+ * <dd>&rarr; {@link #onDeleteItem(EntityModelImpl) onDeleteItem}({@link OperationRequestEvent})
  * <dl>
  * <dt>(&rarr;) {@link scheduler.events.AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#DELETE_REQUEST "SCHEDULER_APPOINTMENT_DELETE_REQUEST"}
@@ -99,7 +99,7 @@ import scheduler.view.ModelFilter;
  * @param <E> The data object event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
@@ -184,9 +184,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void onItemActionRequest(OperationRequestEvent<D, M> event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
-            onEditItem(event.getFxRecordModel());
+            onEditItem(event.getEntityModel());
         } else {
-            onDeleteItem(event.getFxRecordModel());
+            onDeleteItem(event.getEntityModel());
         }
     }
 
@@ -265,7 +265,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getModelFactory();
+            EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -288,7 +288,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     protected void onUpdatedEvent(E event) {
         LOG.entering(LOG.getName(), "onUpdatedEvent", event);
         D dao = event.getDataAccessObject();
-        FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
+        EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
@@ -317,7 +317,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract Comparator<? super D> getComparator();
 
-    protected abstract FxRecordModel.FxModelFactory<D, M, E> getModelFactory();
+    protected abstract EntityModelImpl.FxModelFactory<D, M, E> getModelFactory();
 
     protected abstract String getLoadingTitle();
 

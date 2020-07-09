@@ -13,24 +13,24 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
-import scheduler.dao.IAddressDAO;
-import scheduler.dao.ICustomerDAO;
 import scheduler.model.AddressProperties;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCustomerDAO;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements CustomerItem<ICustomerDAO> {
+public class PartialCustomerModelImpl extends RelatedModel<PartialCustomerDAO> implements PartialCustomerModel<PartialCustomerDAO> {
 
-    private static final Logger LOG = Logger.getLogger(RelatedCustomer.class.getName());
+    private static final Logger LOG = Logger.getLogger(PartialCustomerModelImpl.class.getName());
 
     private final ReadOnlyJavaBeanStringProperty name;
-    private final ReadOnlyJavaBeanObjectProperty<IAddressDAO> addressDAO;
-    private final ReadOnlyObjectBindingProperty<AddressItem<? extends IAddressDAO>> address;
+    private final ReadOnlyJavaBeanObjectProperty<PartialAddressDAO> addressDAO;
+    private final ReadOnlyObjectBindingProperty<PartialAddressModel<? extends PartialAddressDAO>> address;
     private final ReadOnlyStringBindingProperty address1;
     private final ReadOnlyStringBindingProperty address2;
     private final ReadOnlyStringBindingProperty cityName;
@@ -42,24 +42,24 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     private final ReadOnlyJavaBeanBooleanProperty active;
     private final ReadOnlyStringBindingProperty multiLineAddress;
 
-    public RelatedCustomer(ICustomerDAO rowData) {
+    public PartialCustomerModelImpl(PartialCustomerDAO rowData) {
         super(rowData);
         try {
             name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_NAME).build();
-            addressDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<IAddressDAO>create().bean(rowData).name(PROP_ADDRESS).build();
+            addressDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<PartialAddressDAO>create().bean(rowData).name(PROP_ADDRESS).build();
             active = ReadOnlyJavaBeanBooleanPropertyBuilder.create().bean(rowData).name(PROP_ACTIVE).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        address = new ReadOnlyObjectBindingProperty<>(this, PROP_ADDRESS, () -> AddressItem.createModel(addressDAO.get()), addressDAO);
+        address = new ReadOnlyObjectBindingProperty<>(this, PROP_ADDRESS, () -> PartialAddressModel.createModel(addressDAO.get()), addressDAO);
         address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));
         address2 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS2, Bindings.selectString(address, AddressProperties.PROP_ADDRESS2));
-        cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, AddressItem.PROP_CITYNAME));
-        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(address, AddressItem.PROP_COUNTRYNAME));
+        cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, PartialAddressModel.PROP_CITYNAME));
+        countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(address, PartialAddressModel.PROP_COUNTRYNAME));
         postalCode = new ReadOnlyStringBindingProperty(this, PROP_POSTALCODE, Bindings.selectString(address, AddressProperties.PROP_POSTALCODE));
         phone = new ReadOnlyStringBindingProperty(this, PROP_PHONE, Bindings.selectString(address, AddressProperties.PROP_PHONE));
-        cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY, Bindings.selectString(address, AddressItem.PROP_CITYZIPCOUNTRY));
+        cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY, Bindings.selectString(address, PartialAddressModel.PROP_CITYZIPCOUNTRY));
         addressText = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSTEXT,
                 () -> AddressModel.calculateSingleLineAddress(address1.get(), address2.get(), cityZipCountry.get(), phone.get()));
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
@@ -78,12 +78,12 @@ public class RelatedCustomer extends RelatedModel<ICustomerDAO> implements Custo
     }
 
     @Override
-    public AddressItem<? extends IAddressDAO> getAddress() {
+    public PartialAddressModel<? extends PartialAddressDAO> getAddress() {
         return address.get();
     }
 
     @Override
-    public ReadOnlyObjectProperty<AddressItem<? extends IAddressDAO>> addressProperty() {
+    public ReadOnlyObjectProperty<PartialAddressModel<? extends PartialAddressDAO>> addressProperty() {
         return address;
     }
 

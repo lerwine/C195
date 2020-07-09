@@ -36,27 +36,15 @@ import scheduler.util.LogHelper;
 import scheduler.view.ModelFilter;
 
 /**
- * Java FX object model for a {@link DataAccessObject} object.
- * <dl>
- * <dt>{@link FxRecordModel.FxModelFactory}</dt><dd>Base factory class for {@link FxDbModel} objects.</dd>
- * <dt>{@link scheduler.dao.DataAccessObject}</dt><dd>Base class for corresponding data access objects.</dd>
- * </dl>
- * Entity-specific implementations:
- * <ul>
- * <li>{@link scheduler.model.ui.AddressModel}</li>
- * <li>{@link scheduler.model.ui.CustomerModel}</li>
- * <li>{@link scheduler.model.ui.AddressModel}</li>
- * <li>{@link scheduler.model.ui.CityModel}</li>
- * <li>{@link scheduler.model.ui.CountryModel}</li>
- * </ul>
+ * Base class for {@link EntityModel} objects that contain a backing {@link DataAccessObject}.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
  */
-public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRecordModel<T> {
+public abstract class EntityModelImpl<T extends DataAccessObject> implements EntityModel<T> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxRecordModel.class.getName()), Level.FINER);
-//    private static final Logger LOG = Logger.getLogger(FxRecordModel.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelImpl.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EntityModelImpl.class.getName());
 
     /**
      * The name of the 'newRow' property.
@@ -89,16 +77,17 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
      * Initializes a new ModelBase object.
      *
      * @param dao The {@link DataAccessObject} to be used for data access operations.
-     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link FxDbModel} objects so the property is updated
+     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link EntityModel} objects so the property is updated
      * whenever a change occurs.
      */
-    protected FxRecordModel(T dao) {
+    protected EntityModelImpl(T dao) {
         if (dao.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
         }
-//        eventHandlerManager = new EventHandlerManager(this);
+
         dataObject = dao;
         try {
+            // XXX: Does this cause memory leaks if this class is garbage-collected and dao is not?
             primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();
             rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(PROP_ROWSTATE).build();
             rawCreateDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_CREATEDATE).build();
@@ -210,7 +199,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         return null != model && dataObject.equals(model);
     }
 
-    public static abstract class FxModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> implements EventTarget {
+    public static abstract class FxModelFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxModelFactory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FxModelFactory.class.getName());
@@ -364,9 +353,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Validates a {@link FxRecordModel} before an insert or update operation.
+         * Validates a {@link EntityModelImpl} before an insert or update operation.
          *
-         * @param target The {@link FxRecordModel} containing the {@link DataAccessObject} being inserted or updated in the database.
+         * @param target The {@link EntityModelImpl} containing the {@link DataAccessObject} being inserted or updated in the database.
          * @return The {@link ModelEvent} representing the validation results, which may be {@code null} if there are no validation errors.
          */
         public abstract ModelEvent<D, M> validateForSave(M target);
@@ -374,7 +363,7 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
     }
 
     @FunctionalInterface
-    public interface PropertyValueExporter<T extends FxRecordModel<? extends DataAccessObject>> {
+    public interface PropertyValueExporter<T extends EntityModelImpl<? extends DataAccessObject>> {
 
         Pair<String, String> toIdentity(T model, int index, Iterable<String> exportData);
     }

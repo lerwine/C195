@@ -1,14 +1,12 @@
 package scheduler.dao;
 
-import scheduler.model.Customer;
+import java.sql.Timestamp;
+import scheduler.model.CustomerEntity;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public interface ICustomerDAO extends DbObject, Customer {
-
-    @Override
-    public IAddressDAO getAddress();
+public interface ICustomerDAO extends PartialCustomerDAO, IDataAccessObject, CustomerEntity<Timestamp> {
 
 }

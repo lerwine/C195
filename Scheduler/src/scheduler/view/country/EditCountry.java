@@ -49,7 +49,7 @@ import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.FxRecordModel;
+import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -82,7 +82,7 @@ import scheduler.view.task.WaitTitledPane;
  * <dl>
  * <dt>SCHEDULER_CITY_EDIT_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#EDIT_REQUEST}
  * &#125;</dt>
- * <dd>&rarr; {@link EditCity#edit(CityModel, javafx.stage.Window) EditCity.edit}(({@link CityModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
+ * <dd>&rarr; {@link EditCity#edit(CityModel, javafx.stage.Window) EditCity.edit}(({@link CityModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
  * {@link scheduler.model.ui.CityModel.Factory}</dd>
  * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123;
@@ -216,12 +216,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
-                EditCity.edit(event.getFxRecordModel(), getScene().getWindow());
+                EditCity.edit(event.getEntityModel(), getScene().getWindow());
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            deleteItem(event.getFxRecordModel());
+            deleteItem(event.getEntityModel());
         }
     }
 
@@ -327,7 +327,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private void onCityAdded(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityAdded", event);
-        CityModel m = event.getFxRecordModel();
+        CityModel m = event.getEntityModel();
         if (null == m) {
             CityDAO dao = event.getDataAccessObject();
             if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
@@ -340,7 +340,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private void onCityUpdated(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityUpdated", event);
-        CityModel item = event.getFxRecordModel();
+        CityModel item = event.getEntityModel();
         if (null == item) {
             CityDAO dao = event.getDataAccessObject();
             int pk = dao.getPrimaryKey();
@@ -403,7 +403,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @Override
-    public FxRecordModel.FxModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
+    public EntityModelImpl.FxModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
         return CountryModel.FACTORY;
     }
 
