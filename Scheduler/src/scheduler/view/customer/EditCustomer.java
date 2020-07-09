@@ -111,7 +111,7 @@ import scheduler.view.task.WaitTitledPane;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
  * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.ui.AppointmentModel, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
  * </dl>

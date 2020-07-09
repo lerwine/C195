@@ -100,7 +100,7 @@ import scheduler.view.task.WaitTitledPane;
  * {@link scheduler.model.ui.AddressModel.Factory}</dd>
  * <dt>SCHEDULER_ADDRESS_DELETE_REQUEST {@link AddressOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.AddressDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AddressDAO.DeleteTask}({@link AddressOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.AddressDAO.DeleteTask#DeleteTask(scheduler.model.ui.AddressModel, boolean) new AddressDAO.DeleteTask}({@link AddressOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
  * {@link scheduler.model.ui.AddressModel.Factory}</dd>
  * </dl>

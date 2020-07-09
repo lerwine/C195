@@ -101,7 +101,7 @@ import scheduler.view.task.WaitTitledPane;
  * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
  * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.ui.CustomerModel, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
  * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
  * </dl>

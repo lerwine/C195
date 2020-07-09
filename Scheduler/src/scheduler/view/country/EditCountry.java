@@ -87,7 +87,7 @@ import scheduler.view.task.WaitTitledPane;
  * {@link scheduler.model.ui.CityModel.Factory}</dd>
  * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.ui.CityModel, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
  * {@link scheduler.model.ui.CityModel.Factory}</dd>
  * </dl>

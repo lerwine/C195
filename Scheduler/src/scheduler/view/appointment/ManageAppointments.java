@@ -87,7 +87,7 @@ import scheduler.view.export.TsvDataExporter;
  * <dd>&rarr; {@link #onEditItem(AppointmentModel) onEditItem}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()}</dd>
  * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}}
  * &#125;</dt>
- * <dd>&rarr; {@link #onDeleteItem(RecordModelContext) onDeleteItem}({@link scheduler.events.AppointmentOpRequestEvent})</dd>
+ * <dd>&rarr; {@link #onDeleteItem(scheduler.model.ui.AppointmentModel) onDeleteItem}({@link scheduler.events.AppointmentOpRequestEvent})</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
