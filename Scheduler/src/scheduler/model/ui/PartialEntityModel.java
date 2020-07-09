@@ -3,8 +3,8 @@ package scheduler.model.ui;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import scheduler.dao.DataRowState;
-import scheduler.model.PartialDataEntity;
 import scheduler.dao.PartialDataAccessObject;
+import scheduler.model.PartialDataEntity;
 
 /**
  * Base interface for data entity objects intended for {@code JavaFX} property binding, and contains a backing {@link PartialDataAccessObject}.

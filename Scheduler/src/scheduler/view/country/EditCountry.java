@@ -309,8 +309,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
 
     private synchronized void onCountryInserted(CountrySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCountryInserted", event);
+        // FIXME: Use weak event handlers
         model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
         windowShowingListener.isInsert = false;
+        // FIXME: Use weak event handlers
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityAdded);
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, this::onCityUpdated);
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, this::onCityDeleted);
@@ -403,7 +405,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @Override
-    public EntityModelImpl.FxModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
         return CountryModel.FACTORY;
     }
 
@@ -430,10 +432,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 if (!isAttached) {
                     if (isInsert) {
                         if (keepOpen) {
+                            // FIXME: Attach only to insert task, instead
                             model.dataObject().addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCountryInserted);
                             isAttached = true;
                         }
                     } else {
+                        // FIXME: Use weak event handlers
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCityAdded);
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, EditCountry.this::onCityUpdated);
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, EditCountry.this::onCityDeleted);

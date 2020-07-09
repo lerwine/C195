@@ -37,6 +37,7 @@ import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
+import scheduler.model.ui.PartialCountryModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -48,7 +49,6 @@ import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.RESOURCEKEY_CITYNAMEINUSE;
 import scheduler.view.country.EditCountry;
 import scheduler.view.country.EditCountryResourceKeys;
-import scheduler.model.ui.PartialCountryModel;
 
 /**
  * Data access object for the {@code city} database table.
@@ -98,6 +98,7 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
     }
 
     private void setCountry(PartialCountryDAO country) {
+        // FIXME: Add country update handlers, similar to CustomerDAO
         PartialCountryDAO oldValue = this.country;
         this.country = country;
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
@@ -566,6 +567,7 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
             this.name = name;
             this.country = country;
             this.timeZone = zoneId;
+            // FIXME: Add country update handlers, similar to CustomerDAO.Partial
         }
 
         @Override

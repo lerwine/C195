@@ -143,7 +143,8 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
     }
 
     /**
-     * Gets the {@link Customer} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId" database column.
+     * Gets the {@link Customer} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId" database
+     * column.
      *
      * @return The {@link Customer} for the current appointment.
      */
@@ -171,8 +172,8 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
     String getDescription();
 
     /**
-     * Gets the location of the current appointment. The usage of this field depends upon the value in the {@link #getType() type} field. Associated database column definition:
-     * <code>`location` text NOT NULL</code>
+     * Gets the location of the current appointment. The usage of this field depends upon the value in the {@link #getType() type} field. Associated
+     * database column definition: <code>`location` text NOT NULL</code>
      * <dl>
      * <dt>{@link #getType()} = {@link AppointmentType#PHONE}</dt>
      * <dd>Required - contains phone number.</dd>
@@ -237,7 +238,8 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
      * </tr>
      * <tr>
      * <th scope="row" align="right">{@link AppointmentType#CUSTOMER_SITE CUSTOMER_SITE}:</th>
-     * <td>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(String, String, String)} &lArr; {@link Customer#getAddress() Customer#address}</td>
+     * <td>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(String, String, String)} &lArr;
+     * {@link Customer#getAddress() Customer#address}</td>
      * <td>Optional</td>
      * <td>Optional</td>
      * </tr>
@@ -297,19 +299,21 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
      * {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} value.
      *
      * @param value The {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} to compare to.
-     * @return {@code true} if the current {@link #getStart() start} date/time represents the same point in time as the given {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the current {@link #getStart() start} date/time represents the same point in time as the given {@code value};
+     * otherwise, {@code false}.
      */
     boolean startEquals(Object value);
 
     /**
-     * Compares the current {@link #getStart() start} date is equal to another {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or
-     * {@link java.util.Date} value.
+     * Compares the current {@link #getStart() start} date is equal to another
+     * {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} value.
      *
      * @param value The {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} to compare to.
-     * @return Less than zero if the current {@link #getStart() start} date/time is older; Greater than zero if the current {@link #getStart() start} date/time is newer; otherwise,
-     * zero if given {@code value} represents the same point in time as the current {@link #getStart() start} date/time.
-     * @throws IllegalArgumentException if the given {@code value} is not a {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date}
-     * object.
+     * @return Less than zero if the current {@link #getStart() start} date/time is older; Greater than zero if the current {@link #getStart() start}
+     * date/time is newer; otherwise, zero if given {@code value} represents the same point in time as the current {@link #getStart() start}
+     * date/time.
+     * @throws IllegalArgumentException if the given {@code value} is not a
+     * {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} object.
      */
     int compareStart(Object value);
 
@@ -318,19 +322,20 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
      * {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} value.
      *
      * @param value The {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} to compare to.
-     * @return {@code true} if the current {@link #getEnd() end} date/time represents the same point in time as the given {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the current {@link #getEnd() end} date/time represents the same point in time as the given {@code value}; otherwise,
+     * {@code false}.
      */
     boolean endEquals(Object value);
 
     /**
-     * Compares the current {@link #getEnd() end} date is equal to another {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date}
-     * value.
+     * Compares the current {@link #getEnd() end} date is equal to another
+     * {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} value.
      *
      * @param value The {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} to compare to.
-     * @return Less than zero if the current {@link #getEnd() end} date/time is older; Greater than zero if the current {@link #getEnd() end} date/time is newer; otherwise, zero if
-     * given {@code value} represents the same point in time as the current {@link #getEnd() end} date/time.
-     * @throws IllegalArgumentException if the given {@code value} is not a {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date}
-     * object.
+     * @return Less than zero if the current {@link #getEnd() end} date/time is older; Greater than zero if the current {@link #getEnd() end}
+     * date/time is newer; otherwise, zero if given {@code value} represents the same point in time as the current {@link #getEnd() end} date/time.
+     * @throws IllegalArgumentException if the given {@code value} is not a
+     * {@link java.time.chrono.ChronoLocalDateTime}, {@link java.time.ZonedDateTime} or {@link java.util.Date} object.
      */
     int compareEnd(Object value);
 

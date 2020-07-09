@@ -35,14 +35,14 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends Entit
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
-    private final EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> modelFactory;
+    private final EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> modelFactory;
     private final HBox graphic;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
     private final WeakReference<? extends ItemEditTableCellFactory<D, M, ? extends OperationRequestEvent<D, M>>> cellFactory;
 
     @SuppressWarnings("unchecked")
     public ItemEditTableCell(ItemEditTableCellFactory<D, M, ? extends ModelEvent<D, M>> factory) {
-//    public ItemEditTableCell(EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
+//    public ItemEditTableCell(EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
         onItemActionRequest = new SimpleObjectProperty<>();
         cellFactory = new WeakReference<>(factory);
         modelFactory = factory.getFactory();

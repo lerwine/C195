@@ -469,6 +469,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
+                // FIXME: Attach only to insert task, instead
                 insertedHandler = new WeakEventHandler<>(onAddressInserted);
                 model.dataObject().addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -508,7 +509,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public EntityModelImpl.FxModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
         return AddressModel.FACTORY;
     }
 

@@ -381,6 +381,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private void onCityInserted(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityInserted", event);
         windowShowingChangedListener.isInsert = false;
+        // FIXME: Use weak event handlers
         model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressAdded);
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, this::onAddressUpdated);
@@ -500,7 +501,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @Override
-    public EntityModelImpl.FxModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
         return CityModel.FACTORY;
     }
 
@@ -588,10 +589,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 if (!isAttached) {
                     if (isInsert) {
                         if (keepOpen) {
+                            // FIXME: Attach only to insert task, instead
                             model.dataObject().addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
                             isAttached = true;
                         }
                     } else {
+                        // FIXME: Use weak event handlers
                         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, EditCity.this::onAddressAdded);
                         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, EditCity.this::onAddressUpdated);
                         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, EditCity.this::onAddressDeleted);

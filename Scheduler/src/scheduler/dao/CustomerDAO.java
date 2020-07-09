@@ -25,6 +25,7 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
+import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.model.Address;
@@ -73,6 +74,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
         originalValues = new OriginalValues();
         onAddressEvent = (AddressEvent event) -> {
             LOG.entering(LOG.getName(), "onAddressEvent", event);
+            // FIXME: Work off of model, instead
             PartialAddressDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
                 AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
@@ -121,6 +123,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
             }
         } else if (null == addressChangeHandler) {
             addressChangeHandler = new WeakEventHandler<>(onAddressEvent);
+            // FIXME: Change to AddressSuccessEvent.SAVE_SUCCESS
             AddressDAO.FACTORY.addEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
         }
     }
@@ -532,22 +535,23 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
 //        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final String name;
-        private final EventHandler<AddressEvent> onAddressEvent;
+        private final EventHandler<AddressSuccessEvent> onAddressEvent;
         private PartialAddressDAO address;
         private final boolean active;
         private final int primaryKey;
-        private WeakEventHandler<AddressEvent> addressChangeHandler;
+        private WeakEventHandler<AddressSuccessEvent> addressChangeHandler;
 
         private Partial(int primaryKey, String name, PartialAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.address = address;
             this.active = active;
-            onAddressEvent = (AddressEvent event) -> {
+            onAddressEvent = (AddressSuccessEvent event) -> {
+                // FIXME: Work off of model, instead
                 LOG.entering(LOG.getName(), "onAddressEvent", event);
                 PartialAddressDAO newValue = event.getDataAccessObject();
                 if (newValue.getPrimaryKey() == this.address.getPrimaryKey()) {
-                    AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
+                    AddressDAO.FACTORY.removeEventHandler(AddressSuccessEvent.SAVE_SUCCESS, addressChangeHandler);
                     addressChangeHandler = null;
                     PartialAddressDAO oldValue = this.address;
                     this.address = newValue;
@@ -556,7 +560,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
             };
             if (!(null == address || address instanceof AddressDAO)) {
                 addressChangeHandler = new WeakEventHandler<>(onAddressEvent);
-                AddressDAO.FACTORY.addEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
+                AddressDAO.FACTORY.addEventHandler(AddressSuccessEvent.SAVE_SUCCESS, addressChangeHandler);
             }
         }
 

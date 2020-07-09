@@ -25,7 +25,7 @@ public interface PartialDataEntity {
     int getPrimaryKey();
 
     ToStringPropertyBuilder toStringBuilder();
-    
+
     default DataRowState getRowState() {
         return DataRowState.UNMODIFIED;
     }

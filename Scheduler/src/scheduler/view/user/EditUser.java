@@ -380,8 +380,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
             if (keepOpen) {
+                // FIXME: Attach only to insert task, instead
                 insertedHandler = new WeakEventHandler<>(onUserInserted);
-                model.dataObject().addEventFilter(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
+                model.dataObject().addEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
             waitBorderPane.startNow(pane, new InitialLoadTask());
@@ -457,7 +458,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @Override
-    public EntityModelImpl.FxModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
         return UserModel.FACTORY;
     }
 

@@ -115,7 +115,7 @@ public final class CountryModel extends EntityModelImpl<CountryDAO> implements P
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.FxModelFactory<CountryDAO, CountryModel, CountryEvent> {
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent> {
 
         // Singleton
         private Factory() {

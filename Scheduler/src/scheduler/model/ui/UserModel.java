@@ -148,7 +148,7 @@ public final class UserModel extends EntityModelImpl<UserDAO> implements Partial
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.FxModelFactory<UserDAO, UserModel, UserEvent> {
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent> {
 
         // Singleton
         private Factory() {

@@ -530,6 +530,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
+                // FIXME: Attach only to insert task, instead
                 insertedHandler = new WeakEventHandler<>(onCustomerInserted);
                 model.dataObject().addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -607,7 +608,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     @Override
-    public EntityModelImpl.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
         return CustomerModel.FACTORY;
     }
 

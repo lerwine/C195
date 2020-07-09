@@ -3,9 +3,9 @@ package scheduler.model.ui;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ObservableBooleanValue;
 import scheduler.dao.CustomerDAO;
-import scheduler.model.Customer;
 import scheduler.dao.PartialAddressDAO;
 import scheduler.dao.PartialCustomerDAO;
+import scheduler.model.Customer;
 
 /**
  *

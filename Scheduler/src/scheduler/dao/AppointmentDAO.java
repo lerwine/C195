@@ -40,14 +40,14 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
-import scheduler.model.ui.PartialCustomerModel;
-import scheduler.model.ui.PartialUserModel;
 
 /**
  * Data access object for the {@code appointment} database table.
@@ -100,6 +100,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         originalValues = new OriginalValues();
         onCustomerEvent = (CustomerEvent event) -> {
             LOG.entering(LOG.getName(), "onCustomerEvent", event);
+            // FIXME: Work off of model, instead
             PartialCustomerDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
                 CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
@@ -111,6 +112,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         };
         onUserEvent = (UserEvent event) -> {
             LOG.entering(LOG.getName(), "onUserEvent", event);
+            // FIXME: Work off of model, instead
             PartialUserDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
                 UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
@@ -143,6 +145,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             }
         } else if (null == customerChangeHandler) {
             customerChangeHandler = new WeakEventHandler<>(onCustomerEvent);
+            // FIXME: Change to CustomerSuccessEvent.SAVE_SUCCESS
             CustomerDAO.FACTORY.addEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
         }
     }
@@ -168,6 +171,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             }
         } else if (null == userChangeHandler) {
             userChangeHandler = new WeakEventHandler<>(onUserEvent);
+            // FIXME: Change to CustomerSuccessEvent.SAVE_SUCCESS
             UserDAO.FACTORY.addEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
         }
     }

@@ -33,6 +33,10 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
+import scheduler.dao.PartialUserDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.events.AppointmentEvent;
@@ -44,6 +48,11 @@ import scheduler.model.Appointment;
 import scheduler.model.Customer;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.PartialAddressModel;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -57,15 +66,6 @@ import scheduler.view.export.CsvDataExporter;
 import scheduler.view.export.HtmlDataExporter;
 import scheduler.view.export.TabularDataReader;
 import scheduler.view.export.TsvDataExporter;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.dao.PartialCityDAO;
-import scheduler.dao.PartialCountryDAO;
-import scheduler.dao.PartialUserDAO;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCountryModel;
-import scheduler.model.ui.PartialCustomerModel;
-import scheduler.model.ui.PartialUserModel;
-import scheduler.model.ui.PartialAddressModel;
 
 /**
  * FXML Controller class for viewing a list of {@link AppointmentModel} items.
@@ -486,7 +486,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected EntityModelImpl.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
+    protected EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 

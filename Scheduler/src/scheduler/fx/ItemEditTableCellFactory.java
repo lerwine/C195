@@ -39,7 +39,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>();
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
-            EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getFactory();
+            EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getFactory();
             if (null != oldValue) {
                 eventHandlerManager.removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
             }
@@ -76,7 +76,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         return new ItemEditTableCell<>(this);
     }
 
-    public abstract EntityModelImpl.FxModelFactory<D, M, ? extends ModelEvent<D, M>> getFactory();
+    public abstract EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> getFactory();
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

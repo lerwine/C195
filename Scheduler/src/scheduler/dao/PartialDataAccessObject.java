@@ -1,7 +1,7 @@
 package scheduler.dao;
 
-import scheduler.util.IPropertyBindable;
 import scheduler.model.PartialDataEntity;
+import scheduler.util.IPropertyBindable;
 
 /**
  * Base interface for all data access objects.

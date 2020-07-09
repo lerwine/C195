@@ -29,6 +29,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
+import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
@@ -313,7 +314,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         private final Consumer<List<T>> onSuccess;
         private final Consumer<Throwable> onFail;
 
-        LoadTask(DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModelImpl<T>>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess, Consumer<Throwable> onFail) {
+        LoadTask(DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModelImpl<T>>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess,
+                Consumer<Throwable> onFail) {
             updateTitle(filter.getLoadingTitle());
             this.factory = Objects.requireNonNull(factory);
             this.filter = Objects.requireNonNull(filter);
@@ -388,9 +390,10 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * For instance, the {@link scheduler.model.ui.AppointmentModel} class has an
      * {@link scheduler.model.ui.AppointmentModel#effectiveLocation effectiveLocation} property, which is a calculated property where the calculation
      * algorithm changes based upon the value of the {@link scheduler.model.ui.AppointmentModel#type type} property. Sometimes, the algorithm uses
-     * properties from the {@link scheduler.model.ui.PartialCustomerModel} referenced by the {@link scheduler.model.ui.AppointmentModel#customer customer}
-     * property. It is possible to have a navigation path in which the {@link scheduler.model.ui.CustomerModel#address} property is modified, and the
-     * application user will be eventually returned to a scene that has a listing of appointments where one of the columns displays the
+     * properties from the {@link scheduler.model.ui.PartialCustomerModel} referenced by the
+     * {@link scheduler.model.ui.AppointmentModel#customer customer} property. It is possible to have a navigation path in which the
+     * {@link scheduler.model.ui.CustomerModel#address} property is modified, and the application user will be eventually returned to a scene that has
+     * a listing of appointments where one of the columns displays the
      * {@link scheduler.model.ui.AppointmentModel#effectiveLocation effectiveLocation}, with one or more of them displaying the customer's address. By
      * using cached objects, it is much easier to ensure that the customer address in the columns of the parent listing is automatically updated after
      * any change.</p>
@@ -484,7 +487,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param <D> The type of {@link DataAccessObject} object supported.
      * @param <E> The {@link ModelEvent} type.
      */
-    public static abstract class DaoFactory<D extends DataAccessObject, E extends ModelEvent<D, ? extends EntityModelImpl<D>>> implements EventTarget {
+    public static abstract class DaoFactory<D extends DataAccessObject, E extends ModelEvent<D, ? extends EntityModelImpl<D>>>
+            implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
@@ -547,7 +551,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * @param onFail The {@link Consumer} to invoke if an exception is thrown.
          * @return The {@link Task} that has been started.
          */
-        public final Task<List<D>> loadAsync(WaitBorderPane waitBorderPane, DaoFilter<D> filter, Consumer<List<D>> onSuccess, Consumer<Throwable> onFail) {
+        public final Task<List<D>> loadAsync(WaitBorderPane waitBorderPane, DaoFilter<D> filter, Consumer<List<D>> onSuccess,
+                Consumer<Throwable> onFail) {
             LoadTask<D> task = new LoadTask<>(this, filter, onSuccess, onFail);
             waitBorderPane.startNow(task);
             return task;
@@ -795,8 +800,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
     }
 
     /**
-     * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on a
-     * {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link DaoTask} and the target {@link DataAccessObject}.
+     * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the
+     * backing {@link EntityModelImpl#dataObject}. When completed, the {@link #finalEvent} is fired on the backing {@link DataAccessObject}.
      *
      * @param <D> The target {@link DataAccessObject} type.
      * @param <M> The associated {@link EntityModelImpl} type.
@@ -889,11 +894,6 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
             return finalEvent.getReadOnlyProperty();
         }
 
-        @Override
-        public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            return getDataAccessObject().buildEventDispatchChain(super.buildEventDispatchChain(tail));
-        }
-
         /**
          * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
          *
@@ -949,8 +949,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
                 try {
                     finalEvent.set(event);
                 } finally {
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, this));
-                    fireEvent(event);
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                    Event.fireEvent(getDataAccessObject(), event);
                 }
             }
         }
@@ -963,8 +963,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
                 try {
                     finalEvent.set(event);
                 } finally {
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, this));
-                    fireEvent(event);
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                    Event.fireEvent(getDataAccessObject(), event);
                 }
             }
         }
@@ -977,8 +977,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
                 try {
                     finalEvent.set(event);
                 } finally {
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, this));
-                    fireEvent(event);
+                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                    Event.fireEvent(getDataAccessObject(), event);
                 }
             }
         }
@@ -1017,13 +1017,14 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param <M> The type of associated {@link EntityModelImpl}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> extends DaoTask<D, M, E> {
+    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>>
+            extends DaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
-        private final ReadOnlyObjectWrapper<EntityModelImpl.FxModelFactory<D, M, E>> modelFactory;
+        private final ReadOnlyObjectWrapper<EntityModelImpl.EntityModelFactory<D, M, E>> modelFactory;
         private boolean validationSuccessful;
         private final ReadOnlyBooleanWrapper validationFailed;
 
@@ -1031,12 +1032,13 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * Creates a new {@code ValidatingDaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
          *
          * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
-         * @param modelFactory The {@link EntityModelImpl.FxModelFactory} associated with the source {@link EntityModelImpl} type.
+         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
          * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          */
-        protected ValidatingDaoTask(M target, EntityModelImpl.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+        protected ValidatingDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, EventType<E> anyEventType,
+                boolean skipValidation) {
             super(target, anyEventType);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
@@ -1071,16 +1073,16 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Gets the {@link EntityModelImpl.FxModelFactory} associated with the source {@link EntityModelImpl} type.
+         * Gets the {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
          *
-         * @return The {@link EntityModelImpl.FxModelFactory} associated with the source {@link EntityModelImpl} type or {@code null} if a
+         * @return The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type or {@code null} if a
          * {@link EntityModelImpl} was not specified in the constructor.
          */
-        public EntityModelImpl.FxModelFactory<D, M, E> getModelFactory() {
+        public EntityModelImpl.EntityModelFactory<D, M, E> getModelFactory() {
             return modelFactory.get();
         }
 
-        public ReadOnlyObjectProperty<EntityModelImpl.FxModelFactory<D, M, E>> modelFactoryProperty() {
+        public ReadOnlyObjectProperty<EntityModelImpl.EntityModelFactory<D, M, E>> modelFactoryProperty() {
             return modelFactory.getReadOnlyProperty();
         }
 
@@ -1133,7 +1135,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param <M> The type of associated {@link EntityModelImpl}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
+    public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>>
+            extends ValidatingDaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
@@ -1142,13 +1145,13 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * Creates a new {@code SaveDaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
          *
          * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
-         * @param modelFactory The {@link EntityModelImpl.FxModelFactory} associated with the source {@link EntityModelImpl} type.
+         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
          * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(M target, EntityModelImpl.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+        protected SaveDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
             super(target, modelFactory, anyEventType, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
@@ -1324,7 +1327,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param <M> The type of associated {@link EntityModelImpl}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> extends ValidatingDaoTask<D, M, E> {
+    public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>>
+            extends ValidatingDaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteDaoTask.class.getName());
@@ -1333,7 +1337,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * Creates a new {@code DeleteDaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
          *
          * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
-         * @param modelFactory The {@link EntityModelImpl.FxModelFactory} associated with the source {@link EntityModelImpl} type.
+         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
          * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
@@ -1341,7 +1345,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M target, EntityModelImpl.FxModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
+        protected DeleteDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
             super(target, modelFactory, anyEventType, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:

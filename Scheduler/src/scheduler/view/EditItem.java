@@ -307,8 +307,8 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
 
     /**
      * Base class for editing specific {@link EntityModelImpl} items. Derived controls are intended to be instantiated through the
-     * {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method. This control will be inserted as the first child node of the parent
-     * {@code EditItem} control.
+     * {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method. This control will be inserted as the first child node of the
+     * parent {@code EditItem} control.
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link EntityModelImpl}.
      * @param <U> The {@link EntityModelImpl} type.
@@ -321,7 +321,7 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
          *
          * @return The factory object for managing the current {@link EntityModelImpl}.
          */
-        EntityModelImpl.FxModelFactory<T, U, E> modelFactory();
+        EntityModelImpl.EntityModelFactory<T, U, E> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.

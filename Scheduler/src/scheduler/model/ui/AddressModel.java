@@ -380,7 +380,7 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.FxModelFactory<AddressDAO, AddressModel, AddressEvent> {
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());

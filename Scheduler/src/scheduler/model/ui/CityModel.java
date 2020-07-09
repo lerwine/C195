@@ -172,7 +172,7 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.FxModelFactory<CityDAO, CityModel, CityEvent> {
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());

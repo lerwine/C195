@@ -250,7 +250,7 @@ public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.FxModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());

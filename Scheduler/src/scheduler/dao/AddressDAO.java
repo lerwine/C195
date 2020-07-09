@@ -31,19 +31,20 @@ import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
+import scheduler.events.CitySuccessEvent;
 import scheduler.model.Address;
 import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
+import scheduler.model.ui.PartialCityModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
-import scheduler.model.ui.PartialCityModel;
 
 /**
  * Data access object for the {@code address} database table.
@@ -78,6 +79,7 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
         originalValues = new OriginalPropertyValues();
         onCityEvent = (CityEvent event) -> {
             LOG.entering(LOG.getName(), "onCityEvent", event);
+            // FIXME: Work off of model, instead
             PartialCityDAO newValue = event.getDataAccessObject();
             if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
                 CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
@@ -142,6 +144,7 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
             }
         } else if (null == cityChangeHandler) {
             cityChangeHandler = new WeakEventHandler<>(onCityEvent);
+            // FIXME: Change to CitySuccessEvent.SAVE_SUCCESS
             CityDAO.FACTORY.addEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
         }
     }
@@ -683,6 +686,7 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
             this.phone = asNonNullAndWsNormalized(phone);
             onCityEvent = (CityEvent event) -> {
                 LOG.entering(LOG.getName(), "onCityEvent", event);
+                // FIXME: Work off of model, instead
                 PartialCityDAO newValue = event.getDataAccessObject();
                 if (newValue.getPrimaryKey() == this.city.getPrimaryKey()) {
                     CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
@@ -694,6 +698,7 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
             };
             if (!(null == city || city instanceof CityDAO)) {
                 cityChangeHandler = new WeakEventHandler<>(onCityEvent);
+                // FIXME: Change to CitySuccessEvent.SAVE_SUCCESS
                 CityDAO.FACTORY.addEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
             }
         }

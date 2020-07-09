@@ -556,7 +556,7 @@ public final class AppointmentModel extends EntityModelImpl<AppointmentDAO> impl
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
             super();

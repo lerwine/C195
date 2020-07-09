@@ -421,6 +421,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
+                // FIXME: Attach only to insert task, instead
                 insertedHandler = new WeakEventHandler<>(onAppointmentInserted);
                 model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -868,7 +869,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
-    public EntityModelImpl.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
         return AppointmentModel.FACTORY;
     }
 

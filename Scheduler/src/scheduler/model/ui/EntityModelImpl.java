@@ -77,9 +77,10 @@ public abstract class EntityModelImpl<T extends DataAccessObject> implements Ent
      * Initializes a new ModelBase object.
      *
      * @param dao The {@link DataAccessObject} to be used for data access operations.
-     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link EntityModel} objects so the property is updated
-     * whenever a change occurs.
+     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link EntityModel} objects so the property is
+     * updated whenever a change occurs.
      */
+    // FIXME: Entity model needs to refresh itself if the DAO is updated.
     protected EntityModelImpl(T dao) {
         if (dao.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
@@ -199,16 +200,15 @@ public abstract class EntityModelImpl<T extends DataAccessObject> implements Ent
         return null != model && dataObject.equals(model);
     }
 
-    public static abstract class FxModelFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> implements EventTarget {
+    public static abstract class EntityModelFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> implements EventTarget {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxModelFactory.class.getName()), Level.FINER);
-//        private static final Logger LOG = Logger.getLogger(FxModelFactory.class.getName());
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelFactory.class.getName()), Level.FINER);
+//        private static final Logger LOG = Logger.getLogger(EntityModelFactory.class.getName());
 
         private final EventHandlerManager eventHandlerManager;
 
-        protected FxModelFactory() {
+        protected EntityModelFactory() {
             eventHandlerManager = new EventHandlerManager(this);
-//            eventHandlerManager.addEventHandler(anyEventType, this::onModelEvent);
         }
 
         public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();

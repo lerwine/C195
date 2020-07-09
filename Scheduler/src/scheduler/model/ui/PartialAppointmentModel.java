@@ -9,13 +9,13 @@ import java.util.Date;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import scheduler.dao.PartialAppointmentDAO;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.util.DB;
-import scheduler.dao.PartialAppointmentDAO;
 
 /**
  *
@@ -39,7 +39,7 @@ public interface PartialAppointmentModel<T extends PartialAppointmentDAO> extend
     public static final String PROP_CUSTOMERADDRESS2 = "customerAddress2";
     public static final String PROP_CUSTOMERADDRESS1 = "customerAddress1";
     public static final String PROP_CUSTOMERNAME = "customerName";
-    
+
     @Override
     PartialCustomerModel<? extends Customer> getCustomer();
 
