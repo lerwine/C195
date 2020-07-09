@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
@@ -58,10 +59,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
     }
 
     private final OriginalValues originalValues;
+    private final EventHandler<AddressEvent> onAddressEvent;
     private String name;
     private IAddressDAO address;
     private boolean active;
-    // FIXME: Do not use weak event handlers
     private WeakEventHandler<AddressEvent> addressChangeHandler;
 
     /**
@@ -73,6 +74,17 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         address = null;
         active = true;
         originalValues = new OriginalValues();
+        onAddressEvent = (AddressEvent event) -> {
+            LOG.entering(LOG.getName(), "onAddressEvent", event);
+            IAddressDAO newValue = event.getDataAccessObject();
+            if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
+                AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
+                addressChangeHandler = null;
+                IAddressDAO oldValue = address;
+                address = newValue;
+                firePropertyChange(PROP_ADDRESS, oldValue, address);
+            }
+        };
     }
 
     @Override
@@ -111,20 +123,8 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 addressChangeHandler = null;
             }
         } else if (null == addressChangeHandler) {
-            addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
+            addressChangeHandler = new WeakEventHandler<>(onAddressEvent);
             AddressDAO.FACTORY.addEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
-        }
-    }
-
-    private void onAddressEvent(AddressEvent event) {
-        LOG.entering(LOG.getName(), "onAddressEvent", event);
-        IAddressDAO newValue = event.getDataAccessObject();
-        if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-            AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
-            addressChangeHandler = null;
-            IAddressDAO oldValue = address;
-            address = newValue;
-            firePropertyChange(PROP_ADDRESS, oldValue, address);
         }
     }
 
@@ -544,10 +544,10 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
 //        private static final Logger LOG = Logger.getLogger(Related.class.getName());
 
         private final String name;
+        private final EventHandler<AddressEvent> onAddressEvent;
         private IAddressDAO address;
         private final boolean active;
         private final int primaryKey;
-        // FIXME: Do not use weak event handlers
         private WeakEventHandler<AddressEvent> addressChangeHandler;
 
         private Related(int primaryKey, String name, IAddressDAO address, boolean active) {
@@ -555,21 +555,20 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             this.name = name;
             this.address = address;
             this.active = active;
+            onAddressEvent = (AddressEvent event) -> {
+                LOG.entering(LOG.getName(), "onAddressEvent", event);
+                IAddressDAO newValue = event.getDataAccessObject();
+                if (newValue.getPrimaryKey() == this.address.getPrimaryKey()) {
+                    AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
+                    addressChangeHandler = null;
+                    IAddressDAO oldValue = this.address;
+                    this.address = newValue;
+                    firePropertyChange(PROP_ADDRESS, oldValue, this.address);
+                }
+            };
             if (!(null == address || address instanceof AddressDAO)) {
-                addressChangeHandler = new WeakEventHandler<>(this::onAddressEvent);
+                addressChangeHandler = new WeakEventHandler<>(onAddressEvent);
                 AddressDAO.FACTORY.addEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
-            }
-        }
-
-        private void onAddressEvent(AddressEvent event) {
-            LOG.entering(LOG.getName(), "onAddressEvent", event);
-            IAddressDAO newValue = event.getDataAccessObject();
-            if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
-                addressChangeHandler = null;
-                IAddressDAO oldValue = address;
-                address = newValue;
-                firePropertyChange(PROP_ADDRESS, oldValue, address);
             }
         }
 

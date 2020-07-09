@@ -27,6 +27,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
@@ -106,7 +107,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
-    
+
     public static AppointmentModel editNew(CustomerItem<? extends Customer> customer, UserItem<? extends User> user,
             Window parentWindow, boolean keepOpen) throws IOException {
         AppointmentModel.Factory factory = AppointmentModel.FACTORY;
@@ -131,10 +132,12 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private final ObservableList<CorporateAddress> corporateLocationList;
     private final ObservableList<CorporateAddress> remoteLocationList;
     private final ObservableList<UserModel> userModelList;
+    private final EventHandler<AppointmentSuccessEvent> onAppointmentInserted;
+    private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
+    private final EventHandler<UserSuccessEvent> onUserDeleted;
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
-    // FIXME: Do not use weak event handlers
     private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
 
     @ModelEditor
@@ -256,6 +259,29 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
+        onAppointmentInserted = (AppointmentSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAppointmentInserted", event);
+            model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            initializeEditMode();
+        };
+        onCustomerDeleted = (CustomerSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onCustomerDeleted", event);
+            if (model.getRowState() != DataRowState.NEW) {
+                CustomerDAO dao = event.getDataAccessObject();
+                // XXX: See if we need to get/set model
+                int pk = dao.getPrimaryKey();
+                customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+            }
+        };
+        onUserDeleted = (UserSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onUserDeleted", event);
+            if (model.getRowState() != DataRowState.NEW) {
+                UserDAO dao = event.getDataAccessObject();
+                // XXX: See if we need to get/set model
+                int pk = dao.getPrimaryKey();
+                customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+            }
+        };
     }
 
     @FXML
@@ -397,7 +423,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(this::onAppointmentInserted);
+                insertedHandler = new WeakEventHandler<>(onAppointmentInserted);
                 model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
@@ -699,36 +725,10 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         dateRangeControl.setConflictCheckStatus(appointmentConflicts.getConflictCheckStatus());
     }
 
-    private void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-        model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
-        initializeEditMode();
-    }
-
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
-        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onUserDeleted));
-    }
-
-    private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            int pk = dao.getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
-        }
-    }
-
-    private void onUserDeleted(UserSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onUserDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            UserDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            int pk = dao.getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
-        }
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
+        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
     }
 
     public boolean applyChangesToModel() {

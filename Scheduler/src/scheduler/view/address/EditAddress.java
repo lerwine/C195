@@ -21,6 +21,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -84,20 +85,25 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_CUSTOMER_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #customersTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CustomerOpRequestEvent} &#123;</dt>
+ * <dt>{@link #customersTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
+ * {@link CustomerOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#CUSTOMER_OP_REQUEST "SCHEDULER_CUSTOMER_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
+ * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(CustomerOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditCustomer#edit(CustomerModel, javafx.stage.Window) EditCustomer.edit}(({@link CustomerModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
  * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
- * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr; {@link scheduler.model.ui.CustomerModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
+ * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -197,9 +203,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
+    private final EventHandler<AddressSuccessEvent> onAddressInserted;
     private BooleanBinding showEditCityControls;
-    // FIXME: Do not use weak event handlers
     private WeakEventHandler<AddressSuccessEvent> insertedHandler;
+    private final EventHandler<CustomerSuccessEvent> onCustomerAdded;
+    private final EventHandler<CustomerSuccessEvent> onCustomerUpdated;
+    private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
 
     public EditAddress() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -210,6 +219,45 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
+        onAddressInserted = (AddressSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAddressInserted", event);
+            model.dataObject().removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            editingCity.set(false);
+            restoreNode(customersHeadingLabel);
+            restoreNode(customersTableView);
+            restoreNode(newCustomerButtonBar);
+            initializeEditMode();
+        };
+        onCustomerAdded = (CustomerSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onCustomerAdded", event);
+            CustomerDAO dao = event.getDataAccessObject();
+            // XXX: See if we need to get/set model
+            if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(new CustomerModel(dao));
+            }
+        };
+        onCustomerUpdated = (CustomerSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onCustomerUpdated", event);
+            if (model.getRowState() != DataRowState.NEW) {
+                CustomerDAO dao = event.getDataAccessObject();
+                // XXX: See if we need to get/set model
+                int pk = dao.getPrimaryKey();
+                CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+                if (null != m) {
+                    if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
+                        itemList.remove(m);
+                    }
+                } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+                    itemList.add(new CustomerModel(dao));
+                }
+            }
+        };
+        onCustomerDeleted = (CustomerSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onCustomerDeleted", event);
+            CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
+                itemList.remove(t);
+            });
+        };
     }
 
     @Override
@@ -282,6 +330,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
         if (response.isPresent() && response.get() == ButtonType.YES) {
             CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
+            // FIXME: This event is never fired on the task object. Handle completed event, instead.
             task.addEventHandler(CustomerFailedEvent.DELETE_INVALID, (e) -> {
                 scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
             });
@@ -419,7 +468,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(this::onAddressInserted);
+                insertedHandler = new WeakEventHandler<>(onAddressInserted);
                 model.dataObject().addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
@@ -428,55 +477,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    private void onAddressInserted(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressInserted", event);
-        model.dataObject().removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
-        editingCity.set(false);
-        restoreNode(customersHeadingLabel);
-        restoreNode(customersTableView);
-        restoreNode(newCustomerButtonBar);
-        initializeEditMode();
-    }
-
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
-        // FIXME: Do not use weak event handlers
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onCustomerAdded));
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onCustomerUpdated));
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onCustomerDeleted));
-    }
-
-    private void onCustomerAdded(CustomerSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerAdded", event);
-        CustomerDAO dao = event.getDataAccessObject();
-        // XXX: See if we need to get/set model
-        if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-            itemList.add(new CustomerModel(dao));
-        }
-    }
-
-    private void onCustomerUpdated(CustomerSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerUpdated", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            CustomerDAO dao = event.getDataAccessObject();
-            // XXX: See if we need to get/set model
-            int pk = dao.getPrimaryKey();
-            CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
-            if (null != m) {
-                if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
-                    itemList.remove(m);
-                }
-            } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(new CustomerModel(dao));
-            }
-        }
-    }
-
-    private void onCustomerDeleted(CustomerSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-        CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
-            itemList.remove(t);
-        });
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCustomerAdded));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCustomerUpdated));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {

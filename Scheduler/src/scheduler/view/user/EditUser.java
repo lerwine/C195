@@ -3,7 +3,6 @@ package scheduler.view.user;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +21,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
@@ -77,19 +77,22 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link AppointmentOpRequestEvent} &#123;</dt>
+ * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
+ * {@link AppointmentOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
+ * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(AppointmentOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; null {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
- * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST}
- * &#125;</dt>
+ * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; null {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
@@ -120,6 +123,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private final ObservableList<UserStatus> userActiveStateOptions;
     private final ObservableList<AppointmentModel> userAppointments;
     private final ObservableList<AppointmentFilterItem> filterOptions;
+    private final EventHandler<UserSuccessEvent> onUserInserted;
+    private final EventHandler<AppointmentSuccessEvent> onAppointmentAdded;
+    private final EventHandler<AppointmentSuccessEvent> onAppointmentUpdated;
+    private final EventHandler<AppointmentSuccessEvent> onAppointmentDeleted;
+    private WeakEventHandler<UserSuccessEvent> insertedHandler;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedUserName;
     private BooleanBinding validationBinding;
@@ -167,8 +175,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
-    // FIXME: Do not use weak event handlers
-    private WeakEventHandler<UserSuccessEvent> insertedHandler;
 
     public EditUser() {
         windowTitle = new ReadOnlyStringWrapper(this, "", "");
@@ -178,6 +184,49 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
+        onUserInserted = (UserSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onUserInserted", event);
+            model.dataObject().removeEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            changePasswordCheckBox.setDisable(false);
+            changePasswordCheckBox.setSelected(false);
+            restoreNode(appointmentsFilterComboBox);
+            restoreNode(appointmentsTableView);
+            initEditMode();
+        };
+        onAppointmentAdded = (AppointmentSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAppointmentAdded", event);
+            if (model.getRowState() != DataRowState.NEW) {
+                AppointmentDAO dao = event.getDataAccessObject();
+                // XXX: Check to see if we need to get/set model
+                AppointmentFilterItem filter = selectedFilter.get();
+                if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
+                    userAppointments.add(new AppointmentModel(dao));
+                }
+            }
+        };
+        onAppointmentUpdated = (AppointmentSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
+            if (model.getRowState() != DataRowState.NEW) {
+                AppointmentDAO dao = event.getDataAccessObject();
+                // XXX: Check to see if we need to get/set model
+                AppointmentFilterItem filter = selectedFilter.get();
+                int pk = dao.getPrimaryKey();
+                AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+                if (null != m) {
+                    if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
+                        userAppointments.remove(m);
+                    }
+                } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
+                    userAppointments.add(new AppointmentModel(dao));
+                }
+            }
+        };
+        onAppointmentDeleted = (AppointmentSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
+            AppointmentModel.FACTORY.find(userAppointments, event.getDataAccessObject()).ifPresent((t) -> {
+                userAppointments.remove(t);
+            });
+        };
     }
 
     @FXML
@@ -235,6 +284,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
                 DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                // FIXME: Memory leak! Handle success event on task, instead.
                 target.getDataAccessObject().addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
                     scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
                 });
@@ -330,7 +380,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
             if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(this::onUserInserted);
+                insertedHandler = new WeakEventHandler<>(onUserInserted);
                 model.dataObject().addEventFilter(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
         } else {
@@ -338,16 +388,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             initEditMode();
         }
         changePasswordCheckBoxChanged(changePasswordCheckBox.selectedProperty(), false, changePasswordCheckBox.isSelected());
-    }
-
-    private void onUserInserted(UserSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onUserInserted", event);
-        model.dataObject().removeEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
-        changePasswordCheckBox.setDisable(false);
-        changePasswordCheckBox.setSelected(false);
-        restoreNode(appointmentsFilterComboBox);
-        restoreNode(appointmentsTableView);
-        initEditMode();
     }
 
     private void updateValidation() {
@@ -381,47 +421,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                 AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-        // FIXME: Do not use weak event handlers
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(this::onAppointmentAdded));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(this::onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(this::onAppointmentDeleted));
-    }
-
-    private void onAppointmentAdded(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentAdded", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getDataAccessObject();
-            // XXX: Check to see if we need to get/set model
-            AppointmentFilterItem filter = selectedFilter.get();
-            if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                userAppointments.add(new AppointmentModel(dao));
-            }
-        }
-    }
-
-    private void onAppointmentUpdated(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            AppointmentDAO dao = event.getDataAccessObject();
-            // XXX: Check to see if we need to get/set model
-            AppointmentFilterItem filter = selectedFilter.get();
-            int pk = dao.getPrimaryKey();
-            AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
-            if (null != m) {
-                if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
-                    userAppointments.remove(m);
-                }
-            } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                userAppointments.add(new AppointmentModel(dao));
-            }
-        }
-    }
-
-    private void onAppointmentDeleted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
-        AppointmentModel.FACTORY.find(userAppointments, event.getDataAccessObject()).ifPresent((t) -> {
-            userAppointments.remove(t);
-        });
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
     @Override

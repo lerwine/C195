@@ -165,9 +165,12 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
                 UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
-                // FIXME: This isn't going to work. Apparently weak event handlers won't cut it, either
-                item.getDataAccessObject().addEventHandler(UserFailedEvent.DELETE_INVALID, (UserFailedEvent e) -> {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
+                task.setOnSucceeded((event) -> {
+                    UserEvent userEvent = task.getValue();
+                    if (userEvent instanceof UserFailedEvent) {
+                        scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                ((UserFailedEvent) userEvent).getMessage(), ButtonType.OK);
+                    }
                 });
                 MainController.startBusyTaskNow(task);
             }

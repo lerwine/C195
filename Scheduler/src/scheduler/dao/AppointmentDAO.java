@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import scheduler.AppointmentAlertManager;
 import scheduler.dao.filter.AppointmentFilter;
@@ -66,6 +67,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     private final OriginalValues originalValues;
+    private final EventHandler<CustomerEvent> onCustomerEvent;
+    private final EventHandler<UserEvent> onUserEvent;
     private ICustomerDAO customer;
     private IUserDAO user;
     private String title;
@@ -76,9 +79,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     private String url;
     private Timestamp start;
     private Timestamp end;
-    // FIXME: Do not use weak event handlers
     private WeakEventHandler<CustomerEvent> customerChangeHandler;
-    // FIXME: Do not use weak event handlers
     private WeakEventHandler<UserEvent> userChangeHandler;
 
     /**
@@ -98,6 +99,28 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         start = DB.toUtcTimestamp(d);
         end = DB.toUtcTimestamp(d.plusHours(1));
         originalValues = new OriginalValues();
+        onCustomerEvent = (CustomerEvent event) -> {
+            LOG.entering(LOG.getName(), "onCustomerEvent", event);
+            ICustomerDAO newValue = event.getDataAccessObject();
+            if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
+                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
+                customerChangeHandler = null;
+                ICustomerDAO oldValue = customer;
+                customer = newValue;
+                firePropertyChange(PROP_CUSTOMER, oldValue, customer);
+            }
+        };
+        onUserEvent = (UserEvent event) -> {
+            LOG.entering(LOG.getName(), "onUserEvent", event);
+            IUserDAO newValue = event.getDataAccessObject();
+            if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
+                UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
+                userChangeHandler = null;
+                IUserDAO oldValue = user;
+                user = newValue;
+                firePropertyChange(PROP_ADDRESS, oldValue, user);
+            }
+        };
     }
 
     @Override
@@ -120,20 +143,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 customerChangeHandler = null;
             }
         } else if (null == customerChangeHandler) {
-            customerChangeHandler = new WeakEventHandler<>(this::onCustomerEvent);
+            customerChangeHandler = new WeakEventHandler<>(onCustomerEvent);
             CustomerDAO.FACTORY.addEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
-        }
-    }
-
-    private void onCustomerEvent(CustomerEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerEvent", event);
-        ICustomerDAO newValue = event.getDataAccessObject();
-        if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
-            CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
-            customerChangeHandler = null;
-            ICustomerDAO oldValue = customer;
-            customer = newValue;
-            firePropertyChange(PROP_CUSTOMER, oldValue, customer);
         }
     }
 
@@ -157,20 +168,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 userChangeHandler = null;
             }
         } else if (null == userChangeHandler) {
-            userChangeHandler = new WeakEventHandler<>(this::onUserEvent);
+            userChangeHandler = new WeakEventHandler<>(onUserEvent);
             UserDAO.FACTORY.addEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
-        }
-    }
-
-    private void onUserEvent(UserEvent event) {
-        LOG.entering(LOG.getName(), "onUserEvent", event);
-        IUserDAO newValue = event.getDataAccessObject();
-        if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
-            UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
-            userChangeHandler = null;
-            IUserDAO oldValue = user;
-            user = newValue;
-            firePropertyChange(PROP_ADDRESS, oldValue, user);
         }
     }
 

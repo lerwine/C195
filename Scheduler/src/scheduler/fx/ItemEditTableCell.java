@@ -1,10 +1,12 @@
 package scheduler.fx;
 
+import java.lang.ref.WeakReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
+import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
@@ -33,14 +35,17 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
-    private final FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory;
+    private final FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> modelFactory;
     private final HBox graphic;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
+    private final WeakReference<? extends ItemEditTableCellFactory<D, M, ? extends OperationRequestEvent<D, M>>> cellFactory;
 
     @SuppressWarnings("unchecked")
-    public ItemEditTableCell(FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
+    public ItemEditTableCell(ItemEditTableCellFactory<D, M, ? extends ModelEvent<D, M>> factory) {
+//    public ItemEditTableCell(FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
         onItemActionRequest = new SimpleObjectProperty<>();
-        this.factory = factory;
+        cellFactory = new WeakReference<>(factory);
+        modelFactory = factory.getFactory();
         graphic = NodeUtil.createCompactHBox(createSymbolButton(SymbolText.EDIT, this::onEditButtonAction), createSymbolButton(SymbolText.DELETE, this::onDeleteButtonAction));
         graphic.setSpacing(8);
         graphic.setMaxHeight(USE_PREF_SIZE);
@@ -48,10 +53,10 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
         super.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
             if (null != oldValue) {
-                removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
+                removeEventHandler((EventType<E>) modelFactory.getBaseRequestEventType(), oldValue);
             }
             if (null != newValue) {
-                addEventHandler((EventType<E>) factory.getBaseRequestEventType(), newValue);
+                addEventHandler((EventType<E>) modelFactory.getBaseRequestEventType(), newValue);
             }
         });
     }
@@ -68,12 +73,21 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
         return onItemActionRequest;
     }
 
+    @Override
+    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        ItemEditTableCellFactory<D, M, ? extends OperationRequestEvent<D, M>> factory = cellFactory.get();
+        if (null != factory) {
+            tail = factory.buildEventDispatchChain(tail);
+        }
+        return super.buildEventDispatchChain(tail);
+    }
+
     private void onEditButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onEditButtonAction", event);
         M item = getItem();
         if (null != item) {
             @SuppressWarnings("unchecked")
-            E e = (E) factory.createEditRequestEvent(item, event.getSource());
+            E e = (E) modelFactory.createEditRequestEvent(item, event.getSource());
             LOG.fine(() -> String.format("Firing %s%n\ton %s", e, getClass().getName()));
             fireEvent(e);
         }
@@ -84,7 +98,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends FxRec
         M item = getItem();
         if (null != item) {
             @SuppressWarnings("unchecked")
-            E e = (E) factory.createDeleteRequestEvent(item, event.getSource());
+            E e = (E) modelFactory.createDeleteRequestEvent(item, event.getSource());
             LOG.fine(() -> String.format("Firing %s%n\ton %s", e, getClass().getName()));
             fireEvent(e);
         }

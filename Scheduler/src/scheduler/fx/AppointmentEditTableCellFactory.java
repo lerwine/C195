@@ -7,7 +7,7 @@ import scheduler.model.ui.AppointmentModel;
 public class AppointmentEditTableCellFactory extends ItemEditTableCellFactory<AppointmentDAO, AppointmentModel, AppointmentOpRequestEvent> {
 
     @Override
-    protected AppointmentModel.Factory getFactory() {
+    public AppointmentModel.Factory getFactory() {
         return AppointmentModel.FACTORY;
     }
 

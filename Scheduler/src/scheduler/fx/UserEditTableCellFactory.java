@@ -7,7 +7,7 @@ import scheduler.model.ui.UserModel;
 public class UserEditTableCellFactory extends ItemEditTableCellFactory<UserDAO, UserModel, UserOpRequestEvent> {
 
     @Override
-    protected UserModel.Factory getFactory() {
+    public UserModel.Factory getFactory() {
         return UserModel.FACTORY;
     }
 

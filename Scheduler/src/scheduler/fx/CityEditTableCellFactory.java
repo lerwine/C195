@@ -7,7 +7,7 @@ import scheduler.model.ui.CityModel;
 public class CityEditTableCellFactory extends ItemEditTableCellFactory<CityDAO, CityModel, CityOpRequestEvent> {
 
     @Override
-    protected CityModel.Factory getFactory() {
+    public CityModel.Factory getFactory() {
         return CityModel.FACTORY;
     }
 

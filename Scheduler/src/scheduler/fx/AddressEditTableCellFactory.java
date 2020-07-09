@@ -7,7 +7,7 @@ import scheduler.model.ui.AddressModel;
 public class AddressEditTableCellFactory extends ItemEditTableCellFactory<AddressDAO, AddressModel, AddressOpRequestEvent> {
 
     @Override
-    protected AddressModel.Factory getFactory() {
+    public AddressModel.Factory getFactory() {
         return AddressModel.FACTORY;
     }
 
