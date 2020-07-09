@@ -1139,6 +1139,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     }
 
+    // FIXME: Validate flow of events
     /**
      * A {@link ValidatingDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database
      * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
@@ -1329,6 +1330,7 @@ public abstract class DataAccessObject extends PropertyBindable implements DbRec
 
     }
 
+    // FIXME: Validate flow of events
     /**
      * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database
      * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the

@@ -271,7 +271,7 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
             return null;
         }
 
-        // FIXME: Complement usages of this method with {@link #lookupCacheByRegionCode(java.lang.String)}
+        // PENDING: (FIXME) Complement usages of this method with {@link #lookupCacheByRegionCode(java.lang.String)}
         public CountryDAO getByRegionCode(Connection connection, String regionCode) throws SQLException {
             String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
                     .append(DbColumn.COUNTRY_NAME).append("=?").toString();
