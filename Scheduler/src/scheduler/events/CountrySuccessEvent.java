@@ -2,8 +2,6 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.CountryDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
 /**
@@ -11,7 +9,8 @@ import scheduler.model.ui.CountryModel;
  * <h3>Event Registration</h3>
  * <dl>
  * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_COUNTRY_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"} &lArr;
- * {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_COUNTRY_SAVE_SUCCESS</dt>
@@ -86,7 +85,7 @@ public final class CountrySuccessEvent extends CountryEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public CountrySuccessEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, EventType<CountrySuccessEvent> eventType) {
+    public CountrySuccessEvent(CountryModel target, Object source, EventType<CountrySuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

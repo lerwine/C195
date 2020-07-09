@@ -17,7 +17,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
-import scheduler.dao.CityDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICityDAO;
@@ -34,7 +33,6 @@ import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
 import scheduler.model.DataObject;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
@@ -106,7 +104,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
      * Formats address as a multi-line string.
      *
      * @param address A 1 or 2 line white-space-normalized string, usually formatted using {@link #calculateAddressLines(String, String)}.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
+     * {@link #calculateCityZipCountry(String, String, String)}.
      * @param phone The phone number string which will be normalized in this method.
      * @return A multi-line white-space-normalized address string.
      */
@@ -132,7 +131,8 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
      *
      * @param address1 The first line of the street address which will be normalized by this method.
      * @param address2 The second line of the street address which will be normalized by this method.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
+     * @param cityZipCountry A single line white-space-normalized string, usually formatted using
+     * {@link #calculateCityZipCountry(String, String, String)}.
      * @param phone The phone number string which will be normalized in this method.
      * @return The address formatted as a single line white-space-normalized string.
      */
@@ -451,18 +451,18 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(RecordModelContext<AddressDAO, AddressModel> model) {
+        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
             return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(RecordModelContext<AddressDAO, AddressModel> model) {
+        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(AddressModel model) {
             return new AddressDAO.DeleteTask(model, false);
         }
 
         @Override
-        public AddressEvent validateForSave(RecordModelContext<AddressDAO, AddressModel> target) {
-            AddressDAO dao = target.getDataAccessObject();
+        public AddressEvent validateForSave(AddressModel fxRecordModel) {
+            AddressDAO dao = fxRecordModel.dataObject();
             String message;
             if (dao.getRowState() == DataRowState.DELETED) {
                 message = "Address has already been deleted";
@@ -480,13 +480,12 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                 } else if (dao.getPhone().length() > MAX_LENGTH_PHONE) {
                     message = "Phone number too long";
                 } else {
-                    AddressModel fxRecordModel = target.getFxRecordModel();
                     CityEvent event;
                     if (null != fxRecordModel) {
                         CityItem<? extends ICityDAO> c = fxRecordModel.getCity();
                         if (null != c) {
                             if (c instanceof CityModel) {
-                                if (null == (event = CityModel.FACTORY.validateForSave(RecordModelContext.of((CityModel) c)))) {
+                                if (null == (event = CityModel.FACTORY.validateForSave((CityModel) c))) {
                                     return null;
                                 }
                             } else {
@@ -495,28 +494,15 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
                         } else {
                             event = null;
                         }
-                    } else {
-                        ICityDAO c = dao.getCity();
-                        if (null != c) {
-                            if (c instanceof CityDAO) {
-                                if (null == (event = CityModel.FACTORY.validateForSave(RecordModelContext.of((CityDAO) c)))) {
-                                    return null;
+                        if (null != event) {
+                            if (event instanceof CityFailedEvent) {
+                                if (dao.getRowState() == DataRowState.NEW) {
+                                    return AddressEvent.createInsertInvalidEvent(fxRecordModel, this, (CityFailedEvent) event);
                                 }
-                            } else {
-                                return null;
+                                return AddressEvent.createUpdateInvalidEvent(fxRecordModel, this, (CityFailedEvent) event);
                             }
-                        } else {
-                            event = null;
+                            return null;
                         }
-                    }
-                    if (null != event) {
-                        if (event instanceof CityFailedEvent) {
-                            if (dao.getRowState() == DataRowState.NEW) {
-                                return AddressEvent.createInsertInvalidEvent(target, this, (CityFailedEvent) event);
-                            }
-                            return AddressEvent.createUpdateInvalidEvent(target, this, (CityFailedEvent) event);
-                        }
-                        return null;
                     }
 
                     message = "City not specified.";
@@ -524,9 +510,9 @@ public final class AddressModel extends FxRecordModel<AddressDAO> implements Add
             }
 
             if (dao.getRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertInvalidEvent(target, this, message);
+                return AddressEvent.createInsertInvalidEvent(fxRecordModel, this, message);
             }
-            return AddressEvent.createUpdateInvalidEvent(target, this, message);
+            return AddressEvent.createUpdateInvalidEvent(fxRecordModel, this, message);
         }
 
         @Override

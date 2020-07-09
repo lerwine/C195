@@ -4,7 +4,6 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
 /**
@@ -267,7 +266,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         this(event, message, (Throwable) null, eventType);
     }
 
-    public AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType) {
+    public AppointmentFailedEvent(AppointmentModel target, String message, Throwable fault, Object source, EventType<AppointmentFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
@@ -276,11 +275,11 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         failKind = toFailKind(eventType);
     }
 
-    public AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, String message, EventType<AppointmentFailedEvent> eventType) {
+    public AppointmentFailedEvent(AppointmentModel target, Object source, String message, EventType<AppointmentFailedEvent> eventType) {
         this(target, message, (Throwable) null, source, eventType);
     }
 
-    AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<AppointmentFailedEvent> eventType, CustomerFailedEvent event) {
+    AppointmentFailedEvent(AppointmentModel target, Object source, EventType<AppointmentFailedEvent> eventType, CustomerFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = "Invalid address";
         fault = null;
@@ -289,7 +288,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
         failKind = toFailKind(eventType);
     }
 
-    AppointmentFailedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<AppointmentFailedEvent> eventType, UserFailedEvent event) {
+    AppointmentFailedEvent(AppointmentModel target, Object source, EventType<AppointmentFailedEvent> eventType, UserFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = "Invalid address";
         fault = null;

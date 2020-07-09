@@ -2,16 +2,15 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.CityDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
 /**
  * Represents a successful {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr;
- * {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr;
+ * {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_CITY_SAVE_SUCCESS</dt>
@@ -86,7 +85,7 @@ public final class CitySuccessEvent extends CityEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public CitySuccessEvent(RecordModelContext<CityDAO, CityModel> target, Object source, EventType<CitySuccessEvent> eventType) {
+    public CitySuccessEvent(CityModel target, Object source, EventType<CitySuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

@@ -4,7 +4,6 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
 /**
@@ -12,7 +11,8 @@ import scheduler.model.ui.CustomerModel;
  * <h3>Event Registration</h3>
  * <dl>
  * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CUSTOMER_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"} &lArr;
- * {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_CUSTOMER_SAVE_FAILED</dt>
@@ -297,7 +297,7 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
         this(event, message, (Throwable) null, eventType);
     }
 
-    public CustomerFailedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, String message, Throwable fault, Object source, EventType<CustomerFailedEvent> eventType) {
+    public CustomerFailedEvent(CustomerModel target, String message, Throwable fault, Object source, EventType<CustomerFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
@@ -305,11 +305,11 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
         failKind = toFailKind(eventType);
     }
 
-    public CustomerFailedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, String message, EventType<CustomerFailedEvent> eventType) {
+    public CustomerFailedEvent(CustomerModel target, Object source, String message, EventType<CustomerFailedEvent> eventType) {
         this(target, message, (Throwable) null, source, eventType);
     }
 
-    CustomerFailedEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, EventType<CustomerFailedEvent> eventType, AddressFailedEvent event) {
+    CustomerFailedEvent(CustomerModel target, Object source, EventType<CustomerFailedEvent> eventType, AddressFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = "Invalid address";
         fault = null;

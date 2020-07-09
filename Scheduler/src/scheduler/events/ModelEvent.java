@@ -8,7 +8,6 @@ import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.LogHelper;
 
@@ -298,7 +297,7 @@ import scheduler.util.LogHelper;
 public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordModel<D>> extends Event implements IModelEvent<D, M> {
 
     private static final long serialVersionUID = -6832461936768738020L;
-    
+
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ModelEvent.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ModelEvent.class.getName());
 
@@ -353,32 +352,9 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         state = event.state.copyOf(operation);
     }
 
-    /**
-     * Creates a new {@link ModelEvent} from a {@link RecordModelContext} object.
-     *
-     * @param target The {@link RecordModelContext} that is associated with the event.
-     * @param source The object which sent the event.
-     * @param eventType The event type.
-     * @param operation The database operation associated with the event.
-     */
-    protected ModelEvent(RecordModelContext<D, M> target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
-        super(source, target.getDataAccessObject(), Objects.requireNonNull(eventType));
-        StateOriginal s = new StateOriginal(target.getDataAccessObject(), operation);
-        s.fxRecordModel = target.getFxRecordModel();
-        state = s;
-    }
-
     protected ModelEvent(M target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
         super(source, target.dataObject(), Objects.requireNonNull(eventType));
-        StateOriginal s = new StateOriginal(target.dataObject(), operation);
-        s.fxRecordModel = target;
-        state = s;
-    }
-
-    protected ModelEvent(D target, Object source, EventType<? extends ModelEvent<D, M>> eventType, DbOperationType operation) {
-        super(source, target, Objects.requireNonNull(eventType));
-        StateOriginal s = new StateOriginal(target, operation);
-        state = s;
+        state = new StateOriginal(target, operation);
     }
 
     @Override
@@ -392,18 +368,14 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
     }
 
     @Override
-    public void setFxRecordModel(M fxRecordModel) {
-        state.setFxRecordModel(fxRecordModel);
-    }
-
-    @Override
     public DbOperationType getOperation() {
         return state.getOperation();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Event copyFor(Object newSource, EventTarget newTarget) {
-        LOG.entering(LOG.getName(), "copyFor", new Object[] { newSource, newTarget });
+        LOG.entering(LOG.getName(), "copyFor", new Object[]{newSource, newTarget});
         @SuppressWarnings("unchecked")
         ModelEvent<D, M> copy;
         try {
@@ -493,10 +465,10 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
 
         private final DbOperationType operation;
         private final D dataAccessObject;
-        private M fxRecordModel;
+        private final M fxRecordModel;
 
-        private StateOriginal(D dataAccessObject, DbOperationType operation) {
-            this.dataAccessObject = Objects.requireNonNull(dataAccessObject);
+        private StateOriginal(M fxRecordModel, DbOperationType operation) {
+            dataAccessObject = (this.fxRecordModel = fxRecordModel).dataObject();
             this.operation = Objects.requireNonNull(operation);
         }
 
@@ -513,20 +485,6 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         @Override
         protected M getFxRecordModel() {
             return fxRecordModel;
-        }
-
-        @Override
-        protected synchronized void setFxRecordModel(M fxRecordModel) {
-            if (null != this.fxRecordModel) {
-                if (null != fxRecordModel && fxRecordModel == this.fxRecordModel) {
-                    return;
-                }
-                throw new IllegalStateException("Model has already been set");
-            }
-            if (dataAccessObject != fxRecordModel.dataObject()) {
-                throw new IllegalArgumentException("Model is for a different data access object");
-            }
-            this.fxRecordModel = fxRecordModel;
         }
 
         @Override
@@ -565,11 +523,6 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         }
 
         @Override
-        protected void setFxRecordModel(M fxRecordModel) {
-            source.setFxRecordModel(fxRecordModel);
-        }
-
-        @Override
         protected State copyOf(DbOperationType operation) {
             if (null == operation || operation == this.operation) {
                 return this;
@@ -586,8 +539,6 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends FxRecordM
         protected abstract D getDataAccessObject();
 
         protected abstract M getFxRecordModel();
-
-        protected abstract void setFxRecordModel(M fxRecordModel);
 
         protected abstract State copyOf(DbOperationType operation);
 

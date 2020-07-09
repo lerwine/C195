@@ -4,7 +4,6 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
 /**
@@ -12,7 +11,8 @@ import scheduler.model.ui.CountryModel;
  * <h3>Event Registration</h3>
  * <dl>
  * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_COUNTRY_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"} &lArr;
- * {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_COUNTRY_SAVE_FAILED</dt>
@@ -257,14 +257,14 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
         this(event, message, (Throwable) null, eventType);
     }
 
-    public CountryFailedEvent(RecordModelContext<CountryDAO, CountryModel> target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
+    public CountryFailedEvent(CountryModel target, String message, Throwable fault, Object source, EventType<CountryFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         failKind = toFailKind(eventType);
     }
 
-    public CountryFailedEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, String message, EventType<CountryFailedEvent> eventType) {
+    public CountryFailedEvent(CountryModel target, Object source, String message, EventType<CountryFailedEvent> eventType) {
         this(target, message, (Throwable) null, source, eventType);
     }
 

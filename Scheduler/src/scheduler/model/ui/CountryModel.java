@@ -22,7 +22,6 @@ import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
@@ -185,18 +184,18 @@ public final class CountryModel extends FxRecordModel<CountryDAO> implements Cou
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel, CountryEvent> createSaveTask(RecordModelContext<CountryDAO, CountryModel> model) {
+        public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel, CountryEvent> createSaveTask(CountryModel model) {
             return new CountryDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> createDeleteTask(RecordModelContext<CountryDAO, CountryModel> model) {
+        public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> createDeleteTask(CountryModel model) {
             return new CountryDAO.DeleteTask(model, false);
         }
 
         @Override
-        public CountryEvent validateForSave(RecordModelContext<CountryDAO, CountryModel> target) {
-            CountryDAO dao = target.getDataAccessObject();
+        public CountryEvent validateForSave(CountryModel target) {
+            CountryDAO dao = target.dataObject();
             String message;
             if (dao.getRowState() == DataRowState.DELETED) {
                 message = "Country has already been deleted";

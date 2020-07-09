@@ -54,7 +54,6 @@ import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityItem;
 import scheduler.model.ui.CityModel;
@@ -274,7 +273,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         LOG.entering(LOG.getName(), "onCustomerDeleteMenuItemAction", event);
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDelete(RecordModelContext.of(item));
+            onDelete(item);
         }
     }
 
@@ -297,7 +296,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDelete(RecordModelContext.of(item));
+                        onDelete(item);
                     }
                     break;
                 case ENTER:
@@ -324,7 +323,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         }
     }
 
-    private void onDelete(RecordModelContext<CustomerDAO, CustomerModel> item) {
+    private void onDelete(CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -345,7 +344,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         if (event.isEdit()) {
             onEdit(event.getFxRecordModel());
         } else {
-            onDelete(event);
+            onDelete(event.getFxRecordModel());
         }
     }
 

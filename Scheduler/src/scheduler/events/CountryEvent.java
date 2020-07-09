@@ -4,14 +4,14 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.OperationFailureException;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
 /**
  * Base {@link ModelEvent} for appointment events.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) {@link #COUNTRY_EVENT_TYPE "SCHEDULER_COUNTRY_OP_EVENT"}</dt>
@@ -59,52 +59,52 @@ public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> 
         return event instanceof CountryFailedEvent && ((CountryFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
-    public static final CountryEvent createInsertSuccessEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source) {
+    public static final CountryEvent createInsertSuccessEvent(CountryModel target, Object source) {
         return new CountrySuccessEvent(target, source, CountrySuccessEvent.INSERT_SUCCESS);
     }
 
-    public static final CountryEvent createUpdateSuccessEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source) {
+    public static final CountryEvent createUpdateSuccessEvent(CountryModel target, Object source) {
         return new CountrySuccessEvent(target, source, CountrySuccessEvent.UPDATE_SUCCESS);
     }
 
-    public static final CountryEvent createDeleteSuccessEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source) {
+    public static final CountryEvent createDeleteSuccessEvent(CountryModel target, Object source) {
         return new CountrySuccessEvent(target, source, CountrySuccessEvent.DELETE_SUCCESS);
     }
 
-    public static final CountryEvent createInsertInvalidEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, String message) {
+    public static final CountryEvent createInsertInvalidEvent(CountryModel target, Object source, String message) {
         return new CountryFailedEvent(target, message, null, source, CountryFailedEvent.INSERT_INVALID);
     }
 
-    public static final CountryEvent createUpdateInvalidEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, String message) {
+    public static final CountryEvent createUpdateInvalidEvent(CountryModel target, Object source, String message) {
         return new CountryFailedEvent(target, message, null, source, CountryFailedEvent.UPDATE_INVALID);
     }
 
-    public static final CountryEvent createDeleteInvalidEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, String message) {
+    public static final CountryEvent createDeleteInvalidEvent(CountryModel target, Object source, String message) {
         return new CountryFailedEvent(target, message, null, source, CountryFailedEvent.DELETE_INVALID);
     }
 
-    public static final CountryEvent createInsertFaultedEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, Throwable ex) {
+    public static final CountryEvent createInsertFaultedEvent(CountryModel target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
             return new CountryFailedEvent(target, ex.getMessage(), ex.getCause(), source, CountryFailedEvent.INSERT_FAULTED);
         }
         return new CountryFailedEvent(target, null, ex, source, CountryFailedEvent.INSERT_INVALID);
     }
 
-    public static final CountryEvent createUpdateFaultedEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, Throwable ex) {
+    public static final CountryEvent createUpdateFaultedEvent(CountryModel target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
             return new CountryFailedEvent(target, ex.getMessage(), ex.getCause(), source, CountryFailedEvent.UPDATE_FAULTED);
         }
         return new CountryFailedEvent(target, null, ex, source, CountryFailedEvent.UPDATE_FAULTED);
     }
 
-    public static final CountryEvent createDeleteFaultedEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, Throwable ex) {
+    public static final CountryEvent createDeleteFaultedEvent(CountryModel target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
             return new CountryFailedEvent(target, ex.getMessage(), ex.getCause(), source, CountryFailedEvent.DELETE_FAULTED);
         }
         return new CountryFailedEvent(target, null, ex, source, CountryFailedEvent.DELETE_FAULTED);
     }
 
-    public static final CountryEvent createInsertCanceledEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, InterruptedException ex) {
+    public static final CountryEvent createInsertCanceledEvent(CountryModel target, Object source, InterruptedException ex) {
         if (null == ex) {
             return new CountryFailedEvent(target, null, null, source, CountryFailedEvent.INSERT_CANCELED);
         }
@@ -114,7 +114,7 @@ public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> 
         return new CountryFailedEvent(target, ex.getMessage(), ex, source, CountryFailedEvent.INSERT_CANCELED);
     }
 
-    public static final CountryEvent createUpdateCanceledEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, InterruptedException ex) {
+    public static final CountryEvent createUpdateCanceledEvent(CountryModel target, Object source, InterruptedException ex) {
         if (null == ex) {
             return new CountryFailedEvent(target, null, null, source, CountryFailedEvent.UPDATE_CANCELED);
         }
@@ -124,7 +124,7 @@ public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> 
         return new CountryFailedEvent(target, ex.getMessage(), ex, source, CountryFailedEvent.UPDATE_CANCELED);
     }
 
-    public static final CountryEvent createDeleteCanceledEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, InterruptedException ex) {
+    public static final CountryEvent createDeleteCanceledEvent(CountryModel target, Object source, InterruptedException ex) {
         if (null == ex) {
             return new CountryFailedEvent(target, null, null, source, CountryFailedEvent.DELETE_CANCELED);
         }
@@ -134,15 +134,15 @@ public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> 
         return new CountryFailedEvent(target, ex.getMessage(), ex, source, CountryFailedEvent.DELETE_CANCELED);
     }
 
-    public static final CountryEvent createInsertCanceledEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source) {
+    public static final CountryEvent createInsertCanceledEvent(CountryModel target, Object source) {
         return createInsertCanceledEvent(target, source, null);
     }
 
-    public static final CountryEvent createUpdateCanceledEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source) {
+    public static final CountryEvent createUpdateCanceledEvent(CountryModel target, Object source) {
         return createUpdateCanceledEvent(target, source, null);
     }
 
-    public static final CountryEvent createDeleteCanceledEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source) {
+    public static final CountryEvent createDeleteCanceledEvent(CountryModel target, Object source) {
         return createDeleteCanceledEvent(target, source, null);
     }
 
@@ -154,7 +154,7 @@ public abstract class CountryEvent extends ModelEvent<CountryDAO, CountryModel> 
         super(event, eventType, operation);
     }
 
-    protected CountryEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, EventType<? extends CountryEvent> eventType, DbOperationType operation) {
+    protected CountryEvent(CountryModel target, Object source, EventType<? extends CountryEvent> eventType, DbOperationType operation) {
         super(target, source, eventType, operation);
     }
 

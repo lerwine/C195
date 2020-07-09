@@ -2,16 +2,15 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.UserDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.UserModel;
 
 /**
  * Represents a successful {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr; {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr;
- * {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr;
+ * {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_USER_SAVE_SUCCESS</dt>
@@ -86,7 +85,7 @@ public final class UserSuccessEvent extends UserEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public UserSuccessEvent(RecordModelContext<UserDAO, UserModel> target, Object source, EventType<UserSuccessEvent> eventType) {
+    public UserSuccessEvent(UserModel target, Object source, EventType<UserSuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

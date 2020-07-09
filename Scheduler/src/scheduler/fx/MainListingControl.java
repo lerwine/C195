@@ -29,7 +29,6 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -44,21 +43,24 @@ import scheduler.view.ModelFilter;
  * Base class for item list management.
  * <h3>Event handling</h3>
  * <h4>SCHEDULER_OP_REQUEST_EVENT</h4>
- * The {@link #onItemActionRequest(OperationRequestEvent)} handles {@link OperationRequestEvent}s fired by {@link scheduler.fx.ItemEditTableCell}s through the
- * {@link scheduler.fx.ItemEditTableCellFactory}.
+ * The {@link #onItemActionRequest(OperationRequestEvent)} handles {@link OperationRequestEvent}s fired by {@link scheduler.fx.ItemEditTableCell}s
+ * through the {@link scheduler.fx.ItemEditTableCellFactory}.
  * <dl>
- * <dt>{@link #listingTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link OperationRequestEvent} &#123;</dt>
+ * <dt>{@link #listingTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
+ * {@link OperationRequestEvent} &#123;</dt>
  * <dd> {@link javafx.event.Event#eventType} = {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
  * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(OperationRequestEvent)}
  * <dl>
- * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#NONE} &#125;</dt>
+ * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#NONE}
+ * &#125;</dt>
  * <dd>&rarr; {@link #onEditItem(FxRecordModel) onEditItem}({@link ModelEvent#getFxRecordModel()})
  * <dl>
  * <dt>(&rarr;) {@link scheduler.events.AppointmentOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST "SCHEDULER_APPOINTMENT_EDIT_REQUEST"} &#125;</dt>
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#EDIT_REQUEST "SCHEDULER_APPOINTMENT_EDIT_REQUEST"}
+ * &#125;</dt>
  * <dd>&rarr; {@link scheduler.view.appointment.ManageAppointments}</dd>
  * <dt>(&rarr;) {@link scheduler.events.CountryOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link scheduler.events.CountryOpRequestEvent#EDIT_REQUEST "SCHEDULER_COUNTRY_EDIT_REQUEST"} &#125;</dt>
@@ -71,17 +73,20 @@ import scheduler.view.ModelFilter;
  * <dd>&rarr; {@link scheduler.view.user.ManageUsers}</dd>
  * </dl>
  * </dd>
- * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}} &#125;</dt>
- * <dd>&rarr; {@link #onDeleteItem(RecordModelContext) onDeleteItem}({@link OperationRequestEvent})
+ * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}}
+ * &#125;</dt>
+ * <dd>&rarr; {@link #onDeleteItem(FxRecordModel) onDeleteItem}({@link OperationRequestEvent})
  * <dl>
  * <dt>(&rarr;) {@link scheduler.events.AppointmentOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#DELETE_REQUEST "SCHEDULER_APPOINTMENT_DELETE_REQUEST"} &#125;</dt>
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.AppointmentOpRequestEvent#DELETE_REQUEST "SCHEDULER_APPOINTMENT_DELETE_REQUEST"}
+ * &#125;</dt>
  * <dd>&rarr; {@link scheduler.view.appointment.ManageAppointments}</dd>
  * <dt>(&rarr;) {@link scheduler.events.CountryOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link scheduler.events.CountryOpRequestEvent#DELETE_REQUEST "SCHEDULER_COUNTRY_DELETE_REQUEST"} &#125;</dt>
  * <dd>&rarr; {@link scheduler.view.country.ManageCountries}</dd>
  * <dt>(&rarr;) {@link scheduler.events.CustomerOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link scheduler.events.CustomerOpRequestEvent#DELETE_REQUEST "SCHEDULER_CUSTOMER_DELETE_REQUEST"} &#125;</dt>
+ * {@link javafx.event.Event#eventType} = {@link scheduler.events.CustomerOpRequestEvent#DELETE_REQUEST "SCHEDULER_CUSTOMER_DELETE_REQUEST"}
+ * &#125;</dt>
  * <dd>&rarr; {@link scheduler.view.customer.ManageCustomers}</dd>
  * <dt>(&rarr;) {@link scheduler.events.UserOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link scheduler.events.UserOpRequestEvent#DELETE_REQUEST "SCHEDULER_USER_DELETE_REQUEST"} &#125;</dt>
@@ -162,7 +167,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         LOG.entering(LOG.getName(), "onDeleteMenuItemAction", event);
         M item = listingTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDeleteItem(RecordModelContext.of(item));
+            onDeleteItem(item);
         }
     }
 
@@ -181,7 +186,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         if (event.isEdit()) {
             onEditItem(event.getFxRecordModel());
         } else {
-            onDeleteItem(event);
+            onDeleteItem(event.getFxRecordModel());
         }
     }
 
@@ -195,7 +200,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 case DELETE:
                     item = listingTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDeleteItem(RecordModelContext.of(item));
+                        onDeleteItem(item);
                     }
                     break;
                 case ENTER:
@@ -324,7 +329,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
 
     protected abstract void onEditItem(M item);
 
-    protected abstract void onDeleteItem(RecordModelContext<D, M> item);
+    protected abstract void onDeleteItem(M item);
 
     protected abstract EventType<? extends E> getInsertedEventType();
 
@@ -333,9 +338,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     protected abstract EventType<? extends E> getDeletedEventType();
 
     private class ShowingChangedListener extends ParentWindowShowingListener {
-        
+
         private boolean isAttached = false;
-        
+
         @Override
         protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
             super.onShowingChanged(observable, oldValue, newValue);
@@ -353,7 +358,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
                 isAttached = false;
             }
         }
-        
+
     }
 
     protected class LoadItemsTask extends Task<List<D>> {

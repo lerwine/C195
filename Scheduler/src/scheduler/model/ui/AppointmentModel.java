@@ -15,24 +15,20 @@ import javafx.event.EventType;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
-import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICustomerDAO;
 import scheduler.dao.IUserDAO;
-import scheduler.dao.UserDAO;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
-import scheduler.events.OperationRequestEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.PredefinedData;
-import scheduler.model.RecordModelContext;
 import scheduler.model.UserStatus;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
@@ -216,27 +212,27 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                             final LocalDateTime e = end.get();
                             return null != s && null != e && s.compareTo(e) <= 0;
                         }, start, end)).and(Bindings.createBooleanBinding(() -> {
-                            final AppointmentType t = type.get();
-                            final String l = location.get();
-                            final String c = contact.get();
-                            final String u = url.get();
-                            if (null == t || l.isEmpty()) {
+                    final AppointmentType t = type.get();
+                    final String l = location.get();
+                    final String c = contact.get();
+                    final String u = url.get();
+                    if (null == t || l.isEmpty()) {
+                        return false;
+                    }
+                    switch (t) {
+                        case CUSTOMER_SITE:
+                            if (c.isEmpty()) {
                                 return false;
                             }
-                            switch (t) {
-                                case CUSTOMER_SITE:
-                                    if (c.isEmpty()) {
-                                        return false;
-                                    }
-                                    break;
-                                case VIRTUAL:
-                                    if (u.isEmpty()) {
-                                        return false;
-                                    }
-                                    break;
+                            break;
+                        case VIRTUAL:
+                            if (u.isEmpty()) {
+                                return false;
                             }
-                            return true;
-                        }, type, location, contact, url)));
+                            break;
+                    }
+                    return true;
+                }, type, location, contact, url)));
         customer.set(CustomerItem.createModel(dao.getCustomer()));
         user.set(UserItem.createModel(dao.getUser()));
         title.set(dao.getTitle());
@@ -604,8 +600,7 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                 .addString(lastModifiedByProperty()).addBoolean(valid);
     }
 
-    public final static class Factory
-            extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public final static class Factory extends FxRecordModel.FxModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         private Factory() {
             super();
@@ -635,20 +630,18 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(
-                final RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(AppointmentModel model) {
             return new AppointmentDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(
-                final RecordModelContext<AppointmentDAO, AppointmentModel> model) {
+        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(AppointmentModel model) {
             return new AppointmentDAO.DeleteTask(model, false);
         }
 
         @Override
-        public AppointmentEvent validateForSave(final RecordModelContext<AppointmentDAO, AppointmentModel> target) {
-            final AppointmentDAO dao = target.getDataAccessObject();
+        public AppointmentEvent validateForSave(final AppointmentModel fxRecordModel) {
+            final AppointmentDAO dao = fxRecordModel.dataObject();
             String message;
             String s;
             if (dao.getRowState() == DataRowState.DELETED) {
@@ -694,7 +687,6 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                             break;
                     }
                     if (null == message) {
-                        final AppointmentModel fxRecordModel = target.getFxRecordModel();
                         CustomerEvent customerEvent = null;
                         UserEvent userEvent = null;
                         if (null != fxRecordModel) {
@@ -702,34 +694,14 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                             if (null == customer) {
                                 message = "Customer not specified";
                             } else if (customer instanceof CustomerModel) {
-                                customerEvent = CustomerModel.FACTORY
-                                        .validateForSave(RecordModelContext.of((CustomerModel) customer));
+                                customerEvent = CustomerModel.FACTORY.validateForSave((CustomerModel) customer);
                                 if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
                                     customerEvent = null;
                                     final UserItem<? extends IUserDAO> user = fxRecordModel.getUser();
                                     if (null == user) {
                                         message = "User not specified";
                                     } else if (user instanceof UserModel) {
-                                        userEvent = UserModel.FACTORY
-                                                .validateForSave(RecordModelContext.of((UserModel) user));
-                                    }
-                                }
-                            }
-                        } else {
-                            final ICustomerDAO customer = dao.getCustomer();
-                            if (null == customer) {
-                                message = "Customer not specified";
-                            } else if (customer instanceof CustomerDAO) {
-                                customerEvent = CustomerModel.FACTORY
-                                        .validateForSave(RecordModelContext.of((CustomerDAO) customer));
-                                if (null == customerEvent || !(customerEvent instanceof CustomerFailedEvent)) {
-                                    customerEvent = null;
-                                    final IUserDAO user = dao.getUser();
-                                    if (null == user) {
-                                        message = "User not specified";
-                                    } else if (user instanceof UserDAO) {
-                                        userEvent = UserModel.FACTORY
-                                                .validateForSave(RecordModelContext.of((UserDAO) user));
+                                        userEvent = UserModel.FACTORY.validateForSave((UserModel) user);
                                     }
                                 }
                             }
@@ -738,18 +710,18 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
                         if (null == message) {
                             if (null != customerEvent) {
                                 if (dao.getRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(target, this,
+                                    return AppointmentEvent.createInsertInvalidEvent(fxRecordModel, this,
                                             (CustomerFailedEvent) customerEvent);
                                 }
-                                return AppointmentEvent.createUpdateInvalidEvent(target, this,
+                                return AppointmentEvent.createUpdateInvalidEvent(fxRecordModel, this,
                                         (CustomerFailedEvent) customerEvent);
                             }
                             if (null != userEvent && userEvent instanceof UserFailedEvent) {
                                 if (dao.getRowState() == DataRowState.NEW) {
-                                    return AppointmentEvent.createInsertInvalidEvent(target, this,
+                                    return AppointmentEvent.createInsertInvalidEvent(fxRecordModel, this,
                                             (UserFailedEvent) userEvent);
                                 }
-                                return AppointmentEvent.createUpdateInvalidEvent(target, this,
+                                return AppointmentEvent.createUpdateInvalidEvent(fxRecordModel, this,
                                         (UserFailedEvent) userEvent);
                             }
                             return null;
@@ -759,9 +731,9 @@ public final class AppointmentModel extends FxRecordModel<AppointmentDAO> implem
             }
 
             if (dao.getRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertInvalidEvent(target, this, message);
+                return AppointmentEvent.createInsertInvalidEvent(fxRecordModel, this, message);
             }
-            return AppointmentEvent.createUpdateInvalidEvent(target, this, message);
+            return AppointmentEvent.createUpdateInvalidEvent(fxRecordModel, this, message);
         }
 
         @Override

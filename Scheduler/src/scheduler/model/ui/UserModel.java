@@ -15,7 +15,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.events.UserEvent;
 import scheduler.events.UserOpRequestEvent;
-import scheduler.model.RecordModelContext;
 import static scheduler.model.User.MAX_LENGTH_PASSWORD;
 import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserStatus;
@@ -196,18 +195,18 @@ public final class UserModel extends FxRecordModel<UserDAO> implements UserItem<
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<UserDAO, UserModel, UserEvent> createSaveTask(RecordModelContext<UserDAO, UserModel> model) {
+        public DataAccessObject.SaveDaoTask<UserDAO, UserModel, UserEvent> createSaveTask(UserModel model) {
             return new UserDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<UserDAO, UserModel, UserEvent> createDeleteTask(RecordModelContext<UserDAO, UserModel> model) {
+        public DataAccessObject.DeleteDaoTask<UserDAO, UserModel, UserEvent> createDeleteTask(UserModel model) {
             return new UserDAO.DeleteTask(model, false);
         }
 
         @Override
-        public UserEvent validateForSave(RecordModelContext<UserDAO, UserModel> target) {
-            UserDAO dao = target.getDataAccessObject();
+        public UserEvent validateForSave(UserModel target) {
+            UserDAO dao = target.dataObject();
             String message;
             if (dao.getRowState() == DataRowState.DELETED) {
                 message = "User has already been deleted";

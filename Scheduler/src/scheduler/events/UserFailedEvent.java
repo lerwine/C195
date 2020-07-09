@@ -4,7 +4,6 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.UserDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.UserModel;
 
 /**
@@ -17,8 +16,9 @@ import scheduler.model.ui.UserModel;
  * </ul></li>
  * </ul>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr; {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"}
- * &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_USER_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_USER_OP_EVENT"} &lArr;
+ * {@link #USER_EVENT_TYPE "SCHEDULER_USER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_USER_SAVE_FAILED</dt>
@@ -254,14 +254,14 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
         this(event, message, (Throwable) null, eventType);
     }
 
-    public UserFailedEvent(RecordModelContext<UserDAO, UserModel> target, String message, Throwable fault, Object source, EventType<UserFailedEvent> eventType) {
+    public UserFailedEvent(UserModel target, String message, Throwable fault, Object source, EventType<UserFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
         failKind = toFailKind(eventType);
     }
 
-    public UserFailedEvent(RecordModelContext<UserDAO, UserModel> target, Object source, String message, EventType<UserFailedEvent> eventType) {
+    public UserFailedEvent(UserModel target, Object source, String message, EventType<UserFailedEvent> eventType) {
         this(target, message, (Throwable) null, source, eventType);
     }
 

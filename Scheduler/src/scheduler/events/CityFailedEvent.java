@@ -4,15 +4,15 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
 /**
  * Represents a failed {@link AppointmentEvent}.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr; {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"}
- * &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CITY_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CITY_OP_EVENT"} &lArr;
+ * {@link #CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_CITY_SAVE_FAILED</dt>
@@ -251,7 +251,7 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
         this(event, message, (Throwable) null, eventType);
     }
 
-    public CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType) {
+    public CityFailedEvent(CityModel target, String message, Throwable fault, Object source, EventType<CityFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
@@ -259,11 +259,11 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
         failKind = toFailKind(eventType);
     }
 
-    public CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, String message, EventType<CityFailedEvent> eventType) {
+    public CityFailedEvent(CityModel target, Object source, String message, EventType<CityFailedEvent> eventType) {
         this(target, message, (Throwable) null, source, eventType);
     }
 
-    CityFailedEvent(RecordModelContext<CityDAO, CityModel> target, Object source, EventType<CityFailedEvent> eventType, CountryFailedEvent event) {
+    CityFailedEvent(CityModel target, Object source, EventType<CityFailedEvent> eventType, CountryFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = "Invalid country";
         fault = null;

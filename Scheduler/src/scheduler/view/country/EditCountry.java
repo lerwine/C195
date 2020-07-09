@@ -47,7 +47,6 @@ import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.FxRecordModel;
@@ -72,19 +71,25 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_CITY_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #citiesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CityOpRequestEvent} &#123;</dt>
+ * <dt>{@link #citiesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CityOpRequestEvent}
+ * &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#CITY_OP_REQUEST "SCHEDULER_CITY_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
+ * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(CityOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_CITY_EDIT_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_CITY_EDIT_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#EDIT_REQUEST}
+ * &#125;</dt>
  * <dd>&rarr; {@link EditCity#edit(CityModel, javafx.stage.Window) EditCity.edit}(({@link CityModel}) {@link scheduler.events.ModelEvent#getFxRecordModel()},
- * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.ui.CityModel.Factory}</dd>
- * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
+ * {@link scheduler.model.ui.CityModel.Factory}</dd>
+ * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123;
+ * {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.RecordModelContext, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.ui.CityModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
+ * {@link scheduler.model.ui.CityModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -175,7 +180,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 case DELETE:
                     item = citiesTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteItem(RecordModelContext.of(item));
+                        deleteItem(item);
                     }
                     break;
                 case ENTER:
@@ -193,7 +198,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         LOG.entering(LOG.getName(), "onCityDeleteMenuItemAction", event);
         CityModel item = citiesTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            deleteItem(RecordModelContext.of(item));
+            deleteItem(item);
         }
     }
 
@@ -216,7 +221,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            deleteItem(event);
+            deleteItem(event.getFxRecordModel());
         }
     }
 
@@ -285,7 +290,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         }
     }
 
-    private void deleteItem(RecordModelContext<CityDAO, CityModel> target) {
+    private void deleteItem(CityModel target) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);

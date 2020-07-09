@@ -21,7 +21,6 @@ import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.fx.MainListingControl;
-import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.ui.UserModel;
 import scheduler.util.AlertHelper;
@@ -159,7 +158,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
     }
 
     @Override
-    protected void onDeleteItem(RecordModelContext<UserDAO, UserModel> item) {
+    protected void onDeleteItem(UserModel item) {
         AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {

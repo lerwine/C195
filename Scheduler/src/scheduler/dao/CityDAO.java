@@ -35,7 +35,6 @@ import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryItem;
 import scheduler.model.ui.CountryModel;
@@ -381,14 +380,6 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
             throw new SQLException("Unexpected lack of results from database query");
         }
 
-//        @Override
-//        protected CityEvent createOperationRequestEvent(CityEvent sourceEvent, DbOperationType operation) {
-//            CityModel model = sourceEvent.getModel();
-//            if (null != model) {
-//                return new CityEvent(model, sourceEvent.getSource(), this, operation);
-//            }
-//            return new CityEvent(sourceEvent.getSource(), this, sourceEvent.getDataAccessObject(), operation);
-//        }
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
@@ -404,11 +395,11 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
 
-        public SaveTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
+        public SaveTask(CityModel target, boolean alreadyValidated) {
             super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
-            CityModel model = target.getFxRecordModel();
+            CityModel model = target;
             if (null != model) {
-                CityDAO dao = target.getDataAccessObject();
+                CityDAO dao = target.dataObject();
                 dao.setName(model.getName());
                 dao.setTimeZone(model.getTimeZone());
                 dao.setCountry(model.getCountry().dataObject());
@@ -418,14 +409,14 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         @Override
         protected CityEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertSuccessEvent(this, this);
+                return CityEvent.createInsertSuccessEvent(getFxRecordModel(), this);
             }
-            return CityEvent.createUpdateSuccessEvent(this, this);
+            return CityEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
         protected CityEvent validate(Connection connection) throws Exception {
-            CityEvent saveEvent = CityModel.FACTORY.validateForSave(this);
+            CityEvent saveEvent = CityModel.FACTORY.validateForSave(getFxRecordModel());
             if (null != saveEvent && saveEvent instanceof CityFailedEvent) {
                 return saveEvent;
             }
@@ -466,9 +457,9 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CityEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                    return CityEvent.createInsertInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
                 }
-                return CityEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                return CityEvent.createUpdateInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
             }
 
             ICountryDAO c = dao.country;
@@ -480,17 +471,15 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                         CountryItem<? extends ICountryDAO> cm;
                         CountryDAO.SaveTask saveTask;
                         if (null != model && null != (cm = model.getCountry()) && cm instanceof CountryModel) {
-                            saveTask = new CountryDAO.SaveTask(RecordModelContext.of((CountryModel) cm), false);
-                        } else {
-                            saveTask = new CountryDAO.SaveTask(RecordModelContext.of((CountryDAO) c), false);
-                        }
-                        saveTask.run();
-                        CountryEvent event = saveTask.get();
-                        if (null != event && event instanceof CountryFailedEvent) {
-                            if (getOriginalRowState() == DataRowState.NEW) {
-                                return CityEvent.createInsertInvalidEvent(this, this, (CountryFailedEvent) event);
+                            saveTask = new CountryDAO.SaveTask((CountryModel) cm, false);
+                            saveTask.run();
+                            CountryEvent event = saveTask.get();
+                            if (null != event && event instanceof CountryFailedEvent) {
+                                if (getOriginalRowState() == DataRowState.NEW) {
+                                    return CityEvent.createInsertInvalidEvent(getFxRecordModel(), this, (CountryFailedEvent) event);
+                                }
+                                return CityEvent.createUpdateInvalidEvent(getFxRecordModel(), this, (CountryFailedEvent) event);
                             }
-                            return CityEvent.createUpdateInvalidEvent(this, this, (CountryFailedEvent) event);
                         }
                         break;
                     default:
@@ -504,17 +493,17 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         @Override
         protected CityEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertFaultedEvent(this, this, getException());
+                return CityEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
             }
-            return CityEvent.createUpdateFaultedEvent(this, this, getException());
+            return CityEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected CityEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertCanceledEvent(this, this);
+                return CityEvent.createInsertCanceledEvent(getFxRecordModel(), this);
             }
-            return CityEvent.createUpdateCanceledEvent(this, this);
+            return CityEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
         }
 
     }
@@ -524,13 +513,13 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
-        public DeleteTask(RecordModelContext<CityDAO, CityModel> target, boolean alreadyValidated) {
+        public DeleteTask(CityModel target, boolean alreadyValidated) {
             super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CityEvent createSuccessEvent() {
-            return CityEvent.createDeleteSuccessEvent(this, this);
+            return CityEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
@@ -547,10 +536,10 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
                 case 0:
                     break;
                 case 1:
-                    return CityEvent.createDeleteInvalidEvent(this, this,
+                    return CityEvent.createDeleteInvalidEvent(getFxRecordModel(), this,
                             ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
                 default:
-                    return CityEvent.createDeleteInvalidEvent(this, this,
+                    return CityEvent.createDeleteInvalidEvent(getFxRecordModel(), this,
                             ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
             }
 
@@ -559,12 +548,12 @@ public final class CityDAO extends DataAccessObject implements CityDbRecord {
 
         @Override
         protected CityEvent createFaultedEvent() {
-            return CityEvent.createDeleteFaultedEvent(this, this, getException());
+            return CityEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected CityEvent createCanceledEvent() {
-            return CityEvent.createDeleteCanceledEvent(this, this);
+            return CityEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
         }
 
     }

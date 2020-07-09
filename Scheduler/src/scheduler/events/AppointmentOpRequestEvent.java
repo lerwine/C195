@@ -3,7 +3,6 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
 /**
@@ -36,10 +35,6 @@ public final class AppointmentOpRequestEvent extends OperationRequestEvent<Appoi
 
     public AppointmentOpRequestEvent(ModelEvent<AppointmentDAO, AppointmentModel> event, boolean isDelete) {
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
-    }
-
-    public AppointmentOpRequestEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, boolean isDelete) {
-        super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
     public AppointmentOpRequestEvent(AppointmentModel target, Object source, boolean isDelete) {

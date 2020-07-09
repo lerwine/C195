@@ -32,7 +32,6 @@ import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerRecord;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
@@ -381,11 +380,11 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
         private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
-        public SaveTask(RecordModelContext<CustomerDAO, CustomerModel> target, boolean alreadyValidated) {
+        public SaveTask(CustomerModel target, boolean alreadyValidated) {
             super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
-            CustomerModel model = target.getFxRecordModel();
+            CustomerModel model = target;
             if (null != model) {
-                CustomerDAO dao = target.getDataAccessObject();
+                CustomerDAO dao = target.dataObject();
                 dao.setName(model.getName());
                 dao.setActive(model.isActive());
                 dao.setAddress(model.getAddress().dataObject());
@@ -395,14 +394,14 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         protected CustomerEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertSuccessEvent(this, this);
+                return CustomerEvent.createInsertSuccessEvent(getFxRecordModel(), this);
             }
-            return CustomerEvent.createUpdateSuccessEvent(this, this);
+            return CustomerEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
         public CustomerEvent validate(Connection connection) throws Exception {
-            CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(this);
+            CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(getFxRecordModel());
             if (null != saveEvent && saveEvent instanceof CustomerFailedEvent) {
                 return saveEvent;
             }
@@ -435,9 +434,9 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
             }
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CustomerEvent.createInsertInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
+                    return CustomerEvent.createInsertInvalidEvent(getFxRecordModel(), this, MATCHING_ITEM_EXISTS);
                 }
-                return CustomerEvent.createUpdateInvalidEvent(this, this, MATCHING_ITEM_EXISTS);
+                return CustomerEvent.createUpdateInvalidEvent(getFxRecordModel(), this, MATCHING_ITEM_EXISTS);
             }
 
             IAddressDAO address = dao.getAddress();
@@ -449,17 +448,15 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                         CustomerModel model = getFxRecordModel();
                         AddressItem<? extends IAddressDAO> am;
                         if (null != model && null != (am = model.getAddress()) && am instanceof AddressModel) {
-                            saveTask = new AddressDAO.SaveTask(RecordModelContext.of((AddressModel) am), false);
-                        } else {
-                            saveTask = new AddressDAO.SaveTask(RecordModelContext.of((AddressDAO) address), false);
-                        }
-                        saveTask.run();
-                        AddressEvent event = saveTask.get();
-                        if (null != event && event instanceof AddressFailedEvent) {
-                            if (getOriginalRowState() == DataRowState.NEW) {
-                                return CustomerEvent.createInsertInvalidEvent(this, this, (AddressFailedEvent) event);
+                            saveTask = new AddressDAO.SaveTask((AddressModel) am, false);
+                            saveTask.run();
+                            AddressEvent event = saveTask.get();
+                            if (null != event && event instanceof AddressFailedEvent) {
+                                if (getOriginalRowState() == DataRowState.NEW) {
+                                    return CustomerEvent.createInsertInvalidEvent(getFxRecordModel(), this, (AddressFailedEvent) event);
+                                }
+                                return CustomerEvent.createUpdateInvalidEvent(getFxRecordModel(), this, (AddressFailedEvent) event);
                             }
-                            return CustomerEvent.createUpdateInvalidEvent(this, this, (AddressFailedEvent) event);
                         }
                         break;
                     default:
@@ -472,17 +469,17 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         @Override
         protected CustomerEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertFaultedEvent(this, this, getException());
+                return CustomerEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
             }
-            return CustomerEvent.createUpdateFaultedEvent(this, this, getException());
+            return CustomerEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected CustomerEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertCanceledEvent(this, this);
+                return CustomerEvent.createInsertCanceledEvent(getFxRecordModel(), this);
             }
-            return CustomerEvent.createUpdateCanceledEvent(this, this);
+            return CustomerEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
         }
 
     }
@@ -496,13 +493,13 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
         private static final String REFERENCED_BY_N = "Customer is referenced by %d other appointments.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(RecordModelContext<CustomerDAO, CustomerModel> target, boolean alreadyValidated) {
+        public DeleteTask(CustomerModel target, boolean alreadyValidated) {
             super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CustomerEvent createSuccessEvent() {
-            return CustomerEvent.createDeleteSuccessEvent(this, this);
+            return CustomerEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
@@ -519,21 +516,21 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO,
                 case 0:
                     break;
                 case 1:
-                    return CustomerEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return CustomerEvent.createDeleteInvalidEvent(getFxRecordModel(), this, REFERENCED_BY_ONE);
                 default:
-                    return CustomerEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return CustomerEvent.createDeleteInvalidEvent(getFxRecordModel(), this, String.format(REFERENCED_BY_N, count));
             }
             return null;
         }
 
         @Override
         protected CustomerEvent createFaultedEvent() {
-            return CustomerEvent.createDeleteFaultedEvent(this, this, getException());
+            return CustomerEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected CustomerEvent createCanceledEvent() {
-            return CustomerEvent.createDeleteCanceledEvent(this, this);
+            return CustomerEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
         }
 
     }

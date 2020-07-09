@@ -49,7 +49,6 @@ import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
-import scheduler.model.RecordModelContext;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.FxRecordModel;
@@ -239,7 +238,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 case DELETE:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteAppointment(RecordModelContext.of(item));
+                        deleteAppointment(item);
                     }
                     break;
                 case ENTER:
@@ -257,7 +256,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         LOG.entering(LOG.getName(), "onDeleteAppointmentMenuItemAction", event);
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            deleteAppointment(RecordModelContext.of(item));
+            deleteAppointment(item);
         }
     }
 
@@ -278,14 +277,14 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         }
     }
 
-    private void deleteAppointment(RecordModelContext<AppointmentDAO, AppointmentModel> target) {
+    private void deleteAppointment(AppointmentModel target) {
         AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
                 DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
                 // FIXME: Memory leak! Handle success event on task, instead.
-                target.getDataAccessObject().addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
+                target.dataObject().addEventHandler(AppointmentFailedEvent.DELETE_INVALID, (e) -> {
                     scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", e.getMessage(), ButtonType.OK);
                 });
                 waitBorderPane.startNow(task);
@@ -304,7 +303,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            deleteAppointment(event);
+            deleteAppointment(event.getFxRecordModel());
         }
     }
 

@@ -4,7 +4,6 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.OperationFailureException;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
 /**
@@ -60,52 +59,52 @@ public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, Appoin
         return event instanceof AppointmentFailedEvent && ((AppointmentFailedEvent) event).getFailKind() == FailKind.FAULT;
     }
 
-    public static final AppointmentEvent createInsertSuccessEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source) {
+    public static final AppointmentEvent createInsertSuccessEvent(AppointmentModel target, Object source) {
         return new AppointmentSuccessEvent(target, source, AppointmentSuccessEvent.INSERT_SUCCESS);
     }
 
-    public static final AppointmentEvent createUpdateSuccessEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source) {
+    public static final AppointmentEvent createUpdateSuccessEvent(AppointmentModel target, Object source) {
         return new AppointmentSuccessEvent(target, source, AppointmentSuccessEvent.UPDATE_SUCCESS);
     }
 
-    public static final AppointmentEvent createDeleteSuccessEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source) {
+    public static final AppointmentEvent createDeleteSuccessEvent(AppointmentModel target, Object source) {
         return new AppointmentSuccessEvent(target, source, AppointmentSuccessEvent.DELETE_SUCCESS);
     }
 
-    public static final AppointmentEvent createInsertInvalidEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, String message) {
+    public static final AppointmentEvent createInsertInvalidEvent(AppointmentModel target, Object source, String message) {
         return new AppointmentFailedEvent(target, message, null, source, AppointmentFailedEvent.INSERT_INVALID);
     }
 
-    public static final AppointmentEvent createUpdateInvalidEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, String message) {
+    public static final AppointmentEvent createUpdateInvalidEvent(AppointmentModel target, Object source, String message) {
         return new AppointmentFailedEvent(target, message, null, source, AppointmentFailedEvent.UPDATE_INVALID);
     }
 
-    public static final AppointmentEvent createDeleteInvalidEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, String message) {
+    public static final AppointmentEvent createDeleteInvalidEvent(AppointmentModel target, Object source, String message) {
         return new AppointmentFailedEvent(target, message, null, source, AppointmentFailedEvent.DELETE_INVALID);
     }
 
-    public static final AppointmentEvent createInsertFaultedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, Throwable ex) {
+    public static final AppointmentEvent createInsertFaultedEvent(AppointmentModel target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
             return new AppointmentFailedEvent(target, ex.getMessage(), ex.getCause(), source, AppointmentFailedEvent.INSERT_FAULTED);
         }
         return new AppointmentFailedEvent(target, null, ex, source, AppointmentFailedEvent.INSERT_INVALID);
     }
 
-    public static final AppointmentEvent createUpdateFaultedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, Throwable ex) {
+    public static final AppointmentEvent createUpdateFaultedEvent(AppointmentModel target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
             return new AppointmentFailedEvent(target, ex.getMessage(), ex.getCause(), source, AppointmentFailedEvent.UPDATE_FAULTED);
         }
         return new AppointmentFailedEvent(target, null, ex, source, AppointmentFailedEvent.UPDATE_FAULTED);
     }
 
-    public static final AppointmentEvent createDeleteFaultedEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, Throwable ex) {
+    public static final AppointmentEvent createDeleteFaultedEvent(AppointmentModel target, Object source, Throwable ex) {
         if (null != ex && ex instanceof OperationFailureException) {
             return new AppointmentFailedEvent(target, ex.getMessage(), ex.getCause(), source, AppointmentFailedEvent.DELETE_FAULTED);
         }
         return new AppointmentFailedEvent(target, null, ex, source, AppointmentFailedEvent.DELETE_FAULTED);
     }
 
-    public static final AppointmentEvent createInsertCanceledEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, InterruptedException ex) {
+    public static final AppointmentEvent createInsertCanceledEvent(AppointmentModel target, Object source, InterruptedException ex) {
         if (null == ex) {
             return new AppointmentFailedEvent(target, null, null, source, AppointmentFailedEvent.INSERT_CANCELED);
         }
@@ -115,7 +114,7 @@ public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, Appoin
         return new AppointmentFailedEvent(target, ex.getMessage(), ex, source, AppointmentFailedEvent.INSERT_CANCELED);
     }
 
-    public static final AppointmentEvent createUpdateCanceledEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, InterruptedException ex) {
+    public static final AppointmentEvent createUpdateCanceledEvent(AppointmentModel target, Object source, InterruptedException ex) {
         if (null == ex) {
             return new AppointmentFailedEvent(target, null, null, source, AppointmentFailedEvent.UPDATE_CANCELED);
         }
@@ -125,7 +124,7 @@ public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, Appoin
         return new AppointmentFailedEvent(target, ex.getMessage(), ex, source, AppointmentFailedEvent.UPDATE_CANCELED);
     }
 
-    public static final AppointmentEvent createDeleteCanceledEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, InterruptedException ex) {
+    public static final AppointmentEvent createDeleteCanceledEvent(AppointmentModel target, Object source, InterruptedException ex) {
         if (null == ex) {
             return new AppointmentFailedEvent(target, null, null, source, AppointmentFailedEvent.DELETE_CANCELED);
         }
@@ -135,31 +134,31 @@ public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, Appoin
         return new AppointmentFailedEvent(target, ex.getMessage(), ex, source, AppointmentFailedEvent.DELETE_CANCELED);
     }
 
-    public static final AppointmentEvent createInsertCanceledEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source) {
+    public static final AppointmentEvent createInsertCanceledEvent(AppointmentModel target, Object source) {
         return createInsertCanceledEvent(target, source, null);
     }
 
-    public static final AppointmentEvent createUpdateCanceledEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source) {
+    public static final AppointmentEvent createUpdateCanceledEvent(AppointmentModel target, Object source) {
         return createUpdateCanceledEvent(target, source, null);
     }
 
-    public static final AppointmentEvent createDeleteCanceledEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source) {
+    public static final AppointmentEvent createDeleteCanceledEvent(AppointmentModel target, Object source) {
         return createDeleteCanceledEvent(target, source, null);
     }
 
-    public static AppointmentEvent createInsertInvalidEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, CustomerFailedEvent event) {
+    public static AppointmentEvent createInsertInvalidEvent(AppointmentModel target, Object source, CustomerFailedEvent event) {
         return new AppointmentFailedEvent(target, source, AppointmentFailedEvent.INSERT_INVALID, event);
     }
 
-    public static AppointmentEvent createInsertInvalidEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, UserFailedEvent event) {
+    public static AppointmentEvent createInsertInvalidEvent(AppointmentModel target, Object source, UserFailedEvent event) {
         return new AppointmentFailedEvent(target, source, AppointmentFailedEvent.INSERT_INVALID, event);
     }
 
-    public static AppointmentEvent createUpdateInvalidEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, CustomerFailedEvent event) {
+    public static AppointmentEvent createUpdateInvalidEvent(AppointmentModel target, Object source, CustomerFailedEvent event) {
         return new AppointmentFailedEvent(target, source, AppointmentFailedEvent.UPDATE_INVALID, event);
     }
 
-    public static AppointmentEvent createUpdateInvalidEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, UserFailedEvent event) {
+    public static AppointmentEvent createUpdateInvalidEvent(AppointmentModel target, Object source, UserFailedEvent event) {
         return new AppointmentFailedEvent(target, source, AppointmentFailedEvent.UPDATE_INVALID, event);
     }
 
@@ -171,7 +170,7 @@ public abstract class AppointmentEvent extends ModelEvent<AppointmentDAO, Appoin
         super(event, eventType, operation);
     }
 
-    protected AppointmentEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<? extends AppointmentEvent> eventType, DbOperationType operation) {
+    protected AppointmentEvent(AppointmentModel target, Object source, EventType<? extends AppointmentEvent> eventType, DbOperationType operation) {
         super(target, source, eventType, operation);
     }
 

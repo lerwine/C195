@@ -4,7 +4,6 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
 /**
@@ -12,7 +11,8 @@ import scheduler.model.ui.AddressModel;
  * <h3>Event Registration</h3>
  * <dl>
  * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_ADDRESS_FAILED_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_ADDRESS_OP_EVENT"} &lArr;
- * {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_ADDRESS_SAVE_FAILED</dt>
@@ -251,7 +251,7 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
         this(event, message, (Throwable) null, eventType);
     }
 
-    public AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType) {
+    public AddressFailedEvent(AddressModel target, String message, Throwable fault, Object source, EventType<AddressFailedEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType, fault));
         this.message = ensureMessage(message, fault, eventType);
         this.fault = fault;
@@ -259,11 +259,11 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
         failKind = toFailKind(eventType);
     }
 
-    public AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, String message, EventType<AddressFailedEvent> eventType) {
+    public AddressFailedEvent(AddressModel target, Object source, String message, EventType<AddressFailedEvent> eventType) {
         this(target, message, (Throwable) null, source, eventType);
     }
 
-    AddressFailedEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, EventType<AddressFailedEvent> eventType, CityFailedEvent event) {
+    AddressFailedEvent(AddressModel target, Object source, EventType<AddressFailedEvent> eventType, CityFailedEvent event) {
         super(target, source, eventType, toDbOperationType(eventType, null));
         this.message = "Invalid city";
         fault = null;

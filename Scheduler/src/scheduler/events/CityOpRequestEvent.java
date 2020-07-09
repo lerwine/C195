@@ -3,7 +3,6 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CityModel;
 
 public final class CityOpRequestEvent extends OperationRequestEvent<CityDAO, CityModel> {
@@ -31,10 +30,6 @@ public final class CityOpRequestEvent extends OperationRequestEvent<CityDAO, Cit
 
     public CityOpRequestEvent(ModelEvent<CityDAO, CityModel> event, boolean isDelete) {
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
-    }
-
-    public CityOpRequestEvent(RecordModelContext<CityDAO, CityModel> target, Object source, boolean isDelete) {
-        super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
     public CityOpRequestEvent(CityModel target, Object source, boolean isDelete) {

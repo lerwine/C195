@@ -2,8 +2,6 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.CustomerDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
 /**
@@ -11,7 +9,8 @@ import scheduler.model.ui.CustomerModel;
  * <h3>Event Registration</h3>
  * <dl>
  * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_CUSTOMER_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_CUSTOMER_OP_EVENT"} &lArr;
- * {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * {@link #CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_CUSTOMER_SAVE_SUCCESS</dt>
@@ -86,7 +85,7 @@ public final class CustomerSuccessEvent extends CustomerEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public CustomerSuccessEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, EventType<CustomerSuccessEvent> eventType) {
+    public CustomerSuccessEvent(CustomerModel target, Object source, EventType<CustomerSuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

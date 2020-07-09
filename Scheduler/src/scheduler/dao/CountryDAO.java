@@ -26,7 +26,6 @@ import scheduler.events.CountryFailedEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -306,25 +305,22 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking country naming conflicts";
 
-        public SaveTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
-            super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
-            CountryModel model = target.getFxRecordModel();
-            if (null != model) {
-                target.getDataAccessObject().setLocale(model.getLocale());
-            }
+        public SaveTask(CountryModel model, boolean alreadyValidated) {
+            super(model, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+            model.dataObject().setLocale(model.getLocale());
         }
 
         @Override
         protected CountryEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertSuccessEvent(this, this);
+                return CountryEvent.createInsertSuccessEvent(getFxRecordModel(), this);
             }
-            return CountryEvent.createUpdateSuccessEvent(this, this);
+            return CountryEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
         protected CountryEvent validate(Connection connection) throws Exception {
-            CountryEvent saveEvent = CountryModel.FACTORY.validateForSave(this);
+            CountryEvent saveEvent = CountryModel.FACTORY.validateForSave(getFxRecordModel());
             if (null != saveEvent && saveEvent instanceof CountryFailedEvent) {
                 return saveEvent;
             }
@@ -359,9 +355,9 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CountryEvent.createInsertInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                    return CountryEvent.createInsertInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
                 }
-                return CountryEvent.createUpdateInvalidEvent(this, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                return CountryEvent.createUpdateInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
             }
             return null;
         }
@@ -369,17 +365,17 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
         @Override
         protected CountryEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertFaultedEvent(this, this, getException());
+                return CountryEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
             }
-            return CountryEvent.createUpdateFaultedEvent(this, this, getException());
+            return CountryEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected CountryEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertCanceledEvent(this, this);
+                return CountryEvent.createInsertCanceledEvent(getFxRecordModel(), this);
             }
-            return CountryEvent.createUpdateCanceledEvent(this, this);
+            return CountryEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
         }
 
     }
@@ -391,13 +387,13 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
 
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(RecordModelContext<CountryDAO, CountryModel> target, boolean alreadyValidated) {
+        public DeleteTask(CountryModel target, boolean alreadyValidated) {
             super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected CountryEvent createSuccessEvent() {
-            return CountryEvent.createDeleteSuccessEvent(this, this);
+            return CountryEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
@@ -414,21 +410,21 @@ public final class CountryDAO extends DataAccessObject implements CountryDbRecor
                 case 0:
                     break;
                 case 1:
-                    return CountryEvent.createDeleteInvalidEvent(this, this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                    return CountryEvent.createDeleteInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
                 default:
-                    return CountryEvent.createDeleteInvalidEvent(this, this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+                    return CountryEvent.createDeleteInvalidEvent(getFxRecordModel(), this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
             }
             return null;
         }
 
         @Override
         protected CountryEvent createFaultedEvent() {
-            return CountryEvent.createDeleteFaultedEvent(this, this, getException());
+            return CountryEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected CountryEvent createCanceledEvent() {
-            return CountryEvent.createDeleteCanceledEvent(this, this);
+            return CountryEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
         }
 
     }

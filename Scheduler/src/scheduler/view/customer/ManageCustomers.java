@@ -23,7 +23,6 @@ import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
@@ -163,7 +162,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     }
 
     @Override
-    protected void onDeleteItem(RecordModelContext<CustomerDAO, CustomerModel> item) {
+    protected void onDeleteItem(CustomerModel item) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);

@@ -61,7 +61,6 @@ import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressItem;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
@@ -313,7 +312,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 case DELETE:
                     item = appointmentsTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        deleteItem(RecordModelContext.of(item));
+                        deleteItem(item);
                     }
                     break;
                 case ENTER:
@@ -331,7 +330,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         LOG.entering(LOG.getName(), "onDeleteAppointmentMenuItemAction", event);
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            deleteItem(RecordModelContext.of(item));
+            deleteItem(item);
         }
     }
 
@@ -352,7 +351,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         }
     }
 
-    private void deleteItem(RecordModelContext<AppointmentDAO, AppointmentModel> target) {
+    private void deleteItem(AppointmentModel target) {
         Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
@@ -377,7 +376,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }
         } else {
-            deleteItem(event);
+            deleteItem(event.getFxRecordModel());
         }
     }
 

@@ -3,12 +3,12 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.FxRecordModel;
 
 /**
- * Base {@link ModelEvent} class for requests to edit or delete a {@link DataAccessObject} which may include a related {@link FxRecordModel}. The {@link ModelEvent#getOperation()}
- * method for this class will return {@link DbOperationType#NONE} for edit requests and {@link DbOperationType#DB_DELETE} for delete requests.
+ * Base {@link ModelEvent} class for requests to edit or delete a {@link DataAccessObject} which may include a related {@link FxRecordModel}. The
+ * {@link ModelEvent#getOperation()} method for this class will return {@link DbOperationType#NONE} for edit requests and
+ * {@link DbOperationType#DB_DELETE} for delete requests.
  * <h3>Event Routing</h3>
  * <ul class="list-style:none">
  * <li>Fired on {@link scheduler.fx.ItemEditTableCell}
@@ -53,38 +53,38 @@ import scheduler.model.ui.FxRecordModel;
  * </ul></li>
  * <li>{@link CustomerOpRequestEvent} &rArr; {@link CustomerOpRequestEvent#CUSTOMER_OP_REQUEST "SCHEDULER_CUSTOMER_OP_REQUEST"}
  * <ul class="list-style:none">
- * <li>&rArr; {@link CustomerOpRequestEvent#EDIT_REQUEST "SCHEDULER_CUSTOMER_EDIT_REQUEST"} &#123; {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE}
- * &#125;</li>
+ * <li>&rArr; {@link CustomerOpRequestEvent#EDIT_REQUEST "SCHEDULER_CUSTOMER_EDIT_REQUEST"} &#123;
+ * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE} &#125;</li>
  * <li>&rArr; {@link CustomerOpRequestEvent#DELETE_REQUEST "SCHEDULER_CUSTOMER_DELETE_REQUEST"} &#123;
  * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#DB_DELETE} &#125;</li>
  * </ul></li>
  * <li>{@link AddressOpRequestEvent} &rArr; {@link AddressOpRequestEvent#ADDRESS_OP_REQUEST "SCHEDULER_ADDRESS_OP_REQUEST"}
  * <ul class="list-style:none">
- * <li>&rArr; {@link AddressOpRequestEvent#EDIT_REQUEST "SCHEDULER_ADDRESS_EDIT_REQUEST"} &#123; {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE}
- * &#125;</li>
+ * <li>&rArr; {@link AddressOpRequestEvent#EDIT_REQUEST "SCHEDULER_ADDRESS_EDIT_REQUEST"} &#123;
+ * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE} &#125;</li>
  * <li>&rArr; {@link AddressOpRequestEvent#DELETE_REQUEST "SCHEDULER_ADDRESS_DELETE_REQUEST"} &#123;
  * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#DB_DELETE} &#125;</li>
  * </ul></li>
  * <li>{@link CityOpRequestEvent} &rArr; {@link CityOpRequestEvent#CITY_OP_REQUEST "SCHEDULER_CITY_OP_REQUEST"}
  * <ul class="list-style:none">
- * <li>&rArr; {@link CityOpRequestEvent#EDIT_REQUEST "SCHEDULER_CITY_EDIT_REQUEST"} &#123; {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE}
- * &#125;</li>
- * <li>&rArr; {@link CityOpRequestEvent#DELETE_REQUEST "SCHEDULER_CITY_DELETE_REQUEST"} &#123; {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#DB_DELETE}
- * &#125;</li>
+ * <li>&rArr; {@link CityOpRequestEvent#EDIT_REQUEST "SCHEDULER_CITY_EDIT_REQUEST"} &#123;
+ * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE} &#125;</li>
+ * <li>&rArr; {@link CityOpRequestEvent#DELETE_REQUEST "SCHEDULER_CITY_DELETE_REQUEST"} &#123;
+ * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#DB_DELETE} &#125;</li>
  * </ul></li>
  * <li>{@link CountryOpRequestEvent} &rArr; {@link CountryOpRequestEvent#COUNTRY_OP_REQUEST "SCHEDULER_COUNTRY_OP_REQUEST"}
  * <ul class="list-style:none">
- * <li>&rArr; {@link CountryOpRequestEvent#EDIT_REQUEST "SCHEDULER_COUNTRY_EDIT_REQUEST"} &#123; {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE}
- * &#125;</li>
+ * <li>&rArr; {@link CountryOpRequestEvent#EDIT_REQUEST "SCHEDULER_COUNTRY_EDIT_REQUEST"} &#123;
+ * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE} &#125;</li>
  * <li>&rArr; {@link CountryOpRequestEvent#DELETE_REQUEST "SCHEDULER_COUNTRY_DELETE_REQUEST"} &#123;
  * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#DB_DELETE} &#125;</li>
  * </ul></li>
  * <li>{@link UserOpRequestEvent} &rArr; {@link UserOpRequestEvent#USER_OP_REQUEST "SCHEDULER_USER_OP_REQUEST"}
  * <ul class="list-style:none">
- * <li>&rArr; {@link UserOpRequestEvent#EDIT_REQUEST "SCHEDULER_USER_EDIT_REQUEST"} &#123; {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE}
- * &#125;</li>
- * <li>&rArr; {@link UserOpRequestEvent#DELETE_REQUEST "SCHEDULER_USER_DELETE_REQUEST"} &#123; {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#DB_DELETE}
- * &#125;</li>
+ * <li>&rArr; {@link UserOpRequestEvent#EDIT_REQUEST "SCHEDULER_USER_EDIT_REQUEST"} &#123;
+ * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#NONE} &#125;</li>
+ * <li>&rArr; {@link UserOpRequestEvent#DELETE_REQUEST "SCHEDULER_USER_DELETE_REQUEST"} &#123;
+ * {@link ModelEvent#getOperation() getOperation()} = {@link DbOperationType#DB_DELETE} &#125;</li>
  * </ul></li>
  * </ul></li>
  * </ul></li>
@@ -112,10 +112,6 @@ public abstract class OperationRequestEvent<D extends DataAccessObject, M extend
 
     protected OperationRequestEvent(ModelEvent<D, M> event, EventType<? extends OperationRequestEvent<D, M>> eventType, boolean isDelete) {
         super(event, eventType, (isDelete) ? DbOperationType.DB_DELETE : DbOperationType.NONE);
-    }
-
-    protected OperationRequestEvent(RecordModelContext<D, M> target, Object source, EventType<? extends OperationRequestEvent<D, M>> eventType, boolean isDelete) {
-        super(target, source, eventType, (isDelete) ? DbOperationType.DB_DELETE : DbOperationType.NONE);
     }
 
     protected OperationRequestEvent(M target, Object source, EventType<? extends OperationRequestEvent<D, M>> eventType, boolean isDelete) {

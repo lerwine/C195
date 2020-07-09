@@ -3,7 +3,6 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CustomerDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CustomerModel;
 
 public final class CustomerOpRequestEvent extends OperationRequestEvent<CustomerDAO, CustomerModel> {
@@ -31,10 +30,6 @@ public final class CustomerOpRequestEvent extends OperationRequestEvent<Customer
 
     public CustomerOpRequestEvent(ModelEvent<CustomerDAO, CustomerModel> event, boolean isDelete) {
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
-    }
-
-    public CustomerOpRequestEvent(RecordModelContext<CustomerDAO, CustomerModel> target, Object source, boolean isDelete) {
-        super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
     public CustomerOpRequestEvent(CustomerModel target, Object source, boolean isDelete) {

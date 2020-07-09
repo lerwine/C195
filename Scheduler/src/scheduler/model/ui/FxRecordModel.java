@@ -29,7 +29,6 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DB;
@@ -90,7 +89,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
      * Initializes a new ModelBase object.
      *
      * @param dao The {@link DataAccessObject} to be used for data access operations.
-     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link FxDbModel} objects so the property is updated whenever a change occurs.
+     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link FxDbModel} objects so the property is updated
+     * whenever a change occurs.
      */
     protected FxRecordModel(T dao) {
         if (dao.getRowState() == DataRowState.DELETED) {
@@ -210,56 +210,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         return null != model && dataObject.equals(model);
     }
 
-//    @Override
-//    public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-//        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-//        return tail.append(eventHandlerManager);
-//    }
-    
-//    /**
-//     * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-//     *
-//     * @param <E> The type of {@link ModelEvent}.
-//     * @param type The event type.
-//     * @param eventHandler The event handler.
-//     */
-//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
-//        eventHandlerManager.addEventHandler(type, eventHandler);
-//    }
-    
-//    /**
-//     * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-//     *
-//     * @param <E> The type of {@link ModelEvent}.
-//     * @param type The event type.
-//     * @param eventFilter The event handler.
-//     */
-//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void addEventFilter(EventType<E> type, EventHandler<E> eventFilter) {
-//        eventHandlerManager.addEventFilter(type, eventFilter);
-//    }
-    
-//    /**
-//     * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-//     *
-//     * @param <E> The type of {@link ModelEvent}.
-//     * @param type The event type.
-//     * @param eventHandler The event handler.
-//     */
-//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
-//        eventHandlerManager.removeEventHandler(type, eventHandler);
-//    }
-    
-//    /**
-//     * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for the current {@link FxRecordModel}.
-//     *
-//     * @param <E> The type of {@link ModelEvent}.
-//     * @param type The event type.
-//     * @param eventFilter The event handler.
-//     */
-//    public final <E extends ModelEvent<T, ? extends FxRecordModel<T>>> void removeEventFilter(EventType<E> type, EventHandler<E> eventFilter) {
-//        eventHandlerManager.removeEventFilter(type, eventFilter);
-//    }
-    
     public static abstract class FxModelFactory<D extends DataAccessObject, M extends FxRecordModel<D>, E extends ModelEvent<D, M>> implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FxModelFactory.class.getName()), Level.FINER);
@@ -272,15 +222,6 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 //            eventHandlerManager.addEventHandler(anyEventType, this::onModelEvent);
         }
 
-//        private void onModelEvent(E event) {
-//            LOG.entering(LOG.getName(), "onModelEvent", event);
-//            M model = event.getFxRecordModel();
-//            if (null != model) {
-//                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, model));
-//                Event.fireEvent(model, event.copyFor(this, model));
-//            }
-//        }
-        
         public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();
 
         public abstract M createNew(D dao);
@@ -364,9 +305,9 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
 
         public abstract EventType<? extends OperationRequestEvent<D, M>> getDeleteRequestEventType();
 
-        public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(RecordModelContext<D, M> model);
+        public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(M model);
 
-        public abstract DataAccessObject.DeleteDaoTask<D, M, E> createDeleteTask(RecordModelContext<D, M> model);
+        public abstract DataAccessObject.DeleteDaoTask<D, M, E> createDeleteTask(M model);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
@@ -375,7 +316,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -386,7 +328,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -397,7 +340,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -408,7 +352,8 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
+         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
+         * {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -419,12 +364,12 @@ public abstract class FxRecordModel<T extends DataAccessObject> implements IFxRe
         }
 
         /**
-         * Validates a {@link DataAccessObject} before an insert or update operation.
+         * Validates a {@link FxRecordModel} before an insert or update operation.
          *
-         * @param target The {@link RecordModelContext} containing the {@link DataAccessObject} being inserted or updated in the database.
+         * @param target The {@link FxRecordModel} containing the {@link DataAccessObject} being inserted or updated in the database.
          * @return The {@link ModelEvent} representing the validation results, which may be {@code null} if there are no validation errors.
          */
-        public abstract ModelEvent<D, M> validateForSave(RecordModelContext<D, M> target);
+        public abstract ModelEvent<D, M> validateForSave(M target);
 
     }
 

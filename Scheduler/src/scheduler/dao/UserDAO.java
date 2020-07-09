@@ -24,7 +24,6 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.UserModel;
@@ -333,11 +332,11 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
         private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
 
-        public SaveTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
+        public SaveTask(UserModel target, boolean alreadyValidated) {
             super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
-            UserModel model = target.getFxRecordModel();
+            UserModel model = target;
             if (null != model) {
-                UserDAO dao = target.getDataAccessObject();
+                UserDAO dao = target.dataObject();
                 dao.setUserName(model.getUserName());
                 dao.setStatus(model.getStatus());
                 dao.setPassword(model.getPassword());
@@ -347,14 +346,14 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         protected UserEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertSuccessEvent(this, this);
+                return UserEvent.createInsertSuccessEvent(getFxRecordModel(), this);
             }
-            return UserEvent.createUpdateSuccessEvent(this, this);
+            return UserEvent.createUpdateSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
-            UserEvent saveEvent = UserModel.FACTORY.validateForSave(this);
+            UserEvent saveEvent = UserModel.FACTORY.validateForSave(getFxRecordModel());
             if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
                 return saveEvent;
             }
@@ -385,9 +384,9 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
             }
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return UserEvent.createInsertInvalidEvent(this, this, ANOTHER_USER_HAS_SAME_NAME);
+                    return UserEvent.createInsertInvalidEvent(getFxRecordModel(), this, ANOTHER_USER_HAS_SAME_NAME);
                 }
-                return UserEvent.createUpdateInvalidEvent(this, this, ANOTHER_USER_HAS_SAME_NAME);
+                return UserEvent.createUpdateInvalidEvent(getFxRecordModel(), this, ANOTHER_USER_HAS_SAME_NAME);
             }
             return null;
         }
@@ -395,17 +394,17 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         @Override
         protected UserEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertFaultedEvent(this, this, getException());
+                return UserEvent.createInsertFaultedEvent(getFxRecordModel(), this, getException());
             }
-            return UserEvent.createUpdateFaultedEvent(this, this, getException());
+            return UserEvent.createUpdateFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected UserEvent createCanceledEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertCanceledEvent(this, this);
+                return UserEvent.createInsertCanceledEvent(getFxRecordModel(), this);
             }
-            return UserEvent.createUpdateCanceledEvent(this, this);
+            return UserEvent.createUpdateCanceledEvent(getFxRecordModel(), this);
         }
 
     }
@@ -420,20 +419,20 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
         private static final String REFERENCED_BY_ONE = "Address is referenced by one appointment.";
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
-        public DeleteTask(RecordModelContext<UserDAO, UserModel> target, boolean alreadyValidated) {
+        public DeleteTask(UserModel target, boolean alreadyValidated) {
             super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
         }
 
         @Override
         protected UserEvent createSuccessEvent() {
-            return UserEvent.createDeleteSuccessEvent(this, this);
+            return UserEvent.createDeleteSuccessEvent(getFxRecordModel(), this);
         }
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
             UserDAO dao = getDataAccessObject();
             if (dao == Scheduler.getCurrentUser()) {
-                return UserEvent.createDeleteInvalidEvent(this, this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
+                return UserEvent.createDeleteInvalidEvent(getFxRecordModel(), this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
             }
 
             int count;
@@ -447,21 +446,21 @@ public final class UserDAO extends DataAccessObject implements UserDbRecord {
                 case 0:
                     break;
                 case 1:
-                    return UserEvent.createDeleteInvalidEvent(this, this, REFERENCED_BY_ONE);
+                    return UserEvent.createDeleteInvalidEvent(getFxRecordModel(), this, REFERENCED_BY_ONE);
                 default:
-                    return UserEvent.createDeleteInvalidEvent(this, this, String.format(REFERENCED_BY_N, count));
+                    return UserEvent.createDeleteInvalidEvent(getFxRecordModel(), this, String.format(REFERENCED_BY_N, count));
             }
             return null;
         }
 
         @Override
         protected UserEvent createFaultedEvent() {
-            return UserEvent.createDeleteFaultedEvent(this, this, getException());
+            return UserEvent.createDeleteFaultedEvent(getFxRecordModel(), this, getException());
         }
 
         @Override
         protected UserEvent createCanceledEvent() {
-            return UserEvent.createDeleteCanceledEvent(this, this);
+            return UserEvent.createDeleteCanceledEvent(getFxRecordModel(), this);
         }
 
     }

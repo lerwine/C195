@@ -3,7 +3,6 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.CountryModel;
 
 public final class CountryOpRequestEvent extends OperationRequestEvent<CountryDAO, CountryModel> {
@@ -31,10 +30,6 @@ public final class CountryOpRequestEvent extends OperationRequestEvent<CountryDA
 
     public CountryOpRequestEvent(ModelEvent<CountryDAO, CountryModel> event, boolean isDelete) {
         super(event, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
-    }
-
-    public CountryOpRequestEvent(RecordModelContext<CountryDAO, CountryModel> target, Object source, boolean isDelete) {
-        super(target, source, (isDelete) ? DELETE_REQUEST : EDIT_REQUEST, isDelete);
     }
 
     public CountryOpRequestEvent(CountryModel target, Object source, boolean isDelete) {

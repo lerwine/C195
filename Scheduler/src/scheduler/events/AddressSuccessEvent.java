@@ -2,8 +2,6 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.AddressDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AddressModel;
 
 /**
@@ -11,7 +9,8 @@ import scheduler.model.ui.AddressModel;
  * <h3>Event Registration</h3>
  * <dl>
  * <dt>{@link #BASE_EVENT_NAME "SCHEDULER_ADDRESS_SUCCESS_EVENT"} &lArr; {@link #CHANGE_EVENT_TYPE "SCHEDULER_ADDRESS_OP_EVENT"} &lArr;
- * {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
+ * {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) SCHEDULER_ADDRESS_SAVE_SUCCESS</dt>
@@ -86,7 +85,7 @@ public final class AddressSuccessEvent extends AddressEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public AddressSuccessEvent(RecordModelContext<AddressDAO, AddressModel> target, Object source, EventType<AddressSuccessEvent> eventType) {
+    public AddressSuccessEvent(AddressModel target, Object source, EventType<AddressSuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 

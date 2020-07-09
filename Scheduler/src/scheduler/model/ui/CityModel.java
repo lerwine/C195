@@ -17,7 +17,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.ICountryDAO;
@@ -31,7 +30,6 @@ import scheduler.model.CityProperties;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
-import scheduler.model.RecordModelContext;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -247,18 +245,18 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(RecordModelContext<CityDAO, CityModel> model) {
+        public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(CityModel model) {
             return new CityDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(RecordModelContext<CityDAO, CityModel> model) {
+        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(CityModel model) {
             return new CityDAO.DeleteTask(model, false);
         }
 
         @Override
-        public CityEvent validateForSave(RecordModelContext<CityDAO, CityModel> target) {
-            CityDAO dao = target.getDataAccessObject();
+        public CityEvent validateForSave(CityModel fxRecordModel) {
+            CityDAO dao = fxRecordModel.dataObject();
             String message;
             if (dao.getRowState() == DataRowState.DELETED) {
                 message = "City has already been deleted";
@@ -277,13 +275,12 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                         if (null == country) {
                             message = "Country not specified";
                         } else {
-                            CityModel fxRecordModel = target.getFxRecordModel();
                             CountryEvent event;
                             if (null != fxRecordModel) {
                                 CountryItem<? extends ICountryDAO> c = fxRecordModel.getCountry();
                                 if (null != c) {
                                     if (c instanceof CountryModel) {
-                                        if (null == (event = CountryModel.FACTORY.validateForSave(RecordModelContext.of((CountryModel) c)))) {
+                                        if (null == (event = CountryModel.FACTORY.validateForSave((CountryModel) c))) {
                                             return null;
                                         }
                                     } else {
@@ -292,28 +289,15 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
                                 } else {
                                     event = null;
                                 }
-                            } else {
-                                ICountryDAO c = dao.getCountry();
-                                if (null != c) {
-                                    if (c instanceof CountryDAO) {
-                                        if (null == (event = CountryModel.FACTORY.validateForSave(RecordModelContext.of((CountryDAO) c)))) {
-                                            return null;
+                                if (null != event) {
+                                    if (event instanceof CountryFailedEvent) {
+                                        if (dao.getRowState() == DataRowState.NEW) {
+                                            return CityEvent.createInsertInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
                                         }
-                                    } else {
-                                        return null;
+                                        return CityEvent.createUpdateInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
                                     }
-                                } else {
-                                    event = null;
+                                    return null;
                                 }
-                            }
-                            if (null != event) {
-                                if (event instanceof CountryFailedEvent) {
-                                    if (dao.getRowState() == DataRowState.NEW) {
-                                        return CityEvent.createInsertInvalidEvent(target, this, (CountryFailedEvent) event);
-                                    }
-                                    return CityEvent.createUpdateInvalidEvent(target, this, (CountryFailedEvent) event);
-                                }
-                                return null;
                             }
 
                             message = "City not specified.";
@@ -323,9 +307,9 @@ public final class CityModel extends FxRecordModel<CityDAO> implements CityItem<
             }
 
             if (dao.getRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertInvalidEvent(target, this, message);
+                return CityEvent.createInsertInvalidEvent(fxRecordModel, this, message);
             }
-            return CityEvent.createUpdateInvalidEvent(target, this, message);
+            return CityEvent.createUpdateInvalidEvent(fxRecordModel, this, message);
         }
 
         @Override

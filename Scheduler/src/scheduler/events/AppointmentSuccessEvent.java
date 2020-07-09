@@ -2,8 +2,6 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.dao.AppointmentDAO;
-import scheduler.model.RecordModelContext;
 import scheduler.model.ui.AppointmentModel;
 
 /**
@@ -87,7 +85,7 @@ public final class AppointmentSuccessEvent extends AppointmentEvent {
         super(event, eventType, toDbOperationType(eventType));
     }
 
-    public AppointmentSuccessEvent(RecordModelContext<AppointmentDAO, AppointmentModel> target, Object source, EventType<AppointmentSuccessEvent> eventType) {
+    public AppointmentSuccessEvent(AppointmentModel target, Object source, EventType<AppointmentSuccessEvent> eventType) {
         super(target, source, eventType, toDbOperationType(eventType));
     }
 
