@@ -126,7 +126,6 @@ public class AppointmentAlert extends BorderPane {
     private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", event);
         AppointmentDAO dao = event.getDataAccessObject();
-        // XXX: Check for model
         LocalDateTime start = LocalDateTime.now();
         if (start.compareTo(DB.toLocalDateTime(dao.getEnd())) < 0) {
             LocalDateTime end = start.plusMinutes(alertLeadtime);
@@ -152,7 +151,6 @@ public class AppointmentAlert extends BorderPane {
     private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
         AppointmentDAO dao = event.getDataAccessObject();
-        // XXX: Check for model
         int key = dao.getPrimaryKey();
         FlowPane view = getViewNode(key);
         ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
@@ -202,7 +200,6 @@ public class AppointmentAlert extends BorderPane {
     private synchronized void onAppointmentDeleted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
         AppointmentDAO dao = event.getDataAccessObject();
-        // XXX: Check for model
         int pk = dao.getPrimaryKey();
         if (dismissed.contains(pk)) {
             dismissed.remove(pk);

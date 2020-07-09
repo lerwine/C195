@@ -279,7 +279,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
             D dao = event.getDataAccessObject();
-            // XXX: Check to see if we need to get/update model
             if (f.getDaoFilter().test(dao)) {
                 items.add(getModelFactory().createNew(dao));
             }
@@ -289,7 +288,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends F
     protected void onUpdatedEvent(E event) {
         LOG.entering(LOG.getName(), "onUpdatedEvent", event);
         D dao = event.getDataAccessObject();
-        // XXX: Check to see if we need to get/update model
         FxRecordModel.FxModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
         if (null != mf) {
             Optional<M> m = mf.find(items, dao);
