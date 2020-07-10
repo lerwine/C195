@@ -60,7 +60,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
-@FXMLResource("/scheduler/view/appointment/DateRange.fxml")
+@FXMLResource("/scheduler/view/appointment/edit/DateRange.fxml")
 public final class DateRangeControl extends GridPane {
 
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
