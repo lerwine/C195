@@ -50,6 +50,9 @@ import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
@@ -70,6 +73,10 @@ import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.PartialAddressModel;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
@@ -88,13 +95,6 @@ import scheduler.view.appointment.edit.DateRangeControl;
 import scheduler.view.appointment.edit.ZonedAppointmentTimeSpan;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.dao.PartialCityDAO;
-import scheduler.dao.PartialCustomerDAO;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCustomerModel;
-import scheduler.model.ui.PartialUserModel;
-import scheduler.model.ui.PartialAddressModel;
 
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
@@ -421,7 +421,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
-                // FIXME: Attach only to insert task, instead
+                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onAppointmentInserted);
                 model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -726,6 +726,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
+        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
         UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
     }

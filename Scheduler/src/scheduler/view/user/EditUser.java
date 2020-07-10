@@ -380,7 +380,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
             if (keepOpen) {
-                // FIXME: Attach only to insert task, instead
+                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onUserInserted);
                 model.dataObject().addEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -422,6 +422,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                 AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));

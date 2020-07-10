@@ -1,5 +1,0 @@
-[2020-07-03T14:28:54.002]: test logged in.
-[2020-07-03T14:50:20.644]: test logged out.
-[2020-07-03T14:50:34.006]: test logged in.
-[2020-07-03T14:52:13.226]: test logged out.
-[2020-07-03T14:52:25.094]: test logged in.

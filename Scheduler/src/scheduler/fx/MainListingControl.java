@@ -21,7 +21,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -122,16 +121,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     @SuppressWarnings("LeakingThisInConstructor")
     protected MainListingControl() {
-        addEventHandler(EventType.ROOT, (e) -> {
-            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
-                LOG.finer(() -> String.format("Event handling %s", e));
-            }
-        });
-        addEventFilter(EventType.ROOT, (e) -> {
-            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
-                LOG.finer(() -> String.format("Event filtering %s", e));
-            }
-        });
         windowShowingChangedListener = new ShowingChangedListener();
         filter = new SimpleObjectProperty<>();
         items = FXCollections.observableArrayList();
@@ -344,15 +333,18 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
             super.onShowingChanged(observable, oldValue, newValue);
             if (newValue) {
                 if (!isAttached) {
-                    addEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                    addEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                    addEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+                    // FIXME: Memory leak! Use weak event handlers
+                    EntityModelImpl.EntityModelFactory<D, M, E> factory = getModelFactory();
+                    factory.addEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+                    factory.addEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+                    factory.addEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
                     isAttached = true;
                 }
             } else if (isAttached) {
-                removeEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                removeEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                removeEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
+                EntityModelImpl.EntityModelFactory<D, M, E> factory = getModelFactory();
+                factory.removeEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
+                factory.removeEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
+                factory.removeEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
                 isAttached = false;
             }
         }

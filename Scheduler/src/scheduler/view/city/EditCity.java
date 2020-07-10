@@ -45,6 +45,7 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.dao.PartialCountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
 import scheduler.events.AddressOpRequestEvent;
@@ -58,6 +59,7 @@ import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.PartialCountryModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -76,8 +78,6 @@ import static scheduler.view.city.EditCityResourceKeys.*;
 import scheduler.view.country.EditCountry;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
-import scheduler.dao.PartialCountryDAO;
-import scheduler.model.ui.PartialCountryModel;
 
 /**
  * FXML Controller class for editing a {@link CityModel}.
@@ -382,6 +382,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         LOG.entering(LOG.getName(), "onCityInserted", event);
         windowShowingChangedListener.isInsert = false;
         // FIXME: Use weak event handlers
+        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
         model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressAdded);
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, this::onAddressUpdated);
@@ -589,7 +590,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 if (!isAttached) {
                     if (isInsert) {
                         if (keepOpen) {
-                            // FIXME: Attach only to insert task, instead
+                            // FIXME: Use weak event handlers
                             model.dataObject().addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
                             isAttached = true;
                         }

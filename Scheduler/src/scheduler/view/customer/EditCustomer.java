@@ -48,6 +48,9 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
@@ -64,6 +67,9 @@ import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.PartialAddressModel;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCountryModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -83,12 +89,6 @@ import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.dao.PartialCityDAO;
-import scheduler.dao.PartialCountryDAO;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCountryModel;
-import scheduler.model.ui.PartialAddressModel;
 
 /**
  * FXML Controller class for editing a {@link CustomerModel}.
@@ -530,7 +530,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
-                // FIXME: Attach only to insert task, instead
+                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onCustomerInserted);
                 model.dataObject().addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -550,6 +550,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));

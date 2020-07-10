@@ -439,7 +439,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                         alert.showAndWait();
                     }
                 } catch (IOException ex) {
-                    // XXX: Alert user
+                    // FIXME: Alert user
                     LOG.log(Level.SEVERE, "Error saving file", ex);
                 }
             }

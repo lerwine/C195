@@ -831,6 +831,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
             originalRowState = dataAccessObject.get().getRowState();
             finalEvent = new ReadOnlyObjectWrapper<>(this, "finalEvent", null);
             onFinished = new SimpleObjectProperty<>(this, "onFinished", null);
+            // FIXME: E events never get fired on the Task object
             onFinished.addListener((observable, oldValue, newValue) -> {
                 try {
                     if (null != oldValue) {

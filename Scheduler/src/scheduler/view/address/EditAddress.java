@@ -43,6 +43,8 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CustomerEvent;
@@ -58,6 +60,8 @@ import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.PartialCityModel;
+import scheduler.model.ui.PartialCountryModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -75,10 +79,6 @@ import scheduler.view.city.EditCity;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.task.WaitBorderPane;
 import scheduler.view.task.WaitTitledPane;
-import scheduler.dao.PartialCityDAO;
-import scheduler.dao.PartialCountryDAO;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCountryModel;
 
 /**
  * FXML Controller class for editing an {@link AddressModel}.
@@ -469,7 +469,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
-                // FIXME: Attach only to insert task, instead
+                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onAddressInserted);
                 model.dataObject().addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -481,6 +481,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
+        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCustomerAdded));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCustomerUpdated));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));

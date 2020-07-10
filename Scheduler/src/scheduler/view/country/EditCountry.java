@@ -22,7 +22,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
@@ -31,7 +30,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -157,17 +155,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
-
-        addEventHandler(EventType.ROOT, (e) -> {
-            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
-                LOG.finer(() -> String.format("Event handling %s", e));
-            }
-        });
-        addEventFilter(EventType.ROOT, (e) -> {
-            if (!(e instanceof MouseEvent || e instanceof KeyEvent)) {
-                LOG.finer(() -> String.format("Event filtering %s", e));
-            }
-        });
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -312,7 +299,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         // FIXME: Use weak event handlers
         model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, this::onCountryInserted);
         windowShowingListener.isInsert = false;
-        // FIXME: Use weak event handlers
+        // FIXME: Memory leak! Use weak event handlers
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityAdded);
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, this::onCityUpdated);
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, this::onCityDeleted);
@@ -432,12 +419,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 if (!isAttached) {
                     if (isInsert) {
                         if (keepOpen) {
-                            // FIXME: Attach only to insert task, instead
+                            // FIXME: Memory leak! Use weak event handlers
                             model.dataObject().addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCountryInserted);
                             isAttached = true;
                         }
                     } else {
-                        // FIXME: Use weak event handlers
+                        // FIXME: Memory leak! Use weak event handlers
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCountry.this::onCityAdded);
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, EditCountry.this::onCityUpdated);
                         CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, EditCountry.this::onCityDeleted);
