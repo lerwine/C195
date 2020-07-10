@@ -31,6 +31,7 @@ import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.Tuple;
 import scheduler.view.annotations.FXMLResource;
@@ -79,7 +80,7 @@ public class AppointmentConflictsControl extends BorderPane {
     @FXML
     void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onCloseConflictsBorderPaneButtonAction", event);
-
+        collapseNode(this);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -90,6 +91,7 @@ public class AppointmentConflictsControl extends BorderPane {
         selectedTimeSpan.addListener((observable, oldValue, newValue) -> {
             onTimeSpanChanged(newValue);
         });
+        collapseNode(this);
     }
 
     public ConflictCheckStatus getConflictCheckStatus() {

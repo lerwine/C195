@@ -292,7 +292,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
         }
         dropdownOptionsLabel.setText(resources.getString(RESOURCEKEY_CUSTOMERSTOSHOW));
-        dropdownOptionsBorderPane.setVisible(true);
+        restoreNode(dropdownOptionsBorderPane);
         dropdownOptionsBorderPane.minWidthProperty().bind(widthProperty());
         dropdownOptionsBorderPane.prefWidthProperty().bind(widthProperty());
         dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
@@ -307,7 +307,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
         dropdownOptionsBorderPane.minHeightProperty().unbind();
         dropdownOptionsBorderPane.prefHeightProperty().unbind();
-        dropdownOptionsBorderPane.setVisible(false);
+        collapseNode(dropdownOptionsBorderPane);
     }
 
     @FXML
@@ -336,7 +336,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             }
             waitBorderPane.startNow(new CustomerReloadTask());
         }
-        dropdownOptionsBorderPane.setVisible(false);
+        collapseNode(dropdownOptionsBorderPane);
     }
 
     @FXML
@@ -366,7 +366,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
         }
         dropdownOptionsLabel.setText(resources.getString(RESOURCEKEY_USERSTOSHOW));
-        dropdownOptionsBorderPane.setVisible(true);
+        restoreNode(dropdownOptionsBorderPane);
         dropdownOptionsBorderPane.minWidthProperty().bind(widthProperty());
         dropdownOptionsBorderPane.prefWidthProperty().bind(widthProperty());
         dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
@@ -447,7 +447,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                         .then("Title too long.")
                         .otherwise(""));
         titleValidationLabel.textProperty().bind(validationMessageBinding);
-        titleValidationLabel.visibleProperty().bind(validationMessageBinding.isEmpty());
+        titleValidationLabel.visibleProperty().bind(validationMessageBinding.isNotEmpty());
         validationBinding = titleValid = validationMessageBinding.isEmpty();
         textProperty.addListener((observable, oldValue, newValue) -> updateValidity());
     }
@@ -609,7 +609,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             }
         });
 
-        customerComboBox.getSelectionModel().selectedItemProperty().get().multiLineAddressProperty();
         implicitLocationLabel.textProperty().bind(Bindings.when(selectedType.isEqualTo(AppointmentType.CORPORATE_LOCATION))
                 .then(Bindings.createStringBinding(() -> {
                     CorporateAddress addr = selectedAddressProperty.get();
