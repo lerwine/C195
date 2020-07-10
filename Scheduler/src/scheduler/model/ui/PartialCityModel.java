@@ -5,9 +5,9 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CityDAO;
-import scheduler.model.City;
 import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
+import scheduler.model.City;
 
 /**
  *
@@ -24,10 +24,6 @@ public interface PartialCityModel<T extends PartialCityDAO> extends City, Partia
      * The name of the 'language' property.
      */
     public static final String PROP_LANGUAGE = "language";
-    /**
-     * The name of the 'timeZoneDisplay' property.
-     */
-    public static final String PROP_TIMEZONEDISPLAY = "timeZoneDisplay";
 
     public static PartialCityModel<? extends PartialCityDAO> createModel(PartialCityDAO t) {
         if (null == t) {
@@ -50,12 +46,6 @@ public interface PartialCityModel<T extends PartialCityDAO> extends City, Partia
     String getCountryName();
 
     ReadOnlyStringProperty countryNameProperty();
-
-    ReadOnlyObjectProperty<TimeZone> timeZoneProperty();
-
-    String getTimeZoneDisplay();
-
-    ReadOnlyStringProperty timeZoneDisplayProperty();
 
     String getLanguage();
 

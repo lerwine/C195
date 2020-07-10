@@ -48,7 +48,7 @@ import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.util.AlertHelper;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -127,9 +127,9 @@ public class AppointmentAlert extends BorderPane {
         LOG.entering(LOG.getName(), "onAppointmentInserted", event);
         AppointmentDAO dao = event.getDataAccessObject();
         LocalDateTime start = LocalDateTime.now();
-        if (start.compareTo(DB.toLocalDateTime(dao.getEnd())) < 0) {
+        if (start.compareTo(DateTimeUtil.toLocalDateTime(dao.getEnd())) < 0) {
             LocalDateTime end = start.plusMinutes(alertLeadtime);
-            if (end.compareTo(DB.toLocalDateTime(dao.getStart())) >= 0) {
+            if (end.compareTo(DateTimeUtil.toLocalDateTime(dao.getStart())) >= 0) {
                 ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
                 Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
                 Stream.concat(stream, Stream.of(new AppointmentModel(dao))).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
@@ -526,8 +526,8 @@ public class AppointmentAlert extends BorderPane {
             try {
                 appointments = DbConnector.apply((t) -> {
                     LocalDateTime start = LocalDateTime.now();
-                    return factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(start),
-                            DB.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
+                    return factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(start),
+                            DateTimeUtil.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
                 });
             } catch (SQLException | ClassNotFoundException ex) {
                 LOG.log(Level.SEVERE, "Error checking impending appointments", ex);

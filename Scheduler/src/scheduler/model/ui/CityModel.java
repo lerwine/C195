@@ -2,7 +2,6 @@ package scheduler.model.ui;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -27,7 +26,6 @@ import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
 import scheduler.model.City;
 import scheduler.model.CityEntity;
-import scheduler.model.CityProperties;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
@@ -45,20 +43,14 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
     public static final Factory FACTORY = new Factory();
 
     private final StringProperty name;
-    private final ObjectProperty<TimeZone> timeZone;
     private final ObjectProperty<PartialCountryModel<? extends PartialCountryDAO>> country;
-    private final ReadOnlyStringBindingProperty timeZoneDisplay;
     private final ReadOnlyStringBindingProperty countryName;
     private final ReadOnlyStringBindingProperty language;
 
     public CityModel(CityDAO dao) {
         super(dao);
         name = new SimpleStringProperty(this, PROP_NAME, dao.getName());
-        timeZone = new SimpleObjectProperty<>(this, PROP_TIMEZONE, dao.getTimeZone());
         country = new SimpleObjectProperty<>(this, PROP_COUNTRY, PartialCountryModel.createModel(dao.getCountry()));
-        timeZoneDisplay = new ReadOnlyStringBindingProperty(this, PROP_TIMEZONEDISPLAY, () -> {
-            return CityProperties.getTimeZoneDisplayText(timeZone.get());
-        }, timeZone);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, PartialCountryModel.PROP_LANGUAGE));
     }
@@ -102,30 +94,6 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
     }
 
     @Override
-    public TimeZone getTimeZone() {
-        return timeZone.get();
-    }
-
-    public void setTimeZone(TimeZone value) {
-        timeZone.set(value);
-    }
-
-    @Override
-    public ObjectProperty<TimeZone> timeZoneProperty() {
-        return timeZone;
-    }
-
-    @Override
-    public String getTimeZoneDisplay() {
-        return timeZoneDisplay.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty timeZoneDisplayProperty() {
-        return timeZoneDisplay;
-    }
-
-    @Override
     public String getLanguage() {
         return language.get();
     }
@@ -165,7 +133,6 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
         return builder.addEnum(PROP_ROWSTATE, getRowState())
                 .addString(name)
                 .addDataObject(country)
-                .addTimeZone(timeZone)
                 .addLocalDateTime(createDateProperty())
                 .addString(createdByProperty())
                 .addLocalDateTime(lastModifiedDateProperty())
@@ -245,42 +212,37 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
                 String name = dao.getName();
                 if (name.isEmpty()) {
                     message = "City name not defined";
+                } else if (name.length() > MAX_LENGTH_NAME) {
+                    message = "Name too long";
                 } else {
-                    TimeZone zoneId = dao.getTimeZone();
-                    if (null == zoneId) {
-                        message = "Zone Id not defined";
-                    } else if ((name.length() + zoneId.toZoneId().getId().length() + 1) > MAX_LENGTH_NAME) {
-                        message = "Name too long";
+                    PartialCountryDAO country = dao.getCountry();
+                    if (null == country) {
+                        message = "Country not specified";
                     } else {
-                        PartialCountryDAO country = dao.getCountry();
-                        if (null == country) {
-                            message = "Country not specified";
-                        } else {
-                            CountryEvent event;
-                            PartialCountryModel<? extends PartialCountryDAO> c = fxRecordModel.getCountry();
-                            if (null != c) {
-                                if (c instanceof CountryModel) {
-                                    if (null == (event = CountryModel.FACTORY.validateForSave((CountryModel) c))) {
-                                        return null;
-                                    }
-                                } else {
+                        CountryEvent event;
+                        PartialCountryModel<? extends PartialCountryDAO> c = fxRecordModel.getCountry();
+                        if (null != c) {
+                            if (c instanceof CountryModel) {
+                                if (null == (event = CountryModel.FACTORY.validateForSave((CountryModel) c))) {
                                     return null;
                                 }
                             } else {
-                                event = null;
-                            }
-                            if (null != event) {
-                                if (event instanceof CountryFailedEvent) {
-                                    if (dao.getRowState() == DataRowState.NEW) {
-                                        return CityEvent.createInsertInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
-                                    }
-                                    return CityEvent.createUpdateInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
-                                }
                                 return null;
                             }
-
-                            message = "City not specified.";
+                        } else {
+                            event = null;
                         }
+                        if (null != event) {
+                            if (event instanceof CountryFailedEvent) {
+                                if (dao.getRowState() == DataRowState.NEW) {
+                                    return CityEvent.createInsertInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
+                                }
+                                return CityEvent.createUpdateInvalidEvent(fxRecordModel, this, (CountryFailedEvent) event);
+                            }
+                            return null;
+                        }
+
+                        message = "City not specified.";
                     }
                 }
             }

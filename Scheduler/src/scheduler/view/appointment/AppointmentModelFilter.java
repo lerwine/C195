@@ -6,6 +6,8 @@ import java.util.function.Predicate;
 import scheduler.Scheduler;
 import static scheduler.Scheduler.getCurrentUser;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.PartialCustomerDAO;
+import scheduler.dao.PartialUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
@@ -19,14 +21,12 @@ import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.util.DB;
+import scheduler.model.ui.PartialCustomerModel;
+import scheduler.model.ui.PartialUserModel;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.ModelFilter;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
-import scheduler.dao.PartialCustomerDAO;
-import scheduler.dao.PartialUserDAO;
-import scheduler.model.ui.PartialCustomerModel;
-import scheduler.model.ui.PartialUserModel;
 
 /**
  *
@@ -76,27 +76,27 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             if (start.equals(today)) {
                 if (null == end) {
                     return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_ALLCURRENTANDFUTURE),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)),
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)),
                             (t) -> t.getEnd().compareTo(startDateTime) > 0
                     );
                 }
                 if (end.equals(today.plusDays(1L))) {
                     return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_ALLCURRENTAPPOINTMENTS),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                                    DB.toUtcTimestamp(end.atStartOfDay()))),
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                                    DateTimeUtil.toUtcTimestamp(end.atStartOfDay()))),
                             (t) -> t.getEnd().compareTo(startDateTime) > 0 && t.getStart().compareTo(startDateTime) <= 0
                     );
                 }
             } else if (null == end) {
                 return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSONORAFTERDATE), start),
-                        AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)),
+                        AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)),
                         (t) -> t.getEnd().compareTo(startDateTime) > 0
                 );
             }
             endDateTime = end.atStartOfDay();
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBETWEENDATES), start, end),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                            DB.toUtcTimestamp(endDateTime))),
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                            DateTimeUtil.toUtcTimestamp(endDateTime))),
                     (t) -> t.getEnd().compareTo(startDateTime) > 0 && t.getStart().compareTo(endDateTime) < 0
             );
         }
@@ -106,18 +106,18 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         endDateTime = end.atStartOfDay();
         if (end.equals(today)) {
             return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_PASTAPPOINTMENTS),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))),
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))),
                     (t) -> t.getEnd().compareTo(endDateTime) <= 0
             );
         }
         if (end.equals(today.plusDays(1L))) {
             return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTANDPASTAPPOINTMENTS),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))),
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))),
                     (t) -> t.getEnd().compareTo(endDateTime) <= 0
             );
         }
         return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBEFOREDATE), start),
-                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))),
+                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))),
                 (t) -> t.getEnd().compareTo(endDateTime) <= 0
         );
     }
@@ -143,7 +143,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 if (null == end) {
                     return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTANDFUTUREFORCUST),
                             customer.getName()),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(customer))),
                             (t) -> {
                                 PartialCustomerModel<? extends PartialCustomerDAO> c = t.getCustomer();
@@ -154,8 +154,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 if (end.equals(today.plusDays(1L))) {
                     return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTFORCUSTOMER),
                             customer.getName()),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                                    DB.toUtcTimestamp(end.atStartOfDay()))
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                                    DateTimeUtil.toUtcTimestamp(end.atStartOfDay()))
                                     .and(AppointmentFilter.expressionOf(customer))),
                             (t) -> {
                                 PartialCustomerModel<? extends PartialCustomerDAO> c = t.getCustomer();
@@ -167,7 +167,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             } else if (null == end) {
                 return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSONORAFTERFORCUST),
                         start, customer.getName()),
-                        AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                        AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                 .and(AppointmentFilter.expressionOf(customer))),
                         (t) -> {
                             PartialCustomerModel<? extends PartialCustomerDAO> c = t.getCustomer();
@@ -178,8 +178,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             endDateTime = end.atStartOfDay();
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBETWEENDATESFORCUST),
                     start, end, customer.getName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                            DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                            DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(customer))),
                     (t) -> {
                         PartialCustomerModel<? extends PartialCustomerDAO> c = t.getCustomer();
@@ -195,7 +195,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         if (end.equals(today)) {
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_PASTAPPOINTMENTSFORCUSTOMER),
                     customer.getName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(customer))),
                     (t) -> {
                         PartialCustomerModel<? extends PartialCustomerDAO> c = t.getCustomer();
@@ -206,7 +206,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         if (end.equals(today.plusDays(1L))) {
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTANDPASTFORCUSTOMER),
                     customer.getName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(customer))),
                     (t) -> {
                         PartialCustomerModel<? extends PartialCustomerDAO> c = t.getCustomer();
@@ -216,7 +216,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         }
         return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBEFOREDATEFORCUST),
                 start, customer.getName()),
-                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                         .and(AppointmentFilter.expressionOf(customer))),
                 (t) -> {
                     PartialCustomerModel<? extends PartialCustomerDAO> c = t.getCustomer();
@@ -242,7 +242,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             if (start.equals(today)) {
                 if (null == end) {
                     return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_MYCURRENTANDFUTURE),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
                                 PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -252,8 +252,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 }
                 if (end.equals(today.plusDays(1L))) {
                     return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_MYCURRENT),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                                    DB.toUtcTimestamp(end.atStartOfDay()))
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                                    DateTimeUtil.toUtcTimestamp(end.atStartOfDay()))
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
                                 PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -265,7 +265,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             } else if (null == end) {
                 return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_MYAPPOINTMENTSONORAFTERDATE),
                         start),
-                        AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                        AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                 .and(AppointmentFilter.expressionOf(user))),
                         (t) -> {
                             PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -276,8 +276,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             endDateTime = end.atStartOfDay();
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_MYAPPOINTMENTSBETWEENDATES),
                     start, end),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                            DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                            DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
                         PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -292,7 +292,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         endDateTime = end.atStartOfDay();
         if (end.equals(today)) {
             return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_MYPASTAPPOINTMENTS),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
                         PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -302,7 +302,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         }
         if (end.equals(today.plusDays(1L))) {
             return AppointmentModelFilter.of(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_MYCURRENTANDPAST),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
                         PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -312,7 +312,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         }
         return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_MYAPPOINTMENTSBEFOREDATE),
                 start),
-                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                         .and(AppointmentFilter.expressionOf(user))),
                 (t) -> {
                     PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -345,7 +345,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 if (null == end) {
                     return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTANDFUTUREFORUSER),
                             user.getUserName()),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
                                 PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -356,8 +356,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 if (end.equals(today.plusDays(1L))) {
                     return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTFORUSER),
                             user.getUserName()),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                                    DB.toUtcTimestamp(end.atStartOfDay()))
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                                    DateTimeUtil.toUtcTimestamp(end.atStartOfDay()))
                                     .and(AppointmentFilter.expressionOf(user))),
                             (t) -> {
                                 PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -369,7 +369,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             } else if (null == end) {
                 return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSAFTERDATEFORUSER),
                         start, user.getUserName()),
-                        AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                        AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                 .and(AppointmentFilter.expressionOf(user))),
                         (t) -> {
                             PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -380,8 +380,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             endDateTime = end.atStartOfDay();
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBETWEENDATESFORUSER),
                     start, end, user.getUserName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                            DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                            DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
                         PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -397,7 +397,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         if (end.equals(today)) {
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_PASTAPPOINTMENTSFORUSER),
                     user.getUserName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
                         PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -408,7 +408,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         if (end.equals(today.plusDays(1L))) {
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTANDPASTFORUSER),
                     user.getUserName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(user))),
                     (t) -> {
                         PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -418,7 +418,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         }
         return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBEFOREDATEFORUSER),
                 start, user.getUserName()),
-                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                         .and(AppointmentFilter.expressionOf(user))),
                 (t) -> {
                     PartialUserModel<? extends PartialUserDAO> model = t.getUser();
@@ -508,7 +508,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 if (null == end) {
                     return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTANDFUTUREFORBOTH),
                             customer.getName(), user.getUserName()),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                             (t) -> {
                                 if (t.getEnd().compareTo(startDateTime) > 0) {
@@ -526,8 +526,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
                 if (end.equals(today.plusDays(1L))) {
                     return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTFORBOTH),
                             customer.getName(), user.getUserName()),
-                            AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                                    DB.toUtcTimestamp(end.atStartOfDay()))
+                            AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                                    DateTimeUtil.toUtcTimestamp(end.atStartOfDay()))
                                     .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                             (t) -> {
                                 if (t.getEnd().compareTo(startDateTime) > 0 && t.getStart().compareTo(startDateTime) <= 0) {
@@ -545,7 +545,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             } else if (null == end) {
                 return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSONORAFTERFORBOTH),
                         start, customer.getName(), user.getUserName()),
-                        AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime), null)
+                        AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime), null)
                                 .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                         (t) -> {
                             if (t.getEnd().compareTo(startDateTime) > 0) {
@@ -563,8 +563,8 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
             endDateTime = end.atStartOfDay();
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBETWEENDATESFORBOTH),
                     start, end, customer.getName(), user.getUserName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(startDateTime),
-                            DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(startDateTime),
+                            DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                     (t) -> {
                         if (t.getEnd().compareTo(startDateTime) > 0 && t.getStart().compareTo(endDateTime) < 0) {
@@ -586,7 +586,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         if (end.equals(today)) {
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_PASTAPPOINTMENTSFORBOTH),
                     customer.getName(), user.getUserName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                     (t) -> {
                         if (t.getEnd().compareTo(endDateTime) <= 0) {
@@ -604,7 +604,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         if (end.equals(today.plusDays(1L))) {
             return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_CURRENTANDPASTFORBOTH),
                     customer.getName(), user.getUserName()),
-                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                    AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                             .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                     (t) -> {
                         if (t.getEnd().compareTo(endDateTime) <= 0) {
@@ -621,7 +621,7 @@ public interface AppointmentModelFilter extends ModelFilter<AppointmentDAO, Appo
         }
         return AppointmentModelFilter.of(String.format(ResourceBundleHelper.getResourceString(ManageAppointments.class, RESOURCEKEY_APPOINTMENTSBEFOREDATEFORBOTH),
                 start, customer.getName(), user.getUserName()),
-                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DB.toUtcTimestamp(endDateTime))
+                AppointmentFilter.of(AppointmentFilter.expressionOf(null, DateTimeUtil.toUtcTimestamp(endDateTime))
                         .and(AppointmentFilter.expressionOf(customer).or(AppointmentFilter.expressionOf(user)))),
                 (t) -> {
                     if (t.getEnd().compareTo(endDateTime) <= 0) {

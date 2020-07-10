@@ -2,7 +2,7 @@ package scheduler.fx;
 
 import java.util.TimeZone;
 import javafx.scene.control.ListCell;
-import scheduler.model.CityProperties;
+import scheduler.util.DateTimeUtil;
 
 /**
  *
@@ -23,6 +23,6 @@ public class TimeZoneListCell extends ListCell<TimeZone> {
     @Override
     protected void updateItem(TimeZone item, boolean empty) {
         super.updateItem(item, empty);
-        setText(CityProperties.getTimeZoneDisplayText(item));
+        setText(DateTimeUtil.getTimeZoneDisplayText(item));
     }
 }

@@ -1,6 +1,5 @@
 package scheduler.model.ui;
 
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -10,15 +9,14 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
 import scheduler.model.City;
-import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.dao.PartialCityDAO;
-import scheduler.dao.PartialCountryDAO;
 
 /**
  *
@@ -29,8 +27,6 @@ public class PartialCityModelImpl extends RelatedModel<PartialCityDAO> implement
     private static final Logger LOG = Logger.getLogger(PartialCityModelImpl.class.getName());
 
     private final ReadOnlyJavaBeanStringProperty name;
-    private final ReadOnlyJavaBeanObjectProperty<TimeZone> timeZone;
-    private final ReadOnlyStringProperty timeZoneDisplay;
     private final ReadOnlyJavaBeanObjectProperty<PartialCountryDAO> countryDAO;
     private final ReadOnlyObjectBindingProperty<PartialCountryModel<? extends PartialCountryDAO>> country;
     private final ReadOnlyStringBindingProperty countryName;
@@ -40,16 +36,12 @@ public class PartialCityModelImpl extends RelatedModel<PartialCityDAO> implement
         super(dao);
         try {
             name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_NAME).build();
-            timeZone = ReadOnlyJavaBeanObjectPropertyBuilder.<TimeZone>create().bean(dao).name(PROP_TIMEZONE).build();
             countryDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<PartialCountryDAO>create().bean(dao).name(PROP_COUNTRY).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
         country = new ReadOnlyObjectBindingProperty<>(this, PROP_COUNTRY, () -> PartialCountryModel.createModel(countryDAO.get()), countryDAO);
-        timeZoneDisplay = new ReadOnlyStringBindingProperty(this, PROP_TIMEZONEDISPLAY, () -> {
-            return CityProperties.getTimeZoneDisplayText(timeZone.get());
-        }, timeZone);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, CountryProperties.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, PartialCountryModel.PROP_LANGUAGE));
     }
@@ -95,26 +87,6 @@ public class PartialCityModelImpl extends RelatedModel<PartialCityDAO> implement
     }
 
     @Override
-    public TimeZone getTimeZone() {
-        return timeZone.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() {
-        return timeZone;
-    }
-
-    @Override
-    public String getTimeZoneDisplay() {
-        return timeZoneDisplay.get();
-    }
-
-    @Override
-    public ReadOnlyStringProperty timeZoneDisplayProperty() {
-        return timeZoneDisplay;
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof City && ModelHelper.areSameRecord(this, (City) obj);
     }
@@ -134,8 +106,7 @@ public class PartialCityModelImpl extends RelatedModel<PartialCityDAO> implement
         return ToStringPropertyBuilder.create(this)
                 .addNumber(primaryKeyProperty())
                 .addString(name)
-                .addDataObject(country)
-                .addTimeZone(timeZone);
+                .addDataObject(country);
     }
 
 }

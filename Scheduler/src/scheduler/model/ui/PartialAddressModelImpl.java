@@ -38,7 +38,6 @@ public class PartialAddressModelImpl extends RelatedModel<PartialAddressDAO> imp
     private final ReadOnlyJavaBeanStringProperty phone;
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
 
     public PartialAddressModelImpl(PartialAddressDAO rowData) {
         super(rowData);
@@ -62,7 +61,6 @@ public class PartialAddressModelImpl extends RelatedModel<PartialAddressDAO> imp
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
-        timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, CityProperties.PROP_TIMEZONE));
     }
 
     @Override
@@ -152,16 +150,6 @@ public class PartialAddressModelImpl extends RelatedModel<PartialAddressDAO> imp
     @Override
     public ReadOnlyStringProperty cityZipCountryProperty() {
         return cityZipCountry;
-    }
-
-    @Override
-    public TimeZone getTimeZone() {
-        return timeZone.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() {
-        return timeZone;
     }
 
     @Override

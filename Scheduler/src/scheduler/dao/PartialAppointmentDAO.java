@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import scheduler.model.Appointment;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 
 /**
  *
@@ -36,9 +36,9 @@ public interface PartialAppointmentDAO extends PartialDataAccessObject, Appointm
 
         Timestamp other;
         if (value instanceof ZonedDateTime) {
-            other = DB.toUtcTimestamp((ZonedDateTime) value);
+            other = DateTimeUtil.toUtcTimestamp((ZonedDateTime) value);
         } else if (value instanceof LocalDateTime) {
-            other = DB.toUtcTimestamp((LocalDateTime) value);
+            other = DateTimeUtil.toUtcTimestamp((LocalDateTime) value);
         } else {
             return false;
         }
@@ -61,11 +61,11 @@ public interface PartialAppointmentDAO extends PartialDataAccessObject, Appointm
         }
 
         if (value instanceof ZonedDateTime) {
-            return start.compareTo(DB.toUtcTimestamp((ZonedDateTime) value));
+            return start.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
         }
 
         if (value instanceof LocalDateTime) {
-            return start.compareTo(DB.toUtcTimestamp((LocalDateTime) value));
+            return start.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
         }
 
         throw new IllegalArgumentException();
@@ -88,9 +88,9 @@ public interface PartialAppointmentDAO extends PartialDataAccessObject, Appointm
 
         Timestamp other;
         if (value instanceof ZonedDateTime) {
-            other = DB.toUtcTimestamp((ZonedDateTime) value);
+            other = DateTimeUtil.toUtcTimestamp((ZonedDateTime) value);
         } else if (value instanceof LocalDateTime) {
-            other = DB.toUtcTimestamp((LocalDateTime) value);
+            other = DateTimeUtil.toUtcTimestamp((LocalDateTime) value);
         } else {
             return false;
         }
@@ -113,11 +113,11 @@ public interface PartialAppointmentDAO extends PartialDataAccessObject, Appointm
         }
 
         if (value instanceof ZonedDateTime) {
-            return end.compareTo(DB.toUtcTimestamp((ZonedDateTime) value));
+            return end.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
         }
 
         if (value instanceof LocalDateTime) {
-            return end.compareTo(DB.toUtcTimestamp((LocalDateTime) value));
+            return end.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
         }
 
         throw new IllegalArgumentException();

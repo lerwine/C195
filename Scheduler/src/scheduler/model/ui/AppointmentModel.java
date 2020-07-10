@@ -38,7 +38,7 @@ import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.appointment.AppointmentModelFilter;
@@ -173,8 +173,8 @@ public final class AppointmentModel extends EntityModelImpl<AppointmentDAO> impl
                 Bindings.createStringBinding(() -> AppointmentType.toDisplayText(type.get()), type));
         contact = new NonNullableStringProperty(this, PROP_CONTACT, dao.getContact());
         url = new NonNullableStringProperty(this, PROP_URL, dao.getUrl());
-        start = new SimpleObjectProperty<>(this, PROP_START, DB.toLocalDateTime(dao.getStart()));
-        end = new SimpleObjectProperty<>(this, PROP_END, DB.toLocalDateTime(dao.getEnd()));
+        start = new SimpleObjectProperty<>(this, PROP_START, DateTimeUtil.toLocalDateTime(dao.getStart()));
+        end = new SimpleObjectProperty<>(this, PROP_END, DateTimeUtil.toLocalDateTime(dao.getEnd()));
 
         final StringBinding wsNormalizedLocation = Bindings
                 .createStringBinding(() -> Values.asNonNullAndWsNormalized(location.get()), location);

@@ -50,8 +50,6 @@ import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCustomerDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
@@ -73,8 +71,6 @@ import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.EntityModelImpl;
-import scheduler.model.ui.PartialAddressModel;
-import scheduler.model.ui.PartialCityModel;
 import scheduler.model.ui.PartialCustomerModel;
 import scheduler.model.ui.PartialUserModel;
 import scheduler.model.ui.UserModel;
@@ -496,19 +492,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         LocalDateTime start = model.getStart();
         LocalDateTime end = model.getEnd();
         PartialCustomerModel<? extends PartialCustomerDAO> c = model.getCustomer();
-        TimeZone selectedTimeZone = null;
-        if (null != c) {
-            PartialAddressModel<? extends PartialAddressDAO> a = c.getAddress();
-            if (null != a) {
-                PartialCityModel<? extends PartialCityDAO> t = a.getCity();
-                if (null != t) {
-                    selectedTimeZone = t.getTimeZone();
-                }
-            }
-        }
-        if (null == selectedTimeZone) {
-            selectedTimeZone = TimeZone.getTimeZone(ZoneId.systemDefault());
-        }
+        TimeZone selectedTimeZone = TimeZone.getTimeZone(ZoneId.systemDefault());
         Duration duration;
         if (null != start && null != end) {
             duration = Duration.between(start, end);

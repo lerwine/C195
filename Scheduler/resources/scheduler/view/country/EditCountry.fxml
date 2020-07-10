@@ -20,7 +20,6 @@
 <?import scheduler.fx.LocaleCountryAndLanguageListCell?>
 <?import scheduler.fx.LocaleCountryAndLanguageListCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
-<?import scheduler.fx.TimeZoneTableCellFactory?>
 <?import scheduler.fx.WrappingTextTableCellFactory?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass"
@@ -64,14 +63,6 @@
                     </cellValueFactory>
                     <cellFactory>
                         <WrappingTextTableCellFactory />
-                    </cellFactory>
-                </TableColumn>
-                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="96.0" prefWidth="-1.0" text="%timeZone">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="timeZone" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <TimeZoneTableCellFactory />
                     </cellFactory>
                 </TableColumn>
                 <TableColumn editable="false" minWidth="96.0" prefWidth="-1.0" text="%createdOn">

@@ -27,7 +27,7 @@ import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.UserModel;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
@@ -168,7 +168,7 @@ public class ConsultantSchedule extends VBox {
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
                 appointments = AppointmentDAO.FACTORY.load(dbConnector.getConnection(), AppointmentFilter.of(null, user,
-                        DB.toUtcTimestamp(start.atStartOfDay()), DB.toUtcTimestamp(start.plusDays(1L).atStartOfDay())));
+                        DateTimeUtil.toUtcTimestamp(start.atStartOfDay()), DateTimeUtil.toUtcTimestamp(start.plusDays(1L).atStartOfDay())));
                 UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 return uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
             }
@@ -201,7 +201,7 @@ public class ConsultantSchedule extends VBox {
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
                 return AppointmentDAO.FACTORY.load(dbConnector.getConnection(), AppointmentFilter.of(null, user,
-                        DB.toUtcTimestamp(start.atStartOfDay()), DB.toUtcTimestamp(end.plusDays(1L).atStartOfDay())));
+                        DateTimeUtil.toUtcTimestamp(start.atStartOfDay()), DateTimeUtil.toUtcTimestamp(end.plusDays(1L).atStartOfDay())));
             }
         }
 

@@ -4,21 +4,21 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import scheduler.dao.DataAccessObject;
-import scheduler.util.DB;
 import scheduler.model.ui.EntityModelImpl;
+import scheduler.util.DateTimeUtil;
 
 /**
  * Compares {@link DataAccessObject} and {@link EntityModelImpl} to {@link LocalDateTime}, {@link LocalDate} and {@link Timestamp} values.
  *
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link EntityModelImpl} object.
- @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface ItemTemporalComparer<T extends DataAccessObject, U extends EntityModelImpl<T>> extends ItemValueComparer<T, U, LocalDateTime> {
 
     @Override
     public default LocalDateTime get(T dao) {
-        return DB.toLocalDateTime(getTimestamp(dao));
+        return DateTimeUtil.toLocalDateTime(getTimestamp(dao));
     }
 
     /**
@@ -36,7 +36,7 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      * @return The value associated with the target {@link EntityModelImpl}.
      */
     default Timestamp getTimestamp(U model) {
-        return DB.toUtcTimestamp(get(model));
+        return DateTimeUtil.toUtcTimestamp(get(model));
     }
 
     /**
@@ -56,7 +56,7 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      * @return The value associated with the target {@link DataAccessObject}.
      */
     default LocalDate getLocalDate(T dao) {
-        return DB.toLocalDateTime(getTimestamp(dao)).toLocalDate();
+        return DateTimeUtil.toLocalDateTime(getTimestamp(dao)).toLocalDate();
     }
 
     default boolean test(T dao, LocalDate value) {

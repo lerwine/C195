@@ -2,7 +2,7 @@ package scheduler.fx;
 
 import java.util.TimeZone;
 import javafx.scene.control.TableCell;
-import scheduler.model.CityProperties;
+import scheduler.util.DateTimeUtil;
 
 /**
  *
@@ -15,7 +15,7 @@ public class TimeZoneTableCell<T> extends TableCell<T, TimeZone> {
     protected void updateItem(TimeZone item, boolean empty) {
         super.updateItem(item, empty);
         setWrapText(true);
-        setText(CityProperties.getTimeZoneDisplayText(item));
+        setText(DateTimeUtil.getTimeZoneDisplayText(item));
     }
 
 }

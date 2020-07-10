@@ -15,7 +15,7 @@ import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 
 /**
  *
@@ -141,7 +141,7 @@ public interface PartialAppointmentModel<T extends PartialAppointmentDAO> extend
         if (value instanceof ZonedDateTime) {
             return start.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
         }
-        return value instanceof Timestamp && start.equals(DB.toLocalDateTime((Timestamp) value));
+        return value instanceof Timestamp && start.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
     }
 
     @Override
@@ -192,7 +192,7 @@ public interface PartialAppointmentModel<T extends PartialAppointmentDAO> extend
         if (value instanceof ZonedDateTime) {
             return end.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
         }
-        return value instanceof Timestamp && end.equals(DB.toLocalDateTime((Timestamp) value));
+        return value instanceof Timestamp && end.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
     }
 
     @Override

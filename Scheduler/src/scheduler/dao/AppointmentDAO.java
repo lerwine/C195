@@ -43,7 +43,7 @@ import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.PartialCustomerModel;
 import scheduler.model.ui.PartialUserModel;
 import scheduler.model.ui.UserModel;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
@@ -95,8 +95,8 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         url = null;
         LocalDateTime d = LocalDateTime.now().plusHours(1).plusMinutes(30);
         d = d.minusMinutes(d.getMinute()).minusSeconds(d.getSecond()).minusNanos(d.getNano());
-        start = DB.toUtcTimestamp(d);
-        end = DB.toUtcTimestamp(d.plusHours(1));
+        start = DateTimeUtil.toUtcTimestamp(d);
+        end = DateTimeUtil.toUtcTimestamp(d.plusHours(1));
         originalValues = new OriginalValues();
         onCustomerEvent = (CustomerEvent event) -> {
             LOG.entering(LOG.getName(), "onCustomerEvent", event);
@@ -533,7 +533,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             if (rs.wasNull()) {
                 dao.end = rs.getTimestamp(DbColumn.END.toString());
                 if (rs.wasNull()) {
-                    dao.start = dao.end = DB.toUtcTimestamp(LocalDateTime.now());
+                    dao.start = dao.end = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
                 } else {
                     dao.start = dao.end;
                 }
@@ -567,10 +567,10 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 int index = 0;
                 if (null != start) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(start));
                 }
                 if (null != end) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(end));
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
@@ -603,10 +603,10 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 int index = 0;
                 if (null != start) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(start));
                 }
                 if (null != end) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(end));
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
@@ -646,10 +646,10 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 int index = 0;
                 if (null != start) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(start));
                 }
                 if (null != end) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(end));
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
@@ -688,10 +688,10 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
                 ps.setInt(1, customerId);
                 int index = 1;
                 if (null != start) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(start));
                 }
                 if (null != end) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(end));
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
@@ -731,10 +731,10 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
                 ps.setInt(1, userId);
                 int index = 1;
                 if (null != start) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(start));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(start));
                 }
                 if (null != end) {
-                    ps.setTimestamp(++index, DB.toUtcTimestamp(end));
+                    ps.setTimestamp(++index, DateTimeUtil.toUtcTimestamp(end));
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
@@ -813,8 +813,8 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             dao.setContact(model.getContact());
             dao.setLocation(model.getLocation());
             dao.setUrl(model.getUrl());
-            dao.setStart(DB.toUtcTimestamp(model.getStart()));
-            dao.setEnd(DB.toUtcTimestamp(model.getEnd()));
+            dao.setStart(DateTimeUtil.toUtcTimestamp(model.getStart()));
+            dao.setEnd(DateTimeUtil.toUtcTimestamp(model.getEnd()));
             dao.setDescription(model.getDescription());
         }
 

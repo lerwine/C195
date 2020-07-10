@@ -42,11 +42,6 @@ public interface PartialAddressModel<T extends PartialAddressDAO> extends Addres
     public static final String PROP_CITYZIPCOUNTRY = "cityZipCountry";
 
     /**
-     * The name of the 'timeZone' property.
-     */
-    public static final String PROP_TIMEZONE = "timeZone";
-
-    /**
      * The name of the 'language' property.
      */
     public static final String PROP_LANGUAGE = "language";
@@ -149,10 +144,6 @@ public interface PartialAddressModel<T extends PartialAddressDAO> extends Addres
     String getCityZipCountry();
 
     ReadOnlyStringProperty cityZipCountryProperty();
-
-    TimeZone getTimeZone();
-
-    ReadOnlyObjectProperty<TimeZone> timeZoneProperty();
 
     String getLanguage();
 

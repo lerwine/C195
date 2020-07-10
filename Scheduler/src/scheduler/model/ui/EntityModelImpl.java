@@ -31,7 +31,7 @@ import scheduler.events.OperationRequestEvent;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.LogHelper;
 import scheduler.view.ModelFilter;
 
@@ -99,9 +99,9 @@ public abstract class EntityModelImpl<T extends DataAccessObject> implements Ent
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        createDate = new ReadOnlyObjectBindingProperty<>(this, PROP_CREATEDATE, () -> DB.toLocalDateTime(rawCreateDate.get()), rawCreateDate);
+        createDate = new ReadOnlyObjectBindingProperty<>(this, PROP_CREATEDATE, () -> DateTimeUtil.toLocalDateTime(rawCreateDate.get()), rawCreateDate);
         lastModifiedDate = new ReadOnlyObjectBindingProperty<>(this, PROP_LASTMODIFIEDDATE,
-                () -> DB.toLocalDateTime(rawLastModifiedDate.get()), rawLastModifiedDate);
+                () -> DateTimeUtil.toLocalDateTime(rawLastModifiedDate.get()), rawLastModifiedDate);
         newRow = new ReadOnlyBooleanBindingProperty(this, PROP_NEWROW, () -> DataRowState.isNewRow(rowState.get()), rowState);
         changed = new ReadOnlyBooleanBindingProperty(this, PROP_CHANGED, () -> DataRowState.isChanged(rowState.get()), rowState);
         existingInDb = new ReadOnlyBooleanBindingProperty(this, PROP_EXISTINGINDB, () -> DataRowState.existsInDb(rowState.get()), rowState);

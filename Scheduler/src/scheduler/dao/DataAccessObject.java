@@ -48,7 +48,7 @@ import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.model.ui.EntityModelImpl;
 import scheduler.util.AnnotationHelper;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -87,7 +87,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
     protected DataAccessObject() {
         eventHandlerManager = new EventHandlerManager(this);
         primaryKey = Integer.MIN_VALUE;
-        lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
+        lastModifiedDate = createDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
         lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
         rowState = DataRowState.NEW;
         originalValues = new OriginalValues();
@@ -217,7 +217,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
             Timestamp oldModifiedDate = lastModifiedDate;
             DataRowState oldRowState = rowState;
             lastModifiedBy = (null == currentUser) ? "admin" : currentUser.getUserName();
-            lastModifiedDate = DB.toUtcTimestamp(LocalDateTime.now());
+            lastModifiedDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
             switch (rowState) {
                 case DELETED:
                 case MODIFIED:
@@ -301,7 +301,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
     public synchronized void resetRowState() {
         if (rowState == DataRowState.DELETED) {
             primaryKey = Integer.MIN_VALUE;
-            lastModifiedDate = createDate = DB.toUtcTimestamp(LocalDateTime.now());
+            lastModifiedDate = createDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
             lastModifiedBy = createdBy = (Scheduler.getCurrentUser() == null) ? "" : Scheduler.getCurrentUser().getUserName();
             rowState = DataRowState.NEW;
         }
@@ -1171,7 +1171,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
             D dao = getDataAccessObject();
             DaoFactory<D, E> factory = getDaoFactory();
             DataAccessObject dataObj = (DataAccessObject) dao;
-            Timestamp timeStamp = DB.toUtcTimestamp(LocalDateTime.now());
+            Timestamp timeStamp = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
             StringBuilder sb = new StringBuilder();
             DbColumn[] columns;
             Iterator<DbColumn> iterator;

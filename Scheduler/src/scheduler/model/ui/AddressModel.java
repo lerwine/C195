@@ -2,12 +2,10 @@ package scheduler.model.ui;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -34,7 +32,6 @@ import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
 import scheduler.observables.NonNullableStringProperty;
-import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
@@ -177,7 +174,6 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
     private final NonNullableStringProperty phone;
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
-    private final ReadOnlyObjectBindingProperty<TimeZone> timeZone;
 
     /**
      * FX model for {@link scheduler.model.Address} objects.
@@ -199,7 +195,6 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
-        timeZone = new ReadOnlyObjectBindingProperty<>(this, PROP_TIMEZONE, Bindings.select(city, PartialCityModel.PROP_TIMEZONE));
     }
 
     @Override
@@ -309,16 +304,6 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
     @Override
     public ReadOnlyStringProperty cityZipCountryProperty() {
         return cityZipCountry;
-    }
-
-    @Override
-    public TimeZone getTimeZone() {
-        return timeZone.get();
-    }
-
-    @Override
-    public ReadOnlyObjectProperty<TimeZone> timeZoneProperty() {
-        return timeZone;
     }
 
     @Override

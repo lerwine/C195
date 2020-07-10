@@ -9,10 +9,9 @@ import javax.xml.bind.annotation.XmlType;
 import scheduler.util.ToStringPropertyBuilder;
 
 /**
- * Defines a application-supported city definition, specifying an associated {@link java.util.TimeZone} for that city.
- * This object is instantiated by the {@link PredefinedData}
- * utility class.
- * 
+ * Defines a application-supported city definition, specifying an associated {@link java.util.TimeZone} for that city. This object is instantiated by
+ * the {@link PredefinedData} utility class.
+ *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @XmlRootElement(name = SupportedCityDefinition.ELEMENT_NAME, namespace = PredefinedData.NAMESPACE_URI)

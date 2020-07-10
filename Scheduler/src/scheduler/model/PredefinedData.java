@@ -28,8 +28,8 @@ import scheduler.dao.CountryDAO;
 import scheduler.util.PropertyBindable;
 
 /**
- * Contains static methods for getting supported locale and address definitions. {@link SupportedCountryDefinition}, {@link SupportedCityDefinition} and {@link CorporateAddress}
- * objects are de-serialized from the {@code scheduler/StaticAddresses.xml} resource.
+ * Contains static methods for getting supported locale and address definitions. {@link SupportedCountryDefinition}, {@link SupportedCityDefinition}
+ * and {@link CorporateAddress} objects are de-serialized from the {@code scheduler/StaticAddresses.xml} resource.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -228,7 +228,6 @@ public class PredefinedData {
 
         }
 
-        @Override
         public TimeZone getTimeZone() {
             return timeZone;
         }

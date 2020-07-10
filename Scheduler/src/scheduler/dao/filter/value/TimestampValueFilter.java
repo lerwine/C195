@@ -9,7 +9,7 @@ import java.time.temporal.Temporal;
 import java.util.Objects;
 import java.util.function.Predicate;
 import scheduler.dao.filter.ComparisonOperator;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 
 /**
  *
@@ -51,7 +51,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public LocalDateTime toTemporalValue() {
-                        return DB.toLocalDateTime(value);
+                        return DateTimeUtil.toLocalDateTime(value);
                     }
 
                     @Override
@@ -66,7 +66,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean testTemporal(LocalDateTime lValue) {
-                        return null != lValue && test(DB.toUtcTimestamp(lValue));
+                        return null != lValue && test(DateTimeUtil.toUtcTimestamp(lValue));
                     }
 
                     @Override
@@ -89,7 +89,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public LocalDateTime toTemporalValue() {
-                        return DB.toLocalDateTime(value);
+                        return DateTimeUtil.toLocalDateTime(value);
                     }
 
                     @Override
@@ -104,7 +104,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean testTemporal(LocalDateTime lValue) {
-                        return null != lValue && test(DB.toUtcTimestamp(lValue));
+                        return null != lValue && test(DateTimeUtil.toUtcTimestamp(lValue));
                     }
 
                     @Override
@@ -127,7 +127,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public LocalDateTime toTemporalValue() {
-                        return DB.toLocalDateTime(value);
+                        return DateTimeUtil.toLocalDateTime(value);
                     }
 
                     @Override
@@ -142,7 +142,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean testTemporal(LocalDateTime lValue) {
-                        return null != lValue && test(DB.toUtcTimestamp(lValue));
+                        return null != lValue && test(DateTimeUtil.toUtcTimestamp(lValue));
                     }
 
                     @Override
@@ -165,7 +165,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public LocalDateTime toTemporalValue() {
-                        return DB.toLocalDateTime(value);
+                        return DateTimeUtil.toLocalDateTime(value);
                     }
 
                     @Override
@@ -180,7 +180,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean testTemporal(LocalDateTime lValue) {
-                        return null != lValue && test(DB.toUtcTimestamp(lValue));
+                        return null != lValue && test(DateTimeUtil.toUtcTimestamp(lValue));
                     }
 
                     @Override
@@ -203,7 +203,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public LocalDateTime toTemporalValue() {
-                        return DB.toLocalDateTime(value);
+                        return DateTimeUtil.toLocalDateTime(value);
                     }
 
                     @Override
@@ -218,7 +218,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean testTemporal(LocalDateTime lValue) {
-                        return null != lValue && test(DB.toUtcTimestamp(lValue));
+                        return null != lValue && test(DateTimeUtil.toUtcTimestamp(lValue));
                     }
 
                     @Override
@@ -241,7 +241,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public LocalDateTime toTemporalValue() {
-                        return DB.toLocalDateTime(value);
+                        return DateTimeUtil.toLocalDateTime(value);
                     }
 
                     @Override
@@ -256,7 +256,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean testTemporal(LocalDateTime lValue) {
-                        return null != lValue && test(DB.toUtcTimestamp(lValue));
+                        return null != lValue && test(DateTimeUtil.toUtcTimestamp(lValue));
                     }
 
                     @Override
@@ -284,7 +284,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
             }
             h++;
         }
-        Timestamp timestamp = DB.toUtcTimestamp(value.atStartOfDay());
+        Timestamp timestamp = DateTimeUtil.toUtcTimestamp(value.atStartOfDay());
         final int hashcode = (timestamp.hashCode() << 4) | h;
         switch (operator) {
             case EQUALS:
@@ -306,7 +306,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue).toLocalDate());
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue).toLocalDate());
                     }
 
                     @Override
@@ -344,7 +344,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue).toLocalDate());
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue).toLocalDate());
                     }
 
                     @Override
@@ -382,7 +382,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue).toLocalDate());
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue).toLocalDate());
                     }
 
                     @Override
@@ -420,7 +420,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue).toLocalDate());
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue).toLocalDate());
                     }
 
                     @Override
@@ -458,7 +458,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue).toLocalDate());
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue).toLocalDate());
                     }
 
                     @Override
@@ -496,7 +496,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue).toLocalDate());
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue).toLocalDate());
                     }
 
                     @Override
@@ -529,7 +529,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
             }
             h++;
         }
-        Timestamp timestamp = DB.toUtcTimestamp(value);
+        Timestamp timestamp = DateTimeUtil.toUtcTimestamp(value);
         final int hashcode = (timestamp.hashCode() << 4) | h;
         switch (operator) {
             case EQUALS:
@@ -551,7 +551,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue));
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue));
                     }
 
                     @Override
@@ -589,7 +589,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue));
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue));
                     }
 
                     @Override
@@ -627,7 +627,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue));
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue));
                     }
 
                     @Override
@@ -665,7 +665,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue));
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue));
                     }
 
                     @Override
@@ -703,7 +703,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue));
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue));
                     }
 
                     @Override
@@ -741,7 +741,7 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
                     @Override
                     public boolean test(Timestamp lValue) {
-                        return null != lValue && testTemporal(DB.toLocalDateTime(lValue));
+                        return null != lValue && testTemporal(DateTimeUtil.toLocalDateTime(lValue));
                     }
 
                     @Override

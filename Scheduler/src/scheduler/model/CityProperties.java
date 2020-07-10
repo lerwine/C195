@@ -1,8 +1,6 @@
 package scheduler.model;
 
-import java.time.ZoneId;
 import java.util.Objects;
-import java.util.TimeZone;
 
 /**
  *
@@ -21,47 +19,6 @@ public interface CityProperties {
      * The name of the 'country' property.
      */
     public static final String PROP_COUNTRY = "country";
-
-    /**
-     * The name of the 'timeZone' property.
-     */
-    public static final String PROP_TIMEZONE = "timeZone";
-
-    public static String getTimeZoneDisplayText(TimeZone timeZone) {
-        if (null == timeZone) {
-            return "";
-        }
-
-        int u = timeZone.getRawOffset();
-        boolean n = (u < 0);
-        if (n) {
-            u *= -1;
-        }
-        int s = u / 1000;
-        u -= (s * 1000);
-        int m = s / 60;
-        s -= (m * 60);
-        int h = m / 60;
-        m -= (h * 60);
-        String p;
-        if (u > 0) {
-            p = String.format("%s%02d:%02d:%02d.%d", (n) ? "-" : "+", h, m, s, u);
-        } else if (s > 0) {
-            p = String.format("%s%02d:%02d:%02d", (n) ? "-" : "+", h, m, s);
-        } else {
-            p = String.format("%s%02d:%02d", (n) ? "-" : "+", h, m);
-        }
-
-        String d = timeZone.getDisplayName();
-        String i = timeZone.getID();
-        if (i.equalsIgnoreCase(p)) {
-            return (d.isEmpty() || d.equalsIgnoreCase(i)) ? i : String.format("%s (%s)", d, i);
-        }
-        if (d.isEmpty() || d.equalsIgnoreCase(i)) {
-            return String.format("%s (%s)", i, p);
-        }
-        return String.format("%s (%s %s)", d, i, p);
-    }
 
     public static String toString(CityProperties city) {
         if (null != city) {
@@ -103,7 +60,7 @@ public interface CityProperties {
         }
 
         return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName())
-                && CountryProperties.arePropertiesEqual(a.getCountry(), b.getCountry()) && Objects.equals(a.getTimeZone(), b.getTimeZone())));
+                && CountryProperties.arePropertiesEqual(a.getCountry(), b.getCountry())));
     }
 
     /**
@@ -114,14 +71,8 @@ public interface CityProperties {
     String getName();
 
     /**
-     * Gets the {@link ZoneId} for the current city. This is parsed from the end of the text in the "city" database column.
-     *
-     * @return The {@link CountryProperties} for the current city.
-     */
-    TimeZone getTimeZone();
-
-    /**
-     * Gets the {@link CountryProperties} for the current city. This corresponds to the "country" data row referenced by the "countryId" database column.
+     * Gets the {@link CountryProperties} for the current city. This corresponds to the "country" data row referenced by the "countryId" database
+     * column.
      *
      * @return The {@link CountryProperties} for the current city.
      */

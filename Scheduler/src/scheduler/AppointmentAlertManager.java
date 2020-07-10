@@ -25,7 +25,7 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.util.AlertHelper;
-import scheduler.util.DB;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import scheduler.util.Tuple;
@@ -107,9 +107,9 @@ public class AppointmentAlertManager implements EventTarget {
 
     private synchronized boolean checkInsert(AppointmentDAO dao, boolean sortOnChange) {
         LocalDateTime start = LocalDateTime.now();
-        if (start.compareTo(DB.toLocalDateTime(dao.getEnd())) < 0) {
+        if (start.compareTo(DateTimeUtil.toLocalDateTime(dao.getEnd())) < 0) {
             LocalDateTime end = start.plusMinutes(alertLeadtime);
-            if (end.compareTo(DB.toLocalDateTime(dao.getStart())) >= 0) {
+            if (end.compareTo(DateTimeUtil.toLocalDateTime(dao.getStart())) >= 0) {
                 alertingList.add(new AppointmentModel(dao));
                 if (sortOnChange) {
                     alertingList.sort(AppointmentModel::compareByDates);
@@ -285,8 +285,8 @@ public class AppointmentAlertManager implements EventTarget {
             try {
                 appointments = DbConnector.apply((t) -> {
                     LocalDateTime start = LocalDateTime.now();
-                    return factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(start),
-                            DB.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
+                    return factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(start),
+                            DateTimeUtil.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
                 });
             } catch (SQLException | ClassNotFoundException ex) {
                 LOG.log(Level.SEVERE, "Error checking impending appointments", ex);
