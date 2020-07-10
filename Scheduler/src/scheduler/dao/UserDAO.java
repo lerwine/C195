@@ -333,7 +333,7 @@ public final class UserDAO extends DataAccessObject implements IUserDAO {
         private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
 
         public SaveTask(UserModel model, boolean alreadyValidated) {
-            super(model, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+            super(model, UserModel.FACTORY, alreadyValidated);
             UserDAO dao = model.dataObject();
             dao.setUserName(model.getUserName());
             dao.setStatus(model.getStatus());
@@ -418,7 +418,7 @@ public final class UserDAO extends DataAccessObject implements IUserDAO {
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
         public DeleteTask(UserModel target, boolean alreadyValidated) {
-            super(target, UserModel.FACTORY, UserEvent.USER_EVENT_TYPE, alreadyValidated);
+            super(target, UserModel.FACTORY, alreadyValidated);
         }
 
         @Override

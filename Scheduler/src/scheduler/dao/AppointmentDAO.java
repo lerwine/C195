@@ -30,8 +30,10 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
+import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
+import scheduler.events.UserSuccessEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
@@ -48,6 +50,8 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
+import static scheduler.util.Values.asNonNullAndWsNormalized;
+import static scheduler.util.Values.asNonNullAndWsNormalizedMultiLine;
 
 /**
  * Data access object for the {@code appointment} database table.
@@ -66,20 +70,21 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
     }
 
     private final OriginalValues originalValues;
-    private final EventHandler<CustomerEvent> onCustomerEvent;
-    private final EventHandler<UserEvent> onUserEvent;
+    private final EventHandler<CustomerSuccessEvent> customerEventHandler;
+    private final EventHandler<UserSuccessEvent> userEventHandler;
     private PartialCustomerDAO customer;
     private PartialUserDAO user;
     private String title;
     private String description;
+    private String locationSl;
     private String location;
     private String contact;
     private AppointmentType type;
     private String url;
     private Timestamp start;
     private Timestamp end;
-    private WeakEventHandler<CustomerEvent> customerChangeHandler;
-    private WeakEventHandler<UserEvent> userChangeHandler;
+    private WeakEventHandler<CustomerSuccessEvent> customerWeakEventHandler;
+    private WeakEventHandler<UserSuccessEvent> userWeakEventHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} appointment object.
@@ -89,6 +94,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         user = null;
         title = "";
         description = "";
+        locationSl = null;
         location = "";
         contact = "";
         type = AppointmentType.OTHER;
@@ -98,30 +104,28 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         start = DateTimeUtil.toUtcTimestamp(d);
         end = DateTimeUtil.toUtcTimestamp(d.plusHours(1));
         originalValues = new OriginalValues();
-        onCustomerEvent = (CustomerEvent event) -> {
-            LOG.entering(LOG.getName(), "onCustomerEvent", event);
-            // FIXME: Work off of model, instead
-            PartialCustomerDAO newValue = event.getDataAccessObject();
-            if (newValue.getPrimaryKey() == customer.getPrimaryKey()) {
-                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
-                customerChangeHandler = null;
-                PartialCustomerDAO oldValue = customer;
-                customer = newValue;
-                firePropertyChange(PROP_CUSTOMER, oldValue, customer);
-            }
-        };
-        onUserEvent = (UserEvent event) -> {
-            LOG.entering(LOG.getName(), "onUserEvent", event);
-            // FIXME: Work off of model, instead
-            PartialUserDAO newValue = event.getDataAccessObject();
-            if (newValue.getPrimaryKey() == user.getPrimaryKey()) {
-                UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
-                userChangeHandler = null;
-                PartialUserDAO oldValue = user;
-                user = newValue;
-                firePropertyChange(PROP_ADDRESS, oldValue, user);
-            }
-        };
+        customerEventHandler = this::onCustomerEvent;
+        userEventHandler = this::onUserEvent;
+    }
+
+    private synchronized void onCustomerEvent(CustomerSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerEvent", event);
+        PartialCustomerDAO newValue = event.getDataAccessObject();
+        if (null != customer && !Objects.equals(newValue, customer) && newValue.getPrimaryKey() == customer.getPrimaryKey()) {
+            PartialCustomerDAO oldValue = customer;
+            customer = newValue;
+            firePropertyChange(PROP_CUSTOMER, oldValue, customer);
+        }
+    }
+
+    private synchronized void onUserEvent(UserSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onUserEvent", event);
+        UserDAO newValue = event.getDataAccessObject();
+        PartialUserDAO oldValue = user;
+        if (null != oldValue && !Objects.equals(newValue, oldValue) && newValue.getPrimaryKey() == oldValue.getPrimaryKey()) {
+            user = newValue;
+            firePropertyChange(PROP_ADDRESS, oldValue, user);
+        }
     }
 
     @Override
@@ -134,20 +138,22 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
      *
      * @param customer new value of customer
      */
-    private void setCustomer(PartialCustomerDAO customer) {
+    private synchronized void setCustomer(PartialCustomerDAO customer) {
         PartialCustomerDAO oldValue = this.customer;
-        this.customer = customer;
-        firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
-        if (null == customer || customer instanceof CustomerDAO) {
-            if (null != customerChangeHandler) {
-                CustomerDAO.FACTORY.removeEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
-                customerChangeHandler = null;
-            }
-        } else if (null == customerChangeHandler) {
-            customerChangeHandler = new WeakEventHandler<>(onCustomerEvent);
-            // FIXME: Change to CustomerSuccessEvent.SAVE_SUCCESS
-            CustomerDAO.FACTORY.addEventHandler(CustomerEvent.CHANGE_EVENT_TYPE, customerChangeHandler);
+        if (Objects.equals(oldValue, customer)) {
+            return;
         }
+        this.customer = customer;
+        if (null != customer && customer.getRowState() != DataRowState.NEW) {
+            if (null == customerWeakEventHandler) {
+                customerWeakEventHandler = new WeakEventHandler<>(customerEventHandler);
+                CustomerDAO.FACTORY.addEventHandler(CustomerSuccessEvent.SUCCESS_EVENT_TYPE, customerWeakEventHandler);
+            }
+        } else if (null != customerWeakEventHandler) {
+            CustomerDAO.FACTORY.removeEventHandler(CustomerSuccessEvent.SUCCESS_EVENT_TYPE, customerWeakEventHandler);
+            customerWeakEventHandler = null;
+        }
+        firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
     }
 
     @Override
@@ -160,20 +166,22 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
      *
      * @param user new value of user
      */
-    private void setUser(PartialUserDAO user) {
+    private synchronized void setUser(PartialUserDAO user) {
         PartialUserDAO oldValue = this.user;
-        this.user = user;
-        firePropertyChange(PROP_USER, oldValue, this.user);
-        if (null == user || user instanceof UserDAO) {
-            if (null != userChangeHandler) {
-                UserDAO.FACTORY.removeEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
-                userChangeHandler = null;
-            }
-        } else if (null == userChangeHandler) {
-            userChangeHandler = new WeakEventHandler<>(onUserEvent);
-            // FIXME: Change to CustomerSuccessEvent.SAVE_SUCCESS
-            UserDAO.FACTORY.addEventHandler(UserEvent.CHANGE_EVENT_TYPE, userChangeHandler);
+        if (Objects.equals(oldValue, user)) {
+            return;
         }
+        this.user = user;
+        if (null != user && user.getRowState() != DataRowState.NEW) {
+            if (null == userWeakEventHandler) {
+                userWeakEventHandler = new WeakEventHandler<>(userEventHandler);
+                UserDAO.FACTORY.addEventHandler(UserSuccessEvent.SUCCESS_EVENT_TYPE, userWeakEventHandler);
+            }
+        } else if (null != userWeakEventHandler) {
+            UserDAO.FACTORY.removeEventHandler(UserSuccessEvent.SUCCESS_EVENT_TYPE, userWeakEventHandler);
+            userWeakEventHandler = null;
+        }
+        firePropertyChange(PROP_USER, oldValue, this.user);
     }
 
     @Override
@@ -188,7 +196,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
      */
     private void setTitle(String value) {
         String oldValue = this.title;
-        this.title = asNonNullAndTrimmed(value);
+        this.title = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_TITLE, oldValue, this.title);
     }
 
@@ -210,7 +218,13 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
 
     @Override
     public String getLocation() {
-        return location;
+        switch (this.type) {
+            case CORPORATE_LOCATION:
+            case PHONE:
+                return locationSl;
+            default:
+                return location;
+        }
     }
 
     /**
@@ -219,9 +233,20 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
      * @param value new value of location
      */
     private void setLocation(String value) {
-        String oldValue = this.location;
-        this.location = asNonNullAndTrimmed(value);
-        firePropertyChange(PROP_LOCATION, oldValue, this.location);
+        String oldValue;
+        switch (this.type) {
+            case CORPORATE_LOCATION:
+            case PHONE:
+                oldValue = locationSl;
+                locationSl = location = asNonNullAndWsNormalized(value);
+                break;
+            default:
+                oldValue = location;
+                location = asNonNullAndWsNormalizedMultiLine(value);
+                locationSl = null;
+                break;
+        }
+        firePropertyChange(PROP_LOCATION, oldValue, location);
     }
 
     @Override
@@ -236,7 +261,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
      */
     private void setContact(String value) {
         String oldValue = this.contact;
-        this.contact = asNonNullAndTrimmed(value);
+        this.contact = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_CONTACT, oldValue, this.contact);
     }
 
@@ -250,9 +275,29 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
      *
      * @param type new value of type
      */
-    private void setType(AppointmentType type) {
+    private synchronized void setType(AppointmentType type) {
         AppointmentType oldValue = this.type;
+        String oldLocation = getLocation();
         this.type = (null == type) ? AppointmentType.OTHER : type;
+        switch (this.type) {
+            case CORPORATE_LOCATION:
+            case PHONE:
+                if (null == locationSl) {
+                    switch (oldValue) {
+                        case CORPORATE_LOCATION:
+                        case PHONE:
+                            break;
+                        default:
+                            locationSl = asNonNullAndWsNormalized(oldLocation);
+                            firePropertyChange(PROP_TYPE, oldValue, this.type);
+                            firePropertyChange(PROP_LOCATION, oldLocation, getLocation());
+                            return;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
         firePropertyChange(PROP_TYPE, oldValue, this.type);
     }
 
@@ -311,6 +356,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         originalValues.title = title;
         originalValues.description = description;
         originalValues.location = location;
+        originalValues.locationSl = locationSl;
         originalValues.contact = contact;
         originalValues.type = type;
         originalValues.url = url;
@@ -324,7 +370,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         PartialUserDAO oldUser = user;
         String oldTitle = title;
         String oldDescription = description;
-        String oldLocation = location;
+        String oldLocation = getLocation();
         String oldContact = contact;
         AppointmentType oldType = type;
         String oldUrl = url;
@@ -335,6 +381,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         title = originalValues.title;
         description = originalValues.description;
         location = originalValues.location;
+        locationSl = originalValues.locationSl;
         contact = originalValues.contact;
         type = originalValues.type;
         url = originalValues.url;
@@ -344,7 +391,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         firePropertyChange(PROP_USER, oldUser, user);
         firePropertyChange(PROP_TITLE, oldTitle, title);
         firePropertyChange(PROP_DESCRIPTION, oldDescription, description);
-        firePropertyChange(PROP_LOCATION, oldLocation, location);
+        firePropertyChange(PROP_LOCATION, oldLocation, getLocation());
         firePropertyChange(PROP_CUSTOMER, oldContact, contact);
         firePropertyChange(PROP_TYPE, oldType, type);
         firePropertyChange(PROP_URL, oldUrl, url);
@@ -368,7 +415,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         hash = 97 * hash + Objects.hashCode(user);
         hash = 97 * hash + Objects.hashCode(title);
         hash = 97 * hash + Objects.hashCode(description);
-        hash = 97 * hash + Objects.hashCode(location);
+        hash = 97 * hash + Objects.hashCode(getLocation());
         hash = 97 * hash + Objects.hashCode(contact);
         hash = 97 * hash + Objects.hashCode(type);
         hash = 97 * hash + Objects.hashCode(url);
@@ -399,7 +446,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
                 .addDataObject(PROP_USER, user)
                 .addString(PROP_TITLE, title)
                 .addString(PROP_DESCRIPTION, description)
-                .addString(PROP_LOCATION, location)
+                .addString(PROP_LOCATION, getLocation())
                 .addString(PROP_CONTACT, contact)
                 .addEnum(PROP_TYPE, type)
                 .addString(PROP_URL, url)
@@ -444,7 +491,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
                     ps.setString(index, dao.description);
                     break;
                 case LOCATION:
-                    ps.setString(index, dao.location);
+                    ps.setString(index, dao.getLocation());
                     break;
                 case CONTACT:
                     ps.setString(index, dao.contact);
@@ -499,7 +546,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
                 private final User oldUser = dao.user;
                 private final String oldTitle = dao.title;
                 private final String oldDescription = dao.description;
-                private final String oldLocation = dao.location;
+                private final String oldLocation = dao.getLocation();
                 private final String oldContact = dao.contact;
                 private final AppointmentType oldType = dao.type;
                 private final String oldUrl = dao.url;
@@ -512,7 +559,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
                     t.firePropertyChange(PROP_USER, oldUser, dao.user);
                     t.firePropertyChange(PROP_TITLE, oldTitle, dao.title);
                     t.firePropertyChange(PROP_DESCRIPTION, oldDescription, dao.description);
-                    t.firePropertyChange(PROP_LOCATION, oldLocation, dao.location);
+                    t.firePropertyChange(PROP_LOCATION, oldLocation, dao.getLocation());
                     t.firePropertyChange(PROP_CONTACT, oldContact, dao.contact);
                     t.firePropertyChange(PROP_TYPE, oldType, (null == dao.type) ? AppointmentType.OTHER : dao.type);
                     t.firePropertyChange(PROP_URL, oldUrl, dao.url);
@@ -525,9 +572,18 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             dao.user = UserDAO.FACTORY.fromJoinedResultSet(rs);
             dao.title = asNonNullAndTrimmed(rs.getString(DbColumn.TITLE.toString()));
             dao.description = asNonNullAndTrimmed(rs.getString(DbColumn.DESCRIPTION.toString()));
-            dao.location = asNonNullAndTrimmed(rs.getString(DbColumn.LOCATION.toString()));
-            dao.contact = asNonNullAndTrimmed(rs.getString(DbColumn.CONTACT.toString()));
             dao.type = AppointmentType.of(rs.getString(DbColumn.TYPE.toString()), dao.type);
+            switch (dao.type) {
+                case CORPORATE_LOCATION:
+                case PHONE:
+                    dao.location = dao.locationSl = asNonNullAndWsNormalized(rs.getString(DbColumn.LOCATION.toString()));
+                    break;
+                default:
+                    dao.locationSl = null;
+                    dao.location = asNonNullAndWsNormalizedMultiLine(rs.getString(DbColumn.LOCATION.toString()));
+                    break;
+            }
+            dao.contact = asNonNullAndTrimmed(rs.getString(DbColumn.CONTACT.toString()));
             dao.url = asNonNullAndTrimmed(rs.getString(DbColumn.URL.toString()));
             dao.start = rs.getTimestamp(DbColumn.START.toString());
             if (rs.wasNull()) {
@@ -755,7 +811,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             PartialCustomerDAO oldCustomer = toDAO.customer;
             String oldDescription = toDAO.description;
             Timestamp oldEnd = toDAO.end;
-            String oldLocation = toDAO.location;
+            String oldLocation = toDAO.getLocation();
             Timestamp oldStart = toDAO.start;
             String oldTitle = toDAO.title;
             AppointmentType oldType = toDAO.type;
@@ -766,6 +822,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             toDAO.description = fromDAO.description;
             toDAO.end = fromDAO.end;
             toDAO.location = fromDAO.location;
+            toDAO.locationSl = fromDAO.locationSl;
             toDAO.start = fromDAO.start;
             toDAO.title = fromDAO.title;
             toDAO.type = fromDAO.type;
@@ -785,7 +842,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             toDAO.firePropertyChange(PROP_USER, oldUser, toDAO.user);
             toDAO.firePropertyChange(PROP_TITLE, oldTitle, toDAO.title);
             toDAO.firePropertyChange(PROP_DESCRIPTION, oldDescription, toDAO.description);
-            toDAO.firePropertyChange(PROP_LOCATION, oldLocation, toDAO.location);
+            toDAO.firePropertyChange(PROP_LOCATION, oldLocation, toDAO.getLocation());
             toDAO.firePropertyChange(PROP_CONTACT, oldContact, toDAO.contact);
             toDAO.firePropertyChange(PROP_TYPE, oldType, (null == toDAO.type) ? AppointmentType.OTHER : toDAO.type);
             toDAO.firePropertyChange(PROP_URL, oldUrl, toDAO.url);
@@ -804,7 +861,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
     public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         public SaveTask(AppointmentModel model, boolean alreadyValidated) {
-            super(model, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
+            super(model, AppointmentModel.FACTORY, alreadyValidated);
             AppointmentDAO dao = model.dataObject();
             dao.setType(model.getType());
             dao.setTitle(model.getTitle());
@@ -897,7 +954,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
     public static final class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
         public DeleteTask(AppointmentModel target, boolean alreadyValidated) {
-            super(target, AppointmentModel.FACTORY, AppointmentEvent.APPOINTMENT_EVENT_TYPE, alreadyValidated);
+            super(target, AppointmentModel.FACTORY, alreadyValidated);
         }
 
         @Override
@@ -929,6 +986,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         private String title;
         private String description;
         private String location;
+        private String locationSl;
         private String contact;
         private AppointmentType type;
         private String url;
@@ -941,6 +999,7 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             this.title = AppointmentDAO.this.title;
             this.description = AppointmentDAO.this.description;
             this.location = AppointmentDAO.this.location;
+            this.locationSl = AppointmentDAO.this.locationSl;
             this.contact = AppointmentDAO.this.contact;
             this.type = AppointmentDAO.this.type;
             this.url = AppointmentDAO.this.url;

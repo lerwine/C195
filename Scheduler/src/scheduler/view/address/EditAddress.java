@@ -219,15 +219,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
-        onAddressInserted = (AddressSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onAddressInserted", event);
-            model.dataObject().removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            editingCity.set(false);
-            restoreNode(customersHeadingLabel);
-            restoreNode(customersTableView);
-            restoreNode(newCustomerButtonBar);
-            initializeEditMode();
-        };
         onCustomerAdded = (CustomerSuccessEvent event) -> {
             LOG.entering(LOG.getName(), "onCustomerAdded", event);
             CustomerDAO dao = event.getDataAccessObject();
@@ -255,6 +246,18 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
                 itemList.remove(t);
             });
+        };
+        onAddressInserted = (AddressSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAddressInserted", event);
+            model.dataObject().removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            editingCity.set(false);
+            restoreNode(customersHeadingLabel);
+            restoreNode(customersTableView);
+            restoreNode(newCustomerButtonBar);
+            initializeEditMode();
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCustomerAdded));
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCustomerUpdated));
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
         };
     }
 
@@ -469,7 +472,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
-                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onAddressInserted);
                 model.dataObject().addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -481,10 +483,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
-        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCustomerAdded));
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCustomerUpdated));
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -665,6 +663,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                     itemList.add(factory.createNew(t));
                 });
             }
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditAddress.this.onCustomerAdded));
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditAddress.this.onCustomerUpdated));
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditAddress.this.onCustomerDeleted));
             super.succeeded();
         }
 

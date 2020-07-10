@@ -38,7 +38,7 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ToStringPropertyBuilder;
-import static scheduler.util.Values.asNonNullAndTrimmed;
+import static scheduler.util.Values.asNonNullAndWsNormalized;
 
 /**
  * Data access object for the {@code customer} database table.
@@ -57,11 +57,11 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
     }
 
     private final OriginalValues originalValues;
-    private final EventHandler<AddressEvent> onAddressEvent;
+    private final EventHandler<AddressSuccessEvent> addressEventHandler;
     private String name;
     private PartialAddressDAO address;
     private boolean active;
-    private WeakEventHandler<AddressEvent> addressChangeHandler;
+    private WeakEventHandler<AddressSuccessEvent> addressWeakEventHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} customer object.
@@ -72,18 +72,17 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
         address = null;
         active = true;
         originalValues = new OriginalValues();
-        onAddressEvent = (AddressEvent event) -> {
-            LOG.entering(LOG.getName(), "onAddressEvent", event);
-            // FIXME: Work off of model, instead
-            PartialAddressDAO newValue = event.getDataAccessObject();
-            if (newValue.getPrimaryKey() == address.getPrimaryKey()) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
-                addressChangeHandler = null;
-                PartialAddressDAO oldValue = address;
-                address = newValue;
-                firePropertyChange(PROP_ADDRESS, oldValue, address);
-            }
-        };
+        addressEventHandler = this::onAddressEvent;
+    }
+
+    private synchronized void onAddressEvent(AddressSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAddressEvent", event);
+        AddressDAO newValue = event.getDataAccessObject();
+        PartialAddressDAO oldValue = address;
+        if (null != oldValue && !Objects.equals(newValue, oldValue) && newValue.getPrimaryKey() == oldValue.getPrimaryKey()) {
+            address = newValue;
+            firePropertyChange(PROP_ADDRESS, oldValue, address);
+        }
     }
 
     @Override
@@ -98,7 +97,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
      */
     private void setName(String value) {
         String oldValue = this.name;
-        this.name = asNonNullAndTrimmed(value);
+        this.name = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_NAME, oldValue, this.name);
     }
 
@@ -112,20 +111,22 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
      *
      * @param address new value of address
      */
-    private void setAddress(PartialAddressDAO address) {
+    private synchronized void setAddress(PartialAddressDAO address) {
         PartialAddressDAO oldValue = this.address;
-        this.address = address;
-        firePropertyChange(PROP_ADDRESS, oldValue, this.address);
-        if (null == address || address instanceof AddressDAO) {
-            if (null != addressChangeHandler) {
-                AddressDAO.FACTORY.removeEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
-                addressChangeHandler = null;
-            }
-        } else if (null == addressChangeHandler) {
-            addressChangeHandler = new WeakEventHandler<>(onAddressEvent);
-            // FIXME: Change to AddressSuccessEvent.SAVE_SUCCESS
-            AddressDAO.FACTORY.addEventHandler(AddressEvent.CHANGE_EVENT_TYPE, addressChangeHandler);
+        if (Objects.equals(oldValue, address)) {
+            return;
         }
+        this.address = address;
+        if (null != address && address.getRowState() != DataRowState.NEW) {
+            if (null == addressWeakEventHandler) {
+                addressWeakEventHandler = new WeakEventHandler<>(addressEventHandler);
+                AddressDAO.FACTORY.addEventHandler(AddressSuccessEvent.SUCCESS_EVENT_TYPE, addressWeakEventHandler);
+            }
+        } else if (null != addressWeakEventHandler) {
+            AddressDAO.FACTORY.removeEventHandler(AddressSuccessEvent.SUCCESS_EVENT_TYPE, addressWeakEventHandler);
+            addressWeakEventHandler = null;
+        }
+        firePropertyChange(PROP_ADDRESS, oldValue, this.address);
     }
 
     @Override
@@ -308,7 +309,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
                     }
                 }
             };
-            dao.name = asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString()));
+            dao.name = asNonNullAndWsNormalized(rs.getString(DbColumn.CUSTOMER_NAME.toString()));
             dao.address = AddressDAO.FACTORY.fromJoinedResultSet(rs);
             dao.active = rs.getBoolean(DbColumn.ACTIVE.toString());
             if (rs.wasNull()) {
@@ -319,7 +320,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
 
         PartialCustomerDAO fromJoinedResultSet(ResultSet rs) throws SQLException {
             return new Partial(rs.getInt(DbColumn.APPOINTMENT_CUSTOMER.toString()),
-                    asNonNullAndTrimmed(rs.getString(DbColumn.CUSTOMER_NAME.toString())),
+                    asNonNullAndWsNormalized(rs.getString(DbColumn.CUSTOMER_NAME.toString())),
                     AddressDAO.FACTORY.fromJoinedResultSet(rs), rs.getBoolean(DbColumn.ACTIVE.toString()));
         }
 
@@ -382,7 +383,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
         private static final String MATCHING_ITEM_EXISTS = "Another customer has the same name";
 
         public SaveTask(CustomerModel model, boolean alreadyValidated) {
-            super(model, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+            super(model, CustomerModel.FACTORY, alreadyValidated);
             CustomerDAO dao = model.dataObject();
             dao.setName(model.getName());
             dao.setActive(model.isActive());
@@ -488,7 +489,7 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
         public DeleteTask(CustomerModel target, boolean alreadyValidated) {
-            super(target, CustomerModel.FACTORY, CustomerEvent.CUSTOMER_EVENT_TYPE, alreadyValidated);
+            super(target, CustomerModel.FACTORY, alreadyValidated);
         }
 
         @Override
@@ -547,7 +548,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
             this.address = address;
             this.active = active;
             onAddressEvent = (AddressSuccessEvent event) -> {
-                // FIXME: Work off of model, instead
                 LOG.entering(LOG.getName(), "onAddressEvent", event);
                 PartialAddressDAO newValue = event.getDataAccessObject();
                 if (newValue.getPrimaryKey() == this.address.getPrimaryKey()) {

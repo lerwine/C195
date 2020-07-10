@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
+import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.ComparisonOperator;
@@ -28,6 +30,7 @@ import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
+import scheduler.events.CountrySuccessEvent;
 import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
@@ -63,6 +66,8 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
     }
 
     private final OriginalValues originalValues;
+    private final EventHandler<CountrySuccessEvent> countryEventHandler;
+    private WeakEventHandler<CountrySuccessEvent> countryWeakEventHandler;
     private String name;
     private PartialCountryDAO country;
 
@@ -74,6 +79,17 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
         name = "";
         country = null;
         originalValues = new OriginalValues();
+        countryEventHandler = this::onCountryEvent;
+    }
+
+    private synchronized void onCountryEvent(CountrySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCountryEvent", event);
+        CountryDAO newValue = event.getDataAccessObject();
+        PartialCountryDAO oldValue = country;
+        if (null != oldValue && !Objects.equals(newValue, oldValue) && newValue.getPrimaryKey() == oldValue.getPrimaryKey()) {
+            country = newValue;
+            firePropertyChange(PROP_COUNTRY, oldValue, country);
+        }
     }
 
     @Override
@@ -92,10 +108,21 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
         return country;
     }
 
-    private void setCountry(PartialCountryDAO country) {
-        // FIXME: Add country update handlers, similar to CustomerDAO
+    private synchronized void setCountry(PartialCountryDAO country) {
         PartialCountryDAO oldValue = this.country;
+        if (Objects.equals(oldValue, country)) {
+            return;
+        }
         this.country = country;
+        if (null != country && country.getRowState() != DataRowState.NEW) {
+            if (null == countryWeakEventHandler) {
+                countryWeakEventHandler = new WeakEventHandler<>(countryEventHandler);
+                CountryDAO.FACTORY.addEventHandler(CountrySuccessEvent.SUCCESS_EVENT_TYPE, countryWeakEventHandler);
+            }
+        } else if (null != countryWeakEventHandler) {
+            CountryDAO.FACTORY.removeEventHandler(CountrySuccessEvent.SUCCESS_EVENT_TYPE, countryWeakEventHandler);
+            countryWeakEventHandler = null;
+        }
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
     }
 
@@ -356,7 +383,7 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
 
         public SaveTask(CityModel model, boolean alreadyValidated) {
-            super(model, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+            super(model, CityModel.FACTORY, alreadyValidated);
             CityDAO dao = model.dataObject();
             dao.setName(model.getName());
             dao.setCountry(model.getCountry().dataObject());
@@ -466,7 +493,7 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         public DeleteTask(CityModel target, boolean alreadyValidated) {
-            super(target, CityModel.FACTORY, CityEvent.CITY_EVENT_TYPE, alreadyValidated);
+            super(target, CityModel.FACTORY, alreadyValidated);
         }
 
         @Override

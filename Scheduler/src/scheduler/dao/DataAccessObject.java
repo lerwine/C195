@@ -22,12 +22,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventDispatchChain;
@@ -814,7 +812,6 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
 
         private final ReadOnlyObjectWrapper<D> dataAccessObject;
         private final ReadOnlyObjectWrapper<M> fxRecordModel;
-        private final SimpleObjectProperty<EventHandler<E>> onFinished;
         private final ReadOnlyObjectWrapper<E> finalEvent;
         private final DataRowState originalRowState;
 
@@ -822,27 +819,12 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * Creates a new {@code DaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
          *
          * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
          */
-        protected DaoTask(M target, EventType<E> anyEventType) {
-            Objects.requireNonNull(anyEventType);
+        protected DaoTask(M target) {
             dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", target.dataObject());
             fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", target);
             originalRowState = dataAccessObject.get().getRowState();
             finalEvent = new ReadOnlyObjectWrapper<>(this, "finalEvent", null);
-            onFinished = new SimpleObjectProperty<>(this, "onFinished", null);
-            // FIXME: E events never get fired on the Task object
-            onFinished.addListener((observable, oldValue, newValue) -> {
-                try {
-                    if (null != oldValue) {
-                        removeEventHandler(anyEventType, oldValue);
-                    }
-                } finally {
-                    if (null != newValue) {
-                        addEventHandler(anyEventType, newValue);
-                    }
-                }
-            });
         }
 
         /**
@@ -984,28 +966,6 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
             }
         }
 
-        /**
-         * Gets the {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
-         *
-         * @return The {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
-         */
-        public final EventHandler<E> getOnFinished() {
-            return onFinished.get();
-        }
-
-        /**
-         * Sets the {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
-         *
-         * @param value The {@link EventHandler} for the {@link ModelEvent} that will be fired when the {@code DaoTask} is finished.
-         */
-        public final void setOnFinished(EventHandler<E> value) {
-            onFinished.set(value);
-        }
-
-        public final ObjectProperty<EventHandler<E>> onFinishedProperty() {
-            return onFinished;
-        }
-
     }
 
     /**
@@ -1034,13 +994,11 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          *
          * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          */
-        protected ValidatingDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, EventType<E> anyEventType,
-                boolean skipValidation) {
-            super(target, anyEventType);
+        protected ValidatingDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, boolean skipValidation) {
+            super(target);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
             validationSuccessful = skipValidation;
@@ -1124,7 +1082,6 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
 
     }
 
-    // FIXME: Validate flow of events
     /**
      * A {@link ValidatingDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database
      * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
@@ -1147,13 +1104,12 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          *
          * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(target, modelFactory, anyEventType, skipValidation);
+        protected SaveDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, boolean skipValidation) {
+            super(target, modelFactory, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
             }
@@ -1316,7 +1272,6 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
 
     }
 
-    // FIXME: Validate flow of events
     /**
      * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database
      * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
@@ -1339,15 +1294,14 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          *
          * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
-         * @param anyEventType The base {@link EventType} for all events that may be produced.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or
          * {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, EventType<E> anyEventType, boolean skipValidation) {
-            super(target, modelFactory, anyEventType, skipValidation);
+        protected DeleteDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, boolean skipValidation) {
+            super(target, modelFactory, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:
                     throw new IllegalArgumentException("Record was already deleted");

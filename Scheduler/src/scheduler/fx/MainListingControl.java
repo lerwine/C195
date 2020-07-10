@@ -11,12 +11,13 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.event.EventType;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -33,7 +34,6 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
-import scheduler.util.ParentWindowShowingListener;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
@@ -96,9 +96,10 @@ import scheduler.view.ModelFilter;
  * @param <D> Data access object type wrapped by the model.
  * @param <M> The FX model type.
  * @param <E> The data object event type.
+ * @param <S> The data object success event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>, S extends E> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
@@ -117,13 +118,52 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     @FXML // fx:id="listingTableView"
     private TableView<M> listingTableView; // Value injected by FXMLLoader
-    private final ShowingChangedListener windowShowingChangedListener;
+    private final EventHandler<S> onInsertedEvent;
+    private final EventHandler<S> onUpdatedEvent;
+    private final EventHandler<S> onDeletedEvent;
 
     @SuppressWarnings("LeakingThisInConstructor")
     protected MainListingControl() {
-        windowShowingChangedListener = new ShowingChangedListener();
         filter = new SimpleObjectProperty<>();
         items = FXCollections.observableArrayList();
+        onInsertedEvent = (S event) -> {
+            LOG.entering(LOG.getName(), "onInsertedEvent", event);
+            ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
+            if (null != f) {
+                D dao = event.getDataAccessObject();
+                if (f.getDaoFilter().test(dao)) {
+                    items.add(getModelFactory().createNew(dao));
+                }
+            }
+        };
+        onUpdatedEvent = (S event) -> {
+            LOG.entering(LOG.getName(), "onUpdatedEvent", event);
+            D dao = event.getDataAccessObject();
+            EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
+            if (null != mf) {
+                Optional<M> m = mf.find(items, dao);
+                ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
+                if (null != f) {
+                    if (m.isPresent()) {
+                        if (!f.getDaoFilter().test(dao)) {
+                            items.remove(m.get());
+                        }
+                    } else if (f.getDaoFilter().test(dao)) {
+                        getItems().add(mf.createNew(dao));
+                    }
+                } else {
+                    getItems().add(mf.createNew(dao));
+                }
+            }
+        };
+        onDeletedEvent = (S event) -> {
+            LOG.entering(LOG.getName(), "onDeletedEvent", event);
+            if (!items.isEmpty()) {
+                getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> {
+                    items.remove(t);
+                });
+            }
+        };
         try {
             ViewControllerLoader.initializeCustomControl(this);
         } catch (IOException ex) {
@@ -141,7 +181,10 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         listingTableView.setItems(items);
 
-        windowShowingChangedListener.initialize(sceneProperty());
+        EntityModelImpl.EntityModelFactory<D, M, E> factory = getModelFactory();
+        factory.addEventHandler(getInsertedEventType(), new WeakEventHandler<>(onInsertedEvent));
+        factory.addEventHandler(getUpdatedEventType(), new WeakEventHandler<>(onUpdatedEvent));
+        factory.addEventHandler(getDeletedEventType(), new WeakEventHandler<>(onDeletedEvent));
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());
@@ -263,47 +306,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         return new LoadItemsTask(filter);
     }
 
-    protected void onInsertedEvent(E event) {
-        LOG.entering(LOG.getName(), "onInsertedEvent", event);
-        ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
-        if (null != f) {
-            D dao = event.getDataAccessObject();
-            if (f.getDaoFilter().test(dao)) {
-                items.add(getModelFactory().createNew(dao));
-            }
-        }
-    }
-
-    protected void onUpdatedEvent(E event) {
-        LOG.entering(LOG.getName(), "onUpdatedEvent", event);
-        D dao = event.getDataAccessObject();
-        EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
-        if (null != mf) {
-            Optional<M> m = mf.find(items, dao);
-            ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
-            if (null != f) {
-                if (m.isPresent()) {
-                    if (!f.getDaoFilter().test(dao)) {
-                        items.remove(m.get());
-                    }
-                } else if (f.getDaoFilter().test(dao)) {
-                    getItems().add(mf.createNew(dao));
-                }
-            } else {
-                getItems().add(mf.createNew(dao));
-            }
-        }
-    }
-
-    protected void onDeletedEvent(E event) {
-        LOG.entering(LOG.getName(), "onDeletedEvent", event);
-        if (!items.isEmpty()) {
-            getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> {
-                items.remove(t);
-            });
-        }
-    }
-
     protected abstract Comparator<? super D> getComparator();
 
     protected abstract EntityModelImpl.EntityModelFactory<D, M, E> getModelFactory();
@@ -318,38 +320,11 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     protected abstract void onDeleteItem(M item);
 
-    protected abstract EventType<? extends E> getInsertedEventType();
+    protected abstract EventType<S> getInsertedEventType();
 
-    protected abstract EventType<? extends E> getUpdatedEventType();
+    protected abstract EventType<S> getUpdatedEventType();
 
-    protected abstract EventType<? extends E> getDeletedEventType();
-
-    private class ShowingChangedListener extends ParentWindowShowingListener {
-
-        private boolean isAttached = false;
-
-        @Override
-        protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-            super.onShowingChanged(observable, oldValue, newValue);
-            if (newValue) {
-                if (!isAttached) {
-                    // FIXME: Memory leak! Use weak event handlers
-                    EntityModelImpl.EntityModelFactory<D, M, E> factory = getModelFactory();
-                    factory.addEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                    factory.addEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                    factory.addEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-                    isAttached = true;
-                }
-            } else if (isAttached) {
-                EntityModelImpl.EntityModelFactory<D, M, E> factory = getModelFactory();
-                factory.removeEventHandler(getInsertedEventType(), MainListingControl.this::onInsertedEvent);
-                factory.removeEventHandler(getUpdatedEventType(), MainListingControl.this::onUpdatedEvent);
-                factory.removeEventHandler(getDeletedEventType(), MainListingControl.this::onDeletedEvent);
-                isAttached = false;
-            }
-        }
-
-    }
+    protected abstract EventType<S> getDeletedEventType();
 
     protected class LoadItemsTask extends Task<List<D>> {
 

@@ -306,7 +306,7 @@ public final class CountryDAO extends DataAccessObject implements ICountryDAO {
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking country naming conflicts";
 
         public SaveTask(CountryModel model, boolean alreadyValidated) {
-            super(model, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+            super(model, CountryModel.FACTORY, alreadyValidated);
             model.dataObject().setLocale(model.getLocale());
         }
 
@@ -389,7 +389,7 @@ public final class CountryDAO extends DataAccessObject implements ICountryDAO {
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
         public DeleteTask(CountryModel target, boolean alreadyValidated) {
-            super(target, CountryModel.FACTORY, CountryEvent.COUNTRY_EVENT_TYPE, alreadyValidated);
+            super(target, CountryModel.FACTORY, alreadyValidated);
         }
 
         @Override

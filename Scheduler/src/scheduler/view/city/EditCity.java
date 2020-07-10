@@ -13,17 +13,16 @@ import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -61,7 +60,6 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
-import scheduler.util.ParentWindowShowingListener;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
@@ -129,6 +127,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CountryModel> countryOptionList;
     private final ObservableList<AddressModel> addressItemList;
+    private final EventHandler<CitySuccessEvent> onCityInserted;
+    private final EventHandler<AddressSuccessEvent> onAddressAdded;
+    private final EventHandler<AddressSuccessEvent> onAddressUpdated;
+    private final EventHandler<AddressSuccessEvent> onAddressDeleted;
+    private WeakEventHandler<CitySuccessEvent> cityInsertedHandler;
     private ObjectBinding<CountryModel> selectedCountry;
     private StringBinding normalizedName;
     private StringBinding nameValidationMessage;
@@ -166,15 +169,53 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     @FXML // fx:id="addCityButtonBar"
     private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
 
-    private final ShowingChangedListener windowShowingChangedListener;
-
     public EditCity() {
-        windowShowingChangedListener = new ShowingChangedListener();
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         countryOptionList = FXCollections.observableArrayList();
         addressItemList = FXCollections.observableArrayList();
+        onAddressAdded = (AddressSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAddressAdded", event);
+            if (model.getRowState() != DataRowState.NEW) {
+                AddressDAO dao = event.getDataAccessObject();
+                if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+                    addressItemList.add(new AddressModel(dao));
+                }
+            }
+        };
+        onAddressUpdated = (AddressSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAddressUpdated", event);
+            if (model.getRowState() != DataRowState.NEW) {
+                AddressDAO dao = event.getDataAccessObject();
+                int pk = dao.getPrimaryKey();
+                AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+                if (null != m) {
+                    if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
+                        addressItemList.remove(m);
+                    }
+                } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+                    addressItemList.add(new AddressModel(dao));
+                }
+            }
+        };
+        onAddressDeleted = (AddressSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAddressDeleted", event);
+            AddressModel.FACTORY.find(addressItemList, event.getDataAccessObject()).ifPresent((t) -> {
+                addressItemList.remove(t);
+            });
+        };
+        onCityInserted = (CitySuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onCityInserted", event);
+            model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(cityInsertedHandler));
+            restoreNode(addressesLabel);
+            restoreNode(addressesTableView);
+            restoreNode(addCityButtonBar);
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressAdded));
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressUpdated));
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressDeleted));
+            initializeEditMode();
+        };
     }
 
     @FXML
@@ -300,26 +341,14 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             collapseNode(addressesTableView);
             collapseNode(addCityButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCITY));
+            if (keepOpen) {
+                cityInsertedHandler = new WeakEventHandler<>(EditCity.this.onCityInserted);
+                model.dataObject().addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertedHandler);
+            }
         } else {
             waitBorderPane.startNow(pane, new EditDataLoadTask());
             initializeEditMode();
         }
-        windowShowingChangedListener.initialize(sceneProperty());
-    }
-
-    private void onCityInserted(CitySuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCityInserted", event);
-        windowShowingChangedListener.isInsert = false;
-        // FIXME: Use weak event handlers
-        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
-        model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, this::onCityInserted);
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, this::onAddressAdded);
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, this::onAddressUpdated);
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, this::onAddressDeleted);
-        restoreNode(addressesLabel);
-        restoreNode(addressesTableView);
-        restoreNode(addCityButtonBar);
-        initializeEditMode();
     }
 
     private void editItem(AddressModel item) {
@@ -358,39 +387,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private void initializeEditMode() {
         windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
         modified.set(false);
-    }
-
-    private void onAddressAdded(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressAdded", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            AddressDAO dao = event.getDataAccessObject();
-            if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                addressItemList.add(new AddressModel(dao));
-            }
-        }
-    }
-
-    private void onAddressUpdated(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressUpdated", event);
-        if (model.getRowState() != DataRowState.NEW) {
-            AddressDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
-            AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
-            if (null != m) {
-                if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
-                    addressItemList.remove(m);
-                }
-            } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                addressItemList.add(new AddressModel(dao));
-            }
-        }
-    }
-
-    private void onAddressDeleted(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressDeleted", event);
-        AddressModel.FACTORY.find(addressItemList, event.getDataAccessObject()).ifPresent((t) -> {
-            addressItemList.remove(t);
-        });
     }
 
     @Override
@@ -463,50 +459,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
         model.setCountry(selectedCountry.get());
     }
 
-    private class ShowingChangedListener extends ParentWindowShowingListener {
-
-        private boolean isAttached = false;
-        private boolean isInsert;
-
-        @Override
-        public void initialize(ReadOnlyObjectProperty<Scene> sceneProperty) {
-            isInsert = model.isNewRow();
-            super.initialize(sceneProperty);
-        }
-
-        @Override
-        protected synchronized void onShowingChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-            super.onShowingChanged(observable, oldValue, newValue);
-            if (newValue) {
-                if (!isAttached) {
-                    if (isInsert) {
-                        if (keepOpen) {
-                            // FIXME: Use weak event handlers
-                            model.dataObject().addEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
-                            isAttached = true;
-                        }
-                    } else {
-                        // FIXME: Use weak event handlers
-                        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, EditCity.this::onAddressAdded);
-                        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, EditCity.this::onAddressUpdated);
-                        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, EditCity.this::onAddressDeleted);
-                        isAttached = true;
-                    }
-                }
-            } else if (isAttached) {
-                if (isInsert) {
-                    model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, EditCity.this::onCityInserted);
-                } else {
-                    AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, EditCity.this::onAddressAdded);
-                    AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, EditCity.this::onAddressUpdated);
-                    AddressModel.FACTORY.removeEventHandler(AddressSuccessEvent.DELETE_SUCCESS, EditCity.this::onAddressDeleted);
-                }
-                isAttached = false;
-            }
-        }
-
-    }
-
     private class EditDataLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {
 
         private final int pk;
@@ -525,6 +477,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 AddressModel.Factory factory = AddressModel.FACTORY;
                 result.getValue2().forEach((t) -> addressItemList.add(factory.createNew(t)));
             }
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressAdded));
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressUpdated));
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressDeleted));
         }
 
         @Override

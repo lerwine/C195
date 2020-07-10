@@ -40,7 +40,7 @@ import static scheduler.view.country.ManageCountriesResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryEvent> {
+public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCountries.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());

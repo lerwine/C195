@@ -245,17 +245,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-        onCustomerInserted = (CustomerSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCustomerInserted", event);
-            model.dataObject().removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            restoreNode(appointmentFilterComboBox);
-            restoreNode(appointmentsTableView);
-            restoreNode(addAppointmentButtonBar);
-            windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-            initializeEditMode();
-            appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
-            updateValidation();
-        };
         onAppointmentAdded = (AppointmentSuccessEvent event) -> {
             LOG.entering(LOG.getName(), "onAppointmentAdded", event);
             if (model.getRowState() != DataRowState.NEW) {
@@ -287,6 +276,20 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             AppointmentModel.FACTORY.find(customerAppointments, event.getDataAccessObject()).ifPresent((t) -> {
                 customerAppointments.remove(t);
             });
+        };
+        onCustomerInserted = (CustomerSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onCustomerInserted", event);
+            model.dataObject().removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
+            restoreNode(appointmentFilterComboBox);
+            restoreNode(appointmentsTableView);
+            restoreNode(addAppointmentButtonBar);
+            windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+            initializeEditMode();
+            appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
+            updateValidation();
         };
     }
 
@@ -530,7 +533,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
             if (keepOpen) {
-                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onCustomerInserted);
                 model.dataObject().addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -550,10 +552,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
     private void onSelectedCountryChanged(ObservableValue<? extends PartialCountryModel<? extends PartialCountryDAO>> observable,
@@ -750,6 +748,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             appointmentFilterComboBox.setOnAction(EditCustomer.this::onAppointmentFilterComboBoxAction);
             waitBorderPane.startNow(new AppointmentReloadTask());
             loadData(sameAddr, result.getValue3(), result.getValue4());
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCustomer.this.onAppointmentAdded));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCustomer.this.onAppointmentUpdated));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCustomer.this.onAppointmentDeleted));
         }
 
         @Override

@@ -183,15 +183,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         unavailableUserNames = FXCollections.observableArrayList();
         userAppointments = FXCollections.observableArrayList();
         filterOptions = FXCollections.observableArrayList();
-        onUserInserted = (UserSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onUserInserted", event);
-            model.dataObject().removeEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            changePasswordCheckBox.setDisable(false);
-            changePasswordCheckBox.setSelected(false);
-            restoreNode(appointmentsFilterComboBox);
-            restoreNode(appointmentsTableView);
-            initEditMode();
-        };
         onAppointmentAdded = (AppointmentSuccessEvent event) -> {
             LOG.entering(LOG.getName(), "onAppointmentAdded", event);
             if (model.getRowState() != DataRowState.NEW) {
@@ -223,6 +214,18 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             AppointmentModel.FACTORY.find(userAppointments, event.getDataAccessObject()).ifPresent((t) -> {
                 userAppointments.remove(t);
             });
+        };
+        onUserInserted = (UserSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onUserInserted", event);
+            model.dataObject().removeEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            changePasswordCheckBox.setDisable(false);
+            changePasswordCheckBox.setSelected(false);
+            restoreNode(appointmentsFilterComboBox);
+            restoreNode(appointmentsTableView);
+            initEditMode();
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
         };
     }
 
@@ -380,7 +383,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
             if (keepOpen) {
-                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onUserInserted);
                 model.dataObject().addEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -422,10 +424,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                 AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
-        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
     @Override
@@ -552,6 +550,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 });
             }
             loadUsers(users);
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditUser.this.onAppointmentAdded));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditUser.this.onAppointmentUpdated));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditUser.this.onAppointmentDeleted));
         }
 
         @Override

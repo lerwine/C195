@@ -94,7 +94,7 @@ import scheduler.view.export.TsvDataExporter;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
-public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageAppointments.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());

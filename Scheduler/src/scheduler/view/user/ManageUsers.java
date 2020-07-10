@@ -39,7 +39,7 @@ import static scheduler.view.user.ManageUsersResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public final class ManageUsers extends MainListingControl<UserDAO, UserModel, UserEvent> {
+public final class ManageUsers extends MainListingControl<UserDAO, UserModel, UserEvent, UserSuccessEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageUsers.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());

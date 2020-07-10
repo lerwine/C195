@@ -58,14 +58,14 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AddressDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
 
+    private final OriginalPropertyValues originalValues;
+    private final EventHandler<CitySuccessEvent> cityEventHandler;
+    private WeakEventHandler<CitySuccessEvent> cityWeakEventHandler;
     private String address1;
     private String address2;
     private PartialCityDAO city;
     private String postalCode;
     private String phone;
-    private final OriginalPropertyValues originalValues;
-    private final EventHandler<CityEvent> onCityEvent;
-    private WeakEventHandler<CityEvent> cityChangeHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} address object.
@@ -77,18 +77,17 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
         postalCode = "";
         phone = "";
         originalValues = new OriginalPropertyValues();
-        onCityEvent = (CityEvent event) -> {
-            LOG.entering(LOG.getName(), "onCityEvent", event);
-            // FIXME: Work off of model, instead
-            PartialCityDAO newValue = event.getDataAccessObject();
-            if (newValue.getPrimaryKey() == city.getPrimaryKey()) {
-                CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
-                cityChangeHandler = null;
-                PartialCityDAO oldValue = city;
-                city = newValue;
-                firePropertyChange(PROP_CITY, oldValue, city);
-            }
-        };
+        cityEventHandler = this::onCityEvent;
+    }
+
+    private synchronized void onCityEvent(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityEvent", event);
+        CityDAO newValue = event.getDataAccessObject();
+        PartialCityDAO oldValue = city;
+        if (null != oldValue && !Objects.equals(newValue, oldValue) && newValue.getPrimaryKey() == oldValue.getPrimaryKey()) {
+            city = newValue;
+            firePropertyChange(PROP_CITY, oldValue, city);
+        }
     }
 
     @Override
@@ -135,18 +134,20 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
      */
     private synchronized void setCity(PartialCityDAO city) {
         PartialCityDAO oldValue = this.city;
-        this.city = city;
-        firePropertyChange(PROP_CITY, oldValue, this.city);
-        if (null == city || city instanceof CityDAO) {
-            if (null != cityChangeHandler) {
-                CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
-                cityChangeHandler = null;
-            }
-        } else if (null == cityChangeHandler) {
-            cityChangeHandler = new WeakEventHandler<>(onCityEvent);
-            // FIXME: Change to CitySuccessEvent.SAVE_SUCCESS
-            CityDAO.FACTORY.addEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
+        if (Objects.equals(oldValue, city)) {
+            return;
         }
+        this.city = city;
+        if (null != city && city.getRowState() != DataRowState.NEW) {
+            if (null == cityWeakEventHandler) {
+                cityWeakEventHandler = new WeakEventHandler<>(cityEventHandler);
+                CityDAO.FACTORY.addEventHandler(CitySuccessEvent.SAVE_SUCCESS, cityWeakEventHandler);
+            }
+        } else if (null != cityWeakEventHandler) {
+            CityDAO.FACTORY.removeEventHandler(CitySuccessEvent.SAVE_SUCCESS, cityWeakEventHandler);
+            cityWeakEventHandler = null;
+        }
+        firePropertyChange(PROP_CITY, oldValue, this.city);
     }
 
     @Override
@@ -478,7 +479,7 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
         private static final String MATCHING_ITEM_EXISTS = "Another matching address exists";
 
         public SaveTask(AddressModel model, boolean alreadyValidated) {
-            super(model, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+            super(model, AddressModel.FACTORY, alreadyValidated);
             AddressDAO dao = model.dataObject();
             dao.setAddress1(model.getAddress1());
             dao.setAddress2(model.getAddress2());
@@ -621,7 +622,7 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";
 
         public DeleteTask(AddressModel target, boolean alreadyValidated) {
-            super(target, AddressModel.FACTORY, AddressEvent.ADDRESS_EVENT_TYPE, alreadyValidated);
+            super(target, AddressModel.FACTORY, alreadyValidated);
         }
 
         @Override
@@ -674,8 +675,8 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
         private PartialCityDAO city;
         private final String postalCode;
         private final String phone;
-        private final EventHandler<CityEvent> onCityEvent;
-        private WeakEventHandler<CityEvent> cityChangeHandler;
+        private final EventHandler<CitySuccessEvent> onCityEvent;
+        private WeakEventHandler<CitySuccessEvent> cityChangeHandler;
 
         private Partial(int primaryKey, String address1, String address2, PartialCityDAO city, String postalCode, String phone) {
             this.primaryKey = primaryKey;
@@ -684,12 +685,11 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
             this.city = city;
             this.postalCode = asNonNullAndWsNormalized(postalCode);
             this.phone = asNonNullAndWsNormalized(phone);
-            onCityEvent = (CityEvent event) -> {
+            onCityEvent = (CitySuccessEvent event) -> {
                 LOG.entering(LOG.getName(), "onCityEvent", event);
-                // FIXME: Work off of model, instead
                 PartialCityDAO newValue = event.getDataAccessObject();
                 if (newValue.getPrimaryKey() == this.city.getPrimaryKey()) {
-                    CityDAO.FACTORY.removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
+                    CityDAO.FACTORY.removeEventHandler(CitySuccessEvent.SUCCESS_EVENT_TYPE, cityChangeHandler);
                     cityChangeHandler = null;
                     PartialCityDAO oldValue = this.city;
                     this.city = newValue;
@@ -698,8 +698,7 @@ public final class AddressDAO extends DataAccessObject implements IAddressDAO {
             };
             if (!(null == city || city instanceof CityDAO)) {
                 cityChangeHandler = new WeakEventHandler<>(onCityEvent);
-                // FIXME: Change to CitySuccessEvent.SAVE_SUCCESS
-                CityDAO.FACTORY.addEventHandler(CityEvent.CHANGE_EVENT_TYPE, cityChangeHandler);
+                CityDAO.FACTORY.addEventHandler(CitySuccessEvent.SUCCESS_EVENT_TYPE, cityChangeHandler);
             }
         }
 

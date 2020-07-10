@@ -255,11 +255,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        onAppointmentInserted = (AppointmentSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-            model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            initializeEditMode();
-        };
         onCustomerDeleted = (CustomerSuccessEvent event) -> {
             LOG.entering(LOG.getName(), "onCustomerDeleted", event);
             if (model.getRowState() != DataRowState.NEW) {
@@ -275,6 +270,13 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 int pk = dao.getPrimaryKey();
                 customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
             }
+        };
+        onAppointmentInserted = (AppointmentSuccessEvent event) -> {
+            LOG.entering(LOG.getName(), "onAppointmentInserted", event);
+            model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
+            initializeEditMode();
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
         };
     }
 
@@ -417,7 +419,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
             if (keepOpen) {
-                // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
                 insertedHandler = new WeakEventHandler<>(onAppointmentInserted);
                 model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
             }
@@ -709,9 +710,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
-        // FIXME: Attach to event handlers using an implemented ParentWindowShowingListener
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
-        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
     }
 
     public boolean applyChangesToModel() {
@@ -1038,6 +1036,8 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
             EditAppointment.this.validationBinding = titleValid.and(customerValid).and(userValid).and(dateRangeValid).and(locationValid).and(contactValid).and(urlValid);
             onAppointmentTypeChanged(typeComboBox.getValue());
             updateValidity();
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditAppointment.this.onCustomerDeleted));
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditAppointment.this.onUserDeleted));
             super.succeeded();
         }
 
