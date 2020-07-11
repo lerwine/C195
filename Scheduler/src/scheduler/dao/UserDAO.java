@@ -43,14 +43,11 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 @DatabaseTable(DbTable.USER)
 public final class UserDAO extends DataAccessObject implements IUserDAO {
 
-    public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(UserDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(UserDAO.class.getName());
 
-    public static FactoryImpl getFactory() {
-        return FACTORY;
-    }
-
+    public static final FactoryImpl FACTORY = new FactoryImpl();
+    
     private final OriginalValues originalValues;
     private String userName;
     // PENDING: Change to using something that can accept raw password and produce hash.

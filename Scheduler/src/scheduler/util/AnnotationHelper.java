@@ -143,7 +143,7 @@ public class AnnotationHelper {
         Class<?> fieldType = value.getClass();
         Class<ModelEditor> a = ModelEditor.class;
         for (Field f : target.getClass().getDeclaredFields()) {
-            if (f.getName().equals(name) && f.isAnnotationPresent(a) && f.getType().isAssignableFrom(fieldType)) {
+            if (f.getName().equals(name) && f.isAnnotationPresent(a)) {
                 boolean accessible = f.isAccessible();
                 try {
                     if (!accessible) {

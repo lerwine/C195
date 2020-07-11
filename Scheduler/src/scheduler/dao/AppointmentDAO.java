@@ -8,14 +8,13 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
 import scheduler.AppointmentAlertManager;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
@@ -37,7 +36,6 @@ import scheduler.events.UserSuccessEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
-import static scheduler.model.Customer.PROP_ADDRESS;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
@@ -61,17 +59,18 @@ import static scheduler.util.Values.asNonNullAndWsNormalizedMultiLine;
 @DatabaseTable(DbTable.APPOINTMENT)
 public final class AppointmentDAO extends DataAccessObject implements IAppointmentDAO {
 
-    public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
 
-    public static FactoryImpl getFactory() {
-        return FACTORY;
+    public static final FactoryImpl FACTORY;
+
+    static {
+        FACTORY = new FactoryImpl();
+        CustomerDAO.FACTORY.addEventHandler(CustomerSuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onCustomerEvent);
+        UserDAO.FACTORY.addEventHandler(UserSuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onUserEvent);
     }
 
     private final OriginalValues originalValues;
-    private final EventHandler<CustomerSuccessEvent> customerEventHandler;
-    private final EventHandler<UserSuccessEvent> userEventHandler;
     private PartialCustomerDAO customer;
     private PartialUserDAO user;
     private String title;
@@ -83,8 +82,6 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
     private String url;
     private Timestamp start;
     private Timestamp end;
-    private WeakEventHandler<CustomerSuccessEvent> customerWeakEventHandler;
-    private WeakEventHandler<UserSuccessEvent> userWeakEventHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} appointment object.
@@ -104,28 +101,6 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         start = DateTimeUtil.toUtcTimestamp(d);
         end = DateTimeUtil.toUtcTimestamp(d.plusHours(1));
         originalValues = new OriginalValues();
-        customerEventHandler = this::onCustomerEvent;
-        userEventHandler = this::onUserEvent;
-    }
-
-    private synchronized void onCustomerEvent(CustomerSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerEvent", event);
-        PartialCustomerDAO newValue = event.getDataAccessObject();
-        if (null != customer && !Objects.equals(newValue, customer) && newValue.getPrimaryKey() == customer.getPrimaryKey()) {
-            PartialCustomerDAO oldValue = customer;
-            customer = newValue;
-            firePropertyChange(PROP_CUSTOMER, oldValue, customer);
-        }
-    }
-
-    private synchronized void onUserEvent(UserSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onUserEvent", event);
-        UserDAO newValue = event.getDataAccessObject();
-        PartialUserDAO oldValue = user;
-        if (null != oldValue && !Objects.equals(newValue, oldValue) && newValue.getPrimaryKey() == oldValue.getPrimaryKey()) {
-            user = newValue;
-            firePropertyChange(PROP_ADDRESS, oldValue, user);
-        }
     }
 
     @Override
@@ -144,15 +119,6 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             return;
         }
         this.customer = customer;
-        if (null != customer && customer.getRowState() != DataRowState.NEW) {
-            if (null == customerWeakEventHandler) {
-                customerWeakEventHandler = new WeakEventHandler<>(customerEventHandler);
-                CustomerDAO.FACTORY.addEventHandler(CustomerSuccessEvent.SUCCESS_EVENT_TYPE, customerWeakEventHandler);
-            }
-        } else if (null != customerWeakEventHandler) {
-            CustomerDAO.FACTORY.removeEventHandler(CustomerSuccessEvent.SUCCESS_EVENT_TYPE, customerWeakEventHandler);
-            customerWeakEventHandler = null;
-        }
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
     }
 
@@ -172,15 +138,6 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
             return;
         }
         this.user = user;
-        if (null != user && user.getRowState() != DataRowState.NEW) {
-            if (null == userWeakEventHandler) {
-                userWeakEventHandler = new WeakEventHandler<>(userEventHandler);
-                UserDAO.FACTORY.addEventHandler(UserSuccessEvent.SUCCESS_EVENT_TYPE, userWeakEventHandler);
-            }
-        } else if (null != userWeakEventHandler) {
-            UserDAO.FACTORY.removeEventHandler(UserSuccessEvent.SUCCESS_EVENT_TYPE, userWeakEventHandler);
-            userWeakEventHandler = null;
-        }
         firePropertyChange(PROP_USER, oldValue, this.user);
     }
 
@@ -468,6 +425,30 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        private void onCustomerEvent(CustomerSuccessEvent event) {
+            CustomerDAO newValue = event.getDataAccessObject();
+            Iterator<AppointmentDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                AppointmentDAO item = iterator.next();
+                PartialCustomerDAO oldValue = item.getCustomer();
+                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
+                    item.setCustomer(newValue);
+                }
+            }
+        }
+
+        private void onUserEvent(UserSuccessEvent event) {
+            UserDAO newValue = event.getDataAccessObject();
+            Iterator<AppointmentDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                AppointmentDAO item = iterator.next();
+                PartialUserDAO oldValue = item.getUser();
+                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
+                    item.setUser(newValue);
+                }
+            }
         }
 
         @Override

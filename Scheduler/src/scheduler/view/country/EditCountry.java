@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -23,6 +22,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -146,6 +146,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private final EventHandler<CitySuccessEvent> onCityDeleted;
     private final EventHandler<CountrySuccessEvent> onCountryInserted;
     private WeakEventHandler<CountrySuccessEvent> insertedHandler;
+    private BooleanBinding modificationBinding;
 
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper(this, "", "");
@@ -210,6 +211,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             restoreNode(citiesTableView);
             restoreNode(newButtonBar);
             initializeEditMode();
+            modified.set(false);
         };
     }
 
@@ -272,7 +274,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private void onLocaleComboBoxAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onLocaleComboBoxAction", event);
         valid.set(null != selectedLocale.get());
-        modified.set(!Objects.equals(selectedLocale.get(), model.getLocale()));
+        boolean m = modificationBinding.get();
+        modified.set(m);
     }
 
     @FXML
@@ -292,17 +295,16 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
         assert citiesLabel != null : "fx:id=\"citiesLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesTableView != null : "fx:id=\"citiesTableView\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert newButtonBar != null : "fx:id=\"newButtonBar\" was not injected: check your FXML file 'EditCountry.fxml'.";
+
         localeComboBox.setItems(localeList);
         selectedLocale = Bindings.select(localeComboBox.selectionModelProperty(), "selectedItem");
         languageValidationLabel.visibleProperty().bind(selectedLocale.isNull());
 
-        BooleanBinding modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
+        modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
                 .or(selectedLocale.isNotEqualTo(model.localeProperty()));
-        modificationBinding.addListener((observable, oldValue, newValue) -> {
-            LOG.fine(() -> String.format("modificationBinding changed from %s to %s ", oldValue, newValue));
-            modified.set(newValue);
-        });
+
         modified.set(modificationBinding.get());
+        
         Locale locale = model.getLocale();
         if (null != locale) {
             if (!localeList.contains(locale)) {

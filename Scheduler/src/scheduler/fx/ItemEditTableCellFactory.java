@@ -1,7 +1,6 @@
 package scheduler.fx;
 
 import com.sun.javafx.event.EventHandlerManager;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -16,7 +15,6 @@ import scheduler.dao.DataAccessObject;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.model.ui.EntityModelImpl;
-import scheduler.util.LogHelper;
 
 /**
  *
@@ -28,8 +26,8 @@ import scheduler.util.LogHelper;
 public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends OperationRequestEvent<D, M>>
         implements Callback<TableColumn<M, M>, TableCell<M, M>>, EventTarget {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);
-//    private static final Logger LOG = Logger.getLogger(ItemEditTableCellFactory.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(ItemEditTableCellFactory.class.getName());
 
     private final EventHandlerManager eventHandlerManager;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;

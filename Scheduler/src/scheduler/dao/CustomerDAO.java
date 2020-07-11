@@ -5,14 +5,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -48,20 +47,20 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 @DatabaseTable(DbTable.CUSTOMER)
 public final class CustomerDAO extends DataAccessObject implements ICustomerDAO {
 
-    public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());
 
-    public static FactoryImpl getFactory() {
-        return FACTORY;
+    public static final FactoryImpl FACTORY;
+
+    static {
+        FACTORY = new FactoryImpl();
+        AddressDAO.FACTORY.addEventHandler(AddressSuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onAddressEvent);
     }
 
     private final OriginalValues originalValues;
-    private final EventHandler<AddressSuccessEvent> addressEventHandler;
     private String name;
     private PartialAddressDAO address;
     private boolean active;
-    private WeakEventHandler<AddressSuccessEvent> addressWeakEventHandler;
 
     /**
      * Initializes a {@link DataRowState#NEW} customer object.
@@ -72,17 +71,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
         address = null;
         active = true;
         originalValues = new OriginalValues();
-        addressEventHandler = this::onAddressEvent;
-    }
-
-    private synchronized void onAddressEvent(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressEvent", event);
-        AddressDAO newValue = event.getDataAccessObject();
-        PartialAddressDAO oldValue = address;
-        if (null != oldValue && !Objects.equals(newValue, oldValue) && newValue.getPrimaryKey() == oldValue.getPrimaryKey()) {
-            address = newValue;
-            firePropertyChange(PROP_ADDRESS, oldValue, address);
-        }
     }
 
     @Override
@@ -117,15 +105,6 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
             return;
         }
         this.address = address;
-        if (null != address && address.getRowState() != DataRowState.NEW) {
-            if (null == addressWeakEventHandler) {
-                addressWeakEventHandler = new WeakEventHandler<>(addressEventHandler);
-                AddressDAO.FACTORY.addEventHandler(AddressSuccessEvent.SUCCESS_EVENT_TYPE, addressWeakEventHandler);
-            }
-        } else if (null != addressWeakEventHandler) {
-            AddressDAO.FACTORY.removeEventHandler(AddressSuccessEvent.SUCCESS_EVENT_TYPE, addressWeakEventHandler);
-            addressWeakEventHandler = null;
-        }
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
     }
 
@@ -219,6 +198,29 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        private void onAddressEvent(AddressSuccessEvent event) {
+            AddressDAO newValue = event.getDataAccessObject();
+            Iterator<CustomerDAO> iterator1 = cacheIterator();
+            while (iterator1.hasNext()) {
+                CustomerDAO item = iterator1.next();
+                PartialAddressDAO oldValue = item.getAddress();
+                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
+                    item.setAddress(newValue);
+                }
+            }
+            Iterator<AppointmentDAO> iterator2 = AppointmentDAO.FACTORY.cacheIterator();
+            while (iterator2.hasNext()) {
+                AppointmentDAO target = iterator2.next();
+                PartialCustomerDAO item = target.getCustomer();
+                if (null != item && item instanceof Partial) {
+                    PartialAddressDAO oldValue = item.getAddress();
+                    if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
+                        ((Partial) item).setAddress(newValue);
+                    }
+                }
+            }
         }
 
         @Override
@@ -536,32 +538,15 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
 //        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final String name;
-        private final EventHandler<AddressSuccessEvent> onAddressEvent;
         private PartialAddressDAO address;
         private final boolean active;
         private final int primaryKey;
-        private WeakEventHandler<AddressSuccessEvent> addressChangeHandler;
 
         private Partial(int primaryKey, String name, PartialAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.address = address;
             this.active = active;
-            onAddressEvent = (AddressSuccessEvent event) -> {
-                LOG.entering(LOG.getName(), "onAddressEvent", event);
-                PartialAddressDAO newValue = event.getDataAccessObject();
-                if (newValue.getPrimaryKey() == this.address.getPrimaryKey()) {
-                    AddressDAO.FACTORY.removeEventHandler(AddressSuccessEvent.SAVE_SUCCESS, addressChangeHandler);
-                    addressChangeHandler = null;
-                    PartialAddressDAO oldValue = this.address;
-                    this.address = newValue;
-                    firePropertyChange(PROP_ADDRESS, oldValue, this.address);
-                }
-            };
-            if (!(null == address || address instanceof AddressDAO)) {
-                addressChangeHandler = new WeakEventHandler<>(onAddressEvent);
-                AddressDAO.FACTORY.addEventHandler(AddressSuccessEvent.SAVE_SUCCESS, addressChangeHandler);
-            }
         }
 
         @Override
@@ -572,6 +557,15 @@ public final class CustomerDAO extends DataAccessObject implements ICustomerDAO 
         @Override
         public PartialAddressDAO getAddress() {
             return address;
+        }
+
+        private void setAddress(AddressDAO address) {
+            PartialAddressDAO oldValue = this.address;
+            if (Objects.equals(oldValue, address)) {
+                return;
+            }
+            this.address = address;
+            firePropertyChange(PROP_ADDRESS, oldValue, this.address);
         }
 
         @Override

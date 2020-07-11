@@ -408,7 +408,6 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      *
      * @param <T> The type of {@link DataAccessObject} being cached.
      */
-    // XXX: Validate decision of creating this object versus using a java.util.WeakHashMap
     public static class DaoCache<T extends DataAccessObject> {
 
         private final HashMap<Integer, WeakReference<T>> backingMap = new HashMap<>();
@@ -571,7 +570,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          */
         protected abstract void onCloneProperties(D fromDAO, D toDAO);
 
-        protected final Iterator<D> cacheIterator() {
+        final Iterator<D> cacheIterator() {
             return new DaoCacheIterator<>(cache);
         }
 

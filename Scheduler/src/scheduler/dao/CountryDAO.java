@@ -44,10 +44,11 @@ import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECON
 @DatabaseTable(DbTable.COUNTRY)
 public final class CountryDAO extends DataAccessObject implements ICountryDAO {
 
-    public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CountryDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CountryDAO.class.getName());
 
+    public static final FactoryImpl FACTORY = new FactoryImpl();
+    
     private final OriginalValues originalValues;
     private String name;
     private Locale locale;

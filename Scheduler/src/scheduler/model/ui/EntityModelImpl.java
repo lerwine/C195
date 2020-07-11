@@ -91,10 +91,10 @@ public abstract class EntityModelImpl<T extends DataAccessObject> implements Ent
             // XXX: Does this cause memory leaks if this class is garbage-collected and dao is not?
             primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();
             rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(PROP_ROWSTATE).build();
-            rawCreateDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_CREATEDATE).build();
-            createdBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_CREATEDBY).build();
-            rawLastModifiedDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_LASTMODIFIEDDATE).build();
-            lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_LASTMODIFIEDBY).build();
+rawCreateDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_CREATEDATE).build();
+createdBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_CREATEDBY).build();
+rawLastModifiedDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_LASTMODIFIEDDATE).build();
+lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_LASTMODIFIEDBY).build();
         } catch (NoSuchMethodException ex) {
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);

@@ -12,8 +12,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.ComparisonOperator;
@@ -57,17 +55,17 @@ import scheduler.view.country.EditCountryResourceKeys;
 @DatabaseTable(DbTable.CITY)
 public final class CityDAO extends DataAccessObject implements ICityDAO {
 
-    public static final FactoryImpl FACTORY = new FactoryImpl();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CityDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());
 
-    public static FactoryImpl getFactory() {
-        return FACTORY;
+    public static final FactoryImpl FACTORY;
+
+    static {
+        FACTORY = new FactoryImpl();
+        CountryDAO.FACTORY.addEventHandler(CountrySuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onCountryEvent);
     }
 
     private final OriginalValues originalValues;
-    private final EventHandler<CountrySuccessEvent> countryEventHandler;
-    private WeakEventHandler<CountrySuccessEvent> countryWeakEventHandler;
     private String name;
     private PartialCountryDAO country;
 
@@ -79,17 +77,6 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
         name = "";
         country = null;
         originalValues = new OriginalValues();
-        countryEventHandler = this::onCountryEvent;
-    }
-
-    private synchronized void onCountryEvent(CountrySuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCountryEvent", event);
-        CountryDAO newValue = event.getDataAccessObject();
-        PartialCountryDAO oldValue = country;
-        if (null != oldValue && !Objects.equals(newValue, oldValue) && newValue.getPrimaryKey() == oldValue.getPrimaryKey()) {
-            country = newValue;
-            firePropertyChange(PROP_COUNTRY, oldValue, country);
-        }
     }
 
     @Override
@@ -114,15 +101,6 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
             return;
         }
         this.country = country;
-        if (null != country && country.getRowState() != DataRowState.NEW) {
-            if (null == countryWeakEventHandler) {
-                countryWeakEventHandler = new WeakEventHandler<>(countryEventHandler);
-                CountryDAO.FACTORY.addEventHandler(CountrySuccessEvent.SUCCESS_EVENT_TYPE, countryWeakEventHandler);
-            }
-        } else if (null != countryWeakEventHandler) {
-            CountryDAO.FACTORY.removeEventHandler(CountrySuccessEvent.SUCCESS_EVENT_TYPE, countryWeakEventHandler);
-            countryWeakEventHandler = null;
-        }
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
     }
 
@@ -194,6 +172,29 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        private void onCountryEvent(CountrySuccessEvent event) {
+            CountryDAO newValue = event.getDataAccessObject();
+            Iterator<CityDAO> iterator = cacheIterator();
+            while (iterator.hasNext()) {
+                CityDAO item = iterator.next();
+                PartialCountryDAO oldValue = item.getCountry();
+                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
+                    item.setCountry(newValue);
+                }
+            }
+            Iterator<AddressDAO> iterator2 = AddressDAO.FACTORY.cacheIterator();
+            while (iterator2.hasNext()) {
+                AddressDAO target = iterator2.next();
+                PartialCityDAO item = target.getCity();
+                if (null != item && item instanceof Partial) {
+                    PartialCountryDAO oldValue = item.getCountry();
+                    if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
+                        ((Partial) item).setCountry(newValue);
+                    }
+                }
+            }
         }
 
         @Override
@@ -550,7 +551,6 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
             this.primaryKey = primaryKey;
             this.name = name;
             this.country = country;
-            // FIXME: Add country update handlers, similar to CustomerDAO.Partial
         }
 
         @Override
@@ -566,6 +566,15 @@ public final class CityDAO extends DataAccessObject implements ICityDAO {
         @Override
         public PartialCountryDAO getCountry() {
             return country;
+        }
+
+        private void setCountry(CountryDAO country) {
+            PartialCountryDAO oldValue = this.country;
+            if (Objects.equals(oldValue, country)) {
+                return;
+            }
+            this.country = country;
+            firePropertyChange(PROP_COUNTRY, oldValue, this.country);
         }
 
         @Override
