@@ -417,7 +417,7 @@ public class CustomerPicker extends BorderPane {
             ArrayList<CityDAO> result = getValue();
             cities.clear();
             result.forEach((item) -> {
-                cities.add(new CityModel(item));
+                cities.add(CityModel.FACTORY.createNew(item));
             });
             waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(country, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(),
                     customer));
@@ -445,7 +445,7 @@ public class CustomerPicker extends BorderPane {
             super.succeeded();
             ArrayList<CountryDAO> result = getValue();
             result.stream().forEach((item) -> {
-                countries.add(new CountryModel(item));
+                countries.add(CountryModel.FACTORY.createNew(item));
             });
             waitBorderPane.startNow(createCriticalWaitTitledPane(), new LoadCustomersTask(null, null, statusComboBox.getSelectionModel().getSelectedItem().status.get(), null));
         }
@@ -484,12 +484,12 @@ public class CustomerPicker extends BorderPane {
 
             if (null == customer) {
                 result.stream().forEach((item) -> {
-                    allCustomers.add(new CustomerModel(item));
+                    allCustomers.add(CustomerModel.FACTORY.createNew(item));
                 });
                 selectedCustomer = null;
             } else {
                 int pk = customer.getPrimaryKey();
-                Optional<CustomerModel> matching = result.stream().map((item) -> new CustomerModel(item)).filter((CustomerModel item) -> {
+                Optional<CustomerModel> matching = result.stream().map((item) -> CustomerModel.FACTORY.createNew(item)).filter((CustomerModel item) -> {
                     allCustomers.add(item);
                     return item.getPrimaryKey() == pk;
                 }).findFirst();

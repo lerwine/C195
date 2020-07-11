@@ -1,6 +1,5 @@
 package scheduler.model.ui;
 
-import java.util.TimeZone;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -51,7 +50,7 @@ public interface PartialAddressModel<T extends PartialAddressDAO> extends Addres
             return null;
         }
         if (t instanceof AddressDAO) {
-            return new AddressModel((AddressDAO) t);
+            return AddressModel.FACTORY.createNew((AddressDAO) t);
         }
 
         return new PartialAddressModelImpl(t);

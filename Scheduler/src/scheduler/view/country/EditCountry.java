@@ -22,7 +22,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -92,7 +91,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public final class EditCountry extends VBox implements EditItem.ModelEditor<CountryDAO, CountryModel, CountryEvent> {
+public final class EditCountry extends VBox implements EditItem.ModelEditorController<CountryDAO, CountryModel, CountryEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
@@ -118,9 +117,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private CountryModel model;
 
     @ModelEditor
-    private boolean keepOpen;
-
-    @ModelEditor
     private WaitBorderPane waitBorderPane;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -144,8 +140,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     private final EventHandler<CitySuccessEvent> onCityAdded;
     private final EventHandler<CitySuccessEvent> onCityUpdated;
     private final EventHandler<CitySuccessEvent> onCityDeleted;
-    private final EventHandler<CountrySuccessEvent> onCountryInserted;
-    private WeakEventHandler<CountrySuccessEvent> insertedHandler;
     private BooleanBinding modificationBinding;
 
     public EditCountry() {
@@ -163,7 +157,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             if (null == m) {
                 CityDAO dao = event.getDataAccessObject();
                 if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(new CityModel(dao));
+                    itemList.add(CityModel.FACTORY.createNew(dao));
                 }
             } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
                 itemList.add(m);
@@ -178,7 +172,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
                 if (null == item) {
                     if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                        itemList.add(new CityModel(dao));
+                        itemList.add(CityModel.FACTORY.createNew(dao));
                     }
                     return;
                 }
@@ -201,18 +195,19 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 itemList.remove(t);
             });
         };
-        onCountryInserted = (CountrySuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCountryInserted", event);
-            model.dataObject().removeEventHandler(CountrySuccessEvent.INSERT_SUCCESS, insertedHandler);
-            CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCityAdded));
-            CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCityUpdated));
-            CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCityDeleted));
-            restoreNode(citiesLabel);
-            restoreNode(citiesTableView);
-            restoreNode(newButtonBar);
-            initializeEditMode();
-            modified.set(false);
-        };
+    }
+
+    @ModelEditor
+    private void onModelInserted(CountryEvent event) {
+        LOG.entering(LOG.getName(), "onModelInserted", event);
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCityAdded));
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCityUpdated));
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCityDeleted));
+        restoreNode(citiesLabel);
+        restoreNode(citiesTableView);
+        restoreNode(newButtonBar);
+        initializeEditMode();
+        modified.set(false);
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -304,7 +299,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
                 .or(selectedLocale.isNotEqualTo(model.localeProperty()));
 
         modified.set(modificationBinding.get());
-        
+
         Locale locale = model.getLocale();
         if (null != locale) {
             if (!localeList.contains(locale)) {
@@ -317,10 +312,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
             collapseNode(citiesTableView);
             collapseNode(newButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
-            if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(onCountryInserted);
-                model.dataObject().addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, insertedHandler);
-            }
         } else {
             initializeEditMode();
             WaitTitledPane pane = new WaitTitledPane();
@@ -391,7 +382,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditor<Coun
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> modelFactory() {
         return CountryModel.FACTORY;
     }
 

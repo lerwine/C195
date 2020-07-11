@@ -99,7 +99,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public final class EditAppointment extends StackPane implements EditItem.ModelEditor<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+public final class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentDAO, AppointmentModel, AppointmentEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
@@ -128,19 +128,14 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     private final ObservableList<CorporateAddress> corporateLocationList;
     private final ObservableList<CorporateAddress> remoteLocationList;
     private final ObservableList<UserModel> userModelList;
-    private final EventHandler<AppointmentSuccessEvent> onAppointmentInserted;
     private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
     private final EventHandler<UserSuccessEvent> onUserDeleted;
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
-    private WeakEventHandler<AppointmentSuccessEvent> insertedHandler;
 
     @ModelEditor
     private AppointmentModel model;
-
-    @ModelEditor
-    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -271,13 +266,14 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
             }
         };
-        onAppointmentInserted = (AppointmentSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-            model.dataObject().removeEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            initializeEditMode();
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
-            UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
-        };
+    }
+
+    @ModelEditor
+    private void onModelInserted(AppointmentEvent event) {
+        LOG.entering(LOG.getName(), "onModelInserted", event);
+        initializeEditMode();
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
+        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
     }
 
     @FXML
@@ -418,10 +414,6 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
-            if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(onAppointmentInserted);
-                model.dataObject().addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            }
         } else {
             windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
             initializeEditMode();
@@ -451,7 +443,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private void initializeCustomerComboBox(List<CustomerDAO> customerDaoList) {
         if (null != customerDaoList && !customerDaoList.isEmpty()) {
-            customerDaoList.forEach((t) -> customerModelList.add(new CustomerModel(t)));
+            customerDaoList.forEach((t) -> customerModelList.add(CustomerModel.FACTORY.createNew(t)));
         }
         customerComboBox.setItems(customerModelList);
         SingleSelectionModel<CustomerModel> selectionModel = customerComboBox.getSelectionModel();
@@ -472,7 +464,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
 
     private void initializeUserComboBox(List<UserDAO> userDaoList) {
         if (null != userDaoList && !userDaoList.isEmpty()) {
-            userDaoList.forEach((t) -> userModelList.add(new UserModel(t)));
+            userDaoList.forEach((t) -> userModelList.add(UserModel.FACTORY.createNew(t)));
         }
         userComboBox.setItems(userModelList);
         SingleSelectionModel<UserModel> selectionModel = userComboBox.getSelectionModel();
@@ -851,7 +843,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> modelFactory() {
         return AppointmentModel.FACTORY;
     }
 
@@ -904,7 +896,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 CustomerModel selectedItem = customerSelectionModel.getSelectedItem();
                 customerModelList.clear();
                 if (null != result && !result.isEmpty()) {
-                    result.forEach((t) -> customerModelList.add(new CustomerModel(t)));
+                    result.forEach((t) -> customerModelList.add(CustomerModel.FACTORY.createNew(t)));
                 }
                 if (null != selectedItem) {
                     int pk = selectedItem.getPrimaryKey();
@@ -962,7 +954,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
                 UserModel selectedItem = userSelectionModel.getSelectedItem();
                 userModelList.clear();
                 if (null != result && !result.isEmpty()) {
-                    result.forEach((t) -> userModelList.add(new UserModel(t)));
+                    result.forEach((t) -> userModelList.add(UserModel.FACTORY.createNew(t)));
                 }
                 if (null != selectedItem) {
                     int pk = selectedItem.getPrimaryKey();

@@ -21,8 +21,10 @@ import scheduler.dao.PartialCustomerDAO;
 import scheduler.dao.PartialUserDAO;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentOpRequestEvent;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
+import scheduler.events.ModelEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.model.Address;
@@ -137,7 +139,7 @@ public final class AppointmentModel extends EntityModelImpl<AppointmentDAO> impl
     private final ReadOnlyStringBindingProperty effectiveLocation;
 
     @SuppressWarnings("incomplete-switch")
-    public AppointmentModel(final AppointmentDAO dao) {
+    private AppointmentModel(final AppointmentDAO dao) {
         super(dao);
         customer = new SimpleObjectProperty<>(this, PROP_CUSTOMER, PartialCustomerModel.createModel(dao.getCustomer()));
         customerName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERNAME, Bindings.selectString(customer, Customer.PROP_NAME));
@@ -556,7 +558,22 @@ public final class AppointmentModel extends EntityModelImpl<AppointmentDAO> impl
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    @Override
+    protected void onModelInserted(ModelEvent<AppointmentDAO, ? extends EntityModelImpl<AppointmentDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel#onModelInserted
+    }
+
+    @Override
+    protected void onModelUpdated(ModelEvent<AppointmentDAO, ? extends EntityModelImpl<AppointmentDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel#onModelUpdated
+    }
+
+    @Override
+    protected void onModelDeleted(ModelEvent<AppointmentDAO, ? extends EntityModelImpl<AppointmentDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AppointmentModel#onModelDeleted
+    }
+
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> {
 
         private Factory() {
             super();
@@ -571,7 +588,7 @@ public final class AppointmentModel extends EntityModelImpl<AppointmentDAO> impl
         }
 
         @Override
-        public AppointmentModel createNew(final AppointmentDAO dao) {
+        protected AppointmentModel onCreateNew(AppointmentDAO dao) {
             return new AppointmentModel(dao);
         }
 
@@ -698,6 +715,16 @@ public final class AppointmentModel extends EntityModelImpl<AppointmentDAO> impl
         @Override
         public AppointmentOpRequestEvent createDeleteRequestEvent(final AppointmentModel model, final Object source) {
             return new AppointmentOpRequestEvent(model, source, true);
+        }
+
+        @Override
+        public Class<AppointmentEvent> getModelEventClass() {
+            return AppointmentEvent.class;
+        }
+
+        @Override
+        public EventType<AppointmentSuccessEvent> getSuccessEventType() {
+            return AppointmentSuccessEvent.SUCCESS_EVENT_TYPE;
         }
 
         @Override

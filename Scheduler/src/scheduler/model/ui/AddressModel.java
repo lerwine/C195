@@ -21,8 +21,10 @@ import scheduler.dao.PartialCityDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressOpRequestEvent;
+import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
+import scheduler.events.ModelEvent;
 import scheduler.model.AddressEntity;
 import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS1;
 import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS2;
@@ -180,7 +182,7 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
      *
      * @param dao The backing {@link AddressDAO} object.
      */
-    public AddressModel(AddressDAO dao) {
+    private AddressModel(AddressDAO dao) {
         super(dao);
         address1 = new NonNullableStringProperty(this, PROP_ADDRESS1, dao.getAddress1());
         address2 = new NonNullableStringProperty(this, PROP_ADDRESS2, dao.getAddress2());
@@ -365,7 +367,22 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent> {
+    @Override
+    protected void onModelInserted(ModelEvent<AddressDAO, ? extends EntityModelImpl<AddressDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#onModelInserted
+    }
+
+    @Override
+    protected void onModelUpdated(ModelEvent<AddressDAO, ? extends EntityModelImpl<AddressDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#onModelUpdated
+    }
+
+    @Override
+    protected void onModelDeleted(ModelEvent<AddressDAO, ? extends EntityModelImpl<AddressDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#onModelDeleted
+    }
+
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -384,7 +401,7 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
         }
 
         @Override
-        public AddressModel createNew(AddressDAO dao) {
+        protected AddressModel onCreateNew(AddressDAO dao) {
             return new AddressModel(dao);
         }
 
@@ -489,6 +506,16 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
         @Override
         public AddressOpRequestEvent createDeleteRequestEvent(AddressModel model, Object source) {
             return new AddressOpRequestEvent(model, source, true);
+        }
+
+        @Override
+        public Class<AddressEvent> getModelEventClass() {
+            return AddressEvent.class;
+        }
+
+        @Override
+        public EventType<AddressSuccessEvent> getSuccessEventType() {
+            return AddressSuccessEvent.SUCCESS_EVENT_TYPE;
         }
 
         @Override

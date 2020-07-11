@@ -168,7 +168,7 @@ public class AppointmentConflictsControl extends BorderPane {
             }
             if (null != appointments) {
                 if (!appointments.isEmpty()) {
-                    appointments.stream().map((t) -> new AppointmentModel(t)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
+                    appointments.stream().map((t) -> AppointmentModel.FACTORY.createNew(t)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
                 }
                 ZonedAppointmentTimeSpan timeSpan = selectedTimeSpan.get();
                 if (null == timeSpan) {

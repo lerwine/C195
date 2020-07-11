@@ -110,7 +110,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/address/EditAddress")
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
-public final class EditAddress extends VBox implements EditItem.ModelEditor<AddressDAO, AddressModel, AddressEvent> {
+public final class EditAddress extends VBox implements EditItem.ModelEditorController<AddressDAO, AddressModel, AddressEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
@@ -130,6 +130,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         return EditItem.showAndWait(parentWindow, EditAddress.class, model, false);
     }
 
+    private final EventHandler<CustomerSuccessEvent> onCustomerAdded;
+    private final EventHandler<CustomerSuccessEvent> onCustomerUpdated;
+    private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -144,14 +147,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     private ObjectBinding<CityModel> selectedCity;
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
+    private BooleanBinding showEditCityControls;
     private BooleanBinding changedBinding;
     private BooleanBinding validityBinding;
 
     @ModelEditor
     private AddressModel model;
-
-    @ModelEditor
-    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -203,12 +204,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
 
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
-    private final EventHandler<AddressSuccessEvent> onAddressInserted;
-    private BooleanBinding showEditCityControls;
-    private WeakEventHandler<AddressSuccessEvent> insertedHandler;
-    private final EventHandler<CustomerSuccessEvent> onCustomerAdded;
-    private final EventHandler<CustomerSuccessEvent> onCustomerUpdated;
-    private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
 
     public EditAddress() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -223,7 +218,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             LOG.entering(LOG.getName(), "onCustomerAdded", event);
             CustomerDAO dao = event.getDataAccessObject();
             if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(new CustomerModel(dao));
+                itemList.add(CustomerModel.FACTORY.createNew(dao));
             }
         };
         onCustomerUpdated = (CustomerSuccessEvent event) -> {
@@ -237,7 +232,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                         itemList.remove(m);
                     }
                 } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(new CustomerModel(dao));
+                    itemList.add(CustomerModel.FACTORY.createNew(dao));
                 }
             }
         };
@@ -247,18 +242,19 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
                 itemList.remove(t);
             });
         };
-        onAddressInserted = (AddressSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onAddressInserted", event);
-            model.dataObject().removeEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            editingCity.set(false);
-            restoreNode(customersHeadingLabel);
-            restoreNode(customersTableView);
-            restoreNode(newCustomerButtonBar);
-            initializeEditMode();
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCustomerAdded));
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCustomerUpdated));
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
-        };
+    }
+
+    @ModelEditor
+    private void onModelInserted(AddressEvent event) {
+        LOG.entering(LOG.getName(), "onModelInserted", event);
+        editingCity.set(false);
+        restoreNode(customersHeadingLabel);
+        restoreNode(customersTableView);
+        restoreNode(newCustomerButtonBar);
+        initializeEditMode();
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCustomerAdded));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCustomerUpdated));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
     }
 
     @Override
@@ -471,10 +467,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
             editingCity.set(true);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWADDRESS));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
-            if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(onAddressInserted);
-                model.dataObject().addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            }
         } else {
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
@@ -508,7 +500,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> modelFactory() {
         return AddressModel.FACTORY;
     }
 
@@ -629,7 +621,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditor<Addr
         @Override
         protected void succeeded() {
             CountryDAO value = getValue();
-            addCountryOption((null == value) ? null : new CountryModel(value), city);
+            addCountryOption(CountryModel.FACTORY.createNew(value), city);
             super.succeeded();
         }
 

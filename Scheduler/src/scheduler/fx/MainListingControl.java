@@ -139,7 +139,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         onUpdatedEvent = (S event) -> {
             LOG.entering(LOG.getName(), "onUpdatedEvent", event);
             D dao = event.getDataAccessObject();
-            EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> mf = getModelFactory();
+            EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> mf = getModelFactory();
             if (null != mf) {
                 Optional<M> m = mf.find(items, dao);
                 ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
@@ -181,7 +181,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         listingTableView.setItems(items);
 
-        EntityModelImpl.EntityModelFactory<D, M, E> factory = getModelFactory();
+        EntityModelImpl.EntityModelFactory<D, M, E, S> factory = getModelFactory();
         factory.addEventHandler(getInsertedEventType(), new WeakEventHandler<>(onInsertedEvent));
         factory.addEventHandler(getUpdatedEventType(), new WeakEventHandler<>(onUpdatedEvent));
         factory.addEventHandler(getDeletedEventType(), new WeakEventHandler<>(onDeletedEvent));
@@ -297,7 +297,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> factory = getModelFactory();
+            EntityModelImpl.EntityModelFactory<D, M, E, S> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -308,7 +308,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     protected abstract Comparator<? super D> getComparator();
 
-    protected abstract EntityModelImpl.EntityModelFactory<D, M, E> getModelFactory();
+    protected abstract EntityModelImpl.EntityModelFactory<D, M, E, S> getModelFactory();
 
     protected abstract String getLoadingTitle();
 

@@ -1,7 +1,5 @@
 package scheduler.model.ui;
 
-import java.util.TimeZone;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CityDAO;
@@ -30,7 +28,7 @@ public interface PartialCityModel<T extends PartialCityDAO> extends City, Partia
             return null;
         }
         if (t instanceof CityDAO) {
-            return new CityModel((CityDAO) t);
+            return CityModel.FACTORY.createNew((CityDAO) t);
         }
 
         return new PartialCityModelImpl(t);

@@ -17,6 +17,8 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryOpRequestEvent;
+import scheduler.events.CountrySuccessEvent;
+import scheduler.events.ModelEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryEntity;
 import scheduler.model.CountryProperties;
@@ -115,7 +117,22 @@ public final class CountryModel extends EntityModelImpl<CountryDAO> implements P
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent> {
+    @Override
+    protected void onModelInserted(ModelEvent<CountryDAO, ? extends EntityModelImpl<CountryDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel#onModelInserted
+    }
+
+    @Override
+    protected void onModelUpdated(ModelEvent<CountryDAO, ? extends EntityModelImpl<CountryDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel#onModelUpdated
+    }
+
+    @Override
+    protected void onModelDeleted(ModelEvent<CountryDAO, ? extends EntityModelImpl<CountryDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel#onModelDeleted
+    }
+
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> {
 
         // Singleton
         private Factory() {
@@ -131,7 +148,7 @@ public final class CountryModel extends EntityModelImpl<CountryDAO> implements P
         }
 
         @Override
-        public CountryModel createNew(CountryDAO dao) {
+        protected CountryModel onCreateNew(CountryDAO dao) {
             return new CountryModel(dao);
         }
 
@@ -205,6 +222,16 @@ public final class CountryModel extends EntityModelImpl<CountryDAO> implements P
                 return CountryEvent.createInsertInvalidEvent(target, this, message);
             }
             return CountryEvent.createUpdateInvalidEvent(target, this, message);
+        }
+
+        @Override
+        public Class<CountryEvent> getModelEventClass() {
+            return CountryEvent.class;
+        }
+
+        @Override
+        public EventType<CountrySuccessEvent> getSuccessEventType() {
+            return CountrySuccessEvent.SUCCESS_EVENT_TYPE;
         }
 
         @Override

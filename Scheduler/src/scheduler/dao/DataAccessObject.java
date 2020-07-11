@@ -247,7 +247,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
-            void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
+            void addEventHandler(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
@@ -259,7 +259,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
-            void addEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
+            void addEventFilter(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
@@ -271,7 +271,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
-            void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
+            void removeEventHandler(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
@@ -283,7 +283,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param eventHandler The event handler.
      */
     public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
-            void removeEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
+            void removeEventFilter(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 
@@ -754,7 +754,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -766,7 +766,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
+        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
@@ -778,7 +778,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -790,7 +790,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
+        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 
@@ -984,7 +984,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
 //        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
-        private final ReadOnlyObjectWrapper<EntityModelImpl.EntityModelFactory<D, M, E>> modelFactory;
+        private final ReadOnlyObjectWrapper<EntityModelImpl.EntityModelFactory<D, M, E, ? extends E>> modelFactory;
         private boolean validationSuccessful;
         private final ReadOnlyBooleanWrapper validationFailed;
 
@@ -996,7 +996,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          */
-        protected ValidatingDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, boolean skipValidation) {
+        protected ValidatingDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
             super(target);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
@@ -1036,11 +1036,11 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * @return The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type or {@code null} if a
          * {@link EntityModelImpl} was not specified in the constructor.
          */
-        public EntityModelImpl.EntityModelFactory<D, M, E> getModelFactory() {
+        public EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> getModelFactory() {
             return modelFactory.get();
         }
 
-        public ReadOnlyObjectProperty<EntityModelImpl.EntityModelFactory<D, M, E>> modelFactoryProperty() {
+        public ReadOnlyObjectProperty<EntityModelImpl.EntityModelFactory<D, M, E, ? extends E>> modelFactoryProperty() {
             return modelFactory.getReadOnlyProperty();
         }
 
@@ -1107,7 +1107,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * {@link #validate(Connection)} to perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, boolean skipValidation) {
+        protected SaveDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
             super(target, modelFactory, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
@@ -1299,7 +1299,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
          * {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E> modelFactory, boolean skipValidation) {
+        protected DeleteDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
             super(target, modelFactory, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:

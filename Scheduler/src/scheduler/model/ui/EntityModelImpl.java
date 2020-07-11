@@ -1,7 +1,6 @@
 package scheduler.model.ui;
 
 import com.sun.javafx.event.EventHandlerManager;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.Optional;
@@ -10,18 +9,16 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanIntegerProperty;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanIntegerPropertyBuilder;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
-import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
+import javafx.event.WeakEventHandler;
 import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -30,7 +27,6 @@ import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
-import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.LogHelper;
 import scheduler.view.ModelFilter;
@@ -41,7 +37,8 @@ import scheduler.view.ModelFilter;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} to be used for data access operations.
  */
-public abstract class EntityModelImpl<T extends DataAccessObject> implements EntityModel<T> {
+public abstract class EntityModelImpl<T extends DataAccessObject>
+        implements EntityModel<T> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelImpl.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EntityModelImpl.class.getName());
@@ -59,19 +56,16 @@ public abstract class EntityModelImpl<T extends DataAccessObject> implements Ent
      */
     public static final String PROP_EXISTINGINDB = "existingInDb";
 
-//    private final EventHandlerManager eventHandlerManager;
     private final T dataObject;
-    private final ReadOnlyJavaBeanIntegerProperty primaryKey;
-    private final ReadOnlyJavaBeanObjectProperty<DataRowState> rowState;
-    private final ReadOnlyJavaBeanObjectProperty<Timestamp> rawCreateDate;
-    private final ReadOnlyJavaBeanStringProperty createdBy;
-    private final ReadOnlyJavaBeanObjectProperty<Timestamp> rawLastModifiedDate;
-    private final ReadOnlyJavaBeanStringProperty lastModifiedBy;
-    private final ReadOnlyObjectBindingProperty<LocalDateTime> createDate;
-    private final ReadOnlyObjectBindingProperty<LocalDateTime> lastModifiedDate;
     private final ReadOnlyBooleanBindingProperty newRow;
-    private final ReadOnlyBooleanBindingProperty changed;
     private final ReadOnlyBooleanBindingProperty existingInDb;
+    private final EventHandler<ModelEvent<T, ? extends EntityModelImpl<T>>> modelEventHandler;
+    private final ReadOnlyIntegerWrapper primaryKey;
+    private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
+    private final ReadOnlyStringWrapper createdBy;
+    private final ReadOnlyObjectWrapper<LocalDateTime> lastModifiedDate;
+    private final ReadOnlyStringWrapper lastModifiedBy;
+    private final ReadOnlyObjectWrapper<DataRowState> rowState;
 
     /**
      * Initializes a new ModelBase object.
@@ -80,31 +74,21 @@ public abstract class EntityModelImpl<T extends DataAccessObject> implements Ent
      * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link EntityModel} objects so the property is
      * updated whenever a change occurs.
      */
-    // FIXME: Entity model needs to refresh itself if the DAO is updated.
     protected EntityModelImpl(T dao) {
         if (dao.getRowState() == DataRowState.DELETED) {
             throw new IllegalArgumentException(String.format("%s has been deleted", dao.getClass().getName()));
         }
+        primaryKey = new ReadOnlyIntegerWrapper(this, PROP_PRIMARYKEY, dao.getPrimaryKey());
+        createDate = new ReadOnlyObjectWrapper<>(this, PROP_CREATEDATE, DateTimeUtil.toLocalDateTime(dao.getCreateDate()));
+        createdBy = new ReadOnlyStringWrapper(this, PROP_CREATEDBY, dao.getCreatedBy());
+        lastModifiedDate = new ReadOnlyObjectWrapper<>(this, PROP_LASTMODIFIEDDATE, DateTimeUtil.toLocalDateTime(dao.getLastModifiedDate()));
+        lastModifiedBy = new ReadOnlyStringWrapper(this, PROP_LASTMODIFIEDBY, dao.getLastModifiedBy());
+        rowState = new ReadOnlyObjectWrapper<>(this, PROP_ROWSTATE, dao.getRowState());
 
         dataObject = dao;
-        try {
-            // XXX: Does this cause memory leaks if this class is garbage-collected and dao is not?
-            primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();
-            rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(PROP_ROWSTATE).build();
-rawCreateDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_CREATEDATE).build();
-createdBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_CREATEDBY).build();
-rawLastModifiedDate = ReadOnlyJavaBeanObjectPropertyBuilder.<Timestamp>create().bean(dao).name(PROP_LASTMODIFIEDDATE).build();
-lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_LASTMODIFIEDBY).build();
-        } catch (NoSuchMethodException ex) {
-            LOG.log(Level.SEVERE, "Error creating property", ex);
-            throw new RuntimeException(ex);
-        }
-        createDate = new ReadOnlyObjectBindingProperty<>(this, PROP_CREATEDATE, () -> DateTimeUtil.toLocalDateTime(rawCreateDate.get()), rawCreateDate);
-        lastModifiedDate = new ReadOnlyObjectBindingProperty<>(this, PROP_LASTMODIFIEDDATE,
-                () -> DateTimeUtil.toLocalDateTime(rawLastModifiedDate.get()), rawLastModifiedDate);
         newRow = new ReadOnlyBooleanBindingProperty(this, PROP_NEWROW, () -> DataRowState.isNewRow(rowState.get()), rowState);
-        changed = new ReadOnlyBooleanBindingProperty(this, PROP_CHANGED, () -> DataRowState.isChanged(rowState.get()), rowState);
         existingInDb = new ReadOnlyBooleanBindingProperty(this, PROP_EXISTINGINDB, () -> DataRowState.existsInDb(rowState.get()), rowState);
+        modelEventHandler = this::onModelEvent;
     }
 
     @Override
@@ -113,63 +97,63 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
     }
 
     @Override
-    public final int getPrimaryKey() {
+    public int getPrimaryKey() {
         return primaryKey.get();
     }
 
     @Override
-    public final ReadOnlyIntegerProperty primaryKeyProperty() {
-        return primaryKey;
+    public ReadOnlyIntegerProperty primaryKeyProperty() {
+        return primaryKey.getReadOnlyProperty();
     }
 
     @Override
-    public final LocalDateTime getCreateDate() {
+    public LocalDateTime getCreateDate() {
         return createDate.get();
     }
 
     @Override
-    public final ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
-        return createDate;
+    public ReadOnlyObjectProperty<LocalDateTime> createDateProperty() {
+        return createDate.getReadOnlyProperty();
     }
 
     @Override
-    public final String getCreatedBy() {
+    public String getCreatedBy() {
         return createdBy.get();
     }
 
     @Override
-    public final ReadOnlyStringProperty createdByProperty() {
-        return createdBy;
+    public ReadOnlyStringProperty createdByProperty() {
+        return createdBy.getReadOnlyProperty();
     }
 
     @Override
-    public final LocalDateTime getLastModifiedDate() {
+    public LocalDateTime getLastModifiedDate() {
         return lastModifiedDate.get();
     }
 
     @Override
-    public final ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
-        return lastModifiedDate;
+    public ReadOnlyObjectProperty<LocalDateTime> lastModifiedDateProperty() {
+        return lastModifiedDate.getReadOnlyProperty();
     }
 
     @Override
-    public final String getLastModifiedBy() {
+    public String getLastModifiedBy() {
         return lastModifiedBy.get();
     }
 
     @Override
-    public final ReadOnlyStringProperty lastModifiedByProperty() {
-        return lastModifiedBy;
+    public ReadOnlyStringProperty lastModifiedByProperty() {
+        return lastModifiedBy.getReadOnlyProperty();
     }
 
     @Override
-    public final DataRowState getRowState() {
+    public DataRowState getRowState() {
         return rowState.get();
     }
 
     @Override
-    public final ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
-        return rowState;
+    public ReadOnlyObjectProperty<DataRowState> rowStateProperty() {
+        return rowState.getReadOnlyProperty();
     }
 
     public final boolean isNewRow() {
@@ -178,14 +162,6 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
 
     public final ReadOnlyBooleanProperty newRowProperty() {
         return newRow;
-    }
-
-    public final boolean isChanged() {
-        return changed.get();
-    }
-
-    public final ReadOnlyBooleanProperty changedProperty() {
-        return changed;
     }
 
     public final boolean isExistingInDb() {
@@ -200,7 +176,42 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
         return null != model && dataObject.equals(model);
     }
 
-    public static abstract class EntityModelFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> implements EventTarget {
+    private void onModelEvent(ModelEvent<T, ? extends EntityModelImpl<T>> event) {
+        T dao = event.getDataAccessObject();
+        rowState.set(dao.getRowState());
+        lastModifiedDate.set(DateTimeUtil.toLocalDateTime(dao.getLastModifiedDate()));
+        lastModifiedBy.set(dao.getLastModifiedBy());
+        switch (event.getOperation()) {
+            case DB_INSERT:
+                primaryKey.set(dao.getPrimaryKey());
+                createDate.set(DateTimeUtil.toLocalDateTime(dao.getCreateDate()));
+                createdBy.set(dao.getCreatedBy());
+                onModelInserted(event);
+                break;
+            case DB_UPDATE:
+                onModelUpdated(event);
+                break;
+            case DB_DELETE:
+                onModelDeleted(event);
+                break;
+        }
+    }
+
+    protected abstract void onModelInserted(ModelEvent<T, ? extends EntityModelImpl<T>> event);
+
+    protected abstract void onModelUpdated(ModelEvent<T, ? extends EntityModelImpl<T>> event);
+
+    protected abstract void onModelDeleted(ModelEvent<T, ? extends EntityModelImpl<T>> event);
+
+    /**
+     *
+     * @param <D> The {@link DataAccessObject} type
+     * @param <M> The {@link EntityModelImpl} type.
+     * @param <E> The base {@link ModelEvent} type.
+     * @param <S> The success {@link ModelEvent} type.
+     */
+    public static abstract class EntityModelFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>, S extends E>
+            implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelFactory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(EntityModelFactory.class.getName());
@@ -213,7 +224,13 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
 
         public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();
 
-        public abstract M createNew(D dao);
+        protected abstract M onCreateNew(D dao);
+
+        public final M createNew(D dao) {
+            M result = onCreateNew(dao);
+            dao.addEventFilter(getSuccessEventType(), new WeakEventHandler<>(((EntityModelImpl<D>) result).modelEventHandler));
+            return result;
+        }
 
         public abstract ModelFilter<D, M, ? extends DaoFilter<D>> getAllItemsFilter();
 
@@ -284,15 +301,19 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
             return Optional.empty();
         }
 
-        public abstract OperationRequestEvent<D, M> createEditRequestEvent(M model, Object source);
+        public abstract Class<E> getModelEventClass();
 
-        public abstract OperationRequestEvent<D, M> createDeleteRequestEvent(M model, Object source);
+        public abstract EventType<S> getSuccessEventType();
 
         public abstract EventType<? extends OperationRequestEvent<D, M>> getBaseRequestEventType();
 
         public abstract EventType<? extends OperationRequestEvent<D, M>> getEditRequestEventType();
 
         public abstract EventType<? extends OperationRequestEvent<D, M>> getDeleteRequestEventType();
+
+        public abstract OperationRequestEvent<D, M> createEditRequestEvent(M model, Object source);
+
+        public abstract OperationRequestEvent<D, M> createDeleteRequestEvent(M model, Object source);
 
         public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(M model);
 
@@ -312,7 +333,7 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -324,7 +345,7 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
+        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
@@ -336,7 +357,7 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<T> eventHandler) {
+        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -348,7 +369,7 @@ lastModifiedBy = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(P
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<T> eventFilter) {
+        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 

@@ -110,7 +110,7 @@ public class AppointmentAlertManager implements EventTarget {
         if (start.compareTo(DateTimeUtil.toLocalDateTime(dao.getEnd())) < 0) {
             LocalDateTime end = start.plusMinutes(alertLeadtime);
             if (end.compareTo(DateTimeUtil.toLocalDateTime(dao.getStart())) >= 0) {
-                alertingList.add(new AppointmentModel(dao));
+                alertingList.add(AppointmentModel.FACTORY.createNew(dao));
                 if (sortOnChange) {
                     alertingList.sort(AppointmentModel::compareByDates);
                 }

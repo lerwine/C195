@@ -120,7 +120,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
-public final class EditCustomer extends VBox implements EditItem.ModelEditor<CustomerDAO, CustomerModel, CustomerEvent> {
+public final class EditCustomer extends VBox implements EditItem.ModelEditorController<CustomerDAO, CustomerModel, CustomerEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
@@ -149,11 +149,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     private final ObservableList<CityModel> cityOptions;
     private final ObservableList<CountryModel> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
-    private final EventHandler<CustomerSuccessEvent> onCustomerInserted;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentAdded;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentUpdated;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentDeleted;
-    private WeakEventHandler<CustomerSuccessEvent> insertedHandler;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedName;
     private StringBinding normalizedAddress1;
@@ -169,9 +167,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     @ModelEditor
     private CustomerModel model;
-
-    @ModelEditor
-    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -235,7 +230,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
 
     public EditCustomer() {
         addressCustomerCount = new ReadOnlyIntegerWrapper(this, "addressCustomerCount", 0);
-        selectedAddress = new ReadOnlyObjectWrapper<>(this, "selectedAddress", new AddressModel(new AddressDAO()));
+        selectedAddress = new ReadOnlyObjectWrapper<>(this, "selectedAddress", AddressModel.FACTORY.createNew(new AddressDAO()));
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
@@ -251,7 +246,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 AppointmentDAO dao = event.getDataAccessObject();
                 AppointmentFilterItem filter = selectedFilter.get();
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    customerAppointments.add(new AppointmentModel(dao));
+                    customerAppointments.add(AppointmentModel.FACTORY.createNew(dao));
                 }
             }
         };
@@ -267,7 +262,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                     }
                 } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey()
                         : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    customerAppointments.add(new AppointmentModel(dao));
+                    customerAppointments.add(AppointmentModel.FACTORY.createNew(dao));
                 }
             }
         };
@@ -277,20 +272,21 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 customerAppointments.remove(t);
             });
         };
-        onCustomerInserted = (CustomerSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCustomerInserted", event);
-            model.dataObject().removeEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
-            restoreNode(appointmentFilterComboBox);
-            restoreNode(appointmentsTableView);
-            restoreNode(addAppointmentButtonBar);
-            windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
-            initializeEditMode();
-            appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
-            updateValidation();
-        };
+    }
+
+    @ModelEditor
+    private void onModelInserted(CustomerEvent event) {
+        LOG.entering(LOG.getName(), "onModelInserted", event);
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
+        restoreNode(appointmentFilterComboBox);
+        restoreNode(appointmentsTableView);
+        restoreNode(addAppointmentButtonBar);
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+        initializeEditMode();
+        appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
+        updateValidation();
     }
 
     @FXML
@@ -532,10 +528,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             collapseNode(addAppointmentButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCUSTOMER));
             waitBorderPane.startNow(pane, new NewDataLoadTask());
-            if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(onCustomerInserted);
-                model.dataObject().addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            }
         } else {
             initializeEditMode();
             waitBorderPane.startNow(pane, new EditDataLoadTask());
@@ -607,7 +599,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> modelFactory() {
         return CustomerModel.FACTORY;
     }
 
@@ -618,7 +610,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         if (null != addrItem && addrItem instanceof AddressModel) {
             address = (AddressModel) addrItem;
         } else {
-            address = new AddressModel(addressAndCities.getValue1());
+            address = AddressModel.FACTORY.createNew(addressAndCities.getValue1());
         }
         selectedAddress.set(address);
         PartialCityModel<? extends PartialCityDAO> city;
@@ -637,8 +629,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
         allCountries.clear();
         allCities.clear();
         cityOptions.clear();
-        countries.forEach((t) -> allCountries.add(new CountryModel(t)));
-        addressAndCities.getValue2().forEach((t) -> allCities.add(new CityModel(t)));
+        countries.forEach((t) -> allCountries.add(CountryModel.FACTORY.createNew(t)));
+        addressAndCities.getValue2().forEach((t) -> allCities.add(CityModel.FACTORY.createNew(t)));
         if (null != country && country.getRowState() != DataRowState.NEW) {
             int pk = country.getPrimaryKey();
             allCountries.stream().filter((t) -> pk == t.getPrimaryKey()).findFirst().ifPresent((t) -> {
@@ -743,7 +735,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
                 allCustomers.stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
             }
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
-                result.getValue1().stream().map((t) -> new AppointmentModel(t)).forEach(customerAppointments::add);
+                result.getValue1().stream().map((t) -> AppointmentModel.FACTORY.createNew(t)).forEach(customerAppointments::add);
             }
             appointmentFilterComboBox.setOnAction(EditCustomer.this::onAppointmentFilterComboBoxAction);
             waitBorderPane.startNow(new AppointmentReloadTask());
@@ -851,7 +843,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditor<Cus
             customerAppointments.clear();
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
-                    customerAppointments.add(new AppointmentModel(t));
+                    customerAppointments.add(AppointmentModel.FACTORY.createNew(t));
                 });
             }
         }

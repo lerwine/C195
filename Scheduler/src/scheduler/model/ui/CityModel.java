@@ -22,8 +22,10 @@ import scheduler.dao.PartialCountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CityEvent;
 import scheduler.events.CityOpRequestEvent;
+import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
+import scheduler.events.ModelEvent;
 import scheduler.model.City;
 import scheduler.model.CityEntity;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
@@ -47,7 +49,7 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
     private final ReadOnlyStringBindingProperty countryName;
     private final ReadOnlyStringBindingProperty language;
 
-    public CityModel(CityDAO dao) {
+    private CityModel(CityDAO dao) {
         super(dao);
         name = new SimpleStringProperty(this, PROP_NAME, dao.getName());
         country = new SimpleObjectProperty<>(this, PROP_COUNTRY, PartialCountryModel.createModel(dao.getCountry()));
@@ -139,7 +141,22 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent> {
+    @Override
+    protected void onModelInserted(ModelEvent<CityDAO, ? extends EntityModelImpl<CityDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel#onModelInserted
+    }
+
+    @Override
+    protected void onModelUpdated(ModelEvent<CityDAO, ? extends EntityModelImpl<CityDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel#onModelUpdated
+    }
+
+    @Override
+    protected void onModelDeleted(ModelEvent<CityDAO, ? extends EntityModelImpl<CityDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel#onModelDeleted
+    }
+
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -158,7 +175,7 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
         }
 
         @Override
-        public CityModel createNew(CityDAO dao) {
+        protected CityModel onCreateNew(CityDAO dao) {
             return new CityModel(dao);
         }
 
@@ -261,6 +278,16 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
         @Override
         public CityOpRequestEvent createDeleteRequestEvent(CityModel model, Object source) {
             return new CityOpRequestEvent(model, source, true);
+        }
+
+        @Override
+        public Class<CityEvent> getModelEventClass() {
+            return CityEvent.class;
+        }
+
+        @Override
+        public EventType<CitySuccessEvent> getSuccessEventType() {
+            return CitySuccessEvent.SUCCESS_EVENT_TYPE;
         }
 
         @Override

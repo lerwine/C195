@@ -2,10 +2,10 @@ package scheduler.model.ui;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import scheduler.dao.PartialUserDAO;
 import scheduler.dao.UserDAO;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
-import scheduler.dao.PartialUserDAO;
 
 /**
  *
@@ -24,7 +24,7 @@ public interface PartialUserModel<T extends PartialUserDAO> extends User, Partia
             return null;
         }
         if (t instanceof UserDAO) {
-            return new UserModel((UserDAO) t);
+            return UserModel.FACTORY.createNew((UserDAO) t);
         }
 
         return new PartialUserModelImpl(t);

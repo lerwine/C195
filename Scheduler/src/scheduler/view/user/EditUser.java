@@ -101,7 +101,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO, UserModel, UserEvent> {
+public final class EditUser extends VBox implements EditItem.ModelEditorController<UserDAO, UserModel, UserEvent> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
@@ -122,11 +122,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     private final ObservableList<UserStatus> userActiveStateOptions;
     private final ObservableList<AppointmentModel> userAppointments;
     private final ObservableList<AppointmentFilterItem> filterOptions;
-    private final EventHandler<UserSuccessEvent> onUserInserted;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentAdded;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentUpdated;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentDeleted;
-    private WeakEventHandler<UserSuccessEvent> insertedHandler;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedUserName;
     private BooleanBinding validationBinding;
@@ -135,9 +133,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
 
     @ModelEditor
     private UserModel model;
-
-    @ModelEditor
-    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -189,7 +184,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 AppointmentDAO dao = event.getDataAccessObject();
                 AppointmentFilterItem filter = selectedFilter.get();
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    userAppointments.add(new AppointmentModel(dao));
+                    userAppointments.add(AppointmentModel.FACTORY.createNew(dao));
                 }
             }
         };
@@ -205,7 +200,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                         userAppointments.remove(m);
                     }
                 } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    userAppointments.add(new AppointmentModel(dao));
+                    userAppointments.add(AppointmentModel.FACTORY.createNew(dao));
                 }
             }
         };
@@ -215,18 +210,19 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
                 userAppointments.remove(t);
             });
         };
-        onUserInserted = (UserSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onUserInserted", event);
-            model.dataObject().removeEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            changePasswordCheckBox.setDisable(false);
-            changePasswordCheckBox.setSelected(false);
-            restoreNode(appointmentsFilterComboBox);
-            restoreNode(appointmentsTableView);
-            initEditMode();
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
-        };
+    }
+
+    @ModelEditor
+    private void onModelInserted(UserEvent event) {
+        LOG.entering(LOG.getName(), "onModelInserted", event);
+        changePasswordCheckBox.setDisable(false);
+        changePasswordCheckBox.setSelected(false);
+        restoreNode(appointmentsFilterComboBox);
+        restoreNode(appointmentsTableView);
+        initEditMode();
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
     @FXML
@@ -382,10 +378,6 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             collapseNode(appointmentsFilterComboBox);
             collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
-            if (keepOpen) {
-                insertedHandler = new WeakEventHandler<>(onUserInserted);
-                model.dataObject().addEventHandler(UserSuccessEvent.INSERT_SUCCESS, insertedHandler);
-            }
         } else {
             waitBorderPane.startNow(pane, new InitialLoadTask());
             initEditMode();
@@ -457,7 +449,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> modelFactory() {
         return UserModel.FACTORY;
     }
 
@@ -546,7 +538,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditor<UserDAO
             List<AppointmentDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
-                    userAppointments.add(new AppointmentModel(t));
+                    userAppointments.add(AppointmentModel.FACTORY.createNew(t));
                 });
             }
             loadUsers(users);

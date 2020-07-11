@@ -486,7 +486,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent> getModelFactory() {
+    protected EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 

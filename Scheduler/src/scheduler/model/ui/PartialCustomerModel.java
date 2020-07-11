@@ -64,7 +64,7 @@ public interface PartialCustomerModel<T extends PartialCustomerDAO> extends Cust
             return null;
         }
         if (t instanceof CustomerDAO) {
-            return new CustomerModel((CustomerDAO) t);
+            return CustomerModel.FACTORY.createNew((CustomerDAO) t);
         }
 
         return new PartialCustomerModelImpl(t);

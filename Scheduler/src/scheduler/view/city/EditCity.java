@@ -102,7 +102,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO, CityModel, CityEvent> {
+public final class EditCity extends VBox implements EditItem.ModelEditorController<CityDAO, CityModel, CityEvent> {
 
     private static final Object TARGET_COUNTRY_KEY = new Object();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
@@ -127,20 +127,15 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CountryModel> countryOptionList;
     private final ObservableList<AddressModel> addressItemList;
-    private final EventHandler<CitySuccessEvent> onCityInserted;
     private final EventHandler<AddressSuccessEvent> onAddressAdded;
     private final EventHandler<AddressSuccessEvent> onAddressUpdated;
     private final EventHandler<AddressSuccessEvent> onAddressDeleted;
-    private WeakEventHandler<CitySuccessEvent> cityInsertedHandler;
     private ObjectBinding<CountryModel> selectedCountry;
     private StringBinding normalizedName;
     private StringBinding nameValidationMessage;
 
     @ModelEditor
     private CityModel model;
-
-    @ModelEditor
-    private boolean keepOpen;
 
     @ModelEditor
     private WaitBorderPane waitBorderPane;
@@ -180,7 +175,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             if (model.getRowState() != DataRowState.NEW) {
                 AddressDAO dao = event.getDataAccessObject();
                 if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                    addressItemList.add(new AddressModel(dao));
+                    addressItemList.add(AddressModel.FACTORY.createNew(dao));
                 }
             }
         };
@@ -195,7 +190,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                         addressItemList.remove(m);
                     }
                 } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                    addressItemList.add(new AddressModel(dao));
+                    addressItemList.add(AddressModel.FACTORY.createNew(dao));
                 }
             }
         };
@@ -205,17 +200,18 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
                 addressItemList.remove(t);
             });
         };
-        onCityInserted = (CitySuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCityInserted", event);
-            model.dataObject().removeEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(cityInsertedHandler));
-            restoreNode(addressesLabel);
-            restoreNode(addressesTableView);
-            restoreNode(addCityButtonBar);
-            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressAdded));
-            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressUpdated));
-            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressDeleted));
-            initializeEditMode();
-        };
+    }
+
+    @ModelEditor
+    private void onModelInserted(CityEvent event) {
+        LOG.entering(LOG.getName(), "onModelInserted", event);
+        restoreNode(addressesLabel);
+        restoreNode(addressesTableView);
+        restoreNode(addCityButtonBar);
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressAdded));
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressUpdated));
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressDeleted));
+        initializeEditMode();
     }
 
     @FXML
@@ -341,10 +337,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
             collapseNode(addressesTableView);
             collapseNode(addCityButtonBar);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCITY));
-            if (keepOpen) {
-                cityInsertedHandler = new WeakEventHandler<>(EditCity.this.onCityInserted);
-                model.dataObject().addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertedHandler);
-            }
         } else {
             waitBorderPane.startNow(pane, new EditDataLoadTask());
             initializeEditMode();
@@ -390,7 +382,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditor<CityDAO
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent> modelFactory() {
+    public EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> modelFactory() {
         return CityModel.FACTORY;
     }
 

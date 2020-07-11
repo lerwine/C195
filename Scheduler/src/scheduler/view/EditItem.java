@@ -1,10 +1,13 @@
 package scheduler.view;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -41,6 +44,7 @@ import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.annotations.ModelEditor;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -49,50 +53,59 @@ import scheduler.view.task.WaitBorderPane;
  * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
  * values for the {@link EntityModelImpl#getCreatedBy()}, {@link EntityModelImpl#getCreateDate()}, {@link EntityModelImpl#getLastModifiedBy()} and
  * {@link EntityModelImpl#getLastModifiedDate()} properties. Properties that are specific to the {@link EntityModelImpl} type are edited in a child
- * {@link EditItem.ModelEditor} custom control.</p>
+ * {@link EditItem.ModelEditorController} custom control.</p>
  * <p>
  * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method.</p>
  * <p>
- * The view for this controller is {@code /resources/scheduler/view/EditItem.fxml}.</p>
+ * The child {@link EditItem.ModelEditorController} can be initialized with the current {@link EntityModelImpl} by annotating a field named
+ * {@code "model"} with {@link ModelEditor}. It can also be initialized with the current {@link WaitBorderPane} by annotating a field named
+ * {@code "waitBorderPane"} with {@link ModelEditor}</p>
+ * <p>
+ * The child {@link EditItem.ModelEditorController} can be notified when a new {@link EntityModelImpl} has been successfully saved and the edit window
+ * is going to remain open by annotating a method named {@code "onModelInserted"} having a single parameter, that is the same as the generic event
+ * type, with {@link ModelEditor}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data access object that the model represents.
  * @param <U> The type of model being edited.
  * @param <S> The content node.
- * @param <E> The {@link ModelEvent} type.
+ * @param <E> The base {@link ModelEvent} type.
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
+
+    private static final String FIELD_NAME_WAIT_BORDER_PANE = "waitBorderPane";
+    private static final String FIELD_NAME_MODEL = "model";
+    private static final String METHOD_NAME_ON_MODEL_INSERTED = "onModelInserted";
 
     /**
      * Opens a new window for editing an {@link EntityModelImpl} item.
      *
      * @param <T> The type of data access object.
      * @param <U> The type of {@link EntityModelImpl} that corresponds to the data access object.
-     * @param <S> The type of {@link ModelEditor} control for editing the model properties.
+     * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
-     * @param parentWindow The parent window
-     * @param editorRegion
-     * @param model
-     * @param keepOpen
-     * @return
-     * @throws IOException
+     * @param parentWindow The parent window.
+     * @param editorRegion The {@link EditItem.ModelEditorController} that will be used for editing the entity-specific {@link EntityModelImpl}
+     * properties.
+     * @param model The {@link EntityModelImpl} to be edited.
+     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModelImpl}; otherwise {@code false} to close the window
+     * immediately after a successful insert.
+     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModelImpl} properties or
+     * {@code null} if the {@code model} was not successfully saved to the database.
+     * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
-        try {
-            AnnotationHelper.injectModelEditorField(model, "model", editorRegion);
-            AnnotationHelper.injectModelEditorField(keepOpen, "keepOpen", editorRegion);
-            AnnotationHelper.injectModelEditorField(result.waitBorderPane, "waitBorderPane", editorRegion);
-        } catch (IllegalAccessException ex) {
-            throw new IOException("Error injecting fields", ex);
-        }
+        Class<ModelEditor> annotationClass = ModelEditor.class;
+        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
+        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, result.waitBorderPane);
         ViewControllerLoader.initializeCustomControl(editorRegion);
         StageManager.showAndWait(result, parentWindow);
         return (result.model.isNewRow()) ? null : result.model;
@@ -103,16 +116,19 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
      *
      * @param <T> The type of data access object.
      * @param <U> The type of {@link EntityModelImpl} that corresponds to the data access object.
-     * @param <S> The type of {@link ModelEditor} control for editing the model properties.
+     * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
-     * @param parentWindow The parent window
-     * @param editorType
-     * @param model
-     * @param keepOpen
-     * @return
-     * @throws IOException
+     * @param parentWindow The parent window.
+     * @param editorType The {@link EditItem.ModelEditorController} class that will be instantiated for editing the entity-specific
+     * {@link EntityModelImpl} properties.
+     * @param model The {@link EntityModelImpl} to be edited.
+     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModelImpl}; otherwise {@code false} to close the window
+     * immediately after a successful insert.
+     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModelImpl} properties or
+     * {@code null} if the {@code model} was not successfully saved to the database.
+     * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditor<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -127,6 +143,7 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
     private final S editorRegion;
     private final U model;
     private final boolean keepOpen;
+    private final Method onModelInserted;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -166,6 +183,8 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
         this.editorRegion = editorRegion;
         this.model = model;
         this.keepOpen = keepOpen;
+        onModelInserted = (keepOpen) ? AnnotationHelper.getAnnotatedInstanceMethodsByNameAndParameter(editorRegion.getClass(), ModelEditor.class,
+                Void.TYPE, METHOD_NAME_ON_MODEL_INSERTED, editorRegion.modelFactory().getModelEventClass()).findFirst().orElse(null) : null;
     }
 
     @FXML
@@ -223,24 +242,45 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
         LOG.entering(LOG.getName(), "onSaveButtonAction", event);
         editorRegion.applyChanges();
         DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(model);
-        task.setOnSucceeded((e) -> {
-            E result = task.getValue();
-            if (result instanceof ModelFailedEvent) {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
-            } else {
-                switch (result.getOperation()) {
-                    case DB_INSERT:
-                        if (!keepOpen) {
-                            getScene().getWindow().hide();
-                        }
-                        break;
-                    case DB_UPDATE:
-                        getScene().getWindow().hide();
-                        break;
-                }
-            }
-        });
         waitBorderPane.startNow(task);
+        E modelEvent;
+        try {
+            modelEvent = task.get();
+        } catch (InterruptedException | ExecutionException ex) {
+            LOG.log(Level.WARNING, "Failure executing save task", ex);
+            return;
+        }
+        if (modelEvent instanceof ModelFailedEvent) {
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
+        } else {
+            switch (modelEvent.getOperation()) {
+                case DB_INSERT:
+                    if (keepOpen) {
+                        if (null != onModelInserted) {
+                            boolean accessible = onModelInserted.isAccessible();
+                            if (!accessible) {
+                                onModelInserted.setAccessible(true);
+                            }
+                            try {
+                                onModelInserted.invoke(editorRegion, modelEvent);
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                LOG.log(Level.SEVERE, "Error invoking onModelInserted method", ex);
+                            } finally {
+                                if (!accessible) {
+                                    onModelInserted.setAccessible(false);
+                                }
+                            }
+                        }
+                        onEditMode();
+                    } else {
+                        getScene().getWindow().hide();
+                    }
+                    break;
+                case DB_UPDATE:
+                    getScene().getWindow().hide();
+                    break;
+            }
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -314,14 +354,14 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
      * @param <U> The {@link EntityModelImpl} type.
      * @param <E> The {@link ModelEvent} type.
      */
-    public interface ModelEditor<T extends DataAccessObject, U extends EntityModelImpl<T>, E extends ModelEvent<T, U>> {
+    public interface ModelEditorController<T extends DataAccessObject, U extends EntityModelImpl<T>, E extends ModelEvent<T, U>> {
 
         /**
          * Gets the factory object for managing the current {@link EntityModelImpl}.
          *
          * @return The factory object for managing the current {@link EntityModelImpl}.
          */
-        EntityModelImpl.EntityModelFactory<T, U, E> modelFactory();
+        EntityModelImpl.EntityModelFactory<T, U, E, ? extends E> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.

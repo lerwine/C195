@@ -21,6 +21,8 @@ import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerOpRequestEvent;
+import scheduler.events.CustomerSuccessEvent;
+import scheduler.events.ModelEvent;
 import scheduler.model.AddressProperties;
 import static scheduler.model.Customer.MAX_LENGTH_NAME;
 import scheduler.model.CustomerEntity;
@@ -51,7 +53,7 @@ public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements
     private final SimpleBooleanProperty active;
     private final ReadOnlyStringBindingProperty multiLineAddress;
 
-    public CustomerModel(CustomerDAO dao) {
+    private CustomerModel(CustomerDAO dao) {
         super(dao);
         name = new NonNullableStringProperty(this, PROP_NAME, dao.getName());
         address = new SimpleObjectProperty<>(this, PROP_ADDRESS, PartialAddressModel.createModel(dao.getAddress()));
@@ -250,7 +252,22 @@ public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent> {
+    @Override
+    protected void onModelInserted(ModelEvent<CustomerDAO, ? extends EntityModelImpl<CustomerDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#onModelInserted
+    }
+
+    @Override
+    protected void onModelUpdated(ModelEvent<CustomerDAO, ? extends EntityModelImpl<CustomerDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#onModelUpdated
+    }
+
+    @Override
+    protected void onModelDeleted(ModelEvent<CustomerDAO, ? extends EntityModelImpl<CustomerDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#onModelDeleted
+    }
+
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -268,7 +285,7 @@ public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements
         }
 
         @Override
-        public CustomerModel createNew(CustomerDAO dao) {
+        protected CustomerModel onCreateNew(CustomerDAO dao) {
             return new CustomerModel(dao);
         }
 
@@ -346,6 +363,16 @@ public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements
         @Override
         public CustomerOpRequestEvent createDeleteRequestEvent(CustomerModel model, Object source) {
             return new CustomerOpRequestEvent(model, source, true);
+        }
+
+        @Override
+        public Class<CustomerEvent> getModelEventClass() {
+            return CustomerEvent.class;
+        }
+
+        @Override
+        public EventType<CustomerSuccessEvent> getSuccessEventType() {
+            return CustomerSuccessEvent.SUCCESS_EVENT_TYPE;
         }
 
         @Override

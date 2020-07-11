@@ -4,8 +4,8 @@ import java.util.Locale;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import scheduler.dao.CountryDAO;
-import scheduler.model.Country;
 import scheduler.dao.PartialCountryDAO;
+import scheduler.model.Country;
 
 /**
  *
@@ -24,7 +24,7 @@ public interface PartialCountryModel<T extends PartialCountryDAO> extends Countr
             return null;
         }
         if (t instanceof CountryDAO) {
-            return new CountryModel((CountryDAO) t);
+            return CountryModel.FACTORY.createNew((CountryDAO) t);
         }
 
         return new PartialCountryModelImpl(t);

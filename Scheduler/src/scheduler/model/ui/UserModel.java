@@ -12,8 +12,10 @@ import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
+import scheduler.events.ModelEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserOpRequestEvent;
+import scheduler.events.UserSuccessEvent;
 import static scheduler.model.User.MAX_LENGTH_PASSWORD;
 import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserEntity;
@@ -35,7 +37,7 @@ public final class UserModel extends EntityModelImpl<UserDAO> implements Partial
     private final SimpleObjectProperty<UserStatus> status;
     private final ReadOnlyStringBindingProperty statusDisplay;
 
-    public UserModel(UserDAO dao) {
+    private UserModel(UserDAO dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, PROP_USERNAME, dao.getUserName());
         password = new SimpleStringProperty(this, PROP_PASSWORD, "");
@@ -148,7 +150,22 @@ public final class UserModel extends EntityModelImpl<UserDAO> implements Partial
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent> {
+    @Override
+    protected void onModelInserted(ModelEvent<UserDAO, ? extends EntityModelImpl<UserDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel#onModelInserted
+    }
+
+    @Override
+    protected void onModelUpdated(ModelEvent<UserDAO, ? extends EntityModelImpl<UserDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel#onModelUpdated
+    }
+
+    @Override
+    protected void onModelDeleted(ModelEvent<UserDAO, ? extends EntityModelImpl<UserDAO>> event) {
+        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel#onModelDeleted
+    }
+
+    public final static class Factory extends EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> {
 
         // Singleton
         private Factory() {
@@ -164,7 +181,7 @@ public final class UserModel extends EntityModelImpl<UserDAO> implements Partial
         }
 
         @Override
-        public UserModel createNew(UserDAO dao) {
+        protected UserModel onCreateNew(UserDAO dao) {
             return new UserModel(dao);
         }
 
@@ -225,6 +242,16 @@ public final class UserModel extends EntityModelImpl<UserDAO> implements Partial
         @Override
         public UserOpRequestEvent createDeleteRequestEvent(UserModel model, Object source) {
             return new UserOpRequestEvent(model, source, true);
+        }
+
+        @Override
+        public Class<UserEvent> getModelEventClass() {
+            return UserEvent.class;
+        }
+
+        @Override
+        public EventType<UserSuccessEvent> getSuccessEventType() {
+            return UserSuccessEvent.SUCCESS_EVENT_TYPE;
         }
 
         @Override
