@@ -2,6 +2,10 @@ package scheduler.model.ui;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.util.Date;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
@@ -30,6 +34,7 @@ import scheduler.events.ModelEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.model.Address;
+import scheduler.model.Appointment;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
@@ -53,10 +58,25 @@ import scheduler.view.appointment.AppointmentModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AppointmentModel extends EntityModel<AppointmentDAO> implements PartialAppointmentModel<AppointmentDAO>,
-        AppointmentEntity<LocalDateTime> {
+public final class AppointmentModel extends EntityModel<AppointmentDAO> implements Appointment<LocalDateTime>, AppointmentEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
+
+    public static final String PROP_EFFECTIVELOCATION = "effectiveLocation";
+    public static final String PROP_TYPEDISPLAY = "typeDisplay";
+    public static final String PROP_USERSTATUSDISPLAY = "userStatusDisplay";
+    public static final String PROP_USERSTATUS = "userStatus";
+    public static final String PROP_USERNAME = "userName";
+    public static final String PROP_CUSTOMERACTIVE = "customerActive";
+    public static final String PROP_CUSTOMERADDRESSTEXT = "customerAddressText";
+    public static final String PROP_CUSTOMERCITYZIPCOUNTRY = "customerCityZipCountry";
+    public static final String PROP_CUSTOMERPHONE = "customerPhone";
+    public static final String PROP_CUSTOMERPOSTALCODE = "customerPostalCode";
+    public static final String PROP_CUSTOMERCOUNTRYNAME = "customerCountryName";
+    public static final String PROP_CUSTOMERCITYNAME = "customerCityName";
+    public static final String PROP_CUSTOMERADDRESS2 = "customerAddress2";
+    public static final String PROP_CUSTOMERADDRESS1 = "customerAddress1";
+    public static final String PROP_CUSTOMERNAME = "customerName";
 
     public static String calculateEffectiveLocation(final AppointmentType type, final String customerAddress,
             final String url, final String location) {
@@ -257,107 +277,86 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         customer.set(value);
     }
 
-    @Override
     public ObjectProperty<? extends PartialCustomerModel<? extends PartialCustomerDAO>> customerProperty() {
         return customer;
     }
 
-    @Override
     public String getCustomerName() {
         return customerName.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerNameProperty() {
         return customerName;
     }
 
-    @Override
     public String getCustomerAddress1() {
         return customerAddress1.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerAddress1Property() {
         return customerAddress1;
     }
 
-    @Override
     public String getCustomerAddress2() {
         return customerAddress2.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerAddress2Property() {
         return customerAddress2;
     }
 
-    @Override
     public String getCustomerCityName() {
         return customerCityName.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerCityNameProperty() {
         return customerCityName;
     }
 
-    @Override
     public String getCustomerCountryName() {
         return customerCountryName.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerCountryNameProperty() {
         return customerCountryName;
     }
 
-    @Override
     public String getCustomerPostalCode() {
         return customerPostalCode.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerPostalCodeProperty() {
         return customerPostalCode;
     }
 
-    @Override
     public String getCustomerPhone() {
         return customerPhone.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerPhoneProperty() {
         return customerPhone;
     }
 
-    @Override
     public String getCustomerCityZipCountry() {
         return customerCityZipCountry.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerCityZipCountryProperty() {
         return customerCityZipCountry;
     }
 
-    @Override
     public String getCustomerAddressText() {
         return customerAddressText.get();
     }
 
-    @Override
     public ReadOnlyStringProperty customerAddressTextProperty() {
         return customerAddressText;
     }
 
-    @Override
     public boolean isCustomerActive() {
         return customerActive.get();
     }
 
-    @Override
     public ReadOnlyBooleanProperty customerActiveProperty() {
         return customerActive;
     }
@@ -371,37 +370,30 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         user.set(value);
     }
 
-    @Override
     public ObjectProperty<PartialUserModel<? extends PartialUserDAO>> userProperty() {
         return user;
     }
 
-    @Override
     public String getUserName() {
         return userName.get();
     }
 
-    @Override
     public ReadOnlyStringProperty userNameProperty() {
         return userName;
     }
 
-    @Override
     public UserStatus getUserStatus() {
         return userStatus.get();
     }
 
-    @Override
     public ReadOnlyObjectProperty<UserStatus> userStatusProperty() {
         return userStatus;
     }
 
-    @Override
     public String getUserStatusDisplay() {
         return userStatusDisplay.get();
     }
 
-    @Override
     public ReadOnlyStringProperty userStatusDisplayProperty() {
         return userStatusDisplay;
     }
@@ -415,7 +407,6 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         title.set(value);
     }
 
-    @Override
     public StringProperty titleProperty() {
         return title;
     }
@@ -429,7 +420,6 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         description.set(value);
     }
 
-    @Override
     public StringProperty descriptionProperty() {
         return description;
     }
@@ -443,17 +433,14 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         location.set(value);
     }
 
-    @Override
     public StringProperty locationProperty() {
         return location;
     }
 
-    @Override
     public String getEffectiveLocation() {
         return effectiveLocation.get();
     }
 
-    @Override
     public ReadOnlyStringProperty effectiveLocationProperty() {
         return effectiveLocation;
     }
@@ -467,7 +454,6 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         contact.set(value);
     }
 
-    @Override
     public StringProperty contactProperty() {
         return contact;
     }
@@ -481,17 +467,14 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         type.set(value);
     }
 
-    @Override
     public SimpleObjectProperty<AppointmentType> typeProperty() {
         return type;
     }
 
-    @Override
     public String getTypeDisplay() {
         return typeDisplay.get();
     }
 
-    @Override
     public ReadOnlyStringProperty typeDisplayProperty() {
         return typeDisplay;
     }
@@ -505,7 +488,6 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         url.set(value);
     }
 
-    @Override
     public StringProperty urlProperty() {
         return url;
     }
@@ -519,7 +501,6 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         start.set(value);
     }
 
-    @Override
     public ObjectProperty<LocalDateTime> startProperty() {
         return start;
     }
@@ -533,9 +514,110 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         end.set(value);
     }
 
-    @Override
     public ObjectProperty<LocalDateTime> endProperty() {
         return end;
+    }
+
+    @Override
+    public boolean startEquals(Object value) {
+        LocalDateTime start = getStart();
+        if (null == start) {
+            return null == value;
+        }
+
+        if (null == value) {
+            return false;
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return start.equals((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return start.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+        return value instanceof Timestamp && start.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
+    }
+
+    @Override
+    public int compareStart(Object value) {
+        LocalDateTime start = getStart();
+        if (null == start) {
+            return (null == value) ? 0 : 1;
+        }
+
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return start.compareTo((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return start.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+
+        if (value instanceof Timestamp) {
+            return start.compareTo(((Timestamp) value).toLocalDateTime());
+        }
+
+        if (value instanceof Date) {
+            return start.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    @Override
+    public boolean endEquals(Object value) {
+        LocalDateTime end = getEnd();
+        if (null == end) {
+            return null == value;
+        }
+
+        if (null == value) {
+            return false;
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return end.equals((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return end.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+        return value instanceof Timestamp && end.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
+    }
+
+    @Override
+    public int compareEnd(Object value) {
+        LocalDateTime end = getEnd();
+        if (null == end) {
+            return (null == value) ? 0 : 1;
+        }
+
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof ChronoLocalDateTime) {
+            return end.compareTo((ChronoLocalDateTime<?>) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return end.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+        }
+
+        if (value instanceof Timestamp) {
+            return end.compareTo(((Timestamp) value).toLocalDateTime());
+        }
+
+        if (value instanceof Date) {
+            return end.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
+        }
+
+        throw new IllegalArgumentException();
     }
 
     @Override

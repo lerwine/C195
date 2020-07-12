@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -25,6 +26,7 @@ import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
+import scheduler.model.UserEntity;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.UserModel;
 import scheduler.util.InternalException;
@@ -41,13 +43,13 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.USER)
-public final class UserDAO extends DataAccessObject implements IUserDAO {
+public final class UserDAO extends DataAccessObject implements PartialUserDAO, UserEntity<Timestamp> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(UserDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(UserDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    
+
     private final OriginalValues originalValues;
     private String userName;
     // PENDING: Change to using something that can accept raw password and produce hash.

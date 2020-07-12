@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
@@ -30,6 +31,7 @@ import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.City;
+import scheduler.model.CityEntity;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CityModel;
@@ -53,7 +55,7 @@ import scheduler.view.country.EditCountryResourceKeys;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CITY)
-public final class CityDAO extends DataAccessObject implements ICityDAO {
+public final class CityDAO extends DataAccessObject implements PartialCityDAO, CityEntity<Timestamp> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CityDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());

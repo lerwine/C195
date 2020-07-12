@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
@@ -24,6 +25,7 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
 import scheduler.model.Country;
+import scheduler.model.CountryEntity;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.CountryModel;
@@ -42,13 +44,13 @@ import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECON
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.COUNTRY)
-public final class CountryDAO extends DataAccessObject implements ICountryDAO {
+public final class CountryDAO extends DataAccessObject implements PartialCountryDAO, CountryEntity<Timestamp> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CountryDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CountryDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
-    
+
     private final OriginalValues originalValues;
     private String name;
     private Locale locale;

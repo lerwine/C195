@@ -44,6 +44,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
+import scheduler.model.DataEntity;
 import scheduler.model.ui.EntityModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DateTimeUtil;
@@ -65,7 +66,7 @@ import scheduler.view.task.WaitBorderPane;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class DataAccessObject extends PropertyBindable implements IDataAccessObject, EventTarget {
+public abstract class DataAccessObject extends PropertyBindable implements PartialDataAccessObject, DataEntity<Timestamp>, EventTarget {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
@@ -842,8 +843,8 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         /**
          * Gets the {@link EntityModel} that wraps the target {@link DataAccessObject}.
          *
-         * @return The {@link EntityModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target
-         * {@link DataAccessObject} was provided to this task.
+         * @return The {@link EntityModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target {@link DataAccessObject}
+         * was provided to this task.
          */
         public M getEntityModel() {
             return fxRecordModel.get();

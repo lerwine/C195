@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +36,7 @@ import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.model.Appointment;
+import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
@@ -57,7 +60,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalizedMultiLine;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.APPOINTMENT)
-public final class AppointmentDAO extends DataAccessObject implements IAppointmentDAO {
+public final class AppointmentDAO extends DataAccessObject implements PartialDataAccessObject, Appointment<Timestamp>, AppointmentEntity<Timestamp> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
@@ -304,6 +307,110 @@ public final class AppointmentDAO extends DataAccessObject implements IAppointme
         Timestamp oldValue = this.end;
         this.end = Objects.requireNonNull(value);
         firePropertyChange(PROP_END, oldValue, this.end);
+    }
+
+    @Override
+    public boolean startEquals(Object value) {
+        Timestamp start = getStart();
+        if (null == start) {
+            return null == value;
+        }
+
+        if (null == value) {
+            return false;
+        }
+
+        if (value instanceof Date) {
+            return start.equals((Date) value);
+        }
+
+        Timestamp other;
+        if (value instanceof ZonedDateTime) {
+            other = DateTimeUtil.toUtcTimestamp((ZonedDateTime) value);
+        } else if (value instanceof LocalDateTime) {
+            other = DateTimeUtil.toUtcTimestamp((LocalDateTime) value);
+        } else {
+            return false;
+        }
+        return start.equals(other);
+    }
+
+    @Override
+    public int compareStart(Object value) {
+        Timestamp start = getStart();
+        if (null == start) {
+            return (null == value) ? 0 : 1;
+        }
+
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof Date) {
+            return start.compareTo((Date) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return start.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
+        }
+
+        if (value instanceof LocalDateTime) {
+            return start.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    @Override
+    public boolean endEquals(Object value) {
+        Timestamp end = getEnd();
+        if (null == end) {
+            return null == value;
+        }
+
+        if (null == value) {
+            return false;
+        }
+
+        if (value instanceof Date) {
+            return end.equals((Date) value);
+        }
+
+        Timestamp other;
+        if (value instanceof ZonedDateTime) {
+            other = DateTimeUtil.toUtcTimestamp((ZonedDateTime) value);
+        } else if (value instanceof LocalDateTime) {
+            other = DateTimeUtil.toUtcTimestamp((LocalDateTime) value);
+        } else {
+            return false;
+        }
+        return end.equals(other);
+    }
+
+    @Override
+    public int compareEnd(Object value) {
+        Timestamp end = getEnd();
+        if (null == end) {
+            return (null == value) ? 0 : 1;
+        }
+
+        if (null == value) {
+            return -1;
+        }
+
+        if (value instanceof Date) {
+            return end.compareTo((Date) value);
+        }
+
+        if (value instanceof ZonedDateTime) {
+            return end.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
+        }
+
+        if (value instanceof LocalDateTime) {
+            return end.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
+        }
+
+        throw new IllegalArgumentException();
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.model.Address;
 import scheduler.model.Customer;
+import scheduler.model.CustomerEntity;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CustomerModel;
@@ -45,7 +47,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.CUSTOMER)
-public final class CustomerDAO extends DataAccessObject implements ICustomerDAO {
+public final class CustomerDAO extends DataAccessObject implements PartialCustomerDAO, CustomerEntity<Timestamp> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());

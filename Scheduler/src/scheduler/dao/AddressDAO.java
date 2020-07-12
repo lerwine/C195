@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -31,6 +32,7 @@ import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.model.Address;
+import scheduler.model.AddressEntity;
 import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
@@ -50,7 +52,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.ADDRESS)
-public final class AddressDAO extends DataAccessObject implements IAddressDAO {
+public final class AddressDAO extends DataAccessObject implements PartialAddressDAO, AddressEntity<Timestamp> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AddressDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
