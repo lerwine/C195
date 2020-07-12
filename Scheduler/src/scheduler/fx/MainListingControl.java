@@ -29,7 +29,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -99,7 +99,7 @@ import scheduler.view.ModelFilter;
  * @param <S> The data object success event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>, S extends E> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>, S extends E> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
@@ -139,7 +139,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         onUpdatedEvent = (S event) -> {
             LOG.entering(LOG.getName(), "onUpdatedEvent", event);
             D dao = event.getDataAccessObject();
-            EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> mf = getModelFactory();
+            EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> mf = getModelFactory();
             if (null != mf) {
                 Optional<M> m = mf.find(items, dao);
                 ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
@@ -181,7 +181,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         listingTableView.setItems(items);
 
-        EntityModelImpl.EntityModelFactory<D, M, E, S> factory = getModelFactory();
+        EntityModel.EntityModelFactory<D, M, E, S> factory = getModelFactory();
         factory.addEventHandler(getInsertedEventType(), new WeakEventHandler<>(onInsertedEvent));
         factory.addEventHandler(getUpdatedEventType(), new WeakEventHandler<>(onUpdatedEvent));
         factory.addEventHandler(getDeletedEventType(), new WeakEventHandler<>(onDeletedEvent));
@@ -297,7 +297,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            EntityModelImpl.EntityModelFactory<D, M, E, S> factory = getModelFactory();
+            EntityModel.EntityModelFactory<D, M, E, S> factory = getModelFactory();
             daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add(factory.createNew(t)));
         }
     }
@@ -308,7 +308,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     protected abstract Comparator<? super D> getComparator();
 
-    protected abstract EntityModelImpl.EntityModelFactory<D, M, E, S> getModelFactory();
+    protected abstract EntityModel.EntityModelFactory<D, M, E, S> getModelFactory();
 
     protected abstract String getLoadingTitle();
 

@@ -2,15 +2,15 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <D> The target {@link DataAccessObject} type.
- * @param <M> The associated {@link EntityModelImpl} type.
+ * @param <M> The associated {@link EntityModel} type.
  */
-interface IModelEvent<D extends DataAccessObject, M extends EntityModelImpl<D>> extends Cloneable, java.io.Serializable {
+interface IModelEvent<D extends DataAccessObject, M extends EntityModel<D>> extends Cloneable, java.io.Serializable {
 
     Object getSource();
 

@@ -44,7 +44,7 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
@@ -246,7 +246,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>>
             void addEventHandler(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
@@ -258,7 +258,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>>
             void addEventFilter(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
@@ -270,7 +270,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>>
             void removeEventHandler(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
@@ -282,7 +282,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>>
+    public <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>>
             void removeEventFilter(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
@@ -307,12 +307,12 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
 
     private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
 
-        private final DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModelImpl<T>>> factory;
+        private final DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModel<T>>> factory;
         private final DaoFilter<T> filter;
         private final Consumer<List<T>> onSuccess;
         private final Consumer<Throwable> onFail;
 
-        LoadTask(DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModelImpl<T>>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess,
+        LoadTask(DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModel<T>>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess,
                 Consumer<Throwable> onFail) {
             updateTitle(filter.getLoadingTitle());
             this.factory = Objects.requireNonNull(factory);
@@ -484,7 +484,7 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * @param <D> The type of {@link DataAccessObject} object supported.
      * @param <E> The {@link ModelEvent} type.
      */
-    public static abstract class DaoFactory<D extends DataAccessObject, E extends ModelEvent<D, ? extends EntityModelImpl<D>>>
+    public static abstract class DaoFactory<D extends DataAccessObject, E extends ModelEvent<D, ? extends EntityModel<D>>>
             implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
@@ -798,13 +798,13 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
 
     /**
      * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the
-     * backing {@link EntityModelImpl#dataObject}. When completed, the {@link #finalEvent} is fired on the backing {@link DataAccessObject}.
+     * backing {@link EntityModel#dataObject}. When completed, the {@link #finalEvent} is fired on the backing {@link DataAccessObject}.
      *
      * @param <D> The target {@link DataAccessObject} type.
-     * @param <M> The associated {@link EntityModelImpl} type.
+     * @param <M> The associated {@link EntityModel} type.
      * @param <E> The result {@link ModelEvent} type.
      */
-    public static abstract class DaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>> extends Task<E> {
+    public static abstract class DaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>> extends Task<E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoTask.class.getName());
@@ -815,9 +815,9 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         private final DataRowState originalRowState;
 
         /**
-         * Creates a new {@code DaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
+         * Creates a new {@code DaoTask} for the {@link EntityModel#dataObject DataAccessObject} of a {@link EntityModel}.
          *
-         * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
+         * @param target The {@link EntityModel} that contains the target {@link DataAccessObject}.
          */
         protected DaoTask(M target) {
             dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", target.dataObject());
@@ -840,9 +840,9 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Gets the {@link EntityModelImpl} that wraps the target {@link DataAccessObject}.
+         * Gets the {@link EntityModel} that wraps the target {@link DataAccessObject}.
          *
-         * @return The {@link EntityModelImpl} that wraps the target {@link DataAccessObject} or {@code null} if only the target
+         * @return The {@link EntityModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target
          * {@link DataAccessObject} was provided to this task.
          */
         public M getEntityModel() {
@@ -974,29 +974,29 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations.
      *
      * @param <D> The type of the target {@link DataAccessObject}.
-     * @param <M> The type of associated {@link EntityModelImpl}, if applicable.
+     * @param <M> The type of associated {@link EntityModel}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>>
+    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>>
             extends DaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
-        private final ReadOnlyObjectWrapper<EntityModelImpl.EntityModelFactory<D, M, E, ? extends E>> modelFactory;
+        private final ReadOnlyObjectWrapper<EntityModel.EntityModelFactory<D, M, E, ? extends E>> modelFactory;
         private boolean validationSuccessful;
         private final ReadOnlyBooleanWrapper validationFailed;
 
         /**
-         * Creates a new {@code ValidatingDaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
+         * Creates a new {@code ValidatingDaoTask} for the {@link EntityModel#dataObject DataAccessObject} of a {@link EntityModel}.
          *
-         * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
-         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
+         * @param target The {@link EntityModel} that contains the target {@link DataAccessObject}.
+         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          */
-        protected ValidatingDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
+        protected ValidatingDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
             super(target);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
@@ -1031,16 +1031,16 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
         }
 
         /**
-         * Gets the {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
+         * Gets the {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
          *
-         * @return The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type or {@code null} if a
-         * {@link EntityModelImpl} was not specified in the constructor.
+         * @return The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type or {@code null} if a
+         * {@link EntityModel} was not specified in the constructor.
          */
-        public EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> getModelFactory() {
+        public EntityModel.EntityModelFactory<D, M, E, ? extends E> getModelFactory() {
             return modelFactory.get();
         }
 
-        public ReadOnlyObjectProperty<EntityModelImpl.EntityModelFactory<D, M, E, ? extends E>> modelFactoryProperty() {
+        public ReadOnlyObjectProperty<EntityModel.EntityModelFactory<D, M, E, ? extends E>> modelFactoryProperty() {
             return modelFactory.getReadOnlyProperty();
         }
 
@@ -1089,25 +1089,25 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#UNMODIFIED}.
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
-     * @param <M> The type of associated {@link EntityModelImpl}, if applicable.
+     * @param <M> The type of associated {@link EntityModel}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>>
+    public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>>
             extends ValidatingDaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
 
         /**
-         * Creates a new {@code SaveDaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
+         * Creates a new {@code SaveDaoTask} for the {@link EntityModel#dataObject DataAccessObject} of a {@link EntityModel}.
          *
-         * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
-         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
+         * @param target The {@link EntityModel} that contains the target {@link DataAccessObject}.
+         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
+        protected SaveDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
             super(target, modelFactory, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
@@ -1279,27 +1279,27 @@ public abstract class DataAccessObject extends PropertyBindable implements IData
      * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
-     * @param <M> The type of associated {@link EntityModelImpl}, if applicable.
+     * @param <M> The type of associated {@link EntityModel}, if applicable.
      * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends ModelEvent<D, M>>
+    public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>>
             extends ValidatingDaoTask<D, M, E> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteDaoTask.class.getName());
 
         /**
-         * Creates a new {@code DeleteDaoTask} for the {@link EntityModelImpl#dataObject DataAccessObject} of a {@link EntityModelImpl}.
+         * Creates a new {@code DeleteDaoTask} for the {@link EntityModel#dataObject DataAccessObject} of a {@link EntityModel}.
          *
-         * @param target The {@link EntityModelImpl} that contains the target {@link DataAccessObject}.
-         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModelImpl} type.
+         * @param target The {@link EntityModel} that contains the target {@link DataAccessObject}.
+         * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
          * {@link #validate(Connection)} to perform validation.
          * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or
          * {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M target, EntityModelImpl.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
+        protected DeleteDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
             super(target, modelFactory, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:

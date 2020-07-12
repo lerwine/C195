@@ -16,6 +16,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGCITIES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
+import scheduler.dao.CountryDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.PartialCountryDAO;
@@ -40,7 +41,7 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CityModel extends EntityModelImpl<CityDAO> implements PartialCityModel<CityDAO>, CityEntity<LocalDateTime> {
+public final class CityModel extends EntityModel<CityDAO> implements PartialCityModel<CityDAO>, CityEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -55,6 +56,22 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
         country = new SimpleObjectProperty<>(this, PROP_COUNTRY, PartialCountryModel.createModel(dao.getCountry()));
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, PartialCountryModel.PROP_LANGUAGE));
+    }
+
+    @Override
+    protected void onModelSaved(ModelEvent<CityDAO, ? extends EntityModel<CityDAO>> event) {
+        CityDAO dao = event.getDataAccessObject();
+        name.set(dao.getName());
+        PartialCountryModel<? extends PartialCountryDAO> currentCountry = country.get();
+        PartialCountryDAO newCountry = dao.getCountry();
+        if (null == currentCountry || null == newCountry) {
+            country.set(PartialCountryModel.createModel(dao.getCountry()));
+        } else {
+            PartialCountryDAO currentDao = currentCountry.dataObject();
+            if (currentDao != newCountry && !(ModelHelper.areSameRecord(currentDao, newCountry) && currentDao instanceof CountryDAO)) {
+                country.set(PartialCountryModel.createModel(dao.getCountry()));
+            }
+        }
     }
 
     @Override
@@ -141,22 +158,7 @@ public final class CityModel extends EntityModelImpl<CityDAO> implements Partial
                 .addString(lastModifiedByProperty());
     }
 
-    @Override
-    protected void onModelInserted(ModelEvent<CityDAO, ? extends EntityModelImpl<CityDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel#onModelInserted
-    }
-
-    @Override
-    protected void onModelUpdated(ModelEvent<CityDAO, ? extends EntityModelImpl<CityDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel#onModelUpdated
-    }
-
-    @Override
-    protected void onModelDeleted(ModelEvent<CityDAO, ? extends EntityModelImpl<CityDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CityModel#onModelDeleted
-    }
-
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());

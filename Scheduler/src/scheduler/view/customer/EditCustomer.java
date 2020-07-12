@@ -66,7 +66,7 @@ import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.PartialAddressModel;
 import scheduler.model.ui.PartialCityModel;
 import scheduler.model.ui.PartialCountryModel;
@@ -599,7 +599,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> modelFactory() {
         return CustomerModel.FACTORY;
     }
 

@@ -47,7 +47,7 @@ import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.PartialAddressModel;
 import scheduler.model.ui.PartialCityModel;
 import scheduler.model.ui.PartialCountryModel;
@@ -486,7 +486,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> getModelFactory() {
+    protected EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 

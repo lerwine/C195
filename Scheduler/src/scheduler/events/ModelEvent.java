@@ -8,11 +8,11 @@ import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.util.LogHelper;
 
 /**
- * Base class for {@code Event}s that affect {@link DataAccessObject}s and can also include an associated {@link EntityModelImpl}.
+ * Base class for {@code Event}s that affect {@link DataAccessObject}s and can also include an associated {@link EntityModel}.
  * <h3>Event Dispatch Chains</h3>
  * <dl>
  * <dt>{@link scheduler.dao.DataAccessObject.DaoTask}: {@link scheduler.dao.DataAccessObject.DaoTask#succeeded() succeeded()} | {@link scheduler.dao.DataAccessObject.DaoTask#cancelled() cancelled()} | {@link scheduler.dao.DataAccessObject.DaoTask#failed() failed()}</dt>
@@ -387,9 +387,9 @@ import scheduler.util.LogHelper;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <D> The type of {@link DataAccessObject}.
- * @param <M> The type of {@link EntityModelImpl}.
+ * @param <M> The type of {@link EntityModel}.
  */
-public abstract class ModelEvent<D extends DataAccessObject, M extends EntityModelImpl<D>> extends Event implements IModelEvent<D, M> {
+public abstract class ModelEvent<D extends DataAccessObject, M extends EntityModel<D>> extends Event implements IModelEvent<D, M> {
 
     private static final long serialVersionUID = -6832461936768738020L;
 
@@ -399,18 +399,18 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends EntityMod
     /**
      * Base {@link EventType} for all {@code ModelEvent}s.
      */
-    public static final EventType<ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>> MODEL_EVENT_TYPE
+    public static final EventType<ModelEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>> MODEL_EVENT_TYPE
             = new EventType<>(ANY, "SCHEDULER_MODEL_EVENT");
 
     @SuppressWarnings("unchecked")
-    public static final String getMessage(ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>> event) {
+    public static final String getMessage(ModelEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>> event) {
         if (event instanceof ModelFailedEvent) {
-            return ((ModelFailedEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>) event).getMessage();
+            return ((ModelFailedEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>) event).getMessage();
         }
         return "";
     }
 
-    public static final <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>, R> R withEvent(E event, Function<E, R> ifFailed,
+    public static final <E extends ModelEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>, R> R withEvent(E event, Function<E, R> ifFailed,
             R otherwise) {
         if (null == event || event instanceof ModelFailedEvent) {
             return ifFailed.apply(event);
@@ -421,9 +421,9 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends EntityMod
     private State state;
 
     /**
-     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link EntityModelImpl} as another {@link ModelEvent}.
+     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link EntityModel} as another {@link ModelEvent}.
      *
-     * @param event The event that will share the same {@link DataAccessObject} and {@link EntityModelImpl}.
+     * @param event The event that will share the same {@link DataAccessObject} and {@link EntityModel}.
      * @param source The object which sent the event or {@code null} to use the same source as the {@code event} parameter.
      * @param target The target to associate with the event or {@code null} to use the same target as the {@code event} parameter.
      * @param eventType The event type.
@@ -436,9 +436,9 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends EntityMod
     }
 
     /**
-     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link EntityModelImpl} as another {@link ModelEvent}.
+     * Creates a new {@link ModelEvent} that shares the same {@link DataAccessObject} and {@link EntityModel} as another {@link ModelEvent}.
      *
-     * @param event The event that will share the same {@link DataAccessObject} and {@link EntityModelImpl}.
+     * @param event The event that will share the same {@link DataAccessObject} and {@link EntityModel}.
      * @param eventType The event type.
      * @param operation The database operation associated with the event {@code null} to use the same operation as the {@code event} parameter.
      */

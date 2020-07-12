@@ -3,10 +3,10 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 
 /**
- * Base {@link ModelEvent} class for requests to edit or delete a {@link DataAccessObject} which may include a related {@link EntityModelImpl}. The
+ * Base {@link ModelEvent} class for requests to edit or delete a {@link DataAccessObject} which may include a related {@link EntityModel}. The
  * {@link ModelEvent#getOperation()} method for this class will return {@link DbOperationType#NONE} for edit requests and
  * {@link DbOperationType#DB_DELETE} for delete requests.
  * <h3>Event Routing</h3>
@@ -94,16 +94,16 @@ import scheduler.model.ui.EntityModelImpl;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <D> The type of {@link DataAccessObject}.
- * @param <M> The type of {@link EntityModelImpl}.
+ * @param <M> The type of {@link EntityModel}.
  */
-public abstract class OperationRequestEvent<D extends DataAccessObject, M extends EntityModelImpl<D>> extends ModelEvent<D, M> {
+public abstract class OperationRequestEvent<D extends DataAccessObject, M extends EntityModel<D>> extends ModelEvent<D, M> {
 
     private static final long serialVersionUID = 6645421544057756121L;
 
     /**
      * Base {@link EventType} for all {@code OperationRequestEvent}s.
      */
-    public static final EventType<OperationRequestEvent<? extends DataAccessObject, ? extends EntityModelImpl<? extends DataAccessObject>>> OP_REQUEST_EVENT
+    public static final EventType<OperationRequestEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>> OP_REQUEST_EVENT
             = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_OP_REQUEST_EVENT");
 
     protected OperationRequestEvent(ModelEvent<D, M> event, Object source, EventTarget target, EventType<? extends OperationRequestEvent<D, M>> eventType, boolean isDelete) {

@@ -32,7 +32,7 @@ import scheduler.view.ModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CountryModel extends EntityModelImpl<CountryDAO> implements PartialCountryModel<CountryDAO>, CountryEntity<LocalDateTime> {
+public final class CountryModel extends EntityModel<CountryDAO> implements PartialCountryModel<CountryDAO>, CountryEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -45,6 +45,11 @@ public final class CountryModel extends EntityModelImpl<CountryDAO> implements P
         locale = new SimpleObjectProperty<>(this, PROP_LOCALE, dao.getLocale());
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
+    }
+
+    @Override
+    protected void onModelSaved(ModelEvent<CountryDAO, ? extends EntityModel<CountryDAO>> event) {
+        locale.set(event.getDataAccessObject().getLocale());
     }
 
     @Override
@@ -117,22 +122,7 @@ public final class CountryModel extends EntityModelImpl<CountryDAO> implements P
                 .addString(lastModifiedByProperty());
     }
 
-    @Override
-    protected void onModelInserted(ModelEvent<CountryDAO, ? extends EntityModelImpl<CountryDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel#onModelInserted
-    }
-
-    @Override
-    protected void onModelUpdated(ModelEvent<CountryDAO, ? extends EntityModelImpl<CountryDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel#onModelUpdated
-    }
-
-    @Override
-    protected void onModelDeleted(ModelEvent<CountryDAO, ? extends EntityModelImpl<CountryDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CountryModel#onModelDeleted
-    }
-
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> {
 
         // Singleton
         private Factory() {

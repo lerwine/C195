@@ -52,7 +52,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.PartialCountryModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
@@ -382,7 +382,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> modelFactory() {
         return CityModel.FACTORY;
     }
 

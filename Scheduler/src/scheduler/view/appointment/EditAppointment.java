@@ -70,7 +70,7 @@ import scheduler.model.UserStatus;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.PartialCustomerModel;
 import scheduler.model.ui.PartialUserModel;
 import scheduler.model.ui.UserModel;
@@ -843,7 +843,7 @@ public final class EditAppointment extends StackPane implements EditItem.ModelEd
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> modelFactory() {
         return AppointmentModel.FACTORY;
     }
 

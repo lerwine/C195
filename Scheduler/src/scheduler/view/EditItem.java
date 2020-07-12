@@ -31,7 +31,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.LogHelper;
@@ -48,20 +48,20 @@ import scheduler.view.annotations.ModelEditor;
 import scheduler.view.task.WaitBorderPane;
 
 /**
- * The parent FXML custom control for editing {@link EntityModelImpl} items in a new modal window.
+ * The parent FXML custom control for editing {@link EntityModel} items in a new modal window.
  * <p>
  * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
- * values for the {@link EntityModelImpl#getCreatedBy()}, {@link EntityModelImpl#getCreateDate()}, {@link EntityModelImpl#getLastModifiedBy()} and
- * {@link EntityModelImpl#getLastModifiedDate()} properties. Properties that are specific to the {@link EntityModelImpl} type are edited in a child
+ * values for the {@link EntityModel#getCreatedBy()}, {@link EntityModel#getCreateDate()}, {@link EntityModel#getLastModifiedBy()} and
+ * {@link EntityModel#getLastModifiedDate()} properties. Properties that are specific to the {@link EntityModel} type are edited in a child
  * {@link EditItem.ModelEditorController} custom control.</p>
  * <p>
  * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method.</p>
  * <p>
- * The child {@link EditItem.ModelEditorController} can be initialized with the current {@link EntityModelImpl} by annotating a field named
+ * The child {@link EditItem.ModelEditorController} can be initialized with the current {@link EntityModel} by annotating a field named
  * {@code "model"} with {@link ModelEditor}. It can also be initialized with the current {@link WaitBorderPane} by annotating a field named
  * {@code "waitBorderPane"} with {@link ModelEditor}</p>
  * <p>
- * The child {@link EditItem.ModelEditorController} can be notified when a new {@link EntityModelImpl} has been successfully saved and the edit window
+ * The child {@link EditItem.ModelEditorController} can be notified when a new {@link EntityModel} has been successfully saved and the edit window
  * is going to remain open by annotating a method named {@code "onModelInserted"} having a single parameter, that is the same as the generic event
  * type, with {@link ModelEditor}.</p>
  *
@@ -73,7 +73,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
+public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
@@ -83,23 +83,23 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
     private static final String METHOD_NAME_ON_MODEL_INSERTED = "onModelInserted";
 
     /**
-     * Opens a new window for editing an {@link EntityModelImpl} item.
+     * Opens a new window for editing an {@link EntityModel} item.
      *
      * @param <T> The type of data access object.
-     * @param <U> The type of {@link EntityModelImpl} that corresponds to the data access object.
+     * @param <U> The type of {@link EntityModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window.
-     * @param editorRegion The {@link EditItem.ModelEditorController} that will be used for editing the entity-specific {@link EntityModelImpl}
+     * @param editorRegion The {@link EditItem.ModelEditorController} that will be used for editing the entity-specific {@link EntityModel}
      * properties.
-     * @param model The {@link EntityModelImpl} to be edited.
-     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModelImpl}; otherwise {@code false} to close the window
+     * @param model The {@link EntityModel} to be edited.
+     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window
      * immediately after a successful insert.
-     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModelImpl} properties or
+     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or
      * {@code null} if the {@code model} was not successfully saved to the database.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
@@ -112,23 +112,23 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
     }
 
     /**
-     * Opens a new window for editing an {@link EntityModelImpl} item.
+     * Opens a new window for editing an {@link EntityModel} item.
      *
      * @param <T> The type of data access object.
-     * @param <U> The type of {@link EntityModelImpl} that corresponds to the data access object.
+     * @param <U> The type of {@link EntityModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window.
      * @param editorType The {@link EditItem.ModelEditorController} class that will be instantiated for editing the entity-specific
-     * {@link EntityModelImpl} properties.
-     * @param model The {@link EntityModelImpl} to be edited.
-     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModelImpl}; otherwise {@code false} to close the window
+     * {@link EntityModel} properties.
+     * @param model The {@link EntityModel} to be edited.
+     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window
      * immediately after a successful insert.
-     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModelImpl} properties or
+     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or
      * {@code null} if the {@code model} was not successfully saved to the database.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModelImpl<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
             U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -346,22 +346,22 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
     }
 
     /**
-     * Base class for editing specific {@link EntityModelImpl} items. Derived controls are intended to be instantiated through the
+     * Base class for editing specific {@link EntityModel} items. Derived controls are intended to be instantiated through the
      * {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method. This control will be inserted as the first child node of the
      * parent {@code EditItem} control.
      *
-     * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link EntityModelImpl}.
-     * @param <U> The {@link EntityModelImpl} type.
+     * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link EntityModel}.
+     * @param <U> The {@link EntityModel} type.
      * @param <E> The {@link ModelEvent} type.
      */
-    public interface ModelEditorController<T extends DataAccessObject, U extends EntityModelImpl<T>, E extends ModelEvent<T, U>> {
+    public interface ModelEditorController<T extends DataAccessObject, U extends EntityModel<T>, E extends ModelEvent<T, U>> {
 
         /**
-         * Gets the factory object for managing the current {@link EntityModelImpl}.
+         * Gets the factory object for managing the current {@link EntityModel}.
          *
-         * @return The factory object for managing the current {@link EntityModelImpl}.
+         * @return The factory object for managing the current {@link EntityModel}.
          */
-        EntityModelImpl.EntityModelFactory<T, U, E, ? extends E> modelFactory();
+        EntityModel.EntityModelFactory<T, U, E, ? extends E> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.
@@ -394,7 +394,7 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModelImp
         ReadOnlyBooleanProperty modifiedProperty();
 
         /**
-         * Applies changes to the underlying {@link EntityModelImpl}.
+         * Applies changes to the underlying {@link EntityModel}.
          */
         void applyChanges();
     }

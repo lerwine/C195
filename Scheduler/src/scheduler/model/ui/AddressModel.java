@@ -15,6 +15,7 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
+import scheduler.dao.CityDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.PartialCityDAO;
@@ -33,6 +34,7 @@ import static scheduler.model.AddressProperties.MAX_LENGTH_POSTALCODE;
 import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
+import scheduler.model.ModelHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -48,7 +50,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AddressModel extends EntityModelImpl<AddressDAO> implements PartialAddressModel<AddressDAO>, AddressEntity<LocalDateTime> {
+public final class AddressModel extends EntityModel<AddressDAO> implements PartialAddressModel<AddressDAO>, AddressEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -197,6 +199,25 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
+    }
+
+    @Override
+    protected void onModelSaved(ModelEvent<AddressDAO, ? extends EntityModel<AddressDAO>> event) {
+        AddressDAO dao = event.getDataAccessObject();
+        address1.set(dao.getAddress1());
+        address2.set(dao.getAddress2());
+        PartialCityModel<? extends PartialCityDAO> currentCity = city.get();
+        PartialCityDAO newCity = dao.getCity();
+        if (null == currentCity || null == newCity) {
+            city.set(PartialCityModel.createModel(dao.getCity()));
+        } else {
+            PartialCityDAO currentDao = currentCity.dataObject();
+            if (currentDao != newCity && !(ModelHelper.areSameRecord(currentDao, newCity) && currentDao instanceof CityDAO)) {
+                city.set(PartialCityModel.createModel(dao.getCity()));
+            }
+        }
+        postalCode.set(dao.getPostalCode());
+        phone.set(dao.getPhone());
     }
 
     @Override
@@ -367,22 +388,7 @@ public final class AddressModel extends EntityModelImpl<AddressDAO> implements P
                 .addString(lastModifiedByProperty());
     }
 
-    @Override
-    protected void onModelInserted(ModelEvent<AddressDAO, ? extends EntityModelImpl<AddressDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#onModelInserted
-    }
-
-    @Override
-    protected void onModelUpdated(ModelEvent<AddressDAO, ? extends EntityModelImpl<AddressDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#onModelUpdated
-    }
-
-    @Override
-    protected void onModelDeleted(ModelEvent<AddressDAO, ? extends EntityModelImpl<AddressDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.AddressModel#onModelDeleted
-    }
-
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());

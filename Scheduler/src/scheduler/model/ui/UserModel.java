@@ -28,7 +28,7 @@ import scheduler.view.user.UserModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class UserModel extends EntityModelImpl<UserDAO> implements PartialUserModel<UserDAO>, UserEntity<LocalDateTime> {
+public final class UserModel extends EntityModel<UserDAO> implements PartialUserModel<UserDAO>, UserEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -40,9 +40,17 @@ public final class UserModel extends EntityModelImpl<UserDAO> implements Partial
     private UserModel(UserDAO dao) {
         super(dao);
         userName = new ReadOnlyStringWrapper(this, PROP_USERNAME, dao.getUserName());
-        password = new SimpleStringProperty(this, PROP_PASSWORD, "");
+        password = new SimpleStringProperty(this, PROP_PASSWORD, dao.getPassword());
         status = new SimpleObjectProperty<>(this, PROP_STATUS, dao.getStatus());
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
+    }
+
+    @Override
+    protected void onModelSaved(ModelEvent<UserDAO, ? extends EntityModel<UserDAO>> event) {
+        UserDAO dao = event.getDataAccessObject();
+        userName.set(dao.getUserName());
+        password.set(dao.getPassword());
+        status.set(dao.getStatus());
     }
 
     @Override
@@ -150,22 +158,7 @@ public final class UserModel extends EntityModelImpl<UserDAO> implements Partial
                 .addString(lastModifiedByProperty());
     }
 
-    @Override
-    protected void onModelInserted(ModelEvent<UserDAO, ? extends EntityModelImpl<UserDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel#onModelInserted
-    }
-
-    @Override
-    protected void onModelUpdated(ModelEvent<UserDAO, ? extends EntityModelImpl<UserDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel#onModelUpdated
-    }
-
-    @Override
-    protected void onModelDeleted(ModelEvent<UserDAO, ? extends EntityModelImpl<UserDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.UserModel#onModelDeleted
-    }
-
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> {
 
         // Singleton
         private Factory() {

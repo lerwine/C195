@@ -1,17 +1,17 @@
 package scheduler.dao.filter;
 
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 
 /**
- * Compares {@link DataAccessObject} and {@link EntityModelImpl} to generic values.
+ * Compares {@link DataAccessObject} and {@link EntityModel} to generic values.
  * 
  @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} object.
- * @param <U> The type of {@link EntityModelImpl} object.
+ * @param <U> The type of {@link EntityModel} object.
  * @param <S> The type of value being compared.
  */
-public interface ItemValueComparer<T extends DataAccessObject, U extends EntityModelImpl<T>, S> {
+public interface ItemValueComparer<T extends DataAccessObject, U extends EntityModel<T>, S> {
     
     /**
      * Gets the integer value associated with the target {@link DataAccessObject}.
@@ -22,10 +22,10 @@ public interface ItemValueComparer<T extends DataAccessObject, U extends EntityM
     S get(T dao);
 
     /**
-     * Gets the integer value associated with the target {@link EntityModelImpl}.
+     * Gets the integer value associated with the target {@link EntityModel}.
      *
-     * @param model The target {@link EntityModelImpl}.
-     * @return The value associated with the target {@link EntityModelImpl}.
+     * @param model The target {@link EntityModel}.
+     * @return The value associated with the target {@link EntityModel}.
      */
     S get(U model);
 
@@ -42,11 +42,11 @@ public interface ItemValueComparer<T extends DataAccessObject, U extends EntityM
     }
 
     /**
-     * Tests whether the value associated with an {@link EntityModelImpl} object is equal to another value.
+     * Tests whether the value associated with an {@link EntityModel} object is equal to another value.
      *
-     * @param model The target {@link EntityModelImpl}.
+     * @param model The target {@link EntityModel}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link EntityModelImpl} object is equal to {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link EntityModel} object is equal to {@code value}; otherwise, {@code false}.
      */
     default boolean test(U model, S value) {
         S s = get(model);

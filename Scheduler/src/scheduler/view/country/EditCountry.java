@@ -45,7 +45,7 @@ import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -382,7 +382,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> modelFactory() {
         return CountryModel.FACTORY;
     }
 

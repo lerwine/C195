@@ -14,7 +14,7 @@ import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 
 /**
  *
@@ -23,7 +23,7 @@ import scheduler.model.ui.EntityModelImpl;
  * @param <M> The target item type.
  * @param <E> The event type.
  */
-public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M extends EntityModelImpl<D>, E extends OperationRequestEvent<D, M>>
+public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M extends EntityModel<D>, E extends OperationRequestEvent<D, M>>
         implements Callback<TableColumn<M, M>, TableCell<M, M>>, EventTarget {
 
 //    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);
@@ -37,7 +37,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>();
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
-            EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> factory = getFactory();
+            EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> factory = getFactory();
             if (null != oldValue) {
                 eventHandlerManager.removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
             }
@@ -74,7 +74,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         return new ItemEditTableCell<>(this);
     }
 
-    public abstract EntityModelImpl.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> getFactory();
+    public abstract EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> getFactory();
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

@@ -51,7 +51,7 @@ import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
@@ -449,7 +449,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> modelFactory() {
         return UserModel.FACTORY;
     }
 

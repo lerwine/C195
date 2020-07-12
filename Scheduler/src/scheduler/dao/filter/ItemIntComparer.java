@@ -7,22 +7,22 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CustomerModel;
 
 /**
- * Compares {@link DataAccessObject} and {@link EntityModelImpl} to integer values.
+ * Compares {@link DataAccessObject} and {@link EntityModel} to integer values.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} object.
- * @param <U> The type of {@link EntityModelImpl} object.
+ * @param <U> The type of {@link EntityModel} object.
  */
-public interface ItemIntComparer<T extends DataAccessObject, U extends EntityModelImpl<T>> {
+public interface ItemIntComparer<T extends DataAccessObject, U extends EntityModel<T>> {
 
-    public static <T extends DataAccessObject, U extends EntityModelImpl<T>> ItemIntComparer<T, U> of(ToIntFunction<T> getDaoValue, ToIntFunction<U> getModelValue) {
+    public static <T extends DataAccessObject, U extends EntityModel<T>> ItemIntComparer<T, U> of(ToIntFunction<T> getDaoValue, ToIntFunction<U> getModelValue) {
         return new ItemIntComparer<T, U>() {
             @Override
             public int get(T dao) {
@@ -36,7 +36,7 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends EntityMod
         };
     }
 
-    public static <T extends DataAccessObject, U extends EntityModelImpl<T>> ItemIntComparer<T, U> forPrimaryKey() {
+    public static <T extends DataAccessObject, U extends EntityModel<T>> ItemIntComparer<T, U> forPrimaryKey() {
         return new ItemIntComparer<T, U>() {
             @Override
             public int get(T dao) {
@@ -119,10 +119,10 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends EntityMod
     int get(T dao);
 
     /**
-     * Gets the integer value associated with the target {@link EntityModelImpl}.
+     * Gets the integer value associated with the target {@link EntityModel}.
      *
-     * @param model The target {@link EntityModelImpl}.
-     * @return The integer value associated with the target {@link EntityModelImpl}.
+     * @param model The target {@link EntityModel}.
+     * @return The integer value associated with the target {@link EntityModel}.
      */
     int get(U model);
 
@@ -138,11 +138,11 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends EntityMod
     }
 
     /**
-     * Tests whether the value associated with an {@link EntityModelImpl} object is equal to another value.
+     * Tests whether the value associated with an {@link EntityModel} object is equal to another value.
      *
-     * @param model The target {@link EntityModelImpl}.
+     * @param model The target {@link EntityModel}.
      * @param value The value to compare.
-     * @return {@code true} if the value associated with a {@link EntityModelImpl} object is equal to {@code value}; otherwise, {@code false}.
+     * @return {@code true} if the value associated with a {@link EntityModel} object is equal to {@code value}; otherwise, {@code false}.
      */
     default boolean test(U model, int value) {
         return get(model) == value;
@@ -164,11 +164,11 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends EntityMod
     /**
      * Compares the value associated with a {@link DataAccessObject} object with another value.
      *
-     * @param model The target {@link EntityModelImpl}.
+     * @param model The target {@link EntityModel}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link EntityModelImpl} object is equal to {@code value}. If the value associated with a
-     * {@link EntityModelImpl} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link EntityModelImpl} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a
+     * {@link EntityModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
+     * associated with a {@link EntityModel} object is greater than {@code value}.
      */
     default int compareTo(U model, int value) {
         return Integer.compare(get(model), value);

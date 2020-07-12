@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventType;
+import scheduler.dao.AddressDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -26,6 +27,7 @@ import scheduler.events.ModelEvent;
 import scheduler.model.AddressProperties;
 import static scheduler.model.Customer.MAX_LENGTH_NAME;
 import scheduler.model.CustomerEntity;
+import scheduler.model.ModelHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -36,7 +38,7 @@ import scheduler.view.customer.CustomerModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements PartialCustomerModel<CustomerDAO>, CustomerEntity<LocalDateTime> {
+public final class CustomerModel extends EntityModel<CustomerDAO> implements PartialCustomerModel<CustomerDAO>, CustomerEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
@@ -70,6 +72,22 @@ public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
                 () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
+    }
+
+    @Override
+    protected void onModelSaved(ModelEvent<CustomerDAO, ? extends EntityModel<CustomerDAO>> event) {
+        CustomerDAO dao = event.getDataAccessObject();
+        name.set(dao.getName());
+        PartialAddressModel<? extends PartialAddressDAO> currentAddress = address.get();
+        PartialAddressDAO newAddress = dao.getAddress();
+        if (null == currentAddress || null == newAddress) {
+            address.set(PartialAddressModel.createModel(dao.getAddress()));
+        } else {
+            PartialAddressDAO currentDao = currentAddress.dataObject();
+            if (currentDao != newAddress && !(ModelHelper.areSameRecord(currentDao, newAddress) && currentDao instanceof AddressDAO)) {
+                address.set(PartialAddressModel.createModel(dao.getAddress()));
+            }
+        }
     }
 
     @Override
@@ -252,22 +270,7 @@ public final class CustomerModel extends EntityModelImpl<CustomerDAO> implements
                 .addString(lastModifiedByProperty());
     }
 
-    @Override
-    protected void onModelInserted(ModelEvent<CustomerDAO, ? extends EntityModelImpl<CustomerDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#onModelInserted
-    }
-
-    @Override
-    protected void onModelUpdated(ModelEvent<CustomerDAO, ? extends EntityModelImpl<CustomerDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#onModelUpdated
-    }
-
-    @Override
-    protected void onModelDeleted(ModelEvent<CustomerDAO, ? extends EntityModelImpl<CustomerDAO>> event) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.model.ui.CustomerModel#onModelDeleted
-    }
-
-    public final static class Factory extends EntityModelImpl.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());

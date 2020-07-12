@@ -59,7 +59,7 @@ import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.CityModel;
 import scheduler.model.ui.CountryModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.PartialCityModel;
 import scheduler.model.ui.PartialCountryModel;
 import scheduler.observables.BindingHelper;
@@ -500,7 +500,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     @Override
-    public EntityModelImpl.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> modelFactory() {
         return AddressModel.FACTORY;
     }
 

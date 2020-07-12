@@ -3,7 +3,7 @@ package scheduler.model;
 import java.util.Objects;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 
 /**
  * Helper class for getting information about {@link PartialDataEntity} objects.
@@ -93,16 +93,16 @@ public class ModelHelper {
     }
 
     /**
-     * Asserts that the properties of a {@link DataAccessObject} can be applied to a {@link EntityModelImpl}.
+     * Asserts that the properties of a {@link DataAccessObject} can be applied to a {@link EntityModel}.
      *
      * @param <T> The {@link DataAccessObject} type.
-     * @param <U> The {@link EntityModelImpl} type.
+     * @param <U> The {@link EntityModel} type.
      * @param source The source {@link DataAccessObject}.
-     * @param targetFxModel The target {@link EntityModelImpl}.
-     * @return The target {@link EntityModelImpl}.
+     * @param targetFxModel The target {@link EntityModel}.
+     * @return The target {@link EntityModel}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends DataAccessObject, U extends EntityModelImpl<T>> U requiresAssignable(T source, U targetFxModel) {
+    public static <T extends DataAccessObject, U extends EntityModel<T>> U requiresAssignable(T source, U targetFxModel) {
         Objects.requireNonNull(source);
         if (null != targetFxModel && targetFxModel.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
                 || targetFxModel.getPrimaryKey() != source.getPrimaryKey())) {
@@ -112,16 +112,16 @@ public class ModelHelper {
     }
 
     /**
-     * Asserts that the properties of a {@link EntityModelImpl} can be applied to a {@link DataAccessObject}.
+     * Asserts that the properties of a {@link EntityModel} can be applied to a {@link DataAccessObject}.
      *
-     * @param <T> The {@link EntityModelImpl} type.
+     * @param <T> The {@link EntityModel} type.
      * @param <U> The {@link DataAccessObject} type.
-     * @param source The source {@link EntityModelImpl}.
+     * @param source The source {@link EntityModel}.
      * @param targetDataAccessObject The target {@link DataAccessObject}.
      * @return The target {@link DataAccessObject}.
      * @throws IllegalArgumentException if the objects do not represent the same entity.
      */
-    public static <T extends EntityModelImpl<U>, U extends DataAccessObject> U requiresAssignable(T source, U targetDataAccessObject) {
+    public static <T extends EntityModel<U>, U extends DataAccessObject> U requiresAssignable(T source, U targetDataAccessObject) {
         Objects.requireNonNull(source);
         if (null != targetDataAccessObject && targetDataAccessObject.getRowState() != DataRowState.NEW && (source.getRowState() == DataRowState.NEW
                 || targetDataAccessObject.getPrimaryKey() != source.getPrimaryKey())) {

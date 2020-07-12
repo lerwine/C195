@@ -42,7 +42,7 @@ import scheduler.model.Customer;
 import scheduler.model.User;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.EntityModelImpl;
+import scheduler.model.ui.EntityModel;
 import scheduler.model.ui.UserModel;
 import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
@@ -432,7 +432,7 @@ public final class StartDateValidationBinding extends ObjectBinding<TernarySelec
 
             if (observable instanceof ReadOnlyObjectProperty) {
                 list = conflictingAppointments;
-                EntityModelImpl<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends EntityModelImpl<? extends DataAccessObject>>) observable).get();
+                EntityModel<? extends DataAccessObject> obj = ((ReadOnlyObjectProperty<? extends EntityModel<? extends DataAccessObject>>) observable).get();
                 if (null != obj) {
                     if (obj instanceof CustomerModel) {
                         sc = (CustomerModel) obj;
