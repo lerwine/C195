@@ -83,7 +83,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.appointment.EditAppointment;
+import scheduler.view.appointment.EditAppointment_old;
 import scheduler.view.city.EditCity;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.customer.EditCustomerResourceKeys.*;
@@ -106,7 +106,7 @@ import scheduler.view.task.WaitTitledPane;
  * <dl>
  * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
+ * <dd>&rarr; {@link EditAppointment_old#edit(AppointmentModel, javafx.stage.Window) EditAppointment_old.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
  * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
@@ -293,7 +293,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private void onAddAppointmentButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onAddAppointmentButtonAction", event);
         try {
-            EditAppointment.editNew(model, null, getScene().getWindow(), false);
+            EditAppointment_old.editNew(model, null, getScene().getWindow(), false);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -342,7 +342,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
     private void editItem(AppointmentModel item) {
         try {
-            EditAppointment.edit(item, getScene().getWindow());
+            EditAppointment_old.edit(item, getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -371,7 +371,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
-                EditAppointment.edit(event.getEntityModel(), getScene().getWindow());
+                EditAppointment_old.edit(event.getEntityModel(), getScene().getWindow());
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, "Error opening child window", ex);
             }

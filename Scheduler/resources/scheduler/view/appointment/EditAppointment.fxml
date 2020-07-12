@@ -6,11 +6,15 @@
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -21,14 +25,15 @@
 <?import javafx.scene.text.Font?>
 <?import scheduler.fx.AddressListCell?>
 <?import scheduler.fx.AddressListCellFactory?>
+<?import scheduler.fx.AmPmListCell?>
+<?import scheduler.fx.AmPmListCellFactory?>
 <?import scheduler.fx.AppointmentTypeListCell?>
 <?import scheduler.fx.AppointmentTypeListCellFactory?>
 <?import scheduler.fx.CustomerListCell?>
 <?import scheduler.fx.CustomerListCellFactory?>
+<?import scheduler.fx.DateTimeTableCellFactory?>
 <?import scheduler.fx.UserListCell?>
 <?import scheduler.fx.UserListCellFactory?>
-<?import scheduler.view.appointment.edit.AppointmentConflictsControl?>
-<?import scheduler.view.appointment.edit.DateRangeControl?>
 
 <fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
@@ -116,7 +121,64 @@
                 </ComboBox>
                 <VBox fx:id="lowerLeftVBox" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
                     <children>
-                        <DateRangeControl fx:id="dateRangeControl" minHeight="122.0" minWidth="335.0" />
+                          <HBox>
+                              <children>
+                                  <Label alignment="BOTTOM_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%startLabelText" HBox.hgrow="ALWAYS" />
+                                  <Button fx:id="checkConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%check">
+                                      <font>
+                                          <Font size="10.0" />
+                                      </font>
+                                  </Button>
+                                  <Button fx:id="showConflictsButton" layoutX="448.0" layoutY="10.0" mnemonicParsing="false" styleClass="small-control" text="%show">
+                                      <font>
+                                          <Font size="10.0" />
+                                      </font>
+                                      <HBox.margin>
+                                          <Insets left="4.0" />
+                                      </HBox.margin>
+                                  </Button>
+                              </children>
+                          </HBox>
+                          <HBox>
+                              <children>
+                                <DatePicker fx:id="startDatePicker" styleClass="topLabeledControl" />
+                                  <TextField fx:id="startHourTextField" prefWidth="45.0" promptText="%hour" styleClass="topLabeledControl">
+                           <HBox.margin>
+                              <Insets left="8.0" />
+                           </HBox.margin>
+                        </TextField>
+                                  <Label text=":" />
+                                  <TextField fx:id="startMinuteTextField" prefWidth="45.0" promptText="%minutes" styleClass="topLabeledControl" />
+                                  <ComboBox fx:id="amPmComboBox" styleClass="topLabeledControl">
+                                      <cellFactory>
+                                          <AmPmListCellFactory />
+                                      </cellFactory>
+                                      <buttonCell>
+                                          <AmPmListCell />
+                                      </buttonCell>
+                                  </ComboBox>
+                              </children>
+                          </HBox>
+                          <Label fx:id="startValidationLabel" text="%required">
+                              <styleClass>
+                                  <String fx:value="validationMessage" />
+                                  <String fx:value="error" />
+                              </styleClass>
+                          </Label>
+                          <Label styleClass="topControlLabel" text="%duration" />
+                          <HBox>
+                              <children>
+                                  <TextField fx:id="durationHourTextField" minWidth="75.0" prefWidth="75.0" promptText="%hours" styleClass="topLabeledControl" />
+                                  <Label text=":" />
+                                  <TextField fx:id="durationMinuteTextField" minWidth="75.0" prefWidth="75.0" promptText="%minutes" styleClass="topLabeledControl" />
+                              </children>
+                          </HBox>
+                          <Label fx:id="durationValidationLabel" text="%required">
+                              <styleClass>
+                                  <String fx:value="validationMessage" />
+                                  <String fx:value="error" />
+                              </styleClass>
+                          </Label>
                         <HBox>
                             <VBox.margin>
                                 <Insets top="6.0" />
@@ -225,7 +287,7 @@
                 </Label>
             </children>
         </GridPane>
-        <BorderPane fx:id="dropdownOptionsBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
+        <BorderPane fx:id="dropdownOptionsBorderPane" minHeight="-Infinity" minWidth="-Infinity">
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" styleClass="bordered-section" BorderPane.alignment="CENTER">
                     <top>
@@ -259,7 +321,112 @@
                     </bottom>
                 </BorderPane>
             </center>
+         <styleClass>
+            <String fx:value="view-modal-mask" />
+            <String fx:value="collapsed" />
+         </styleClass>
         </BorderPane>
-        <AppointmentConflictsControl fx:id="appointmentConflicts" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+        <BorderPane fx:id="appointmentConflictsBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
+            <center>
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+                    <top>
+                        <Label text="%conflictingAppointments">
+                            <styleClass>
+                                <String fx:value="header" />
+                                <String fx:value="h1" />
+                            </styleClass>
+                        </Label>
+                    </top>
+                    <center>
+                        <TableView fx:id="conflictingAppointmentsTableView" styleClass="content">
+                            <columns>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%titleColHeading">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%startColHeading">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%end">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%typeColHeading">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="type" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%customerColHeading">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%userColHeading">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="75.0" prefWidth="-1.0" text="%locationColHeading">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%createdOn" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%createdBy" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%updatedOn" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" prefWidth="75.0" text="%updatedBy" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </center>
+                    <bottom>
+                        <ButtonBar styleClass="footer">
+                            <buttons>
+                                <Button mnemonicParsing="false" onAction="#onCloseConflictsBorderPaneButtonAction" text="%close" />
+                            </buttons>
+                        </ButtonBar>
+                    </bottom>
+                    <styleClass>
+                        <String fx:value="bordered-section" />
+                        <String fx:value="warning" />
+                    </styleClass>
+                </BorderPane>
+            </center>
+         <styleClass>
+            <String fx:value="view-modal-mask" />
+            <String fx:value="collapsed" />
+         </styleClass>
+        </BorderPane>
     </children>
 </fx:root>

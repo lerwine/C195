@@ -71,8 +71,6 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
      * Initializes a new ModelBase object.
      *
      * @param dao The {@link DataAccessObject} to be used for data access operations.
-     * @todo Add listeners for {@link DataAccessObject} changes for properties containing related {@link EntityModel} objects so the property is
-     * updated whenever a change occurs.
      */
     protected EntityModel(T dao) {
         if (dao.getRowState() == DataRowState.DELETED) {

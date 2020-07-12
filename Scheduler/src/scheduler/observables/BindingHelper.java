@@ -256,6 +256,10 @@ public class BindingHelper {
         return Bindings.createStringBinding(() -> Values.asNonNullAndWsNormalized(observableString.getValue()), observableString);
     }
 
+    public static StringBinding asNonNullAndWsNormalizedMultiLine(final ObservableValue<String> observableString) {
+        return Bindings.createStringBinding(() -> Values.asNonNullAndWsNormalizedMultiLine(observableString.getValue()), observableString);
+    }
+
     public static StringBinding nullIfEmptyOrWhiteSpaceOrTrimmed(final ObservableValue<String> observableString) {
         return Bindings.createStringBinding(() -> {
             String s = Values.asNonNullAndWsNormalized(observableString.getValue());

@@ -161,6 +161,31 @@ public final class BinarySelective<T, U> {
         }
     }
 
+    public T asPrimary(Function<? super U, T> ifSecondary) {
+        if (this.primary)
+            return (T) value;
+        return ifSecondary.apply((U) value);
+    }
+    
+    public T toPrimary(T ifSecondary) {
+        if (this.primary)
+            return (T) value;
+        return ifSecondary;
+    }
+    
+    public U asSecondary(Function<? super T, U> ifPrimary) {
+        if (this.primary)
+            return ifPrimary.apply((T) value);
+        return (U) value;
+    }
+    
+    
+    public U toSecondary(U ifPrimary) {
+        if (this.primary)
+            return ifPrimary;
+        return (U) value;
+    }
+    
     /**
      * Applies a {@link Function} according to the option value being stored.
      *
