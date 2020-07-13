@@ -1,19 +1,12 @@
 package scheduler.view.appointment;
 
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -49,6 +42,7 @@ import scheduler.dao.UserDAO;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserSuccessEvent;
+import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
@@ -60,15 +54,18 @@ import scheduler.model.ui.PartialCustomerModel;
 import scheduler.model.ui.PartialUserModel;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
-import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
+import scheduler.view.appointment.edit.AppointmentConflictsController;
+import scheduler.view.appointment.edit.DateTimeController;
+import scheduler.view.appointment.edit.TypeContextController;
 import scheduler.view.task.WaitBorderPane;
 
 /**
@@ -102,21 +99,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return EditItem.showAndWait(parentWindow, EditAppointment_old.class, model, false);
     }
 
-    private static int parseInteger(String s) throws ParseException {
-        NumberFormat fmt = NumberFormat.getIntegerInstance();
-        if (s.isEmpty()) {
-            throw new ParseException(INVALID_NUMBER, 0);
-        }
-
-        Matcher m = INT_PATTERN.matcher(s);
-        if (!m.find()) {
-            throw new ParseException(INVALID_NUMBER, 0);
-        } else if (m.end() < s.length()) {
-            throw new ParseException(INVALID_NUMBER, m.end());
-        }
-        return fmt.parse(s).intValue();
-    }
-
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -131,19 +113,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private boolean editingUserOptions;
     private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
     private ReadOnlyObjectProperty<UserModel> selectedUser;
-    private ReadOnlyObjectProperty<Boolean> amPm;
-    private ReadOnlyObjectProperty<CorporateAddress> selectedCorporateLocation;
-    private ReadOnlyObjectProperty<AppointmentType> selectedType;
     private StringBinding normalizedTitleBinding;
-    private StringBinding normalizedPhoneBinding;
-    private StringBinding normalizedLocationBinding;
-    private StringBinding normalizedContactBinding;
-    private StringBinding normalizedUrlBinding;
     private StringBinding normalizedDescriptionBinding;
-    private ObjectBinding<BinarySelective<LocalDateTime, String>> startDateTimeParseBinding;
-    private ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeParseBinding;
-    private StringBinding startValidationMessageBinding;
-    private StringBinding durationValidationMessageBinding;
 
     @ModelEditor
     private AppointmentModel model;
@@ -267,6 +238,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
+    private DateTimeController dateTimeController;
+    private TypeContextController typeContextController;
+    private AppointmentConflictsController appointmentConflictsController;
 
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -445,126 +419,33 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         amPmComboBox.setItems(FXCollections.observableArrayList(Boolean.TRUE, Boolean.FALSE));
         corporateLocationComboBox.setItems(corporateLocationList);
         typeComboBox.setItems(FXCollections.observableArrayList(AppointmentType.values()));
-        
+
         selectedCustomer = customerComboBox.getSelectionModel().selectedItemProperty();
         selectedUser = userComboBox.getSelectionModel().selectedItemProperty();
-        amPm = amPmComboBox.getSelectionModel().selectedItemProperty();
-        selectedCorporateLocation = corporateLocationComboBox.getSelectionModel().selectedItemProperty();
-        selectedType = typeComboBox.getSelectionModel().selectedItemProperty();
+        typeContextController = new TypeContextController(typeComboBox.getSelectionModel().selectedItemProperty(), locationTextArea, phoneTextField,
+                locationLabel, contactTextField.textProperty(), urlTextField.textProperty(), corporateLocationComboBox, selectedCustomer);
 
         normalizedTitleBinding = BindingHelper.asNonNullAndWsNormalized(titleTextField.textProperty());
-        normalizedPhoneBinding = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
-        normalizedLocationBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(locationTextArea.textProperty());
-        normalizedContactBinding = BindingHelper.asNonNullAndWsNormalized(contactTextField.textProperty());
-        normalizedUrlBinding = BindingHelper.asTrimmedAndNotNull(urlTextField.textProperty());
         normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
-        startDateTimeParseBinding = Bindings.createObjectBinding(() -> {
-            LocalDate date = startDatePicker.getValue();
-            String hourText = startHourTextField.getText();
-            String minuteText = startMinuteTextField.getText();
-            boolean isAm = amPm.get();
-            if (null == date) {
-                return BinarySelective.ofSecondary("* Required");
-            }
-            if (null == hourText || (hourText = hourText.trim()).isEmpty()) {
-                return BinarySelective.ofSecondary("* Hour required");
-            }
-            if (null == minuteText || (minuteText = minuteText.trim()).isEmpty()) {
-                return BinarySelective.ofSecondary("* Minute required");
-            }
-            int hourValue;
-            int minuteValue;
-            try {
-                hourValue = parseInteger(hourText);
-            } catch (ParseException | NullPointerException ex) {
-                LOG.log(Level.WARNING, "Error parsing start hour", ex);
-                return BinarySelective.ofSecondary("Invalid hour value");
-            }
-            if (hourValue < 1 || hourValue > 12) {
-                return BinarySelective.ofSecondary("Invalid hour value");
-            }
-            try {
-                minuteValue = parseInteger(minuteText);
-            } catch (ParseException | NullPointerException ex) {
-                LOG.log(Level.WARNING, "Error parsing start minute", ex);
-                return BinarySelective.ofSecondary("Invalid minute value");
-            }
-            if (minuteValue < 0 || minuteValue > 59) {
-                return BinarySelective.ofSecondary("Invalid minute value");
-            }
-            if (isAm) {
-                if (hourValue == 12) {
-                    hourValue = 0;
-                }
-            } else if (hourValue < 12) {
-                hourValue += 12;
-            }
-            return BinarySelective.ofPrimary(date.atTime(hourValue, minuteValue));
-        }, startDatePicker.valueProperty(), startHourTextField.textProperty(), startMinuteTextField.textProperty(), amPm);
-        endDateTimeParseBinding = Bindings.createObjectBinding(() -> {
-            BinarySelective<LocalDateTime, String> start = startDateTimeParseBinding.get();
-            String hourText = durationHourTextField.getText();
-            String minuteText = durationMinuteTextField.getText();
-            if (null == hourText || (hourText = hourText.trim()).isEmpty()) {
-                return BinarySelective.ofSecondary("* Hour required");
-            }
-            if (null == minuteText || (minuteText = minuteText.trim()).isEmpty()) {
-                return BinarySelective.ofSecondary("* Minute required");
-            }
-            int hourValue;
-            int minuteValue;
-            try {
-                hourValue = parseInteger(hourText);
-            } catch (ParseException | NullPointerException ex) {
-                LOG.log(Level.WARNING, "Error parsing end hour", ex);
-                return BinarySelective.ofSecondary("Invalid hour value");
-            }
-            if (hourValue < 0) {
-                return BinarySelective.ofSecondary("Invalid hour value");
-            }
-            try {
-                minuteValue = parseInteger(minuteText);
-            } catch (ParseException | NullPointerException ex) {
-                LOG.log(Level.WARNING, "Error parsing end minute", ex);
-                return BinarySelective.ofSecondary("Invalid minute value");
-            }
-            if (minuteValue < 0 || minuteValue > 59) {
-                return BinarySelective.ofSecondary("Invalid minute value");
-            }
-            return start.map((LocalDateTime s) -> {
-                if (hourValue > 0) {
-                    return BinarySelective.ofPrimary((minuteValue > 0) ? s.plusMinutes(minuteValue) : s);
-                }
-                return BinarySelective.ofPrimary(((minuteValue > 0) ? s.plusMinutes(minuteValue) : s).plusHours(hourValue));
-            }, (s) -> BinarySelective.ofSecondary(""));
-        }, startDateTimeParseBinding, durationHourTextField.textProperty(), durationMinuteTextField.textProperty());
-        
+        dateTimeController = new DateTimeController(startDatePicker.valueProperty(), startHourTextField.textProperty(),
+                startMinuteTextField.textProperty(), amPmComboBox.getSelectionModel().selectedItemProperty(),
+                durationHourTextField.textProperty(), durationMinuteTextField.textProperty());
+
         titleTextField.textProperty().addListener(this::onTitleChanged);
-        selectedCustomer.addListener(this::onSelectedCustomerChanged);
         selectedUser.addListener(this::onSelectedUserChanged);
-        startDatePicker.valueProperty().addListener(this::onStartDateChanged);
-        startHourTextField.textProperty().addListener(this::onStartHourChanged);
-        startMinuteTextField.textProperty().addListener(this::onStartMinuteChanged);
-        amPm.addListener(this::onAmChanged);
-        durationHourTextField.textProperty().addListener(this::onDurationHourChanged);
-        durationMinuteTextField.textProperty().addListener(this::onDurationMinuteChanged);
-        selectedCorporateLocation.addListener(this::onSelectedCorporationChanged);
-        locationTextArea.textProperty().addListener(this::onLocationChanged);
-        phoneTextField.textProperty().addListener(this::onPhoneChanged);
-        selectedType.addListener(this::onSelectedTypeChanged);
-        contactTextField.textProperty().addListener(this::onContactChanged);
-        urlTextField.textProperty().addListener(this::onUrlChanged);
-        descriptionTextArea.textProperty().addListener(this::onDescriptionChanged);
-        
+
         titleValidationLabel.visibleProperty().bind(normalizedTitleBinding.isEmpty());
-        startValidationMessageBinding = Bindings.createStringBinding(() -> startDateTimeParseBinding.get().toSecondary(""), startDateTimeParseBinding);
-        startValidationLabel.textProperty().bind(startValidationMessageBinding);
-        startValidationLabel.visibleProperty().bind(startValidationMessageBinding.isNotEmpty());
-        durationValidationMessageBinding = Bindings.createStringBinding(() -> endDateTimeParseBinding.get().toSecondary(""), endDateTimeParseBinding);
-        durationValidationLabel.textProperty().bind(durationValidationMessageBinding);
-        durationValidationLabel.visibleProperty().bind(durationValidationMessageBinding.isNotEmpty());
-        customerValidationLabel.visibleProperty().bind(selectedCustomer.isNull());
+        startValidationLabel.textProperty().bind(dateTimeController.startValidationMessageProperty());
+        startValidationLabel.visibleProperty().bind(dateTimeController.startValidationMessageProperty().isNotEmpty());
+        durationValidationLabel.textProperty().bind(dateTimeController.durationValidationMessageProperty());
+        durationValidationLabel.visibleProperty().bind(dateTimeController.durationValidationMessageProperty().isNotEmpty());
+        urlValidationLabel.textProperty().bind(typeContextController.urlValidationMessageProperty());
+        urlValidationLabel.visibleProperty().bind(typeContextController.urlValidationMessageProperty().isNotEmpty());
+        customerValidationLabel.visibleProperty().bind(typeContextController.customerInvalidProperty());
         userValidationLabel.visibleProperty().bind(selectedUser.isNull());
+
+        appointmentConflictsController = new AppointmentConflictsController(selectedCustomer, selectedUser,
+                dateTimeController.startDateTimeProperty(), dateTimeController.endDateTimeProperty(), resources);
     }
 
     @Override
@@ -606,29 +487,15 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     public void applyChanges() {
         LOG.info("Applying changes");
         model.setTitle(normalizedTitleBinding.get());
-        model.setContact(normalizedContactBinding.get());
-        model.setUrl(normalizedUrlBinding.get());
+        model.setContact(typeContextController.getNormalizedContact());
+        model.setUrl(typeContextController.getUrl());
         model.setDescription(normalizedDescriptionBinding.get());
         model.setCustomer(selectedCustomer.get());
         model.setUser(selectedUser.get());
-        AppointmentType type = selectedType.get();
-        model.setType(type);
-        model.setStart(startDateTimeParseBinding.get().getPrimary());
-        model.setEnd(endDateTimeParseBinding.get().getPrimary());
-        switch (type) {
-            case CORPORATE_LOCATION:
-                model.setLocation(selectedCorporateLocation.get().getName());
-                break;
-            case CUSTOMER_SITE:
-                model.setLocation(selectedCustomer.get().getMultiLineAddress());
-                break;
-            case PHONE:
-                model.setLocation(normalizedPhoneBinding.get());
-                break;
-            default:
-                model.setLocation(normalizedLocationBinding.get());
-                break;
-        }
+        model.setType(typeContextController.getSelectedType());
+        model.setStart(dateTimeController.getStartDateTime());
+        model.setEnd(dateTimeController.getEndDateTime());
+        model.setLocation(typeContextController.getEffectiveLocation());
     }
 
     private void initializeEditMode() {
@@ -636,69 +503,31 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     private void onTitleChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onTitleChanged
-    }
-
-    private void onSelectedCustomerChanged(ObservableValue<? extends CustomerModel> observable, CustomerModel oldValue, CustomerModel newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onSelectedCustomerChanged
+        String text = normalizedTitleBinding.get();
+        if (text.isEmpty()) {
+            restoreLabeled(titleValidationLabel, "* Required");
+        } else if (text.length() > MAX_LENGTH_TITLE) {
+            restoreLabeled(titleValidationLabel, "Title too long");
+        } else {
+            collapseNode(titleValidationLabel);
+        }
     }
 
     private void onSelectedUserChanged(ObservableValue<? extends UserModel> observable, UserModel oldValue, UserModel newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onSelectedUserChanged
+        if (null == selectedCustomer.get()) {
+            restoreNode(customerValidationLabel);
+        } else {
+            collapseNode(customerValidationLabel);
+        }
     }
 
-    private void onStartDateChanged(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onStartDateChanged
-    }
-
-    private void onStartHourChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onStartHourChanged
-    }
-
-    private void onStartMinuteChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onStartMinuteChanged
-    }
-
-    private void onAmChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onAmChanged
-    }
-
-    private void onDurationHourChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onDurationHourChanged
-    }
-
-    private void onDurationMinuteChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onDurationMinuteChanged
-    }
-
-    private void onSelectedCorporationChanged(ObservableValue<? extends CorporateAddress> observable, CorporateAddress oldValue, CorporateAddress newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onSelectedCorporationChanged
-    }
-
-    private void onLocationChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onLocationChanged
-    }
-
-    private void onPhoneChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onPhoneChanged
-    }
-
-    private void onSelectedTypeChanged(ObservableValue<? extends AppointmentType> observable, AppointmentType oldValue, AppointmentType newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onSelectedTypeChanged
-    }
-
-    private void onContactChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onContactChanged
-    }
-
-    private void onUrlChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onUrlChanged
-    }
-
-    private void onDescriptionChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#onDescriptionChanged
-    }
-
+//    private void onDescriptionChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+//        if (normalizedDescriptionBinding.get().length() > MAX_LENGTH_DESCRIPTION) {
+//            restoreLabeled(descriptionValidationLabel, "Description too long");
+//        } else {
+//            collapseNode(descriptionValidationLabel);
+//        }
+//    }
     private static class CustomerReloadTask extends Task<List<CustomerDAO>> {
 
         private CustomerReloadTask() {
