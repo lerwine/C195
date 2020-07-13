@@ -4,6 +4,8 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
@@ -17,14 +19,17 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import scheduler.util.BinarySelective;
+import scheduler.util.LogHelper;
 import scheduler.util.Tuple;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.view.appointment.edit.DateTimeController}
  */
-public class DateTimeController {
+public class DateRangeController {
+
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DateRangeController.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(DateRangeController.class.getName());
 
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     private static final NumberFormat INT_FORMAT = NumberFormat.getIntegerInstance();
@@ -161,39 +166,72 @@ public class DateTimeController {
     private final ObjectBinding<Tuple<LocalDateTime, LocalDateTime>> rangeBinding;
     private final ReadOnlyBooleanWrapper valid;
 
-    public DateTimeController(ObjectProperty<LocalDate> startDate, StringProperty startHourText, StringProperty startMinuteText,
+    public DateRangeController(ObjectProperty<LocalDate> startDate, StringProperty startHourText, StringProperty startMinuteText,
             ReadOnlyObjectProperty<Boolean> amPm, StringProperty durationHourText, StringProperty durationMinuteText) {
         startHour = new ReadOnlyObjectWrapper<>(this, "startHour", calculateHour(startHourText.get(), 1, 12));
         startMinute = new ReadOnlyObjectWrapper<>(this, "startMinute", calculateMinute(startMinuteText.get()));
-        startDateTimeValueBinding = Bindings.createObjectBinding(() -> calculateDateTime(startDate.get(), startHour.get(), startMinute.get(),
-                amPm.get()), startDate, startHour, startMinute, amPm);
+        startDateTimeValueBinding = Bindings.createObjectBinding(() -> {
+            LOG.fine(() -> String.format("Calculating startDateTimeValueBinding: startDate=%s; startHour=%s; startMinute=%s; amPm=%s", LogHelper.toLogText(startDate.get()),
+                    LogHelper.toLogText(startHour.get()), LogHelper.toLogText(startMinute.get()), LogHelper.toLogText(amPm.get())));
+            BinarySelective<LocalDateTime, String> r = calculateDateTime(startDate.get(), startHour.get(), startMinute.get(), amPm.get());
+            LOG.fine(() -> String.format("startDateTimeValueBinding changing to %s", r));
+            return r;
+        }, startDate, startHour, startMinute, amPm);
         startDateTime = new ReadOnlyObjectWrapper<>(this, "startDateTime", startDateTimeValueBinding.get().toPrimary(null));
         startValidationMessage = new ReadOnlyStringWrapper(this, "startValidationMessage", startDateTimeValueBinding.get().toSecondary(""));
         durationHour = new ReadOnlyObjectWrapper<>(this, "durationHour", calculateHour(durationHourText.get(), 1, 12));
         durationMinute = new ReadOnlyObjectWrapper<>(this, "durationMinute", calculateMinute(durationMinuteText.get()));
-        endDateTimeValueBinding = Bindings.createObjectBinding(() -> calculateEndDateTime(startDateTimeValueBinding.get(), durationHour.get(),
-                durationMinute.get()), startDateTime, durationHour, durationMinute);
+        endDateTimeValueBinding = Bindings.createObjectBinding(() -> {
+            LOG.fine(() -> String.format("Calculating endDateTimeValueBinding: startDateTimeValueBinding=%s; durationHour=%s; durationMinute=%s",
+                    LogHelper.toLogText(startDateTimeValueBinding.get()), LogHelper.toLogText(durationHour.get()), LogHelper.toLogText(durationMinute.get())));
+            BinarySelective<LocalDateTime, String> r = calculateEndDateTime(startDateTimeValueBinding.get(), durationHour.get(), durationMinute.get());
+            LOG.fine(() -> String.format("endDateTimeValueBinding changing to %s", r));
+            return r;
+        }, startDateTime, durationHour, durationMinute);
         endDateTime = new ReadOnlyObjectWrapper<>(this, "endDateTime", endDateTimeValueBinding.get().toPrimary(null));
         durationValidationMessage = new ReadOnlyStringWrapper(this, "durationValidationMessage", endDateTimeValueBinding.get().toSecondary(""));
         rangeBinding = Bindings.createObjectBinding(() -> {
-            LocalDateTime e = endDateTime.get();
             LocalDateTime s = startDateTime.get();
+            LocalDateTime e = endDateTime.get();
+            LOG.fine(() -> String.format("Calculating rangeBinding: startDateTime=%s; endDateTime=%s", LogHelper.toLogText(s), LogHelper.toLogText(e)));
             if (null == e || null == s) {
+                LOG.fine("rangeBinding changing to null");
                 return null;
             }
+            LOG.fine(() -> String.format("rangeBinding changing to Tuple.of(%s, %s)", LogHelper.toLogText(s), LogHelper.toLogText(e)));
             return Tuple.of(s, e);
         }, startDateTime, endDateTime);
         range = new ReadOnlyObjectWrapper<>(this, "range", rangeBinding.get());
         valid = new ReadOnlyBooleanWrapper(this, "valid", null != range.get());
 
-        startHourText.addListener((observable, oldValue, newValue) -> startHour.set(calculateHour(newValue, 1, 12)));
-        startMinuteText.addListener((observable, oldValue, newValue) -> startMinute.set(calculateMinute(newValue)));
+        startHourText.addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> String.format("Calculating startHourText: %s", LogHelper.toLogText(newValue)));
+            BinarySelective<Integer, String> r = calculateHour(newValue, 1, 12);
+            LOG.fine(() -> String.format("Setting startHour to %s", r));
+            startHour.set(r);
+        });
+        startMinuteText.addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> String.format("Calculating startMinuteText: %s", LogHelper.toLogText(newValue)));
+            BinarySelective<Integer, String> r = calculateMinute(newValue);
+            LOG.fine(() -> String.format("Setting startMinute to %s", r));
+            startMinute.set(r);
+        });
         amPm.addListener((observable, oldValue, newValue) -> onStartValueChanged());
         startDate.addListener((observable, oldValue, newValue) -> onStartValueChanged());
         startHour.addListener((observable, oldValue, newValue) -> onStartValueChanged());
         startMinute.addListener((observable, oldValue, newValue) -> onStartValueChanged());
-        durationHourText.addListener((observable, oldValue, newValue) -> durationHour.set(calculateHour(newValue, 0, 512)));
-        durationMinuteText.addListener((observable, oldValue, newValue) -> durationMinute.set(calculateMinute(newValue)));
+        durationHourText.addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> String.format("Calculating durationHourText: %s", LogHelper.toLogText(newValue)));
+            BinarySelective<Integer, String> r = calculateHour(newValue, 0, 512);
+            LOG.fine(() -> String.format("Setting durationHour to %s", r));
+            durationHour.set(r);
+        });
+        durationMinuteText.addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> String.format("Calculating durationMinuteText: %s", LogHelper.toLogText(newValue)));
+            BinarySelective<Integer, String> r = calculateMinute(newValue);
+            LOG.fine(() -> String.format("Setting durationMinute to %s", r));
+            durationMinute.set(r);
+        });
         startDateTime.addListener((observable, oldValue, newValue) -> onEndValueChanged());
         durationHour.addListener((observable, oldValue, newValue) -> onEndValueChanged());
         durationMinute.addListener((observable, oldValue, newValue) -> onEndValueChanged());
@@ -274,24 +312,32 @@ public class DateTimeController {
 
     private void onStartValueChanged() {
         startDateTimeValueBinding.get().accept((t) -> {
+            LOG.fine(() -> String.format("Start value changed to %s", t));
             startDateTime.set(t);
             startValidationMessage.set("");
         }, (t) -> {
+            LOG.fine(() -> String.format("Start validation changed to %s", t));
             startDateTime.set(null);
             startValidationMessage.set(t);
         });
-        range.set(rangeBinding.get());
+        Tuple<LocalDateTime, LocalDateTime> r = rangeBinding.get();
+        LOG.fine(() -> String.format("Setting range to %s", r));
+        range.set(r);
     }
 
     private void onEndValueChanged() {
         endDateTimeValueBinding.get().accept((t) -> {
+            LOG.fine(() -> String.format("End value changed to %s", t));
             endDateTime.set(t);
             durationValidationMessage.set("");
         }, (t) -> {
+            LOG.fine(() -> String.format("End validation changed to %s", t));
             endDateTime.set(null);
             durationValidationMessage.set(t);
         });
-        range.set(rangeBinding.get());
+        Tuple<LocalDateTime, LocalDateTime> r = rangeBinding.get();
+        LOG.fine(() -> String.format("Setting range to %s", r));
+        range.set(r);
     }
 
 }

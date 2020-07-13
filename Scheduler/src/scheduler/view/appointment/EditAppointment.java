@@ -1,6 +1,8 @@
 package scheduler.view.appointment;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -27,6 +29,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -35,10 +38,16 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
+import scheduler.AppResourceKeys;
+import scheduler.AppResources;
+import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
+import scheduler.dao.filter.AppointmentFilter;
+import scheduler.dao.filter.ComparisonOperator;
+import scheduler.dao.filter.UserFilter;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserSuccessEvent;
@@ -46,7 +55,9 @@ import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
+import scheduler.model.ModelHelper;
 import scheduler.model.User;
+import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.model.ui.EntityModel;
@@ -54,6 +65,7 @@ import scheduler.model.ui.PartialCustomerModel;
 import scheduler.model.ui.PartialUserModel;
 import scheduler.model.ui.UserModel;
 import scheduler.observables.BindingHelper;
+import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
@@ -64,7 +76,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.appointment.edit.AppointmentConflictsController;
-import scheduler.view.appointment.edit.DateTimeController;
+import scheduler.view.appointment.edit.DateRangeController;
 import scheduler.view.appointment.edit.TypeContextController;
 import scheduler.view.task.WaitBorderPane;
 
@@ -238,7 +250,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
-    private DateTimeController dateTimeController;
+    private DateRangeController dateTimeController;
     private TypeContextController typeContextController;
     private AppointmentConflictsController appointmentConflictsController;
 
@@ -273,9 +285,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     @ModelEditor
     private void onModelInserted(AppointmentEvent event) {
         LOG.entering(LOG.getName(), "onModelInserted", event);
-        initializeEditMode();
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
-        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
+        appointmentConflictsController.enterEditMode(model.getPrimaryKey());
     }
 
     @FXML
@@ -325,7 +335,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             } else {
                 showActiveUsers = Optional.of(true);
             }
-            waitBorderPane.startNow(new UserReloadTask());
+            waitBorderPane.startNow(new UserReloadTask(null));
         } else {
             if (dropdownOptionsInactiveRadioButton.isSelected()) {
                 showActiveCustomers = Optional.of(false);
@@ -334,7 +344,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             } else {
                 showActiveCustomers = Optional.of(true);
             }
-            waitBorderPane.startNow(new CustomerReloadTask());
+            waitBorderPane.startNow(new CustomerReloadTask(null));
         }
         collapseNode(dropdownOptionsBorderPane);
     }
@@ -422,30 +432,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
         selectedCustomer = customerComboBox.getSelectionModel().selectedItemProperty();
         selectedUser = userComboBox.getSelectionModel().selectedItemProperty();
-        typeContextController = new TypeContextController(typeComboBox.getSelectionModel().selectedItemProperty(), locationTextArea, phoneTextField,
-                locationLabel, contactTextField.textProperty(), urlTextField.textProperty(), corporateLocationComboBox, selectedCustomer);
 
-        normalizedTitleBinding = BindingHelper.asNonNullAndWsNormalized(titleTextField.textProperty());
-        normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
-        dateTimeController = new DateTimeController(startDatePicker.valueProperty(), startHourTextField.textProperty(),
-                startMinuteTextField.textProperty(), amPmComboBox.getSelectionModel().selectedItemProperty(),
-                durationHourTextField.textProperty(), durationMinuteTextField.textProperty());
-
-        titleTextField.textProperty().addListener(this::onTitleChanged);
-        selectedUser.addListener(this::onSelectedUserChanged);
-
-        titleValidationLabel.visibleProperty().bind(normalizedTitleBinding.isEmpty());
-        startValidationLabel.textProperty().bind(dateTimeController.startValidationMessageProperty());
-        startValidationLabel.visibleProperty().bind(dateTimeController.startValidationMessageProperty().isNotEmpty());
-        durationValidationLabel.textProperty().bind(dateTimeController.durationValidationMessageProperty());
-        durationValidationLabel.visibleProperty().bind(dateTimeController.durationValidationMessageProperty().isNotEmpty());
-        urlValidationLabel.textProperty().bind(typeContextController.urlValidationMessageProperty());
-        urlValidationLabel.visibleProperty().bind(typeContextController.urlValidationMessageProperty().isNotEmpty());
-        customerValidationLabel.visibleProperty().bind(typeContextController.customerInvalidProperty());
-        userValidationLabel.visibleProperty().bind(selectedUser.isNull());
-
-        appointmentConflictsController = new AppointmentConflictsController(selectedCustomer, selectedUser,
-                dateTimeController.startDateTimeProperty(), dateTimeController.endDateTimeProperty(), resources);
+        waitBorderPane.startNow(new ItemsLoadTask());
     }
 
     @Override
@@ -498,11 +486,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         model.setLocation(typeContextController.getEffectiveLocation());
     }
 
-    private void initializeEditMode() {
-        throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment#initializeEditMode
-    }
-
     private void onTitleChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        LOG.info("Invoked scheduler.view.appointment.EditAppointment#onTitleChanged");
         String text = normalizedTitleBinding.get();
         if (text.isEmpty()) {
             restoreLabeled(titleValidationLabel, "* Required");
@@ -514,6 +499,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     private void onSelectedUserChanged(ObservableValue<? extends UserModel> observable, UserModel oldValue, UserModel newValue) {
+        LOG.info("Invoked scheduler.view.appointment.EditAppointment#onSelectedUserChanged");
         if (null == selectedCustomer.get()) {
             restoreNode(customerValidationLabel);
         } else {
@@ -521,33 +507,240 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
     }
 
-//    private void onDescriptionChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-//        if (normalizedDescriptionBinding.get().length() > MAX_LENGTH_DESCRIPTION) {
-//            restoreLabeled(descriptionValidationLabel, "Description too long");
-//        } else {
-//            collapseNode(descriptionValidationLabel);
-//        }
-//    }
-    private static class CustomerReloadTask extends Task<List<CustomerDAO>> {
+    private synchronized void onCustomersLoaded(List<CustomerDAO> customerDaoList) {
+        LOG.info("Invoked scheduler.view.appointment.EditAppointment#customerDaoList");
+        CustomerModel selectedItem = selectedCustomer.get();
+        customerModelList.clear();
+        if (null != customerDaoList && !customerDaoList.isEmpty()) {
+            customerDaoList.forEach((t) -> customerModelList.add(CustomerModel.FACTORY.createNew(t)));
+        }
+        if (null != selectedItem) {
+            int cpk = selectedItem.getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
+                    -> customerComboBox.getSelectionModel().select(t));
+        }
+    }
 
-        private CustomerReloadTask() {
+    private synchronized void onUsersLoaded(List<UserDAO> userDaoList) {
+        LOG.info("Invoked scheduler.view.appointment.EditAppointment#onUsersLoaded");
+        UserModel selectedItem = selectedUser.get();
+        if (null != userDaoList && !userDaoList.isEmpty()) {
+            userDaoList.forEach((t) -> userModelList.add(UserModel.FACTORY.createNew(t)));
+        }
+        if (null != selectedItem) {
+            int cpk = selectedItem.getPrimaryKey();
+            userModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
+                    -> userComboBox.getSelectionModel().select(t));
+        }
+    }
+
+    private synchronized void onAppointmentsLoaded(List<AppointmentDAO> appointmentList) {
+        LOG.info("Invoked scheduler.view.appointment.EditAppointment#onAppointmentsLoaded");
+        PartialUserModel<? extends User> user = model.getUser();
+        int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
+        userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
+                -> userComboBox.getSelectionModel().select(t));
+        PartialCustomerModel<? extends Customer> customer = model.getCustomer();
+        if (null != customer) {
+            int cpk = customer.getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
+                    -> customerComboBox.getSelectionModel().select(t));
+        }
+
+        typeContextController = new TypeContextController(typeComboBox.getSelectionModel().selectedItemProperty(), locationTextArea, phoneTextField,
+                locationLabel, contactTextField.textProperty(), urlTextField.textProperty(), corporateLocationComboBox, selectedCustomer);
+
+        normalizedTitleBinding = BindingHelper.asNonNullAndWsNormalized(titleTextField.textProperty());
+        normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
+        dateTimeController = new DateRangeController(startDatePicker.valueProperty(), startHourTextField.textProperty(), startMinuteTextField.textProperty(),
+                amPmComboBox.getSelectionModel().selectedItemProperty(), durationHourTextField.textProperty(), durationMinuteTextField.textProperty());
+
+        titleTextField.textProperty().addListener(this::onTitleChanged);
+        selectedUser.addListener(this::onSelectedUserChanged);
+
+        titleValidationLabel.visibleProperty().bind(normalizedTitleBinding.isEmpty());
+        startValidationLabel.textProperty().bind(dateTimeController.startValidationMessageProperty());
+        startValidationLabel.visibleProperty().bind(dateTimeController.startValidationMessageProperty().isNotEmpty());
+        durationValidationLabel.textProperty().bind(dateTimeController.durationValidationMessageProperty());
+        durationValidationLabel.visibleProperty().bind(dateTimeController.durationValidationMessageProperty().isNotEmpty());
+        urlValidationLabel.textProperty().bind(typeContextController.urlValidationMessageProperty());
+        urlValidationLabel.visibleProperty().bind(typeContextController.urlValidationMessageProperty().isNotEmpty());
+        customerValidationLabel.visibleProperty().bind(typeContextController.customerInvalidProperty());
+        userValidationLabel.visibleProperty().bind(selectedUser.isNull());
+        appointmentConflictsController = new AppointmentConflictsController(selectedCustomer, selectedUser, dateTimeController.startDateTimeProperty(),
+                dateTimeController.endDateTimeProperty(), resources, appointmentList, (model.isNewRow()) ? Optional.empty() : Optional.of(model.getPrimaryKey()));        
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
+        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
+    }
+
+    private class CustomerReloadTask extends Task<List<CustomerDAO>> {
+
+        private final Optional<Boolean> loadOption;
+        private final Connection existingConnection;
+
+        private CustomerReloadTask(Connection existingConnection) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
+            loadOption = showActiveCustomers;
+            this.existingConnection = existingConnection;
+        }
+
+        @Override
+        protected void succeeded() {
+            LOG.info("Task succeeded");
+            List<CustomerDAO> result = getValue();
+            Optional<Boolean> currentOption = showActiveCustomers;
+            if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
+                EditAppointment.this.onCustomersLoaded(getValue());
+            }
+            super.succeeded();
         }
 
         @Override
         protected List<CustomerDAO> call() throws Exception {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment.CustomerReloadTask#call
+            LOG.info("Invoked call");
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            List<CustomerDAO> result;
+            if (null == existingConnection) {
+                try (DbConnector dbConnector = new DbConnector()) {
+                    updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                    result = getCustomers(dbConnector.getConnection());
+                }
+            } else {
+                result = getCustomers(existingConnection);
+            }
+            if (null == result) {
+                LOG.info("Returning a null result");
+            } else {
+                LOG.info(() -> String.format("Returning %d users", result.size()));
+            }
+            return result;
         }
+
+        private List<CustomerDAO> getCustomers(final Connection connection) throws SQLException {
+            List<CustomerDAO> result;
+            CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
+            if (loadOption.isPresent()) {
+                result = cf.load(connection, cf.getActiveStatusFilter(loadOption.get()));
+            } else {
+                result = cf.load(connection, cf.getAllItemsFilter());
+            }
+            return result;
+        }
+
     }
 
-    private static class UserReloadTask extends Task<List<UserDAO>> {
+    private class UserReloadTask extends Task<List<UserDAO>> {
 
-        private UserReloadTask() {
+        private final Optional<Boolean> loadOption;
+        private final Connection existingConnection;
+
+        private UserReloadTask(Connection existingConnection) {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGUSERS));
+            loadOption = showActiveUsers;
+            this.existingConnection = existingConnection;
+        }
+
+        @Override
+        protected void succeeded() {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.UserReloadTask#succeeded");
+            List<UserDAO> result = getValue();
+            Optional<Boolean> currentOption = showActiveUsers;
+            if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
+                EditAppointment.this.onUsersLoaded(getValue());
+            }
+            super.succeeded();
         }
 
         @Override
         protected List<UserDAO> call() throws Exception {
-            throw new UnsupportedOperationException("Not supported yet."); // FIXME: Implement scheduler.view.appointment.EditAppointment.UserReloadTask#call
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.UserReloadTask#call");
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            List<UserDAO> result;
+            if (null == existingConnection) {
+                try (DbConnector dbConnector = new DbConnector()) {
+                    updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                    Connection connection = dbConnector.getConnection();
+                    result = getUsers(connection);
+                }
+            } else {
+                result = getUsers(existingConnection);
+            }
+            if (null == result) {
+                LOG.info("scheduler.view.appointment.EditAppointment.UserReloadTask#call: Returning a null result");
+            } else {
+                LOG.info(() -> String.format("scheduler.view.appointment.UserReloadTask.ItemsLoadTask#call: returning %d users", result.size()));
+            }
+            return result;
         }
+
+        private List<UserDAO> getUsers(Connection connection) throws SQLException {
+            List<UserDAO> result;
+            UserDAO.FactoryImpl uf = UserDAO.FACTORY;
+            if (loadOption.isPresent()) {
+                if (loadOption.get()) {
+                    result = uf.load(connection, uf.getActiveUsersFilter());
+                } else {
+                    result = uf.load(connection, UserFilter.of(UserFilter.expressionOf(UserStatus.INACTIVE, ComparisonOperator.EQUALS)));
+                }
+            } else {
+                result = uf.load(connection, uf.getAllItemsFilter());
+            }
+            return result;
+        }
+
+    }
+
+    private class ItemsLoadTask extends Task<List<AppointmentDAO>> {
+
+        private final Customer appointmentCustomer;
+        private final User appointmentUser;
+
+        private ItemsLoadTask() {
+            updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            PartialCustomerModel<? extends Customer> customer = model.getCustomer();
+            appointmentCustomer = (null == customer) ? null : customer.dataObject();
+            PartialUserModel<? extends User> user = model.getUser();
+            appointmentUser = (null == user) ? null : user.dataObject();
+        }
+
+        @Override
+        protected void succeeded() {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.ItemsLoadTask#succeeded");
+            EditAppointment.this.onAppointmentsLoaded(getValue());
+            super.succeeded();
+        }
+
+        @Override
+        protected synchronized List<AppointmentDAO> call() throws Exception {
+            LOG.info("Invoked scheduler.view.appointment.EditAppointment.ItemsLoadTask#call");
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+
+            List<AppointmentDAO> result;
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGCUSTOMERS));
+                LOG.fine("Running CustomerReloadTask");
+                CustomerReloadTask customerReloadTask = new CustomerReloadTask(dbConnector.getConnection());
+                customerReloadTask.run();
+                updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS));
+                LOG.fine("Running UserReloadTask");
+                UserReloadTask userReloadTask = new UserReloadTask(dbConnector.getConnection());
+                userReloadTask.run();
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
+                LOG.fine("Loading appointments");
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
+                
+                if (null != appointmentCustomer && null != appointmentUser) {
+                    result = af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, appointmentUser, null, null));
+                } else {
+                    result = null;
+                }
+            }
+            LOG.info(() -> (null == result)
+                    ? "scheduler.view.appointment.EditAppointment.ItemsLoadTask#call: Returning a null result"
+                    : String.format("scheduler.view.appointment.EditAppointment.ItemsLoadTask#call: returning %d appointments", result.size()));
+            return result;
+        }
+
     }
 
 }
