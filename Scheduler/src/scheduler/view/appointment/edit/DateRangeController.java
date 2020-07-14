@@ -18,9 +18,14 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.SingleSelectionModel;
+import javafx.scene.control.TextField;
 import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
 import scheduler.util.Tuple;
+import scheduler.view.appointment.EditAppointment;
 
 /**
  *
@@ -31,8 +36,16 @@ public class DateRangeController {
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DateRangeController.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(DateRangeController.class.getName());
 
-    private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
-    private static final NumberFormat INT_FORMAT = NumberFormat.getIntegerInstance();
+    private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,4}\\s*");
+    public static final NumberFormat INTN_FORMAT;
+    public static final NumberFormat INT2_FORMAT;
+
+    static {
+        INT2_FORMAT = NumberFormat.getIntegerInstance();
+        INT2_FORMAT.setMinimumIntegerDigits(2);
+        INT2_FORMAT.setMaximumIntegerDigits(2);
+        INTN_FORMAT = NumberFormat.getIntegerInstance();
+    }
 
     private static BinarySelective<LocalDateTime, String> calculateEndDateTime(BinarySelective<LocalDateTime, String> start,
             BinarySelective<Integer, String> hour, BinarySelective<Integer, String> minute) {
@@ -114,7 +127,7 @@ public class DateRangeController {
             } else if (m.end() < trimmed.length()) {
                 throw new ParseException("Invalid number", m.end() + (text.length() - trimmed.length()));
             }
-            Number parse = INT_FORMAT.parse(trimmed);
+            Number parse = INTN_FORMAT.parse(trimmed);
             int i = parse.intValue();
             if (i < minValue || i > maxValue) {
                 return BinarySelective.ofSecondary("Hour out of range");
@@ -139,7 +152,7 @@ public class DateRangeController {
             } else if (m.end() < trimmed.length()) {
                 throw new ParseException("Invalid number", m.end() + (text.length() - trimmed.length()));
             }
-            Number parse = INT_FORMAT.parse(trimmed);
+            Number parse = INTN_FORMAT.parse(trimmed);
             int i = parse.intValue();
             if (i < 0 || i > 59) {
                 return BinarySelective.ofSecondary("Minute out of range");
@@ -156,20 +169,30 @@ public class DateRangeController {
     private final ReadOnlyObjectWrapper<BinarySelective<Integer, String>> startMinute;
     private final ObjectBinding<BinarySelective<LocalDateTime, String>> startDateTimeValueBinding;
     private final ReadOnlyObjectWrapper<LocalDateTime> startDateTime;
+    @Deprecated
     private final ReadOnlyStringWrapper startValidationMessage;
     private final ReadOnlyObjectWrapper<BinarySelective<Integer, String>> durationHour;
     private final ReadOnlyObjectWrapper<BinarySelective<Integer, String>> durationMinute;
     private final ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeValueBinding;
     private final ReadOnlyObjectWrapper<LocalDateTime> endDateTime;
+    @Deprecated
     private final ReadOnlyStringWrapper durationValidationMessage;
-    private final ReadOnlyObjectWrapper<Tuple<LocalDateTime, LocalDateTime>> range;
+    private final ReadOnlyObjectWrapper<Tuple<LocalDateTime, LocalDateTime>> dateRange;
     private final ObjectBinding<Tuple<LocalDateTime, LocalDateTime>> rangeBinding;
     private final ReadOnlyBooleanWrapper valid;
 
-    public DateRangeController(ObjectProperty<LocalDate> startDate, StringProperty startHourText, StringProperty startMinuteText,
-            ReadOnlyObjectProperty<Boolean> amPm, StringProperty durationHourText, StringProperty durationMinuteText) {
-        startHour = new ReadOnlyObjectWrapper<>(this, "startHour", calculateHour(startHourText.get(), 1, 12));
-        startMinute = new ReadOnlyObjectWrapper<>(this, "startMinute", calculateMinute(startMinuteText.get()));
+    public DateRangeController(EditAppointment editAppointmentControl) {
+        TextField textField = editAppointmentControl.getStartHourTextField();
+        StringProperty startHourText = textField.textProperty();
+        startHour = new ReadOnlyObjectWrapper<>(this, "startHour", calculateHour(textField.getText(), 1, 12));
+        textField = editAppointmentControl.getStartMinuteTextField();
+        StringProperty startMinuteText = textField.textProperty();
+        startMinute = new ReadOnlyObjectWrapper<>(this, "startMinute", calculateMinute(textField.getText()));
+        ObjectProperty<LocalDate> startDate = editAppointmentControl.getStartDatePicker().valueProperty();
+        ComboBox<Boolean> amPmComboBox = editAppointmentControl.getAmPmComboBox();
+        amPmComboBox.setItems(FXCollections.observableArrayList(Boolean.TRUE, Boolean.FALSE));
+        SingleSelectionModel<Boolean> selectedAmPmSelectionModel = editAppointmentControl.getAmPmComboBox().getSelectionModel();
+        ReadOnlyObjectProperty<Boolean> amPm = selectedAmPmSelectionModel.selectedItemProperty();
         startDateTimeValueBinding = Bindings.createObjectBinding(() -> {
             LOG.fine(() -> String.format("Calculating startDateTimeValueBinding: startDate=%s; startHour=%s; startMinute=%s; amPm=%s", LogHelper.toLogText(startDate.get()),
                     LogHelper.toLogText(startHour.get()), LogHelper.toLogText(startMinute.get()), LogHelper.toLogText(amPm.get())));
@@ -178,8 +201,13 @@ public class DateRangeController {
             return r;
         }, startDate, startHour, startMinute, amPm);
         startDateTime = new ReadOnlyObjectWrapper<>(this, "startDateTime", startDateTimeValueBinding.get().toPrimary(null));
+        // FIXME: Chang code to control validation view directly instead of creating intermediary properties
         startValidationMessage = new ReadOnlyStringWrapper(this, "startValidationMessage", startDateTimeValueBinding.get().toSecondary(""));
+        textField = editAppointmentControl.getDurationHourTextField();
+        StringProperty durationHourText = textField.textProperty();
         durationHour = new ReadOnlyObjectWrapper<>(this, "durationHour", calculateHour(durationHourText.get(), 1, 12));
+        textField = editAppointmentControl.getDurationMinuteTextField();
+        StringProperty durationMinuteText = textField.textProperty();
         durationMinute = new ReadOnlyObjectWrapper<>(this, "durationMinute", calculateMinute(durationMinuteText.get()));
         endDateTimeValueBinding = Bindings.createObjectBinding(() -> {
             LOG.fine(() -> String.format("Calculating endDateTimeValueBinding: startDateTimeValueBinding=%s; durationHour=%s; durationMinute=%s",
@@ -201,8 +229,8 @@ public class DateRangeController {
             LOG.fine(() -> String.format("rangeBinding changing to Tuple.of(%s, %s)", LogHelper.toLogText(s), LogHelper.toLogText(e)));
             return Tuple.of(s, e);
         }, startDateTime, endDateTime);
-        range = new ReadOnlyObjectWrapper<>(this, "range", rangeBinding.get());
-        valid = new ReadOnlyBooleanWrapper(this, "valid", null != range.get());
+        dateRange = new ReadOnlyObjectWrapper<>(this, "range", rangeBinding.get());
+        valid = new ReadOnlyBooleanWrapper(this, "valid", null != dateRange.get());
 
         startHourText.addListener((observable, oldValue, newValue) -> {
             LOG.fine(() -> String.format("Calculating startHourText: %s", LogHelper.toLogText(newValue)));
@@ -235,7 +263,7 @@ public class DateRangeController {
         startDateTime.addListener((observable, oldValue, newValue) -> onEndValueChanged());
         durationHour.addListener((observable, oldValue, newValue) -> onEndValueChanged());
         durationMinute.addListener((observable, oldValue, newValue) -> onEndValueChanged());
-        range.addListener((observable, oldValue, newValue) -> valid.set(null != newValue));
+        dateRange.addListener((observable, oldValue, newValue) -> valid.set(null != newValue));
     }
 
     public BinarySelective<Integer, String> getStartHour() {
@@ -302,6 +330,14 @@ public class DateRangeController {
         return durationValidationMessage.getReadOnlyProperty();
     }
 
+    public Tuple<LocalDateTime, LocalDateTime> getDateRange() {
+        return dateRange.get();
+    }
+
+    public ReadOnlyObjectProperty<Tuple<LocalDateTime, LocalDateTime>> dateRangeProperty() {
+        return dateRange.getReadOnlyProperty();
+    }
+
     public boolean isValid() {
         return valid.get();
     }
@@ -322,7 +358,7 @@ public class DateRangeController {
         });
         Tuple<LocalDateTime, LocalDateTime> r = rangeBinding.get();
         LOG.fine(() -> String.format("Setting range to %s", r));
-        range.set(r);
+        dateRange.set(r);
     }
 
     private void onEndValueChanged() {
@@ -337,7 +373,7 @@ public class DateRangeController {
         });
         Tuple<LocalDateTime, LocalDateTime> r = rangeBinding.get();
         LOG.fine(() -> String.format("Setting range to %s", r));
-        range.set(r);
+        dateRange.set(r);
     }
 
 }

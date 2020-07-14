@@ -3,11 +3,11 @@ package scheduler.view.appointment.edit;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -15,9 +15,11 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.scene.control.SingleSelectionModel;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataRowState;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.model.ModelHelper;
 import scheduler.model.ui.AppointmentModel;
@@ -26,6 +28,7 @@ import scheduler.model.ui.UserModel;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import scheduler.util.Tuple;
+import scheduler.view.appointment.EditAppointment;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
 
@@ -40,37 +43,36 @@ public class AppointmentConflictsController {
 //    private static final Logger LOG = Logger.getLogger(AppointmentConflictsController.class.getName());
 
     private final ResourceBundle resources;
+    private final ReadOnlyObjectProperty<Tuple<LocalDateTime, LocalDateTime>> dateRange;
     private final ReadOnlyObjectWrapper<Tuple<CustomerModel, UserModel>> currentParticipants;
-    private final ReadOnlyObjectWrapper<Tuple<LocalDateTime, LocalDateTime>> currentRange;
     private final ReadOnlyObjectWrapper<ConflictCheckStatus> conflictCheckStatus;
     private final ReadOnlyStringWrapper conflictMessage;
     private final ObservableList<AppointmentModel> allAppointments;
     private final ObservableList<AppointmentModel> conflictingAppointments;
     private LoadParticipantsAppointmentsTask currentTask = null;
-    private Optional<Integer> primaryKey;
+    private final ReadOnlyIntegerProperty primaryKey;
+    private final ReadOnlyObjectProperty<DataRowState> rowState;
+    private final ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
+    private final ReadOnlyObjectProperty<UserModel> selectedUser;
 
     /**
      * Creates a new {@code AppointmentConflictsController}.
      *
-     * @param selectedCustomer The currently selected {@link CustomerModel}.
-     * @param selectedUser The currently selected {@link UserModel}.
-     * @param startDateTime The inclusive start of the {@link LocalDateTime} range.
-     * @param endDateTime The exclusive start of the {@link LocalDateTime} range.
-     * @param resources The {@link ResourceBundle} to use.
+     * @param editAppointmentControl The owning {@link EditAppointment}.
      * @param appointments Initially loaded appointments.
-     * @param primaryKey The current appointment primary key or {@link Optional#EMPTY} if the current appointment has not yet been saved to the database.
      */
-    public AppointmentConflictsController(ReadOnlyObjectProperty<CustomerModel> selectedCustomer, ReadOnlyObjectProperty<UserModel> selectedUser,
-            ReadOnlyObjectProperty<LocalDateTime> startDateTime, ReadOnlyObjectProperty<LocalDateTime> endDateTime, ResourceBundle resources, List<AppointmentDAO> appointments,
-            Optional<Integer> primaryKey) {
-        this.resources = resources;
-        this.primaryKey = primaryKey;
+    public AppointmentConflictsController(EditAppointment editAppointmentControl, List<AppointmentDAO> appointments) {
+        resources = editAppointmentControl.getResources();
         allAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
+        dateRange = editAppointmentControl.getDateRangeController().dateRangeProperty();
         conflictMessage = new ReadOnlyStringWrapper("");
+        final AppointmentModel model = editAppointmentControl.getModel();
+        primaryKey = model.primaryKeyProperty();
+        rowState = model.rowStateProperty();
         if (null != appointments && !appointments.isEmpty()) {
             LOG.fine("Creating appointment models");
-            if (primaryKey.isPresent()) {
+            if (rowState.get() != DataRowState.NEW) {
                 int pk = primaryKey.get();
                 appointments.stream().filter(t -> t.getPrimaryKey() != pk).map((t) -> AppointmentModel.FACTORY.createNew(t)).sorted(AppointmentModel::compareByDates)
                         .forEachOrdered((t) -> allAppointments.add(t));
@@ -78,32 +80,25 @@ public class AppointmentConflictsController {
                 appointments.stream().map((t) -> AppointmentModel.FACTORY.createNew(t)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
             }
         }
+        final SingleSelectionModel<CustomerModel> customerSelectionModel = editAppointmentControl.getCustomerComboBox().getSelectionModel();
+        selectedCustomer = customerSelectionModel.selectedItemProperty();
+        // FIXME: Add code to control user and customer validation view
+        selectedUser = editAppointmentControl.getUserComboBox().getSelectionModel().selectedItemProperty();
         CustomerModel customer = selectedCustomer.get();
         UserModel user = selectedUser.get();
-        LocalDateTime start = startDateTime.get();
-        LocalDateTime end = endDateTime.get();
         if (null == customer || null == user) {
             currentParticipants = new ReadOnlyObjectWrapper<>(null);
-            if (null == start || null == end) {
-                currentRange = new ReadOnlyObjectWrapper<>(null);
-            } else {
-                currentRange = new ReadOnlyObjectWrapper<>(Tuple.of(start, end));
-            }
             conflictCheckStatus = new ReadOnlyObjectWrapper<>(ConflictCheckStatus.NO_CONFLICT);
         } else {
             currentParticipants = new ReadOnlyObjectWrapper<>(Tuple.of(customer, user));
             conflictCheckStatus = new ReadOnlyObjectWrapper<>(ConflictCheckStatus.NOT_CHECKED);
-            if (null == start || null == end) {
-                currentRange = new ReadOnlyObjectWrapper<>(null);
-            } else {
-                currentRange = new ReadOnlyObjectWrapper<>(Tuple.of(start, end));
+            if (null != dateRange.get()) {
                 updateConflictingAppointments();
             }
         }
         selectedCustomer.addListener((observable, oldValue, newValue) -> onParticipantsChanged(newValue, selectedUser.get()));
         selectedUser.addListener((observable, oldValue, newValue) -> onParticipantsChanged(selectedCustomer.get(), newValue));
-        startDateTime.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue, endDateTime.get()));
-        endDateTime.addListener((observable, oldValue, newValue) -> onRangeChanged(startDateTime.get(), newValue));
+        dateRange.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue));
     }
 
     public ConflictCheckStatus getConflictCheckStatus() {
@@ -122,20 +117,28 @@ public class AppointmentConflictsController {
         return conflictMessage.getReadOnlyProperty();
     }
 
+    public CustomerModel getSelectedCustomer() {
+        return selectedCustomer.get();
+    }
+
+    public ReadOnlyObjectProperty<CustomerModel> selectedCustomerProperty() {
+        return selectedCustomer;
+    }
+
+    public UserModel getSelectedUser() {
+        return selectedUser.get();
+    }
+
+    public ReadOnlyObjectProperty<UserModel> selectedUserProperty() {
+        return selectedUser;
+    }
+
     public Tuple<CustomerModel, UserModel> getCurrentParticipants() {
         return currentParticipants.get();
     }
 
     public ReadOnlyObjectProperty<Tuple<CustomerModel, UserModel>> currentParticipantsProperty() {
         return currentParticipants.getReadOnlyProperty();
-    }
-
-    public Tuple<LocalDateTime, LocalDateTime> getCurrentRange() {
-        return currentRange.get();
-    }
-
-    public ReadOnlyObjectProperty<Tuple<LocalDateTime, LocalDateTime>> currentRangeProperty() {
-        return currentRange.getReadOnlyProperty();
     }
 
     public synchronized void startLoadParticipantsAppointments(WaitBorderPane waitBorderPane) {
@@ -150,15 +153,9 @@ public class AppointmentConflictsController {
         }
     }
 
-    private synchronized void onRangeChanged(LocalDateTime start, LocalDateTime end) {
-        Tuple<LocalDateTime, LocalDateTime> range = currentRange.get();
-        if (null == start || null == end) {
-            if (null == range) {
-                LOG.fine("Range not actually changed; nothing else to do");
-                return;
-            }
-            LOG.fine("Start and/or end not defined; Setting current range to null");
-            currentRange.set(null);
+    private synchronized void onRangeChanged(Tuple<LocalDateTime, LocalDateTime> range) {
+        if (null == range) {
+            LOG.fine("Start and/or end not defined");
             if (conflictCheckStatus.get() == ConflictCheckStatus.HAS_CONFLICT) {
                 conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
                 if (!conflictMessage.get().isEmpty()) {
@@ -166,11 +163,7 @@ public class AppointmentConflictsController {
                 }
                 conflictingAppointments.clear();
             }
-        } else if (null != range && range.getValue1().equals(start) && range.getValue1().equals(end)) {
-            LOG.fine("Range values not actually changed; nothing else to do");
-            return;
         } else {
-            currentRange.set(Tuple.of(start, end));
             if (allAppointments.isEmpty()) {
                 LOG.fine("Range changed, with no appointments; nothing else to do");
             } else {
@@ -218,7 +211,7 @@ public class AppointmentConflictsController {
             LOG.fine("Participants changed; setting status to NOT_CHECKED");
             currentParticipants.set(Tuple.of(customer, user));
             checkStatus = ConflictCheckStatus.NOT_CHECKED;
-            message = (null == currentRange.get()) ? "" : resources.getString(RESOURCEKEY_CONFLICTDATASTALE);
+            message = (null == dateRange.get()) ? "" : resources.getString(RESOURCEKEY_CONFLICTDATASTALE);
         }
         if (!conflictMessage.get().equals(message)) {
             conflictMessage.set(message);
@@ -250,7 +243,7 @@ public class AppointmentConflictsController {
         }
         if (!appointments.isEmpty()) {
             LOG.fine("Creating appointment models");
-            if (primaryKey.isPresent()) {
+            if (rowState.get() != DataRowState.NEW) {
                 int pk = primaryKey.get();
                 appointments.stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> AppointmentModel.FACTORY.createNew(t)).sorted(AppointmentModel::compareByDates)
                         .forEachOrdered((t) -> allAppointments.add(t));
@@ -268,7 +261,7 @@ public class AppointmentConflictsController {
     }
 
     private void updateConflictingAppointments() {
-        Tuple<LocalDateTime, LocalDateTime> range = currentRange.get();
+        Tuple<LocalDateTime, LocalDateTime> range = dateRange.get();
         LOG.fine("Resetting conflicting appointments list");
         conflictingAppointments.clear();
         LocalDateTime start = range.getValue1();
@@ -336,10 +329,6 @@ public class AppointmentConflictsController {
         if (conflictCheckStatus.get() != checkStatus) {
             conflictCheckStatus.set(checkStatus);
         }
-    }
-
-    public void enterEditMode(int primaryKey) {
-        this.primaryKey = Optional.of(primaryKey);
     }
 
     private class LoadParticipantsAppointmentsTask extends Task<List<AppointmentDAO>> {

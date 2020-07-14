@@ -5,30 +5,39 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import static scheduler.model.Appointment.MAX_LENGTH_URL;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
+import scheduler.model.PredefinedData;
+import scheduler.model.ui.AddressModel;
+import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.BinarySelective;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.view.appointment.EditAppointment;
+import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 
 /**
  *
@@ -43,6 +52,7 @@ public class TypeContextController {
                 if (null == corporateAddress) {
                     return Optional.empty();
                 }
+                // FIXME: Need to see if this returns the multi-line address
                 return Optional.of(corporateAddress.toString());
             case CUSTOMER_SITE:
                 return Optional.of((null == customer) ? "" : customer.getMultiLineAddress());
@@ -61,15 +71,8 @@ public class TypeContextController {
         }
     }
 
-    private static Optional<String> calculateContact(AppointmentType type, String contact) {
-        if (contact.isEmpty() && type == AppointmentType.OTHER) {
-            return Optional.empty();
-        }
-        return Optional.of(contact);
-    }
-
     private static BinarySelective<String, String> calculateURL(AppointmentType type, String text) {
-        if (text.isEmpty()) {
+        if (null == text || (text = text.trim()).isEmpty()) {
             if (type == AppointmentType.VIRTUAL) {
                 return BinarySelective.ofSecondary("* Required");
             }
@@ -97,70 +100,174 @@ public class TypeContextController {
         return BinarySelective.ofPrimary(text);
     }
 
+    private final ResourceBundle resources;
+    private final ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
+//    private final ReadOnlyObjectProperty<UserModel> selectedUser;
+    private final StringBinding normalizedContact;
+    private final BooleanProperty contactInvalid;
     private final ReadOnlyObjectProperty<AppointmentType> selectedType;
-    private final TextArea locationTextArea;
-    private final TextField phoneTextField;
-    private final Label effectiveLocationLabel;
+    private final StringProperty locationLabelText;
+    private final BooleanProperty includeRemote;
+    private final ObservableList<CorporateAddress> corporateLocationList;
+    private final ObservableList<CorporateAddress> remoteLocationList;
     private final ComboBox<CorporateAddress> corporateLocationComboBox;
     private final ReadOnlyObjectProperty<CorporateAddress> selectedCorporateLocation;
-    private final ReadOnlyStringWrapper effectiveLocation;
-    private final ReadOnlyBooleanWrapper locationInvalid;
-    private final ReadOnlyBooleanWrapper customerInvalid;
-    private final ReadOnlyStringWrapper url;
-    private final ReadOnlyStringWrapper urlValidationMessage;
-    private final ReadOnlyBooleanWrapper contactInvalid;
-    private final ReadOnlyBooleanWrapper valid;
-    private final StringBinding normalizedPhoneBinding;
-    private final StringBinding normalizedLocationBinding;
-    private final StringBinding normalizedContactBinding;
-    private final StringBinding normalizedUrlBinding;
-    private final ObjectBinding<Optional<String>> effectiveLocationBinding;
-    private final ObjectBinding<Optional<String>> contactBinding;
-    private final ObjectBinding<BinarySelective<String, String>> urlBinding;
+    private final TextArea locationTextArea;
+    private final StringBinding normalizedLocation;
+    private final TextField phoneTextField;
+    private final StringBinding normalizedPhone;
+    private final Label implicitLocationLabel;
+    private final Label locationValidationLabel;
+    private final StringProperty urlText;
+    private final ObjectBinding<BinarySelective<String, String>> parsedUrl;
+    private final StringProperty urlValidationMessage;
+    private final BooleanProperty urlInvalid;
+    private final ReadOnlyBooleanWrapper locationInvalid = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper();
 
-    public TypeContextController(ReadOnlyObjectProperty<AppointmentType> selectedType, TextArea locationTextArea, TextField phoneTextField,
-            Label effectiveLocationLabel, StringProperty contactProperty, StringProperty urlProperty, ComboBox<CorporateAddress> corporateLocationComboBox,
-            ReadOnlyObjectProperty<CustomerModel> selectedCustomer) {
-        this.selectedType = selectedType;
-        this.locationTextArea = locationTextArea;
-        this.phoneTextField = phoneTextField;
-        this.effectiveLocationLabel = effectiveLocationLabel;
-        this.corporateLocationComboBox = corporateLocationComboBox;
-        selectedCorporateLocation = corporateLocationComboBox.getSelectionModel().selectedItemProperty();
+    public TypeContextController(EditAppointment editAppointmentControl) {
+        resources = editAppointmentControl.getResources();
+        selectedCustomer = editAppointmentControl.getAppointmentConflictsController().selectedCustomerProperty();
+        StringProperty contactText = editAppointmentControl.getContactTextField().textProperty();
+        AppointmentModel model = editAppointmentControl.getModel();
+        contactText.set(model.getContact());
+        normalizedContact = BindingHelper.asNonNullAndWsNormalized(contactText);
+        contactInvalid = editAppointmentControl.getContactValidationLabel().visibleProperty();
+        SingleSelectionModel<AppointmentType> typeSelectionModel = editAppointmentControl.getTypeComboBox().getSelectionModel();
+        selectedType = typeSelectionModel.selectedItemProperty();
+        typeSelectionModel.select(model.getType());
+        locationLabelText = editAppointmentControl.getLocationLabel().textProperty();
+        includeRemote = editAppointmentControl.getIncludeRemoteCheckBox().selectedProperty();
+        corporateLocationList = FXCollections.observableArrayList();
+        remoteLocationList = FXCollections.observableArrayList();
+        PredefinedData.getCorporateAddressMap().values().forEach((t) -> {
+            if (t.isSatelliteOffice()) {
+                remoteLocationList.add(t);
+            } else {
+                corporateLocationList.add(t);
+            }
+        });
+        corporateLocationComboBox = editAppointmentControl.getCorporateLocationComboBox();
+        corporateLocationComboBox.setItems(corporateLocationList);
+        SingleSelectionModel<CorporateAddress> corporateLocationSelectionModel = corporateLocationComboBox.getSelectionModel();
+        selectedCorporateLocation = corporateLocationSelectionModel.selectedItemProperty();
+        locationTextArea = editAppointmentControl.getLocationTextArea();
+        StringProperty locationText = locationTextArea.textProperty();
+        normalizedLocation = BindingHelper.asNonNullAndWsNormalizedMultiLine(locationText);
+        phoneTextField = editAppointmentControl.getPhoneTextField();
+        StringProperty phoneText = phoneTextField.textProperty();
+        normalizedPhone = BindingHelper.asNonNullAndWsNormalizedMultiLine(phoneText);
+        implicitLocationLabel = editAppointmentControl.getImplicitLocationLabel();
+        locationValidationLabel = editAppointmentControl.getLocationValidationLabel();
+        TextField urlTextField = editAppointmentControl.getUrlTextField();
+        urlTextField.setText(model.getUrl());
+        urlText = urlTextField.textProperty();
+        parsedUrl = Bindings.createObjectBinding(() -> calculateURL(selectedType.get(), urlText.get()), selectedType, urlText);
+        Label label = editAppointmentControl.getUrlValidationLabel();
+        urlValidationMessage = label.textProperty();
+        urlInvalid = label.visibleProperty();
+        String location = model.getLocation();
+        switch (selectedType.get()) {
+            case CORPORATE_LOCATION:
+                restoreNode(corporateLocationComboBox);
+                collapseNode(locationTextArea);
+                CorporateAddress cl = corporateLocationList.stream().filter((t) -> t.getName().equals(location)).findFirst().orElseGet(() -> {
+                    CorporateAddress r = remoteLocationList.stream().filter((u) -> u.getName().equals(location)).findFirst().orElse(null);
+                    if (null != r) {
+                        includeRemote.set(true);
+                        remoteLocationList.forEach((u) -> corporateLocationList.add(u));
+                    }
+                    return r;
+                });
+                locationInvalid.set(null == cl);
+                if (locationInvalid.get()) {
+                    restoreLabeled(implicitLocationLabel, "(corporate location)");
+                } else {
+                    restoreLabeled(implicitLocationLabel, AddressModel.calculateMultiLineAddress(
+                            AddressModel.calculateAddressLines(cl.getAddress1(), cl.getAddress2()),
+                            AddressModel.calculateCityZipCountry(cl.getCity().getName(), cl.getCity().getCountry().getName(), cl.getPostalCode()),
+                            cl.getPhone()
+                    ));
+                    corporateLocationSelectionModel.select(cl);
+                    collapseNode(locationValidationLabel);
+                }
+                break;
+            case CUSTOMER_SITE:
+                locationInvalid.set(false);
+                collapseNode(locationValidationLabel);
+                collapseNode(locationTextArea);
+                CustomerModel cm = selectedCustomer.get();
+                if (null == cm) {
+                    restoreLabeled(implicitLocationLabel, "(customer site)");
+                } else {
+                    restoreLabeled(implicitLocationLabel, cm.getMultiLineAddress());
+                }
+                break;
+            case PHONE:
+                collapseNode(locationTextArea);
+                restoreNode(phoneTextField);
+                locationLabelText.set(resources.getString(RESOURCEKEY_PHONENUMBER));
+                phoneTextField.setText(location);
+                locationInvalid.set(normalizedPhone.get().isEmpty());
+                if (!locationInvalid.get()) {
+                    collapseNode(locationValidationLabel);
+                }
+                break;
+            case VIRTUAL:
+                locationInvalid.set(false);
+                collapseNode(locationValidationLabel);
+                break;
+            default:
+                locationTextArea.setText(location);
+                locationInvalid.set(normalizedLocation.get().isEmpty());
+                if (!locationInvalid.get()) {
+                    collapseNode(locationValidationLabel);
+                }
+                contactInvalid.set(normalizedContact.get().isEmpty());
+                break;
+        }
+        parsedUrl.get().accept((t) -> {
+            urlValidationMessage.set("");
+            urlInvalid.set(false);
+        }, (t) -> {
+            urlValidationMessage.set(t);
+            urlInvalid.set(true);
+        });
 
-        normalizedPhoneBinding = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
-        normalizedLocationBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(locationTextArea.textProperty());
-        effectiveLocationBinding = Bindings.createObjectBinding(() -> calculateEffectiveLocation(selectedType.get(), normalizedLocationBinding.get(),
-                normalizedPhoneBinding.get(), selectedCustomer.get(), selectedCorporateLocation.get()), selectedType, normalizedLocationBinding,
-                normalizedPhoneBinding, selectedCustomer, selectedCorporateLocation);
-        effectiveLocation = new ReadOnlyStringWrapper(effectiveLocationBinding.get().orElse(""));
-        locationInvalid = new ReadOnlyBooleanWrapper(!effectiveLocationBinding.get().isPresent());
-        customerInvalid = new ReadOnlyBooleanWrapper(null == selectedCustomer.get());
-
-        normalizedContactBinding = BindingHelper.asNonNullAndWsNormalized(contactProperty);
-        contactBinding = Bindings.createObjectBinding(() -> calculateContact(selectedType.get(), normalizedContactBinding.get()), selectedType,
-                normalizedContactBinding);
-        contactInvalid = new ReadOnlyBooleanWrapper(!contactBinding.get().isPresent());
-        normalizedUrlBinding = BindingHelper.asTrimmedAndNotNull(urlProperty);
-        urlBinding = Bindings.createObjectBinding(() -> calculateURL(selectedType.get(), normalizedUrlBinding.get()), selectedType, normalizedUrlBinding);
-        url = new ReadOnlyStringWrapper(urlBinding.get().toPrimary(""));
-        urlValidationMessage = new ReadOnlyStringWrapper(urlBinding.get().toSecondary(""));
-        valid = new ReadOnlyBooleanWrapper(!(locationInvalid.get() || customerInvalid.get() || contactInvalid.get() || urlValidationMessage.get().isEmpty()));
-
-        selectedType.addListener(this::onTypeChanged);
-        locationTextArea.textProperty().addListener((observable, oldValue, newValue) -> onEffectiveLocationComponentChanged());
-        phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> onEffectiveLocationComponentChanged());
         selectedCustomer.addListener((observable, oldValue, newValue) -> {
-            customerInvalid.set(null == selectedCustomer.get());
-            onEffectiveLocationComponentChanged();
+            onContextSensitiveChange();
+            setValid(newValue, contactInvalid.get(), locationInvalid.get(), urlInvalid.get());
         });
-        urlProperty.addListener((observable, oldValue, newValue) -> {
-            BinarySelective<String, String> u = urlBinding.get();
-            url.set(u.toPrimary(""));
-            urlValidationMessage.set(u.toSecondary(""));
+        contactText.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
+        selectedCorporateLocation.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
+        locationText.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
+        phoneText.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
+        urlText.addListener((observable, oldValue, newValue) -> onUrlChanged());
+        contactInvalid.addListener((observable, oldValue, newValue) -> {
+            setValid(selectedCustomer.get(), newValue, locationInvalid.get(), urlInvalid.get());
         });
-        contactProperty.addListener((observable, oldValue, newValue) -> contactInvalid.set(!contactBinding.get().isPresent()));
-        selectedCorporateLocation.addListener((observable, oldValue, newValue) -> onEffectiveLocationComponentChanged());
+        locationInvalid.addListener((observable, oldValue, newValue) -> {
+            setValid(selectedCustomer.get(), contactInvalid.get(), newValue, urlInvalid.get());
+        });
+        urlInvalid.addListener((observable, oldValue, newValue) -> {
+            setValid(selectedCustomer.get(), contactInvalid.get(), locationInvalid.get(), newValue);
+        });
+        selectedType.addListener(this::onTypeChanged);
+
+        includeRemote.addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                remoteLocationList.forEach((t) -> {
+                    if (!corporateLocationList.contains(t)) {
+                        corporateLocationList.add(t);
+                    }
+                });
+            } else {
+                if (remoteLocationList.contains(corporateLocationComboBox.getValue())) {
+                    corporateLocationComboBox.getSelectionModel().clearSelection();
+                }
+                remoteLocationList.forEach((t) -> corporateLocationList.remove(t));
+            }
+        });
     }
 
     public AppointmentType getSelectedType() {
@@ -179,60 +286,36 @@ public class TypeContextController {
         return selectedCorporateLocation;
     }
 
-    public String getEffectiveLocation() {
-        return effectiveLocation.get();
-    }
-
-    public ReadOnlyStringProperty effectiveLocationProperty() {
-        return effectiveLocation.getReadOnlyProperty();
-    }
-
-    public boolean isLocationInvalid() {
-        return locationInvalid.get();
-    }
-
-    public ReadOnlyBooleanProperty locationInvalidProperty() {
-        return locationInvalid.getReadOnlyProperty();
-    }
-
-    public boolean isCustomerInvalid() {
-        return customerInvalid.get();
-    }
-
-    public ReadOnlyBooleanProperty customerInvalidProperty() {
-        return customerInvalid.getReadOnlyProperty();
-    }
-
-    public String getUrl() {
-        return url.get();
-    }
-
-    public ReadOnlyStringProperty urlProperty() {
-        return url.getReadOnlyProperty();
-    }
-
-    public String getUrlValidationMessage() {
-        return urlValidationMessage.get();
-    }
-
-    public ReadOnlyStringProperty urlValidationMessageProperty() {
-        return urlValidationMessage.getReadOnlyProperty();
-    }
-
     public String getNormalizedContact() {
-        return normalizedContactBinding.get();
+        return normalizedContact.get();
     }
 
-    public StringBinding getNormalizedContactBinding() {
-        return normalizedContactBinding;
+    public StringBinding normalizedContactStringBinding() {
+        return normalizedContact;
     }
 
-    public boolean isContactInvalid() {
-        return contactInvalid.get();
+    public String getNormalizedLocation() {
+        return normalizedLocation.get();
     }
 
-    public ReadOnlyBooleanProperty contactInvalidProperty() {
-        return contactInvalid.getReadOnlyProperty();
+    public StringBinding normalizedLocationStringBinding() {
+        return normalizedLocation;
+    }
+
+    public String getNormalizedPhone() {
+        return normalizedLocation.get();
+    }
+
+    public StringBinding normalizedPhoneStringBinding() {
+        return normalizedPhone;
+    }
+
+    public BinarySelective<String, String> getParsedUrl() {
+        return parsedUrl.get();
+    }
+
+    public ObjectBinding<BinarySelective<String, String>> parsedUrlStringBinding() {
+        return parsedUrl;
     }
 
     public boolean isValid() {
@@ -243,76 +326,132 @@ public class TypeContextController {
         return valid.getReadOnlyProperty();
     }
 
-    private void onEffectiveLocationComponentChanged() {
-        String value = effectiveLocationBinding.get().orElse("");
-        effectiveLocation.set(value);
-        locationInvalid.set(!effectiveLocationBinding.get().isPresent());
-        if (selectedType.get() == AppointmentType.CUSTOMER_SITE) {
-            effectiveLocationLabel.setText(value);
-        } else {
-            effectiveLocationLabel.setText("");
+    private void onTypeChanged(ObservableValue<? extends AppointmentType> observable, AppointmentType oldValue, AppointmentType newValue) {
+        if (oldValue == newValue) {
+            return;
+        }
+        switch (oldValue) {
+            case CORPORATE_LOCATION:
+                if (newValue == AppointmentType.CUSTOMER_SITE) {
+                    onContextSensitiveChange();
+                    return;
+                }
+                collapseNode(corporateLocationComboBox);
+                collapseNode(implicitLocationLabel);
+                break;
+            case CUSTOMER_SITE:
+                if (newValue == AppointmentType.CORPORATE_LOCATION) {
+                    onContextSensitiveChange();
+                    return;
+                }
+                collapseNode(implicitLocationLabel);
+                break;
+            case PHONE:
+                collapseNode(phoneTextField);
+                locationLabelText.set(resources.getString(RESOURCEKEY_LOCATIONLABELTEXT));
+                break;
+            case VIRTUAL:
+                onUrlChanged();
+                if (newValue == AppointmentType.OTHER) {
+                    onContextSensitiveChange();
+                    return;
+                }
+                collapseNode(locationTextArea);
+                break;
+            default:
+                if (newValue == AppointmentType.VIRTUAL) {
+                    onContextSensitiveChange();
+                    return;
+                }
+                collapseNode(locationTextArea);
+                break;
+        }
+        switch (newValue) {
+            case CORPORATE_LOCATION:
+                contactInvalid.set(false);
+                restoreNode(corporateLocationComboBox);
+                break;
+            case CUSTOMER_SITE:
+                contactInvalid.set(false);
+                locationInvalid.set(false);
+                break;
+            case PHONE:
+                contactInvalid.set(false);
+                locationLabelText.set(resources.getString(RESOURCEKEY_PHONENUMBER));
+                restoreNode(phoneTextField);
+                break;
+            case VIRTUAL:
+                locationInvalid.set(false);
+                contactInvalid.set(false);
+                restoreNode(locationTextArea);
+                onUrlChanged();
+                break;
+            default:
+                restoreNode(locationTextArea);
+                break;
+        }
+        onContextSensitiveChange();
+    }
+
+    private void onUrlChanged() {
+        parsedUrl.get().accept((t) -> {
+            urlValidationMessage.set("");
+            urlInvalid.set(false);
+        }, (t) -> {
+            urlValidationMessage.set(t);
+            urlInvalid.set(true);
+        });
+    }
+
+    private void onContextSensitiveChange() {
+        boolean wasInvalid = locationInvalid.get();
+        switch (selectedType.get()) {
+            case CORPORATE_LOCATION:
+                CorporateAddress cl = selectedCorporateLocation.get();
+                locationInvalid.set(null == cl);
+                if (locationInvalid.get()) {
+                    restoreLabeled(implicitLocationLabel, "(corporate location)");
+                } else {
+                    restoreLabeled(implicitLocationLabel, AddressModel.calculateMultiLineAddress(
+                            AddressModel.calculateAddressLines(cl.getAddress1(), cl.getAddress2()),
+                            AddressModel.calculateCityZipCountry(cl.getCity().getName(), cl.getCity().getCountry().getName(), cl.getPostalCode()),
+                            cl.getPhone()
+                    ));
+                }
+                break;
+            case CUSTOMER_SITE:
+                CustomerModel cm = selectedCustomer.get();
+                if (null == cm) {
+                    restoreLabeled(implicitLocationLabel, "(customer site)");
+                } else {
+                    restoreLabeled(implicitLocationLabel, cm.getMultiLineAddress());
+                }
+                break;
+            case PHONE:
+                locationLabelText.set(resources.getString(RESOURCEKEY_PHONENUMBER));
+                locationInvalid.set(normalizedPhone.get().isEmpty());
+                break;
+            case VIRTUAL:
+                break;
+            default:
+                locationInvalid.set(normalizedLocation.get().isEmpty());
+                contactInvalid.set(normalizedContact.get().isEmpty());
+                break;
+        }
+        if (wasInvalid != locationInvalid.get()) {
+            if (wasInvalid) {
+                collapseNode(locationValidationLabel);
+            } else {
+                restoreNode(locationValidationLabel);
+            }
         }
     }
 
-    private void onTypeChanged(ObservableValue<? extends AppointmentType> observable, AppointmentType oldValue, AppointmentType newValue) {
-        if (null != oldValue) {
-            if (oldValue == newValue) {
-                return;
-            }
-            switch (oldValue) {
-                case CORPORATE_LOCATION:
-                    collapseNode(effectiveLocationLabel);
-                    break;
-                case CUSTOMER_SITE:
-                    collapseNode(effectiveLocationLabel);
-                    break;
-                case PHONE:
-                    collapseNode(phoneTextField);
-                    break;
-                case VIRTUAL:
-                    if (newValue == AppointmentType.OTHER) {
-                        return;
-                    }
-                    collapseNode(locationTextArea);
-                    break;
-                default:
-                    if (newValue == AppointmentType.VIRTUAL) {
-                        return;
-                    }
-                    collapseNode(locationTextArea);
-                    break;
-            }
-            switch (newValue) {
-                case CORPORATE_LOCATION:
-                    restoreNode(corporateLocationComboBox);
-                    break;
-                case CUSTOMER_SITE:
-                    restoreNode(effectiveLocationLabel);
-                    break;
-                case PHONE:
-                    restoreNode(phoneTextField);
-                    break;
-                default:
-                    restoreNode(locationTextArea);
-                    break;
-            }
-        } else {
-            switch (newValue) {
-                case CORPORATE_LOCATION:
-                    collapseNode(locationTextArea);
-                    restoreNode(corporateLocationComboBox);
-                    break;
-                case CUSTOMER_SITE:
-                    collapseNode(locationTextArea);
-                    restoreNode(effectiveLocationLabel);
-                    break;
-                case PHONE:
-                    collapseNode(locationTextArea);
-                    restoreNode(phoneTextField);
-                    break;
-            }
+    private void setValid(CustomerModel customer, boolean c, boolean l, boolean u) {
+        boolean v = null != customer && !(c || l || u);
+        if (v != valid.get()) {
+            valid.set(v);
         }
-        onEffectiveLocationComponentChanged();
     }
 
 }

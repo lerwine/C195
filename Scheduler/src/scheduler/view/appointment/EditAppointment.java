@@ -9,13 +9,12 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -29,14 +28,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -55,7 +52,6 @@ import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
-import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.ui.AppointmentModel;
@@ -68,7 +64,6 @@ import scheduler.observables.BindingHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
-import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -104,29 +99,31 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (null != user) {
             model.setUser(user);
         }
-        return EditItem.showAndWait(parentWindow, EditAppointment_old.class, model, keepOpen);
+        return EditItem.showAndWait(parentWindow, EditAppointment.class, model, keepOpen);
     }
 
     public static AppointmentModel edit(AppointmentModel model, Window parentWindow) throws IOException {
-        return EditItem.showAndWait(parentWindow, EditAppointment_old.class, model, false);
+        return EditItem.showAndWait(parentWindow, EditAppointment.class, model, false);
     }
 
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CustomerModel> customerModelList;
-    private final ObservableList<CorporateAddress> corporateLocationList;
-    private final ObservableList<CorporateAddress> remoteLocationList;
     private final ObservableList<UserModel> userModelList;
     private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
     private final EventHandler<UserSuccessEvent> onUserDeleted;
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
-    private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
-    private ReadOnlyObjectProperty<UserModel> selectedUser;
-    private StringBinding normalizedTitleBinding;
-    private StringBinding normalizedDescriptionBinding;
+//    private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
+//    private ReadOnlyObjectProperty<UserModel> selectedUser;
+//    private StringBinding normalizedTitleBinding;
+//    private StringBinding normalizedDescriptionBinding;
+    private DateRangeController dateRangeController;
+    private TypeContextController typeContextController;
+//    private AppointmentConflictsController appointmentConflictsController;
+//    private StringBinding titleValidationMessage;
 
     @ModelEditor
     private AppointmentModel model;
@@ -148,9 +145,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // fx:id="userComboBox"
     private ComboBox<UserModel> userComboBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="lowerLeftVBox"
-    private VBox lowerLeftVBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="checkConflictsButton"
     private Button checkConflictsButton; // Value injected by FXMLLoader
@@ -250,16 +244,16 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
-    private DateRangeController dateTimeController;
-    private TypeContextController typeContextController;
+    private StringBinding normalizedTitleBinding;
+    private StringBinding titleValidationMessage;
+
+    private StringBinding normalizedDescriptionBinding;
     private AppointmentConflictsController appointmentConflictsController;
 
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
-        corporateLocationList = FXCollections.observableArrayList();
-        remoteLocationList = FXCollections.observableArrayList();
         customerModelList = FXCollections.observableArrayList();
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
@@ -285,7 +279,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     @ModelEditor
     private void onModelInserted(AppointmentEvent event) {
         LOG.entering(LOG.getName(), "onModelInserted", event);
-        appointmentConflictsController.enterEditMode(model.getPrimaryKey());
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
     }
 
     @FXML
@@ -350,23 +344,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML
-    void onIncludeRemoteCheckBoxAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onIncludeRemoteCheckBoxAction", event);
-        if (includeRemoteCheckBox.isSelected()) {
-            remoteLocationList.forEach((t) -> {
-                if (!corporateLocationList.contains(t)) {
-                    corporateLocationList.add(t);
-                }
-            });
-        } else {
-            if (remoteLocationList.contains(corporateLocationComboBox.getValue())) {
-                corporateLocationComboBox.getSelectionModel().clearSelection();
-            }
-            remoteLocationList.forEach((t) -> corporateLocationList.remove(t));
-        }
-    }
-
-    @FXML
     void onUserDropDownOptionsButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onUserDropDownOptionsButtonAction", event);
         editingUserOptions = true;
@@ -389,7 +366,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert userComboBox != null : "fx:id=\"userComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert lowerLeftVBox != null : "fx:id=\"lowerLeftVBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -424,14 +400,29 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         assert appointmentConflictsBorderPane != null : "fx:id=\"appointmentConflictsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
-        customerComboBox.setItems(customerModelList);
-        userComboBox.setItems(userModelList);
-        amPmComboBox.setItems(FXCollections.observableArrayList(Boolean.TRUE, Boolean.FALSE));
-        corporateLocationComboBox.setItems(corporateLocationList);
-        typeComboBox.setItems(FXCollections.observableArrayList(AppointmentType.values()));
+        titleTextField.setText(model.getTitle());
+        normalizedTitleBinding = BindingHelper.asNonNullAndWsNormalized(titleTextField.textProperty());
+        titleValidationMessage = Bindings.when(normalizedTitleBinding.isEmpty())
+                .then("* Required")
+                .otherwise(
+                        Bindings.when(normalizedTitleBinding.length().greaterThan(MAX_LENGTH_TITLE))
+                                .then("Title too long")
+                                .otherwise("")
+                );
+        titleValidationLabel.visibleProperty().bind(titleValidationMessage.isNotEmpty());
 
-        selectedCustomer = customerComboBox.getSelectionModel().selectedItemProperty();
-        selectedUser = userComboBox.getSelectionModel().selectedItemProperty();
+        customerComboBox.setItems(customerModelList);
+        customerValidationLabel.visibleProperty().bind(customerComboBox.getSelectionModel().selectedItemProperty().isNull());
+        userComboBox.setItems(userModelList);
+        userValidationLabel.visibleProperty().bind(userComboBox.getSelectionModel().selectedItemProperty().isNull());
+
+        normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
+
+        if (model.isNewRow()) {
+            windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
+        } else {
+            windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
+        }
 
         waitBorderPane.startNow(new ItemsLoadTask());
     }
@@ -471,45 +462,157 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return modified.getReadOnlyProperty();
     }
 
+    public AppointmentModel getModel() {
+        return model;
+    }
+
+    public ResourceBundle getResources() {
+        return resources;
+    }
+
+    public ComboBox<CustomerModel> getCustomerComboBox() {
+        return customerComboBox;
+    }
+
+    public ComboBox<UserModel> getUserComboBox() {
+        return userComboBox;
+    }
+
+    public TextField getContactTextField() {
+        return contactTextField;
+    }
+
+    public Label getContactValidationLabel() {
+        return contactValidationLabel;
+    }
+
+    public ComboBox<AppointmentType> getTypeComboBox() {
+        return typeComboBox;
+    }
+
+    public DatePicker getStartDatePicker() {
+        return startDatePicker;
+    }
+
+    public TextField getStartHourTextField() {
+        return startHourTextField;
+    }
+
+    public TextField getStartMinuteTextField() {
+        return startMinuteTextField;
+    }
+
+    public ComboBox<Boolean> getAmPmComboBox() {
+        return amPmComboBox;
+    }
+
+    public Button getShowConflictsButton() {
+        return showConflictsButton;
+    }
+
+    public Button getCheckConflictsButton() {
+        return checkConflictsButton;
+    }
+
+    public Label getStartValidationLabel() {
+        return startValidationLabel;
+    }
+
+    public TextField getDurationHourTextField() {
+        return durationHourTextField;
+    }
+
+    public TextField getDurationMinuteTextField() {
+        return durationMinuteTextField;
+    }
+
+    public Label getDurationValidationLabel() {
+        return durationValidationLabel;
+    }
+
+    public Label getLocationLabel() {
+        return locationLabel;
+    }
+
+    public CheckBox getIncludeRemoteCheckBox() {
+        return includeRemoteCheckBox;
+    }
+
+    public ComboBox<CorporateAddress> getCorporateLocationComboBox() {
+        return corporateLocationComboBox;
+    }
+
+    public TextArea getLocationTextArea() {
+        return locationTextArea;
+    }
+
+    public TextField getPhoneTextField() {
+        return phoneTextField;
+    }
+
+    public Label getImplicitLocationLabel() {
+        return implicitLocationLabel;
+    }
+
+    public Label getLocationValidationLabel() {
+        return locationValidationLabel;
+    }
+
+    public TextField getUrlTextField() {
+        return urlTextField;
+    }
+
+    public Label getUrlValidationLabel() {
+        return urlValidationLabel;
+    }
+
+    public DateRangeController getDateRangeController() {
+        return dateRangeController;
+    }
+
+    public TypeContextController getTypeContextController() {
+        return typeContextController;
+    }
+
+    public BorderPane getAppointmentConflictsBorderPane() {
+        return appointmentConflictsBorderPane;
+    }
+
+    public AppointmentConflictsController getAppointmentConflictsController() {
+        return appointmentConflictsController;
+    }
+
     @Override
     public void applyChanges() {
         LOG.info("Applying changes");
         model.setTitle(normalizedTitleBinding.get());
         model.setContact(typeContextController.getNormalizedContact());
-        model.setUrl(typeContextController.getUrl());
+        model.setUrl(typeContextController.getParsedUrl().toPrimary(""));
         model.setDescription(normalizedDescriptionBinding.get());
-        model.setCustomer(selectedCustomer.get());
-        model.setUser(selectedUser.get());
+        model.setCustomer(appointmentConflictsController.getSelectedCustomer());
+        model.setUser(appointmentConflictsController.getSelectedUser());
         model.setType(typeContextController.getSelectedType());
-        model.setStart(dateTimeController.getStartDateTime());
-        model.setEnd(dateTimeController.getEndDateTime());
-        model.setLocation(typeContextController.getEffectiveLocation());
-    }
-
-    private void onTitleChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        LOG.info("Invoked scheduler.view.appointment.EditAppointment#onTitleChanged");
-        String text = normalizedTitleBinding.get();
-        if (text.isEmpty()) {
-            restoreLabeled(titleValidationLabel, "* Required");
-        } else if (text.length() > MAX_LENGTH_TITLE) {
-            restoreLabeled(titleValidationLabel, "Title too long");
-        } else {
-            collapseNode(titleValidationLabel);
-        }
-    }
-
-    private void onSelectedUserChanged(ObservableValue<? extends UserModel> observable, UserModel oldValue, UserModel newValue) {
-        LOG.info("Invoked scheduler.view.appointment.EditAppointment#onSelectedUserChanged");
-        if (null == selectedCustomer.get()) {
-            restoreNode(customerValidationLabel);
-        } else {
-            collapseNode(customerValidationLabel);
+        model.setStart(dateRangeController.getStartDateTime());
+        model.setEnd(dateRangeController.getEndDateTime());
+        switch (typeContextController.getSelectedType()) {
+            case CORPORATE_LOCATION:
+                model.setLocation(typeContextController.getSelectedCorporateLocation().getName());
+                break;
+            case CUSTOMER_SITE:
+                model.setLocation(appointmentConflictsController.getSelectedCustomer().getMultiLineAddress());
+                break;
+            case PHONE:
+                model.setLocation(typeContextController.getNormalizedPhone());
+                break;
+            default:
+                model.setLocation(typeContextController.getNormalizedLocation());
+                break;
         }
     }
 
     private synchronized void onCustomersLoaded(List<CustomerDAO> customerDaoList) {
         LOG.info("Invoked scheduler.view.appointment.EditAppointment#customerDaoList");
-        CustomerModel selectedItem = selectedCustomer.get();
+        CustomerModel selectedItem = customerComboBox.getSelectionModel().getSelectedItem();
         customerModelList.clear();
         if (null != customerDaoList && !customerDaoList.isEmpty()) {
             customerDaoList.forEach((t) -> customerModelList.add(CustomerModel.FACTORY.createNew(t)));
@@ -523,7 +626,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private synchronized void onUsersLoaded(List<UserDAO> userDaoList) {
         LOG.info("Invoked scheduler.view.appointment.EditAppointment#onUsersLoaded");
-        UserModel selectedItem = selectedUser.get();
+        UserModel selectedItem = userComboBox.getSelectionModel().getSelectedItem();
         if (null != userDaoList && !userDaoList.isEmpty()) {
             userDaoList.forEach((t) -> userModelList.add(UserModel.FACTORY.createNew(t)));
         }
@@ -536,10 +639,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private synchronized void onAppointmentsLoaded(List<AppointmentDAO> appointmentList) {
         LOG.info("Invoked scheduler.view.appointment.EditAppointment#onAppointmentsLoaded");
-        PartialUserModel<? extends User> user = model.getUser();
-        int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
-        userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
-                -> userComboBox.getSelectionModel().select(t));
         PartialCustomerModel<? extends Customer> customer = model.getCustomer();
         if (null != customer) {
             int cpk = customer.getPrimaryKey();
@@ -547,28 +646,61 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     -> customerComboBox.getSelectionModel().select(t));
         }
 
-        typeContextController = new TypeContextController(typeComboBox.getSelectionModel().selectedItemProperty(), locationTextArea, phoneTextField,
-                locationLabel, contactTextField.textProperty(), urlTextField.textProperty(), corporateLocationComboBox, selectedCustomer);
+        PartialUserModel<? extends User> user = model.getUser();
+        int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
+        userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
+                -> userComboBox.getSelectionModel().select(t));
 
-        normalizedTitleBinding = BindingHelper.asNonNullAndWsNormalized(titleTextField.textProperty());
-        normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
-        dateTimeController = new DateRangeController(startDatePicker.valueProperty(), startHourTextField.textProperty(), startMinuteTextField.textProperty(),
-                amPmComboBox.getSelectionModel().selectedItemProperty(), durationHourTextField.textProperty(), durationMinuteTextField.textProperty());
+        dateRangeController = new DateRangeController(this);
+        appointmentConflictsController = new AppointmentConflictsController(this, appointmentList);
+        typeContextController = new TypeContextController(this);
 
-        titleTextField.textProperty().addListener(this::onTitleChanged);
-        selectedUser.addListener(this::onSelectedUserChanged);
-
-        titleValidationLabel.visibleProperty().bind(normalizedTitleBinding.isEmpty());
-        startValidationLabel.textProperty().bind(dateTimeController.startValidationMessageProperty());
-        startValidationLabel.visibleProperty().bind(dateTimeController.startValidationMessageProperty().isNotEmpty());
-        durationValidationLabel.textProperty().bind(dateTimeController.durationValidationMessageProperty());
-        durationValidationLabel.visibleProperty().bind(dateTimeController.durationValidationMessageProperty().isNotEmpty());
-        urlValidationLabel.textProperty().bind(typeContextController.urlValidationMessageProperty());
-        urlValidationLabel.visibleProperty().bind(typeContextController.urlValidationMessageProperty().isNotEmpty());
-        customerValidationLabel.visibleProperty().bind(typeContextController.customerInvalidProperty());
-        userValidationLabel.visibleProperty().bind(selectedUser.isNull());
-        appointmentConflictsController = new AppointmentConflictsController(selectedCustomer, selectedUser, dateTimeController.startDateTimeProperty(),
-                dateTimeController.endDateTimeProperty(), resources, appointmentList, (model.isNewRow()) ? Optional.empty() : Optional.of(model.getPrimaryKey()));        
+//        contactTextField.setText(model.getContact());
+//        
+//        SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
+//        AppointmentType type = model.getType();
+//        typeSelectionModel.select(type);
+//        
+//        LocalDateTime startDateTime = model.getStart();
+//        startDatePicker.setValue(startDateTime.toLocalDate());
+//        switch (type) {
+//            case CORPORATE_LOCATION:
+//                String name = model.getLocation();
+//                corporateLocationList.stream().filter((t) -> t.getName().equals(name)).findFirst().ifPresent((t) -> corporateLocationComboBox.getSelectionModel().select(t));
+//                break;
+//            case PHONE:
+//                phoneTextField.setText(model.getLocation());
+//                break;
+//            case CUSTOMER_SITE:
+//                break;
+//            default:
+//                locationTextArea.setText(model.getLocation());
+//                break;
+//        }
+//        urlTextField.setText(model.getUrl());
+//        descriptionTextArea.setText(model.getDescription());
+//        typeContextController = new TypeContextController(this);
+//        dateRangeController = new DateRangeController(this);
+//        customerValidationLabel.visibleProperty().bind(typeContextController.customerInvalidProperty());
+//        userValidationLabel.visibleProperty().bind(selectedUser.isNull());
+//        startValidationLabel.textProperty().bind(dateRangeController.startValidationMessageProperty());
+//        startValidationLabel.visibleProperty().bind(dateRangeController.startValidationMessageProperty().isNotEmpty());
+//        durationValidationLabel.textProperty().bind(dateRangeController.durationValidationMessageProperty());
+//        durationValidationLabel.visibleProperty().bind(dateRangeController.durationValidationMessageProperty().isNotEmpty());
+//        urlValidationLabel.textProperty().bind(typeContextController.urlValidationMessageProperty());
+//        urlValidationLabel.visibleProperty().bind(typeContextController.urlValidationMessageProperty().isNotEmpty());
+//        typeContextController.locationInvalidProperty().addListener((observable, oldValue, newValue) -> {
+//            if (newValue) {
+//                restoreNode(locationValidationLabel);
+//            } else {
+//                collapseNode(locationValidationLabel);
+//            }
+//        });
+//        if (typeContextController.isLocationInvalid()) {
+//            collapseNode(locationValidationLabel);
+//        }
+//        appointmentConflictsController = new AppointmentConflictsController(selectedCustomer, selectedUser, dateRangeController.startDateTimeProperty(),
+//                dateRangeController.endDateTimeProperty(), resources, appointmentList, (model.isNewRow()) ? Optional.empty() : Optional.of(model.getPrimaryKey()));
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
         UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
     }
@@ -587,7 +719,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         @Override
         protected void succeeded() {
             LOG.info("Task succeeded");
-            List<CustomerDAO> result = getValue();
             Optional<Boolean> currentOption = showActiveCustomers;
             if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
                 EditAppointment.this.onCustomersLoaded(getValue());
@@ -643,7 +774,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         @Override
         protected void succeeded() {
             LOG.info("Invoked scheduler.view.appointment.EditAppointment.UserReloadTask#succeeded");
-            List<UserDAO> result = getValue();
             Optional<Boolean> currentOption = showActiveUsers;
             if ((currentOption.isPresent()) ? loadOption.isPresent() && currentOption.get().equals(loadOption.get()) : !loadOption.get()) {
                 EditAppointment.this.onUsersLoaded(getValue());
@@ -728,7 +858,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 LOG.fine("Loading appointments");
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGAPPOINTMENTS));
-                
+
                 if (null != appointmentCustomer && null != appointmentUser) {
                     result = af.load(dbConnector.getConnection(), AppointmentFilter.of(appointmentCustomer, appointmentUser, null, null));
                 } else {
