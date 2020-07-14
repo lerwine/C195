@@ -60,7 +60,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalizedMultiLine;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @DatabaseTable(DbTable.APPOINTMENT)
-public final class AppointmentDAO extends DataAccessObject implements PartialDataAccessObject, Appointment<Timestamp>, AppointmentEntity<Timestamp> {
+public final class AppointmentDAO extends DataAccessObject implements AppointmentEntity<Timestamp> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());

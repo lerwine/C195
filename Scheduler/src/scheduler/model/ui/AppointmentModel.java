@@ -34,7 +34,6 @@ import scheduler.events.ModelEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.model.Address;
-import scheduler.model.Appointment;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
@@ -58,7 +57,7 @@ import scheduler.view.appointment.AppointmentModelFilter;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public final class AppointmentModel extends EntityModel<AppointmentDAO> implements Appointment<LocalDateTime>, AppointmentEntity<LocalDateTime> {
+public final class AppointmentModel extends EntityModel<AppointmentDAO> implements AppointmentEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
 
