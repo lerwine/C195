@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import scheduler.model.ui.AddressModel;
 import scheduler.util.ToStringPropertyBuilder;
 
 /**
@@ -106,4 +107,12 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
                 .addString(PROP_PHONE, phone).build();
     }
 
+    public String toMultiLineAddress() {
+        SupportedCityDefinition city = getCity();
+        return AddressModel.calculateMultiLineAddress(
+                AddressModel.calculateAddressLines(address1, address2),
+                AddressModel.calculateCityZipCountry(city.getName(), city.getCountry().getName(), postalCode),
+                phone
+        );
+    }
 }

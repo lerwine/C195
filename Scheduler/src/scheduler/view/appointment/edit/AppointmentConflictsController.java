@@ -7,6 +7,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -54,6 +56,8 @@ public class AppointmentConflictsController {
     private final ReadOnlyObjectProperty<DataRowState> rowState;
     private final ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
     private final ReadOnlyObjectProperty<UserModel> selectedUser;
+    private final BooleanProperty customerInvalid;
+    private final BooleanProperty userInvalid;
 
     /**
      * Creates a new {@code AppointmentConflictsController}.
@@ -82,10 +86,14 @@ public class AppointmentConflictsController {
         }
         final SingleSelectionModel<CustomerModel> customerSelectionModel = editAppointmentControl.getCustomerComboBox().getSelectionModel();
         selectedCustomer = customerSelectionModel.selectedItemProperty();
-        // FIXME: Add code to control user and customer validation view
+        editAppointmentControl.getCustomerValidationLabel().visibleProperty();
         selectedUser = editAppointmentControl.getUserComboBox().getSelectionModel().selectedItemProperty();
         CustomerModel customer = selectedCustomer.get();
         UserModel user = selectedUser.get();
+        customerInvalid = editAppointmentControl.getCustomerValidationLabel().visibleProperty();
+        customerInvalid.set(null == customer);
+        userInvalid = editAppointmentControl.getUserValidationLabel().visibleProperty();
+        userInvalid.set(null == user);
         if (null == customer || null == user) {
             currentParticipants = new ReadOnlyObjectWrapper<>(null);
             conflictCheckStatus = new ReadOnlyObjectWrapper<>(ConflictCheckStatus.NO_CONFLICT);
@@ -96,9 +104,43 @@ public class AppointmentConflictsController {
                 updateConflictingAppointments();
             }
         }
-        selectedCustomer.addListener((observable, oldValue, newValue) -> onParticipantsChanged(newValue, selectedUser.get()));
-        selectedUser.addListener((observable, oldValue, newValue) -> onParticipantsChanged(selectedCustomer.get(), newValue));
+        selectedCustomer.addListener((observable, oldValue, newValue) -> {
+            if (null == newValue) {
+                if (!customerInvalid.get()) {
+                    customerInvalid.set(true);
+                }
+            } else if (customerInvalid.get()) {
+                customerInvalid.set(false);
+            }
+            onParticipantsChanged(newValue, selectedUser.get());
+        });
+        selectedUser.addListener((observable, oldValue, newValue) -> {
+            if (null == newValue) {
+                if (!userInvalid.get()) {
+                    userInvalid.set(true);
+                }
+            } else if (userInvalid.get()) {
+                userInvalid.set(false);
+            }
+            onParticipantsChanged(selectedCustomer.get(), newValue);
+        });
         dateRange.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue));
+    }
+
+    public boolean isCustomerInvalid() {
+        return customerInvalid.get();
+    }
+
+    public ReadOnlyBooleanProperty customerInvalidProperty() {
+        return customerInvalid;
+    }
+
+    public boolean isUserInvalid() {
+        return userInvalid.get();
+    }
+
+    public ReadOnlyBooleanProperty userInvalidProperty() {
+        return userInvalid;
     }
 
     public ConflictCheckStatus getConflictCheckStatus() {
