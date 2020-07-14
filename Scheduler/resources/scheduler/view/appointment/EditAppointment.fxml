@@ -45,7 +45,7 @@
             <rowConstraints>
                 <RowConstraints />
                 <RowConstraints />
-                <RowConstraints />
+                <RowConstraints minHeight="15.0" />
                 <RowConstraints valignment="BOTTOM" />
                 <RowConstraints />
                 <RowConstraints />
@@ -65,7 +65,7 @@
                 </Label>
                 <HBox GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
                     <children>
-                        <Label alignment="BOTTOM_LEFT" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%customerLabelText" HBox.hgrow="ALWAYS">
+                        <Label alignment="BOTTOM_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%customerLabelText" HBox.hgrow="ALWAYS">
                             <HBox.margin>
                                 <Insets />
                             </HBox.margin>
@@ -79,9 +79,6 @@
                             </opaqueInsets>
                         </Button>
                     </children>
-                    <GridPane.margin>
-                        <Insets top="6.0" />
-                    </GridPane.margin>
                 </HBox>
                 <HBox GridPane.columnIndex="1" GridPane.rowIndex="3">
                     <children>
@@ -99,9 +96,6 @@
                             </opaqueInsets>
                         </Button>
                     </children>
-                    <GridPane.margin>
-                        <Insets top="6.0" />
-                    </GridPane.margin>
                 </HBox>
                 <ComboBox fx:id="customerComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
                     <cellFactory>
@@ -111,6 +105,12 @@
                         <CustomerListCell />
                     </buttonCell>
                 </ComboBox>
+                <Label fx:id="customerValidationLabel" text="%required" GridPane.rowIndex="5">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
                 <ComboBox fx:id="userComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
                     <cellFactory>
                         <UserListCellFactory />
@@ -119,73 +119,98 @@
                         <UserListCell />
                     </buttonCell>
                 </ComboBox>
-                <VBox fx:id="lowerLeftVBox" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
+                <Label fx:id="userValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
+                <Label styleClass="topControlLabel" text="%pointOfContact" GridPane.rowIndex="6">
+                    <GridPane.margin>
+                        <Insets top="6.0" />
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="contactTextField" styleClass="topLabeledControl" GridPane.rowIndex="7" />
+                <Label fx:id="contactValidationLabel" text="%required" visible="false" GridPane.rowIndex="8">
+                    <styleClass>
+                        <String fx:value="validationMessage" />
+                        <String fx:value="error" />
+                    </styleClass>
+                </Label>
+                <Label styleClass="topControlLabel" text="%typeLabelText" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                    <GridPane.margin>
+                        <Insets top="6.0" />
+                    </GridPane.margin>
+                </Label>
+                <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="7" GridPane.valignment="TOP">
+                    <cellFactory>
+                        <AppointmentTypeListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <AppointmentTypeListCell />
+                    </buttonCell>
+                </ComboBox>
+                <VBox GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
                     <children>
-                          <HBox>
-                              <children>
-                                  <Label alignment="BOTTOM_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%startLabelText" HBox.hgrow="ALWAYS" />
-                                  <Button fx:id="checkConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%check">
-                                      <font>
-                                          <Font size="10.0" />
-                                      </font>
-                                  </Button>
-                                  <Button fx:id="showConflictsButton" layoutX="448.0" layoutY="10.0" mnemonicParsing="false" styleClass="small-control" text="%show">
-                                      <font>
-                                          <Font size="10.0" />
-                                      </font>
-                                      <HBox.margin>
-                                          <Insets left="4.0" />
-                                      </HBox.margin>
-                                  </Button>
-                              </children>
-                          </HBox>
-                          <HBox>
-                              <children>
-                                <DatePicker fx:id="startDatePicker" styleClass="topLabeledControl" />
-                                  <TextField fx:id="startHourTextField" prefWidth="45.0" promptText="%hour" styleClass="topLabeledControl">
-                           <HBox.margin>
-                              <Insets left="8.0" />
-                           </HBox.margin>
-                        </TextField>
-                                  <Label text=":" />
-                                  <TextField fx:id="startMinuteTextField" prefWidth="45.0" promptText="%minutes" styleClass="topLabeledControl" />
-                                  <ComboBox fx:id="amPmComboBox" styleClass="topLabeledControl">
-                                      <cellFactory>
-                                          <AmPmListCellFactory />
-                                      </cellFactory>
-                                      <buttonCell>
-                                          <AmPmListCell />
-                                      </buttonCell>
-                                  </ComboBox>
-                              </children>
-                          </HBox>
-                          <Label fx:id="startValidationLabel" text="%required">
-                              <styleClass>
-                                  <String fx:value="validationMessage" />
-                                  <String fx:value="error" />
-                              </styleClass>
-                          </Label>
-                          <Label styleClass="topControlLabel" text="%duration" />
-                          <HBox>
-                              <children>
-                                  <TextField fx:id="durationHourTextField" minWidth="75.0" prefWidth="75.0" promptText="%hours" styleClass="topLabeledControl" />
-                                  <Label text=":" />
-                                  <TextField fx:id="durationMinuteTextField" minWidth="75.0" prefWidth="75.0" promptText="%minutes" styleClass="topLabeledControl" />
-                              </children>
-                          </HBox>
-                          <Label fx:id="durationValidationLabel" text="%required">
-                              <styleClass>
-                                  <String fx:value="validationMessage" />
-                                  <String fx:value="error" />
-                              </styleClass>
-                          </Label>
+                        <Label alignment="BOTTOM_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%startLabelText" />
                         <HBox>
-                            <VBox.margin>
-                                <Insets top="6.0" />
-                            </VBox.margin>
+                            <children>
+                                <DatePicker fx:id="startDatePicker" styleClass="topLabeledControl" />
+                                <TextField fx:id="startHourTextField" prefWidth="45.0" promptText="%hour" styleClass="topLabeledControl">
+                                    <HBox.margin>
+                                        <Insets left="8.0" />
+                                    </HBox.margin>
+                                </TextField>
+                                <Label text=":" />
+                                <TextField fx:id="startMinuteTextField" prefWidth="45.0" promptText="%minutes" styleClass="topLabeledControl" />
+                                <ComboBox fx:id="amPmComboBox" styleClass="topLabeledControl">
+                                    <cellFactory>
+                                        <AmPmListCellFactory />
+                                    </cellFactory>
+                                    <buttonCell>
+                                        <AmPmListCell />
+                                    </buttonCell>
+                                </ComboBox>
+                                <ButtonBar buttonMinWidth="52.0" HBox.hgrow="ALWAYS">
+                                    <buttons>
+                                        <Button fx:id="showConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%show">
+                                            <font>
+                                                <Font size="10.0" />
+                                            </font>
+                                        </Button>
+                                        <Button fx:id="checkConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%check">
+                                            <font>
+                                                <Font size="10.0" />
+                                            </font>
+                                        </Button>
+                                    </buttons>
+                                </ButtonBar>
+                            </children>
+                        </HBox>
+                        <Label fx:id="startValidationLabel" text="%required">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
+                        <Label styleClass="topControlLabel" text="%duration" />
+                        <HBox>
+                            <children>
+                                <TextField fx:id="durationHourTextField" minWidth="75.0" prefWidth="75.0" promptText="%hours" styleClass="topLabeledControl" />
+                                <Label text=":" />
+                                <TextField fx:id="durationMinuteTextField" minWidth="75.0" prefWidth="75.0" promptText="%minutes" styleClass="topLabeledControl" />
+                            </children>
+                        </HBox>
+                        <Label fx:id="durationValidationLabel" text="%required">
+                            <styleClass>
+                                <String fx:value="validationMessage" />
+                                <String fx:value="error" />
+                            </styleClass>
+                        </Label>
+                        <HBox>
                             <children>
                                 <Label fx:id="locationLabel" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%locationLabelText" HBox.hgrow="ALWAYS" />
-                                <CheckBox fx:id="includeRemoteCheckBox" mnemonicParsing="false" onAction="#onIncludeRemoteCheckBoxAction" styleClass="collapsed" text="Include remote satellite offices" />
+                                <CheckBox fx:id="includeRemoteCheckBox" mnemonicParsing="false" styleClass="collapsed" text="Include remote satellite offices" />
                             </children>
                         </HBox>
                         <VBox>
@@ -227,25 +252,6 @@
                         <Insets top="2.0" />
                     </GridPane.margin>
                 </VBox>
-                <Label styleClass="topControlLabel" text="%typeLabelText" GridPane.columnIndex="1" GridPane.rowIndex="6">
-                    <GridPane.margin>
-                        <Insets top="6.0" />
-                    </GridPane.margin>
-                </Label>
-                <ComboBox fx:id="typeComboBox" maxWidth="1.7976931348623157E308" styleClass="topLabeledControl" GridPane.columnIndex="1" GridPane.hgrow="SOMETIMES" GridPane.rowIndex="7" GridPane.valignment="TOP">
-                    <cellFactory>
-                        <AppointmentTypeListCellFactory />
-                    </cellFactory>
-                    <buttonCell>
-                        <AppointmentTypeListCell />
-                    </buttonCell>
-                </ComboBox>
-                <Label styleClass="topControlLabel" text="%pointOfContact" GridPane.rowIndex="6">
-                    <GridPane.margin>
-                        <Insets top="6.0" />
-                    </GridPane.margin>
-                </Label>
-                <TextField fx:id="contactTextField" styleClass="topLabeledControl" GridPane.rowIndex="7" />
                 <VBox GridPane.columnIndex="1" GridPane.rowIndex="9">
                     <children>
                         <Label styleClass="topControlLabel" text="%meetingUrl" />
@@ -256,35 +262,13 @@
                                 <String fx:value="error" />
                             </styleClass>
                         </Label>
-                        <Label styleClass="topControlLabel" text="%description">
-                            <VBox.margin>
-                                <Insets top="6.0" />
-                            </VBox.margin>
-                        </Label>
+                        <Label styleClass="topControlLabel" text="%description" />
                         <TextArea fx:id="descriptionTextArea" prefRowCount="4" styleClass="topLabeledControl" VBox.vgrow="ALWAYS" />
                     </children>
                     <GridPane.margin>
                         <Insets top="2.0" />
                     </GridPane.margin>
                 </VBox>
-                <Label fx:id="customerValidationLabel" text="%required" GridPane.rowIndex="5">
-                    <styleClass>
-                        <String fx:value="validationMessage" />
-                        <String fx:value="error" />
-                    </styleClass>
-                </Label>
-                <Label fx:id="userValidationLabel" text="%required" GridPane.columnIndex="1" GridPane.rowIndex="5">
-                    <styleClass>
-                        <String fx:value="validationMessage" />
-                        <String fx:value="error" />
-                    </styleClass>
-                </Label>
-                <Label fx:id="contactValidationLabel" text="%required" GridPane.rowIndex="8">
-                    <styleClass>
-                        <String fx:value="validationMessage" />
-                        <String fx:value="error" />
-                    </styleClass>
-                </Label>
             </children>
         </GridPane>
         <BorderPane fx:id="dropdownOptionsBorderPane" minHeight="-Infinity" minWidth="-Infinity">
@@ -321,10 +305,10 @@
                     </bottom>
                 </BorderPane>
             </center>
-         <styleClass>
-            <String fx:value="view-modal-mask" />
-            <String fx:value="collapsed" />
-         </styleClass>
+            <styleClass>
+                <String fx:value="view-modal-mask" />
+                <String fx:value="collapsed" />
+            </styleClass>
         </BorderPane>
         <BorderPane fx:id="appointmentConflictsBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
             <center>
@@ -423,10 +407,10 @@
                     </styleClass>
                 </BorderPane>
             </center>
-         <styleClass>
-            <String fx:value="view-modal-mask" />
-            <String fx:value="collapsed" />
-         </styleClass>
+            <styleClass>
+                <String fx:value="view-modal-mask" />
+                <String fx:value="collapsed" />
+            </styleClass>
         </BorderPane>
     </children>
 </fx:root>
