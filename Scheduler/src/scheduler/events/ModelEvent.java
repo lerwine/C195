@@ -471,7 +471,6 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends EntityMod
     @SuppressWarnings("unchecked")
     public Event copyFor(Object newSource, EventTarget newTarget) {
         LOG.entering(LOG.getName(), "copyFor", new Object[]{newSource, newTarget});
-        @SuppressWarnings("unchecked")
         ModelEvent<D, M> copy;
         try {
             copy = (ModelEvent<D, M>) super.copyFor(newSource, newTarget);

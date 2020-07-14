@@ -339,7 +339,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     @FXML
-    @SuppressWarnings("incomplete-switch")
     private void onItemActionRequest(CustomerOpRequestEvent event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {

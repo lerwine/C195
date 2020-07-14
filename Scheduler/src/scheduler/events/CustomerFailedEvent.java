@@ -190,7 +190,7 @@ public final class CustomerFailedEvent extends CustomerEvent implements ModelFai
      */
     public static final EventType<CustomerFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    @SuppressWarnings({"fallthrough", "incomplete-switch"})
+    @SuppressWarnings("fallthrough")
     private static DbOperationType toDbOperationType(EventType<CustomerFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:

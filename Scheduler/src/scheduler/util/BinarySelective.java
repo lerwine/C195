@@ -161,18 +161,21 @@ public final class BinarySelective<T, U> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public T asPrimary(Function<? super U, T> ifSecondary) {
         if (this.primary)
             return (T) value;
         return ifSecondary.apply((U) value);
     }
     
+    @SuppressWarnings("unchecked")
     public T toPrimary(T ifSecondary) {
         if (this.primary)
             return (T) value;
         return ifSecondary;
     }
     
+    @SuppressWarnings("unchecked")
     public U asSecondary(Function<? super T, U> ifPrimary) {
         if (this.primary)
             return ifPrimary.apply((T) value);
@@ -180,6 +183,7 @@ public final class BinarySelective<T, U> {
     }
     
     
+    @SuppressWarnings("unchecked")
     public U toSecondary(U ifPrimary) {
         if (this.primary)
             return ifPrimary;
