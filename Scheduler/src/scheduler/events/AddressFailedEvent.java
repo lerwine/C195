@@ -4,7 +4,7 @@ import java.util.Objects;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AddressDAO;
-import scheduler.model.ui.AddressModel;
+import scheduler.model.fx.AddressModel;
 
 /**
  * Represents a failed {@link AppointmentEvent}.

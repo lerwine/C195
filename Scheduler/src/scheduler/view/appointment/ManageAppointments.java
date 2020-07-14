@@ -46,13 +46,13 @@ import scheduler.events.OperationRequestEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
-import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.PartialAddressModel;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCountryModel;
-import scheduler.model.ui.PartialCustomerModel;
-import scheduler.model.ui.PartialUserModel;
+import scheduler.model.fx.AppointmentModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.PartialAddressModel;
+import scheduler.model.fx.PartialCityModel;
+import scheduler.model.fx.PartialCountryModel;
+import scheduler.model.fx.PartialCustomerModel;
+import scheduler.model.fx.PartialUserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
@@ -87,7 +87,7 @@ import scheduler.view.export.TsvDataExporter;
  * <dd>&rarr; {@link #onEditItem(AppointmentModel) onEditItem}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()}</dd>
  * <dt>{@link OperationRequestEvent} &#123; {@link scheduler.events.ModelEvent#getOperation()} = {@link scheduler.events.DbOperationType#DB_DELETE}}
  * &#125;</dt>
- * <dd>&rarr; {@link #onDeleteItem(scheduler.model.ui.AppointmentModel) onDeleteItem}({@link scheduler.events.AppointmentOpRequestEvent})</dd>
+ * <dd>&rarr; {@link #onDeleteItem(scheduler.model.fx.AppointmentModel) onDeleteItem}({@link scheduler.events.AppointmentOpRequestEvent})</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

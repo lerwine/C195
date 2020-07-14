@@ -40,9 +40,9 @@ import scheduler.view.task.WaitBorderPane;
 import scheduler.dao.PartialAddressDAO;
 import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCountryModel;
-import scheduler.model.ui.PartialAddressModel;
+import scheduler.model.fx.PartialCityModel;
+import scheduler.model.fx.PartialCountryModel;
+import scheduler.model.fx.PartialAddressModel;
 
 /**
  * FXML Controller class

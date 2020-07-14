@@ -15,7 +15,7 @@ import javafx.scene.layout.HBox;
 import scheduler.dao.DataAccessObject;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 import scheduler.util.NodeUtil;
 import static scheduler.util.NodeUtil.createSymbolButton;
 import scheduler.view.SymbolText;

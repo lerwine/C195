@@ -49,11 +49,11 @@ import scheduler.events.CityEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.fx.AddressModel;
+import scheduler.model.fx.CityModel;
+import scheduler.model.fx.CountryModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.PartialCountryModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -90,12 +90,12 @@ import scheduler.view.task.WaitTitledPane;
  * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditAddress#edit(AddressModel, javafx.stage.Window) EditAddress.edit}(({@link AddressModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
- * {@link scheduler.model.ui.AddressModel.Factory}</dd>
+ * {@link scheduler.model.fx.AddressModel.Factory}</dd>
  * <dt>SCHEDULER_ADDRESS_DELETE_REQUEST {@link AddressOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.AddressDAO.DeleteTask#DeleteTask(scheduler.model.ui.AddressModel, boolean) new AddressDAO.DeleteTask}({@link AddressOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.AddressDAO.DeleteTask#DeleteTask(scheduler.model.fx.AddressModel, boolean) new AddressDAO.DeleteTask}({@link AddressOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
- * {@link scheduler.model.ui.AddressModel.Factory}</dd>
+ * {@link scheduler.model.fx.AddressModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

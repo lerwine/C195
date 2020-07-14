@@ -7,7 +7,7 @@ package scheduler.events;
  */
 public enum DbOperationType {
     /**
-     * Insert a new {@link scheduler.model.ui.EntityModel} into the database.
+     * Insert a new {@link scheduler.model.fx.EntityModel} into the database.
      * <ul>
      * <li>{@link AppointmentSuccessEvent#INSERT_EVENT_NAME}</li>
      * <li>{@link AppointmentFailedEvent#INSERT_FAILED}</li>
@@ -25,7 +25,7 @@ public enum DbOperationType {
      */
     DB_INSERT,
     /**
-     * Changes to a {@link scheduler.model.ui.EntityModel} has been saved to the database.
+     * Changes to a {@link scheduler.model.fx.EntityModel} has been saved to the database.
      * <ul>
      * <li>{@link AppointmentSuccessEvent#UPDATE_EVENT_NAME}</li>
      * <li>{@link AppointmentFailedEvent#UPDATE_FAILED}</li>
@@ -43,7 +43,7 @@ public enum DbOperationType {
      */
     DB_UPDATE,
     /**
-     * A {@link scheduler.model.ui.EntityModel} has been deleted from the database.
+     * A {@link scheduler.model.fx.EntityModel} has been deleted from the database.
      * <ul>
      * <li>{@link AppointmentOpRequestEvent#DELETE_REQUEST}</li>
      * <li>{@link CustomerOpRequestEvent#DELETE_REQUEST}</li>

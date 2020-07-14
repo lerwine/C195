@@ -45,7 +45,7 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.model.DataEntity;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
@@ -386,14 +386,14 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      * {@link DataAccessObject} for each database record. This allows all related data references to be automatically updated whenever the data record
      * itself is updated.
      * <p>
-     * For instance, the {@link scheduler.model.ui.AppointmentModel} class has an
-     * {@link scheduler.model.ui.AppointmentModel#effectiveLocation effectiveLocation} property, which is a calculated property where the calculation
-     * algorithm changes based upon the value of the {@link scheduler.model.ui.AppointmentModel#type type} property. Sometimes, the algorithm uses
-     * properties from the {@link scheduler.model.ui.PartialCustomerModel} referenced by the
-     * {@link scheduler.model.ui.AppointmentModel#customer customer} property. It is possible to have a navigation path in which the
-     * {@link scheduler.model.ui.CustomerModel#address} property is modified, and the application user will be eventually returned to a scene that has
+     * For instance, the {@link scheduler.model.fx.AppointmentModel} class has an
+     * {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation} property, which is a calculated property where the calculation
+     * algorithm changes based upon the value of the {@link scheduler.model.fx.AppointmentModel#type type} property. Sometimes, the algorithm uses
+     * properties from the {@link scheduler.model.fx.PartialCustomerModel} referenced by the
+     * {@link scheduler.model.fx.AppointmentModel#customer customer} property. It is possible to have a navigation path in which the
+     * {@link scheduler.model.fx.CustomerModel#address} property is modified, and the application user will be eventually returned to a scene that has
      * a listing of appointments where one of the columns displays the
-     * {@link scheduler.model.ui.AppointmentModel#effectiveLocation effectiveLocation}, with one or more of them displaying the customer's address. By
+     * {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation}, with one or more of them displaying the customer's address. By
      * using cached objects, it is much easier to ensure that the customer address in the columns of the parent listing is automatically updated after
      * any change.</p>
      * This class was created (versus just using a {@link java.util.WeakHashMap} for the following reasons:

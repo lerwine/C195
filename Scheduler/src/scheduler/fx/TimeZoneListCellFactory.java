@@ -15,7 +15,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import scheduler.RegionTable;
-import scheduler.model.ui.CountryModel;
+import scheduler.model.fx.CountryModel;
 import scheduler.util.NodeUtil;
 
 /**

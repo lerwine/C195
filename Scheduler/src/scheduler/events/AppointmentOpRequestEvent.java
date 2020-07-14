@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.AppointmentDAO;
-import scheduler.model.ui.AppointmentModel;
+import scheduler.model.fx.AppointmentModel;
 
 /**
  * Events representing a request to edit or delete an {@link AppointmentDAO} from the database, which may include a related {@link AppointmentModel}.

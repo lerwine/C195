@@ -3,7 +3,7 @@ package scheduler.fx;
 import javafx.scene.control.ListCell;
 import scheduler.model.CountryProperties;
 import scheduler.dao.PartialCountryDAO;
-import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.fx.PartialCountryModel;
 
 /**
  *

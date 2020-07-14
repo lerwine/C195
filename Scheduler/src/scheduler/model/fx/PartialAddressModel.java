@@ -1,4 +1,4 @@
-package scheduler.model.ui;
+package scheduler.model.fx;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;

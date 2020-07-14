@@ -61,15 +61,15 @@ import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.PartialAddressModel;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.fx.AddressModel;
+import scheduler.model.fx.AppointmentModel;
+import scheduler.model.fx.CityModel;
+import scheduler.model.fx.CountryModel;
+import scheduler.model.fx.CustomerModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.PartialAddressModel;
+import scheduler.model.fx.PartialCityModel;
+import scheduler.model.fx.PartialCountryModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -108,12 +108,12 @@ import scheduler.view.task.WaitTitledPane;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
- * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * {@link scheduler.model.fx.AppointmentModel.Factory}</dd>
  * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.ui.AppointmentModel, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.fx.AppointmentModel, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
- * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * {@link scheduler.model.fx.AppointmentModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

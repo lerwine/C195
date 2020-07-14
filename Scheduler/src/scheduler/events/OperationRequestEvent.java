@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  * Base {@link ModelEvent} class for requests to edit or delete a {@link DataAccessObject} which may include a related {@link EntityModel}. The

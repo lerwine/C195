@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 import javafx.scene.control.ListCell;
 import scheduler.util.LogHelper;
 import scheduler.dao.PartialCityDAO;
-import scheduler.model.ui.PartialCityModel;
+import scheduler.model.fx.PartialCityModel;
 
 /**
  *

@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 import scheduler.util.DateTimeUtil;
 
 /**

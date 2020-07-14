@@ -28,7 +28,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserEntity;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;

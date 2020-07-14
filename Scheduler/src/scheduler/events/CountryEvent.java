@@ -4,7 +4,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.OperationFailureException;
-import scheduler.model.ui.CountryModel;
+import scheduler.model.fx.CountryModel;
 
 /**
  * Base {@link ModelEvent} for appointment events.

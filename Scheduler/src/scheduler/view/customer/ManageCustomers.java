@@ -23,7 +23,7 @@ import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
-import scheduler.model.ui.CustomerModel;
+import scheduler.model.fx.CustomerModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;

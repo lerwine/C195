@@ -7,11 +7,11 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CustomerModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.AddressModel;
+import scheduler.model.fx.AppointmentModel;
+import scheduler.model.fx.CityModel;
+import scheduler.model.fx.CustomerModel;
 
 /**
  * Compares {@link DataAccessObject} and {@link EntityModel} to integer values.

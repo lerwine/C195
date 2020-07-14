@@ -1,7 +1,7 @@
 package scheduler.events;
 
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  *

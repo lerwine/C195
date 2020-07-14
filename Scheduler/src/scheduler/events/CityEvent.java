@@ -4,7 +4,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CityDAO;
 import scheduler.dao.OperationFailureException;
-import scheduler.model.ui.CityModel;
+import scheduler.model.fx.CityModel;
 
 /**
  * Base {@link ModelEvent} for appointment events.

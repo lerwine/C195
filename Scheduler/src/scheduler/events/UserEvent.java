@@ -4,7 +4,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.OperationFailureException;
 import scheduler.dao.UserDAO;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.UserModel;
 
 /**
  * Base {@link ModelEvent} for user events.

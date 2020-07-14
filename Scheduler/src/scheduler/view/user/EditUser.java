@@ -50,9 +50,9 @@ import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.AppointmentModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -89,12 +89,12 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; null {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
- * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * {@link scheduler.model.fx.AppointmentModel.Factory}</dd>
  * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; null {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.ui.AppointmentModel, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
+ * <dd>&rarr; null {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.fx.AppointmentModel, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
- * {@link scheduler.model.ui.AppointmentModel.Factory}</dd>
+ * {@link scheduler.model.fx.AppointmentModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

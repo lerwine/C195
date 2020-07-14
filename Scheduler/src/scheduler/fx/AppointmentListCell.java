@@ -10,7 +10,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import scheduler.util.NodeUtil;
-import scheduler.model.ui.AppointmentModel;
+import scheduler.model.fx.AppointmentModel;
 import static scheduler.view.appointment.ManageAppointmentsResourceKeys.*;
 
 /**

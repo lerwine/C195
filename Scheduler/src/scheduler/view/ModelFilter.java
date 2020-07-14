@@ -3,7 +3,7 @@ package scheduler.view;
 import java.util.function.Predicate;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  * View model filter interface.

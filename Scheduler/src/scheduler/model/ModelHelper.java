@@ -3,7 +3,7 @@ package scheduler.model;
 import java.util.Objects;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  * Helper class for getting information about {@link PartialDataEntity} objects.

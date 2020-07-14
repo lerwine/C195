@@ -1,7 +1,7 @@
 package scheduler.dao.filter;
 
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  * Compares {@link DataAccessObject} and {@link EntityModel} to generic values.

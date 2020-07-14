@@ -50,7 +50,7 @@ public enum AppointmentType {
      * <dt>{@link Appointment#getType() type}</dt>
      * <dd>{@code = "customer"}</dd>
      * <dt>{@link Appointment#getLocation() location}</dt>
-     * <dd>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(String, String, String)} &lArr;
+     * <dd>{@code =} {@link scheduler.model.fx.AddressModel#calculateMultiLineAddress(String, String, String)} &lArr;
      * {@link Customer#getAddress() Customer#address}</dd>
      * <dt>{@link Appointment#getContact() contact}</dt>
      * <dd>Optional</dd>

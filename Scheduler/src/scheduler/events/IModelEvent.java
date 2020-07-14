@@ -2,7 +2,7 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import scheduler.dao.DataAccessObject;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  *

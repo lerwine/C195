@@ -18,7 +18,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.StackPane;
 import scheduler.Scheduler;
-import scheduler.model.ui.AppointmentModel;
+import scheduler.model.fx.AppointmentModel;
 import scheduler.util.LogHelper;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;

@@ -180,7 +180,7 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
      * <dt>{@link #getType()} = {@link AppointmentType#VIRTUAL}</dt>
      * <dd>Optional</dd>
      * <dt>{@link #getType()} = {@link AppointmentType#CUSTOMER_SITE}</dt>
-     * <dd>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(java.lang.String, java.lang.String, java.lang.String)} &lArr;
+     * <dd>{@code =} {@link scheduler.model.fx.AddressModel#calculateMultiLineAddress(java.lang.String, java.lang.String, java.lang.String)} &lArr;
      * {@link scheduler.dao.CustomerDAO#address}</dd>
      * <dt>{@link #getType()} = {@link AppointmentType#CORPORATE_LOCATION}</dt>
      * <dd>{@code =} {@link scheduler.model.CorporateAddress#name}</dd>
@@ -238,7 +238,7 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
      * </tr>
      * <tr>
      * <th scope="row" align="right">{@link AppointmentType#CUSTOMER_SITE CUSTOMER_SITE}:</th>
-     * <td>{@code =} {@link scheduler.model.ui.AddressModel#calculateMultiLineAddress(String, String, String)} &lArr;
+     * <td>{@code =} {@link scheduler.model.fx.AddressModel#calculateMultiLineAddress(String, String, String)} &lArr;
      * {@link Customer#getAddress() Customer#address}</td>
      * <td>Optional</td>
      * <td>Optional</td>

@@ -9,7 +9,7 @@ import scheduler.dao.filter.ComparisonOperator;
 import scheduler.dao.filter.DaoFilterExpression;
 import scheduler.dao.filter.UserFilter;
 import scheduler.model.UserStatus;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.UserModel;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.ModelFilter;
 

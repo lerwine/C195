@@ -2,7 +2,7 @@ package scheduler.fx;
 
 import scheduler.dao.CountryDAO;
 import scheduler.events.CountryOpRequestEvent;
-import scheduler.model.ui.CountryModel;
+import scheduler.model.fx.CountryModel;
 
 public class CountryEditTableCellFactory extends ItemEditTableCellFactory<CountryDAO, CountryModel, CountryOpRequestEvent> {
 

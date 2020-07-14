@@ -55,13 +55,13 @@ import scheduler.model.City;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.AddressModel;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.PartialCityModel;
-import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.fx.AddressModel;
+import scheduler.model.fx.CityModel;
+import scheduler.model.fx.CountryModel;
+import scheduler.model.fx.CustomerModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.PartialCityModel;
+import scheduler.model.fx.PartialCountryModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
@@ -98,12 +98,12 @@ import scheduler.view.task.WaitTitledPane;
  * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditCustomer#edit(CustomerModel, javafx.stage.Window) EditCustomer.edit}(({@link CustomerModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
- * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
+ * {@link scheduler.model.fx.CustomerModel.Factory}</dd>
  * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.ui.CustomerModel, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.fx.CustomerModel, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
- * {@link scheduler.model.ui.CustomerModel.Factory}</dd>
+ * {@link scheduler.model.fx.CustomerModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

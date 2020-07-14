@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.UserDAO;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.UserModel;
 
 public final class UserOpRequestEvent extends OperationRequestEvent<UserDAO, UserModel> {
 

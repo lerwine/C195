@@ -5,7 +5,7 @@ import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.dao.PartialAddressDAO;
-import scheduler.model.ui.PartialAddressModel;
+import scheduler.model.fx.PartialAddressModel;
 
 /**
  *

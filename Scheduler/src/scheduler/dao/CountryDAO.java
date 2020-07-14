@@ -28,7 +28,7 @@ import scheduler.model.Country;
 import scheduler.model.CountryEntity;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
-import scheduler.model.ui.CountryModel;
+import scheduler.model.fx.CountryModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;

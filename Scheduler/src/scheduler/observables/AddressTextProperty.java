@@ -7,8 +7,8 @@ import javafx.collections.ObservableList;
 import scheduler.model.Customer;
 import scheduler.util.Values;
 import scheduler.dao.PartialAddressDAO;
-import scheduler.model.ui.PartialCustomerModel;
-import scheduler.model.ui.PartialAddressModel;
+import scheduler.model.fx.PartialCustomerModel;
+import scheduler.model.fx.PartialAddressModel;
 
 /**
  *

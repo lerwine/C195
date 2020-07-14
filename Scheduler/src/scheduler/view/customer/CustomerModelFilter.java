@@ -8,7 +8,7 @@ import scheduler.AppResources;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilterExpression;
-import scheduler.model.ui.CustomerModel;
+import scheduler.model.fx.CustomerModel;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.ModelFilter;
 

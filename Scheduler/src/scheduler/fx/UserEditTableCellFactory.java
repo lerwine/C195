@@ -2,7 +2,7 @@ package scheduler.fx;
 
 import scheduler.dao.UserDAO;
 import scheduler.events.UserOpRequestEvent;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.UserModel;
 
 public class UserEditTableCellFactory extends ItemEditTableCellFactory<UserDAO, UserModel, UserOpRequestEvent> {
 

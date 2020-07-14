@@ -22,7 +22,7 @@ import scheduler.events.UserFailedEvent;
 import scheduler.events.UserSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.User;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;

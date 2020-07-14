@@ -1,4 +1,4 @@
-package scheduler.model.ui;
+package scheduler.model.fx;
 
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;

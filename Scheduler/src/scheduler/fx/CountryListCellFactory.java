@@ -4,7 +4,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import scheduler.dao.PartialCountryDAO;
-import scheduler.model.ui.PartialCountryModel;
+import scheduler.model.fx.PartialCountryModel;
 
 /**
  *

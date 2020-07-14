@@ -43,9 +43,9 @@ import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
-import scheduler.model.ui.CityModel;
-import scheduler.model.ui.CountryModel;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.CityModel;
+import scheduler.model.fx.CountryModel;
+import scheduler.model.fx.EntityModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
@@ -79,12 +79,12 @@ import scheduler.view.task.WaitTitledPane;
  * &#125;</dt>
  * <dd>&rarr; {@link EditCity#edit(CityModel, javafx.stage.Window) EditCity.edit}(({@link CityModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
- * {@link scheduler.model.ui.CityModel.Factory}</dd>
+ * {@link scheduler.model.fx.CityModel.Factory}</dd>
  * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123;
  * {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
- * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.ui.CityModel, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
+ * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.fx.CityModel, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
- * {@link scheduler.model.ui.CityModel.Factory}</dd>
+ * {@link scheduler.model.fx.CityModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;

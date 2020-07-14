@@ -31,7 +31,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.LogHelper;

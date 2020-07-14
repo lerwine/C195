@@ -46,7 +46,7 @@ import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
-import scheduler.model.ui.AppointmentModel;
+import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;

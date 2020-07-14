@@ -7,7 +7,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import scheduler.util.ResourceBundleHelper;
-import scheduler.model.ui.AppointmentModel;
+import scheduler.model.fx.AppointmentModel;
 import scheduler.view.appointment.ManageAppointments;
 
 /**

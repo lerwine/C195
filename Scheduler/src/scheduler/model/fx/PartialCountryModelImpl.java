@@ -1,4 +1,4 @@
-package scheduler.model.ui;
+package scheduler.model.fx;
 
 import java.util.Locale;
 import java.util.logging.Level;

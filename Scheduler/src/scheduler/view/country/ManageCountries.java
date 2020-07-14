@@ -22,7 +22,7 @@ import scheduler.events.CountryFailedEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
-import scheduler.model.ui.CountryModel;
+import scheduler.model.fx.CountryModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;

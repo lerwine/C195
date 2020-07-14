@@ -40,18 +40,18 @@ import javafx.util.converter.LocalDateStringConverter;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.Customer;
 import scheduler.model.User;
-import scheduler.model.ui.AppointmentModel;
-import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.AppointmentModel;
+import scheduler.model.fx.CustomerModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.UserModel;
 import scheduler.util.BinarySelective;
 import scheduler.util.LogHelper;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.util.TernarySelective;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
-import scheduler.model.ui.PartialCustomerModel;
-import scheduler.model.ui.PartialUserModel;
+import scheduler.model.fx.PartialCustomerModel;
+import scheduler.model.fx.PartialUserModel;
 
 /**
  * Binding to validate date and time controls.

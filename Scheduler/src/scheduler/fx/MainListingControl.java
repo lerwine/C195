@@ -29,7 +29,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;

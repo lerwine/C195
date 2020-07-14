@@ -27,7 +27,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import scheduler.fx.AppointmentListCellFactory;
 import scheduler.fx.CssClassName;
-import scheduler.model.ui.AppointmentModel;
+import scheduler.model.fx.AppointmentModel;
 import scheduler.util.NodeUtil;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;

@@ -14,7 +14,7 @@ import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
 import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.ui.EntityModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  *

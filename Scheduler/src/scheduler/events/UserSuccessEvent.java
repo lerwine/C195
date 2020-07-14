@@ -2,7 +2,7 @@ package scheduler.events;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.UserModel;
 
 /**
  * Represents a successful {@link AppointmentEvent}.

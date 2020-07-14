@@ -3,9 +3,9 @@ package scheduler.dao.filter;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
-import scheduler.model.ui.EntityModel;
-import scheduler.model.ui.CustomerModel;
-import scheduler.model.ui.UserModel;
+import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.CustomerModel;
+import scheduler.model.fx.UserModel;
 
 /**
  * Compares {@link DataAccessObject} and {@link EntityModel} to string values.

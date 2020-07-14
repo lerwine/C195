@@ -1,4 +1,4 @@
-package scheduler.model.ui;
+package scheduler.model.fx;
 
 import com.sun.javafx.event.EventHandlerManager;
 import java.time.LocalDateTime;

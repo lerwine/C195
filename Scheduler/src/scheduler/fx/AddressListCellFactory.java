@@ -4,7 +4,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import scheduler.dao.PartialAddressDAO;
-import scheduler.model.ui.PartialAddressModel;
+import scheduler.model.fx.PartialAddressModel;
 
 /**
  *

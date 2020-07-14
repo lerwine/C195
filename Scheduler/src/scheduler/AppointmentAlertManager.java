@@ -23,7 +23,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentSuccessEvent;
-import scheduler.model.ui.AppointmentModel;
+import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;

@@ -1,4 +1,4 @@
-package scheduler.model.ui;
+package scheduler.model.fx;
 
 import java.time.LocalDateTime;
 import java.util.Locale;

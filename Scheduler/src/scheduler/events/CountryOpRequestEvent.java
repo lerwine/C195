@@ -3,7 +3,7 @@ package scheduler.events;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import scheduler.dao.CountryDAO;
-import scheduler.model.ui.CountryModel;
+import scheduler.model.fx.CountryModel;
 
 public final class CountryOpRequestEvent extends OperationRequestEvent<CountryDAO, CountryModel> {
 
