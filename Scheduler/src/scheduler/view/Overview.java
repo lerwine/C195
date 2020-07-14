@@ -32,7 +32,7 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModelFilter;
 import scheduler.view.appointment.ByMonth;
 import scheduler.view.appointment.ByWeek;
-import scheduler.view.appointment.EditAppointment_old;
+import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.ManageCustomers;
@@ -107,7 +107,7 @@ public class Overview extends VBox {
     private void onNewAppointmentHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewAppointmentHyperlinkAction", event);
         try {
-            EditAppointment_old.editNew(null, null, getScene().getWindow(), true);
+            EditAppointment.editNew(null, null, getScene().getWindow(), true);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }

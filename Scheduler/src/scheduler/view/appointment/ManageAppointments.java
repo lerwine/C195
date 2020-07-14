@@ -503,7 +503,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @Override
     protected void onNewItem() {
         try {
-            EditAppointment_old.editNew(null, null, getScene().getWindow(), true);
+            EditAppointment.editNew(null, null, getScene().getWindow(), true);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -513,7 +513,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     protected void onEditItem(AppointmentModel item) {
         try {
             Window w = getScene().getWindow();
-            EditAppointment_old.edit(item, w);
+            EditAppointment.edit(item, w);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
