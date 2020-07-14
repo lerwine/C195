@@ -102,7 +102,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     }
 
     public static CountryModel edit(CountryModel model, Window parentWindow) throws IOException {
-        CountryModel.Factory factory = CountryModel.FACTORY;
         return EditItem.showAndWait(parentWindow, EditCountry.class, model, false);
     }
 
