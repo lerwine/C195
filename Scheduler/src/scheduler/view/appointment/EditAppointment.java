@@ -474,8 +474,16 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return customerComboBox;
     }
 
+    public Label getCustomerValidationLabel() {
+        return customerValidationLabel;
+    }
+
     public ComboBox<UserModel> getUserComboBox() {
         return userComboBox;
+    }
+
+    public Label getUserValidationLabel() {
+        return userValidationLabel;
     }
 
     public TextField getContactTextField() {

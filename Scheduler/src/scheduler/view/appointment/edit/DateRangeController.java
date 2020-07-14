@@ -10,16 +10,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import scheduler.util.BinarySelective;
@@ -169,14 +170,14 @@ public class DateRangeController {
     private final ReadOnlyObjectWrapper<BinarySelective<Integer, String>> startMinute;
     private final ObjectBinding<BinarySelective<LocalDateTime, String>> startDateTimeValueBinding;
     private final ReadOnlyObjectWrapper<LocalDateTime> startDateTime;
-    @Deprecated
-    private final ReadOnlyStringWrapper startValidationMessage;
+    private final StringProperty startValidationMessage;
+    private final BooleanProperty startInvalid;
     private final ReadOnlyObjectWrapper<BinarySelective<Integer, String>> durationHour;
     private final ReadOnlyObjectWrapper<BinarySelective<Integer, String>> durationMinute;
     private final ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeValueBinding;
     private final ReadOnlyObjectWrapper<LocalDateTime> endDateTime;
-    @Deprecated
-    private final ReadOnlyStringWrapper durationValidationMessage;
+    private final StringProperty durationValidationMessage;
+    private final BooleanProperty durationInvalid;
     private final ReadOnlyObjectWrapper<Tuple<LocalDateTime, LocalDateTime>> dateRange;
     private final ObjectBinding<Tuple<LocalDateTime, LocalDateTime>> rangeBinding;
     private final ReadOnlyBooleanWrapper valid;
@@ -201,8 +202,11 @@ public class DateRangeController {
             return r;
         }, startDate, startHour, startMinute, amPm);
         startDateTime = new ReadOnlyObjectWrapper<>(this, "startDateTime", startDateTimeValueBinding.get().toPrimary(null));
-        // FIXME: Chang code to control validation view directly instead of creating intermediary properties
-        startValidationMessage = new ReadOnlyStringWrapper(this, "startValidationMessage", startDateTimeValueBinding.get().toSecondary(""));
+        Label label = editAppointmentControl.getStartValidationLabel();
+        startValidationMessage = label.textProperty();
+        startValidationMessage.set(startDateTimeValueBinding.get().toSecondary(""));
+        startInvalid = label.visibleProperty();
+        startInvalid.bind(startValidationMessage.isNotEmpty());
         textField = editAppointmentControl.getDurationHourTextField();
         StringProperty durationHourText = textField.textProperty();
         durationHour = new ReadOnlyObjectWrapper<>(this, "durationHour", calculateHour(durationHourText.get(), 1, 12));
@@ -217,7 +221,11 @@ public class DateRangeController {
             return r;
         }, startDateTime, durationHour, durationMinute);
         endDateTime = new ReadOnlyObjectWrapper<>(this, "endDateTime", endDateTimeValueBinding.get().toPrimary(null));
-        durationValidationMessage = new ReadOnlyStringWrapper(this, "durationValidationMessage", endDateTimeValueBinding.get().toSecondary(""));
+        label = editAppointmentControl.getDurationValidationLabel();
+        durationValidationMessage = label.textProperty();
+        durationValidationMessage.set(endDateTimeValueBinding.get().toSecondary(""));
+        durationInvalid = label.visibleProperty();
+        durationInvalid.bind(durationValidationMessage.isNotEmpty());
         rangeBinding = Bindings.createObjectBinding(() -> {
             LocalDateTime s = startDateTime.get();
             LocalDateTime e = endDateTime.get();
@@ -295,7 +303,15 @@ public class DateRangeController {
     }
 
     public ReadOnlyStringProperty startValidationMessageProperty() {
-        return startValidationMessage.getReadOnlyProperty();
+        return startValidationMessage;
+    }
+
+    public boolean isStartInvalid() {
+        return startInvalid.get();
+    }
+
+    public ReadOnlyBooleanProperty startInvalidProperty() {
+        return startInvalid;
     }
 
     public BinarySelective<Integer, String> getDurationHour() {
@@ -327,7 +343,15 @@ public class DateRangeController {
     }
 
     public ReadOnlyStringProperty durationValidationMessageProperty() {
-        return durationValidationMessage.getReadOnlyProperty();
+        return durationValidationMessage;
+    }
+
+    public boolean isDurationInvalid() {
+        return durationInvalid.get();
+    }
+
+    public ReadOnlyBooleanProperty durationInvalidProperty() {
+        return durationInvalid;
     }
 
     public Tuple<LocalDateTime, LocalDateTime> getDateRange() {

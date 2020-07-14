@@ -28,7 +28,6 @@ import static scheduler.model.Appointment.MAX_LENGTH_URL;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.PredefinedData;
-import scheduler.model.ui.AddressModel;
 import scheduler.model.ui.AppointmentModel;
 import scheduler.model.ui.CustomerModel;
 import scheduler.observables.BindingHelper;
@@ -52,8 +51,7 @@ public class TypeContextController {
                 if (null == corporateAddress) {
                     return Optional.empty();
                 }
-                // FIXME: Need to see if this returns the multi-line address
-                return Optional.of(corporateAddress.toString());
+                return Optional.of(corporateAddress.toMultiLineAddress());
             case CUSTOMER_SITE:
                 return Optional.of((null == customer) ? "" : customer.getMultiLineAddress());
             case PHONE:
@@ -183,11 +181,7 @@ public class TypeContextController {
                 if (locationInvalid.get()) {
                     restoreLabeled(implicitLocationLabel, "(corporate location)");
                 } else {
-                    restoreLabeled(implicitLocationLabel, AddressModel.calculateMultiLineAddress(
-                            AddressModel.calculateAddressLines(cl.getAddress1(), cl.getAddress2()),
-                            AddressModel.calculateCityZipCountry(cl.getCity().getName(), cl.getCity().getCountry().getName(), cl.getPostalCode()),
-                            cl.getPhone()
-                    ));
+                    restoreLabeled(implicitLocationLabel, cl.toMultiLineAddress());
                     corporateLocationSelectionModel.select(cl);
                     collapseNode(locationValidationLabel);
                 }
@@ -412,11 +406,7 @@ public class TypeContextController {
                 if (locationInvalid.get()) {
                     restoreLabeled(implicitLocationLabel, "(corporate location)");
                 } else {
-                    restoreLabeled(implicitLocationLabel, AddressModel.calculateMultiLineAddress(
-                            AddressModel.calculateAddressLines(cl.getAddress1(), cl.getAddress2()),
-                            AddressModel.calculateCityZipCountry(cl.getCity().getName(), cl.getCity().getCountry().getName(), cl.getPostalCode()),
-                            cl.getPhone()
-                    ));
+                    restoreLabeled(implicitLocationLabel, cl.toMultiLineAddress());
                 }
                 break;
             case CUSTOMER_SITE:
