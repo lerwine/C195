@@ -1,6 +1,5 @@
 package scheduler.view.appointment.edit;
 
-import scheduler.view.appointment.edit.HourAndMinute;
 import java.time.LocalTime;
 
 /**

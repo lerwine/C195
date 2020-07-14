@@ -1,8 +1,5 @@
 package scheduler.view.appointment.edit;
 
-import scheduler.view.appointment.edit.AppointmentDuration;
-import scheduler.view.appointment.edit.AppointmentTime;
-import scheduler.view.appointment.edit.ZonedDateAndTimeSelection;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
