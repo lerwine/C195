@@ -206,6 +206,22 @@ public final class BinarySelective<T, U> {
         return secondary.apply((U) value);
     }
 
+    @SuppressWarnings("unchecked")
+    public <S> BinarySelective<S, U> mapPrimary(Function<? super T, S> ifPrimary) {
+        if (this.primary) {
+            return BinarySelective.ofPrimary(ifPrimary.apply((T) value));
+        }
+        return BinarySelective.ofSecondary((U) value);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <S> BinarySelective<T, S> mapSecondary(Function<? super U, S> ifSecondary) {
+        if (this.primary) {
+            return BinarySelective.ofPrimary((T) value);
+        }
+        return BinarySelective.ofSecondary(ifSecondary.apply((U) value));
+    }
+
     /**
      * Applies a {@link Predicate} according to the option value being stored.
      *

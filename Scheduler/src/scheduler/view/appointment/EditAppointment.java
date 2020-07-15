@@ -3,18 +3,31 @@ package scheduler.view.appointment;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -61,10 +74,12 @@ import scheduler.model.fx.PartialCustomerModel;
 import scheduler.model.fx.PartialUserModel;
 import scheduler.model.fx.UserModel;
 import scheduler.observables.BindingHelper;
+import scheduler.util.BinarySelective;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.Tuple;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -88,6 +103,97 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     private static final String INVALID_NUMBER = "Invalid number";
+    public static final NumberFormat INTN_FORMAT;
+    public static final NumberFormat INT2_FORMAT;
+
+    static {
+        INT2_FORMAT = NumberFormat.getIntegerInstance();
+        INT2_FORMAT.setMinimumIntegerDigits(2);
+        INT2_FORMAT.setMaximumIntegerDigits(2);
+        INTN_FORMAT = NumberFormat.getIntegerInstance();
+    }
+
+    private static BinarySelective<LocalDateTime, String> calculateEndDateTime(LocalDateTime start, BinarySelective<Integer, String> hour, BinarySelective<Integer, String> minute) {
+        if (null == start) {
+            return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("* Required")));
+        }
+        return hour.map(
+                (u) -> minute.map(
+                        (v) -> BinarySelective.ofPrimary(
+                                (u > 0)
+                                        ? ((v > 0) ? start.plusMinutes(v) : start).plusHours(u)
+                                        : ((v > 0) ? start.plusMinutes(v) : start)
+                        ),
+                        (v) -> BinarySelective.ofSecondary(v)
+                ),
+                (u) -> BinarySelective.ofSecondary(u)
+        );
+    }
+
+    private static BinarySelective<LocalDateTime, String> calculateDateTime(LocalDate date, BinarySelective<Integer, String> hour,
+            BinarySelective<Integer, String> minute, boolean isAm) {
+        if (null == date) {
+            return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("* Required")));
+        }
+
+        return hour.map(
+                (hv) -> minute.map(
+                        (mv) -> BinarySelective.ofPrimary(date.atTime((isAm) ? ((hv == 12) ? 0 : hv) : ((hv > 12) ? hv + 12 : 12), mv)),
+                        (mm) -> BinarySelective.ofSecondary(mm)
+                ),
+                (hm) -> BinarySelective.ofSecondary(hm)
+        );
+    }
+
+    private static BinarySelective<Integer, String> calculateHour(String text, int minValue, int maxValue) {
+        String trimmed;
+        if (null == text || (trimmed = text.trim()).isEmpty()) {
+            return BinarySelective.ofSecondary("");
+        }
+        try {
+            Matcher m = INT_PATTERN.matcher(trimmed);
+            if (!m.find()) {
+                throw new ParseException("Invalid hour number", text.length() - trimmed.length());
+            } else if (m.end() < trimmed.length()) {
+                throw new ParseException("Invalid hour number", m.end() + (text.length() - trimmed.length()));
+            }
+            Number parse = INTN_FORMAT.parse(trimmed);
+            int i = parse.intValue();
+            if (i < minValue || i > maxValue) {
+                return BinarySelective.ofSecondary("Hour out of range");
+            }
+            return BinarySelective.ofPrimary(i);
+        } catch (ParseException ex) {
+            int i = ex.getErrorOffset();
+            return BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid hour format at position %d", i)
+                    : "Invalid hour number");
+        }
+    }
+
+    private static BinarySelective<Integer, String> calculateMinute(String text) {
+        String trimmed;
+        if (null == text || (trimmed = text.trim()).isEmpty()) {
+            return BinarySelective.ofSecondary("");
+        }
+        try {
+            Matcher m = INT_PATTERN.matcher(trimmed);
+            if (!m.find()) {
+                throw new ParseException("Invalid minute fnumber", text.length() - trimmed.length());
+            } else if (m.end() < trimmed.length()) {
+                throw new ParseException("Invalid nminute fumber", m.end() + (text.length() - trimmed.length()));
+            }
+            Number parse = INTN_FORMAT.parse(trimmed);
+            int i = parse.intValue();
+            if (i < 0 || i > 59) {
+                return BinarySelective.ofSecondary("Minute out of range");
+            }
+            return BinarySelective.ofPrimary(i);
+        } catch (ParseException ex) {
+            int i = ex.getErrorOffset();
+            return BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid minute format at position %d", i)
+                    : "Invalid minute number");
+        }
+    }
 
     public static AppointmentModel editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
             Window parentWindow, boolean keepOpen) throws IOException {
@@ -881,4 +987,141 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     }
 
+    private class DateRangeValidator {
+
+        private final ObjectBinding<BinarySelective<Integer, String>> parsedStartHour;
+        private final ObjectBinding<BinarySelective<Integer, String>> parsedStartMinute;
+        private final ObjectBinding<BinarySelective<LocalDateTime, String>> startDateTimeBinding;
+        private final ReadOnlyObjectWrapper<LocalDateTime> startDateTimeValue;
+        private final ObjectBinding<BinarySelective<Integer, String>> parsedDurationHour;
+        private final ObjectBinding<BinarySelective<Integer, String>> parsedDurationMinute;
+        private final ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeBinding;
+        private final ReadOnlyObjectWrapper<LocalDateTime> endDateTimeValue;
+        private final ReadOnlyObjectWrapper<Tuple<LocalDateTime, LocalDateTime>> range;
+        private final ReadOnlyBooleanWrapper valid;
+
+        public DateRangeValidator() {
+            LocalDateTime rangeStart = model.getStart();
+            if (null != rangeStart) {
+                startDatePicker.setValue(rangeStart.toLocalDate());
+                int hv = rangeStart.getHour();
+                if (hv < 12) {
+                    amPmComboBox.getSelectionModel().select(true);
+                    startHourTextField.setText(INTN_FORMAT.format((hv > 0) ? hv : 12));
+                } else {
+                    amPmComboBox.getSelectionModel().select(true);
+                    startHourTextField.setText(INTN_FORMAT.format((hv > 12) ? 12 : hv - 12));
+                }
+                startMinuteTextField.setText(INT2_FORMAT.format(rangeStart.getMinute()));
+                LocalDateTime rangeEnd = model.getEnd();
+                if (null != rangeEnd) {
+                    long h = Duration.between(rangeStart, rangeEnd).toMinutes();
+                    long m = h % 60;
+                    durationHourTextField.setText(INTN_FORMAT.format(h - m));
+                    durationMinuteTextField.setText(INT2_FORMAT.format(m));
+                }
+            }
+            parsedStartHour = Bindings.createObjectBinding(() -> calculateHour(startHourTextField.getText(), 1, 12), startHourTextField.textProperty());
+            parsedStartMinute = Bindings.createObjectBinding(() -> calculateMinute(startMinuteTextField.getText()), startMinuteTextField.textProperty());
+            startDateTimeBinding = Bindings.createObjectBinding(() -> calculateDateTime(startDatePicker.getValue(), parsedStartHour.get(),
+                    parsedStartMinute.get(), amPmComboBox.getSelectionModel().getSelectedItem()), startDatePicker.valueProperty(), parsedStartHour,
+                    parsedStartMinute, amPmComboBox.getSelectionModel().selectedItemProperty());
+            startDateTimeValue = new ReadOnlyObjectWrapper<>(this, "startDateTimeValue", null);
+            parsedDurationHour = Bindings.createObjectBinding(() -> calculateHour(durationHourTextField.getText(), 0, 256),
+                    durationHourTextField.textProperty());
+            parsedDurationMinute = Bindings.createObjectBinding(() -> calculateMinute(durationMinuteTextField.getText()),
+                    durationMinuteTextField.textProperty());
+            endDateTimeBinding = Bindings.createObjectBinding(() -> calculateEndDateTime(startDateTimeValue.get(), parsedDurationHour.get(),
+                    parsedDurationMinute.get()), startDateTimeValue, parsedDurationHour, parsedDurationMinute);
+            endDateTimeValue = new ReadOnlyObjectWrapper<>(this, "endDateTimeValue", null);
+            range = new ReadOnlyObjectWrapper<>(this, "range", null);
+            valid = new ReadOnlyBooleanWrapper(this, "valid", false);
+            startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> checkStartChange());
+            startHourTextField.textProperty().addListener((observable, oldValue, newValue) -> checkStartChange());
+            startMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> checkStartChange());
+            amPmComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> checkStartChange());
+            startDateTimeValue.addListener((observable, oldValue, newValue) -> checkEndChange(Optional.of(newValue)));
+            durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> checkEndChange(Optional.empty()));
+            durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> checkEndChange(Optional.empty()));
+            endDateTimeValue.addListener((observable, oldValue, newValue) -> checkRangeChange(startDateTimeValue.get(), endDateTimeValue.get()));
+        }
+
+        private synchronized void checkStartChange() {
+            startDateTimeBinding.get().accept(
+                    (t) -> {
+                        if (!t.equals(startDateTimeValue.get())) {
+                            startDateTimeValue.set(t);
+                        }
+                        if (!startValidationLabel.getText().isEmpty()) {
+                            startValidationLabel.setText("");
+                        }
+                        if (startValidationLabel.isVisible()) {
+                            startValidationLabel.setVisible(false);
+                        }
+                    },
+                    (t) -> {
+                        if (null != startDateTimeValue.getValue()) {
+                            startDateTimeValue.setValue(null);
+                        }
+                        if (!t.equals(startValidationLabel.getText())) {
+                            startValidationLabel.setText(t);
+                        }
+                        if (!startValidationLabel.isVisible()) {
+                            startValidationLabel.setVisible(true);
+                        }
+                    }
+            );
+        }
+
+        private synchronized void checkEndChange(Optional<LocalDateTime> startChange) {
+            endDateTimeBinding.get().accept(
+                    (t) -> {
+                        boolean c = !t.equals(endDateTimeValue.get());
+                        if (c) {
+                            endDateTimeValue.set(t);
+                        }
+                        if (!durationValidationLabel.getText().isEmpty()) {
+                            durationValidationLabel.setText("");
+                        }
+                        if (durationValidationLabel.isVisible()) {
+                            durationValidationLabel.setVisible(false);
+                        }
+                        if (!c) {
+                            startChange.ifPresent((u) -> checkRangeChange(u, t));
+                        }
+                    },
+                    (t) -> {
+                        boolean c = null != endDateTimeValue.get();
+                        if (c) {
+                            endDateTimeValue.set(null);
+                        }
+                        if (!t.equals(durationValidationLabel.getText())) {
+                            durationValidationLabel.setText(t);
+                        }
+                        if (!durationValidationLabel.isVisible()) {
+                            durationValidationLabel.setVisible(true);
+                        }
+                        if (!c) {
+                            startChange.ifPresent((u) -> checkRangeChange(u, null));
+                        }
+                    }
+            );
+        }
+
+        private synchronized void checkRangeChange(LocalDateTime start, LocalDateTime end) {
+            Tuple<LocalDateTime, LocalDateTime> oldValue = range.get();
+            if (null == start || null == end) {
+                if (null != oldValue) {
+                    range.set(null);
+                    valid.set(false);
+                }
+            } else if (null == oldValue) {
+                range.set(Tuple.of(start, end));
+                valid.set(true);
+            } else if (!(start.equals(oldValue.getValue1()) && end.equals(oldValue.getValue2()))) {
+                range.set(Tuple.of(start, end));
+            }
+        }
+
+    }
 }

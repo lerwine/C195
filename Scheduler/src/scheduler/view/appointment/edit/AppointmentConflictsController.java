@@ -39,25 +39,24 @@ import scheduler.view.task.WaitBorderPane;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class AppointmentConflictsController {
+public abstract class AppointmentConflictsController {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentConflictsController.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentConflictsController.class.getName());
 
-    private final ResourceBundle resources;
     private final ReadOnlyObjectProperty<Tuple<LocalDateTime, LocalDateTime>> dateRange;
     private final ReadOnlyObjectWrapper<Tuple<CustomerModel, UserModel>> currentParticipants;
     private final ReadOnlyObjectWrapper<ConflictCheckStatus> conflictCheckStatus;
     private final ReadOnlyStringWrapper conflictMessage;
     private final ObservableList<AppointmentModel> allAppointments;
     private final ObservableList<AppointmentModel> conflictingAppointments;
-    private LoadParticipantsAppointmentsTask currentTask = null;
     private final ReadOnlyIntegerProperty primaryKey;
     private final ReadOnlyObjectProperty<DataRowState> rowState;
     private final ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
     private final ReadOnlyObjectProperty<UserModel> selectedUser;
     private final BooleanProperty customerInvalid;
     private final BooleanProperty userInvalid;
+    private LoadParticipantsAppointmentsTask currentTask = null;
 
     /**
      * Creates a new {@code AppointmentConflictsController}.
@@ -66,7 +65,6 @@ public class AppointmentConflictsController {
      * @param appointments Initially loaded appointments.
      */
     public AppointmentConflictsController(EditAppointment editAppointmentControl, List<AppointmentDAO> appointments) {
-        resources = editAppointmentControl.getResources();
         allAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
         dateRange = editAppointmentControl.getDateRangeController().dateRangeProperty();
@@ -127,6 +125,10 @@ public class AppointmentConflictsController {
         dateRange.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue));
     }
 
+    protected abstract String getResourceString(String key);
+    protected abstract ReadOnlyIntegerProperty primaryKeyProperty();
+    protected abstract ReadOnlyObjectProperty<DataRowState> rowStateProperty();
+    
     public boolean isCustomerInvalid() {
         return customerInvalid.get();
     }
@@ -253,7 +255,7 @@ public class AppointmentConflictsController {
             LOG.fine("Participants changed; setting status to NOT_CHECKED");
             currentParticipants.set(Tuple.of(customer, user));
             checkStatus = ConflictCheckStatus.NOT_CHECKED;
-            message = (null == dateRange.get()) ? "" : resources.getString(RESOURCEKEY_CONFLICTDATASTALE);
+            message = (null == dateRange.get()) ? "" : getResourceString(RESOURCEKEY_CONFLICTDATASTALE);
         }
         if (!conflictMessage.get().equals(message)) {
             conflictMessage.set(message);
@@ -330,36 +332,36 @@ public class AppointmentConflictsController {
                 case 0:
                     switch (userCount) {
                         case 1:
-                            message = resources.getString(RESOURCEKEY_CONFLICTUSER1);
+                            message = getResourceString(RESOURCEKEY_CONFLICTUSER1);
                             break;
                         default:
-                            message = String.format(resources.getString(RESOURCEKEY_CONFLICTUSERN), userCount);
+                            message = String.format(getResourceString(RESOURCEKEY_CONFLICTUSERN), userCount);
                             break;
                     }
                     break;
                 case 1:
                     switch (userCount) {
                         case 0:
-                            message = resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1);
+                            message = getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1);
                             break;
                         case 1:
-                            message = resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USER1);
+                            message = getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1USER1);
                             break;
                         default:
-                            message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN), userCount);
+                            message = String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMER1USERN), userCount);
                             break;
                     }
                     break;
                 default:
                     switch (userCount) {
                         case 0:
-                            message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERN), customerCount);
+                            message = String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERN), customerCount);
                             break;
                         case 1:
-                            message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1), customerCount);
+                            message = String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1), customerCount);
                             break;
                         default:
-                            message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN), customerCount, userCount);
+                            message = String.format(getResourceString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN), customerCount, userCount);
                             break;
                     }
                     break;

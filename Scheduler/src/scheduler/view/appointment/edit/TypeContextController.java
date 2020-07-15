@@ -43,7 +43,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @todo Implement {@code scheduler.view.appointment.edit.TypeContextController}
  */
-public class TypeContextController {
+public abstract class TypeContextController {
 
     private static Optional<String> calculateEffectiveLocation(AppointmentType type, String location, String phone, CustomerModel customer, CorporateAddress corporateAddress) {
         switch (type) {
@@ -98,7 +98,6 @@ public class TypeContextController {
         return BinarySelective.ofPrimary(text);
     }
 
-    private final ResourceBundle resources;
     private final ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
 //    private final ReadOnlyObjectProperty<UserModel> selectedUser;
     private final StringBinding normalizedContact;
@@ -124,7 +123,6 @@ public class TypeContextController {
     private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper();
 
     public TypeContextController(EditAppointment editAppointmentControl) {
-        resources = editAppointmentControl.getResources();
         selectedCustomer = editAppointmentControl.getAppointmentConflictsController().selectedCustomerProperty();
         StringProperty contactText = editAppointmentControl.getContactTextField().textProperty();
         AppointmentModel model = editAppointmentControl.getModel();
@@ -200,7 +198,7 @@ public class TypeContextController {
             case PHONE:
                 collapseNode(locationTextArea);
                 restoreNode(phoneTextField);
-                locationLabelText.set(resources.getString(RESOURCEKEY_PHONENUMBER));
+                locationLabelText.set(getResourceString(RESOURCEKEY_PHONENUMBER));
                 phoneTextField.setText(location);
                 locationInvalid.set(normalizedPhone.get().isEmpty());
                 if (!locationInvalid.get()) {
@@ -264,6 +262,8 @@ public class TypeContextController {
         });
     }
 
+    protected abstract String getResourceString(String key);
+    
     public AppointmentType getSelectedType() {
         return selectedType.get();
     }
@@ -342,7 +342,7 @@ public class TypeContextController {
                 break;
             case PHONE:
                 collapseNode(phoneTextField);
-                locationLabelText.set(resources.getString(RESOURCEKEY_LOCATIONLABELTEXT));
+                locationLabelText.set(getResourceString(RESOURCEKEY_LOCATIONLABELTEXT));
                 break;
             case VIRTUAL:
                 onUrlChanged();
@@ -371,7 +371,7 @@ public class TypeContextController {
                 break;
             case PHONE:
                 contactInvalid.set(false);
-                locationLabelText.set(resources.getString(RESOURCEKEY_PHONENUMBER));
+                locationLabelText.set(getResourceString(RESOURCEKEY_PHONENUMBER));
                 restoreNode(phoneTextField);
                 break;
             case VIRTUAL:
@@ -418,7 +418,7 @@ public class TypeContextController {
                 }
                 break;
             case PHONE:
-                locationLabelText.set(resources.getString(RESOURCEKEY_PHONENUMBER));
+                locationLabelText.set(getResourceString(RESOURCEKEY_PHONENUMBER));
                 locationInvalid.set(normalizedPhone.get().isEmpty());
                 break;
             case VIRTUAL:
