@@ -199,7 +199,9 @@ public final class Scheduler extends Application {
                     LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
                 unbindExtents(loginView);
-                ((Pane) loginView.getParent()).getChildren().remove(loginView);
+                Pane pane = (Pane) loginView.getParent();
+                pane.getChildren().remove(loginView);
+                ((Stage)pane.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
                 getMainController().replaceContent(new Overview());
             }
         }

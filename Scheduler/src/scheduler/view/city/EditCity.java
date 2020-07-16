@@ -77,25 +77,20 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_ADDRESS_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #addressesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
- * {@link AddressOpRequestEvent} &#123;</dt>
+ * <dt>{@link #addressesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link AddressOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#ADDRESS_OP_REQUEST "SCHEDULER_ADDRESS_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
- * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(AddressOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_ADDRESS_EDIT_REQUEST {@link AddressOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_ADDRESS_EDIT_REQUEST {@link AddressOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditAddress#edit(AddressModel, javafx.stage.Window) EditAddress.edit}(({@link AddressModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
  * {@link scheduler.model.fx.AddressModel.Factory}</dd>
- * <dt>SCHEDULER_ADDRESS_DELETE_REQUEST {@link AddressOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_ADDRESS_DELETE_REQUEST {@link AddressOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AddressOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.AddressDAO.DeleteTask#DeleteTask(scheduler.model.fx.AddressModel, boolean) new AddressDAO.DeleteTask}({@link AddressOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr;
- * {@link scheduler.model.fx.AddressModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.AddressEvent#ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &rArr; {@link scheduler.model.fx.AddressModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
