@@ -752,6 +752,48 @@ public class NodeUtil {
         return control;
     }
 
+    public static <T extends Labeled> T setErrorMessage(T control, String text) {
+        CssClassName n = CssClassName.ERROR;
+        for (ValidationStatus s : ValidationStatus.values()) {
+            s.getCssClass().ifPresent((t) -> {
+                if (t != n) {
+                    removeCssClass(control, t);
+                }
+            });
+        }
+        addCssClass(control, n);
+        control.setText(text);
+        return control;
+    }
+
+    public static <T extends Labeled> T setWarningMessage(T control, String text) {
+        CssClassName n = CssClassName.WARNING;
+        for (ValidationStatus s : ValidationStatus.values()) {
+            s.getCssClass().ifPresent((t) -> {
+                if (t != n) {
+                    removeCssClass(control, t);
+                }
+            });
+        }
+        addCssClass(control, n);
+        control.setText(text);
+        return control;
+    }
+
+    public static <T extends Labeled> T setInfoMessage(T control, String text) {
+        CssClassName n = CssClassName.INFO;
+        for (ValidationStatus s : ValidationStatus.values()) {
+            s.getCssClass().ifPresent((t) -> {
+                if (t != n) {
+                    removeCssClass(control, t);
+                }
+            });
+        }
+        addCssClass(control, n);
+        control.setText(text);
+        return control;
+    }
+
     /**
      * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#ERROR}. This removes the
      * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "error"} class and sets the
