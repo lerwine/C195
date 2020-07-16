@@ -30,7 +30,7 @@ public final class StageManager extends ObservableListBase<Stage> {
 
     public static final StageManager INSTANCE = new StageManager();
     private static final Object STAGE_PROPERTY_KEY = new Object();
-    public static final StageStyle DEFAULT_STAGE_STYLE = StageStyle.UTILITY;
+    public static final StageStyle DEFAULT_STAGE_STYLE = StageStyle.DECORATED;
 
     public static Window getWindow(Node... node) {
         if (null != node) {

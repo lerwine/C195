@@ -35,12 +35,12 @@
 <?import scheduler.fx.UserListCell?>
 <?import scheduler.fx.UserListCellFactory?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <GridPane hgap="16.0" StackPane.alignment="CENTER">
             <columnConstraints>
-                <ColumnConstraints maxWidth="-Infinity" />
-                <ColumnConstraints maxWidth="-Infinity" />
+                <ColumnConstraints />
+                <ColumnConstraints percentWidth="50.0" />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints />
@@ -56,7 +56,7 @@
             </rowConstraints>
             <children>
                 <Label styleClass="topControlLabel" text="%titleLabelText" />
-                <TextField fx:id="titleTextField" styleClass="topLabeledControl" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                <TextField fx:id="titleTextField" prefColumnCount="7" styleClass="topLabeledControl" GridPane.columnSpan="2" GridPane.rowIndex="1" />
                 <Label fx:id="titleValidationLabel" text="%required" GridPane.columnSpan="2" GridPane.rowIndex="2">
                     <styleClass>
                         <String fx:value="validationMessage" />
@@ -130,7 +130,7 @@
                         <Insets top="6.0" />
                     </GridPane.margin>
                 </Label>
-                <TextField fx:id="contactTextField" styleClass="topLabeledControl" GridPane.rowIndex="7" />
+                <TextField fx:id="contactTextField" prefColumnCount="7" styleClass="topLabeledControl" GridPane.rowIndex="7" />
                 <Label fx:id="contactValidationLabel" text="%required" GridPane.rowIndex="8">
                     <styleClass>
                         <String fx:value="validationMessage" />
@@ -171,7 +171,7 @@
                                         <AmPmListCell />
                                     </buttonCell>
                                 </ComboBox>
-                                <ButtonBar buttonMinWidth="52.0" HBox.hgrow="ALWAYS">
+                                <ButtonBar buttonMinWidth="42.0" HBox.hgrow="ALWAYS">
                                     <buttons>
                                         <Button fx:id="showConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%show">
                                             <font>
@@ -248,7 +248,7 @@
                                 </ComboBox>
                                 <StackPane>
                                     <children>
-                                        <TextArea fx:id="locationTextArea" prefRowCount="4" styleClass="topLabeledControl" />
+                                        <TextArea fx:id="locationTextArea" prefColumnCount="7" prefRowCount="4" styleClass="topLabeledControl" />
                                         <TextField fx:id="phoneTextField">
                                             <styleClass>
                                                 <String fx:value="topLabeledControl" />
@@ -275,10 +275,10 @@
                         <Insets top="2.0" />
                     </GridPane.margin>
                 </VBox>
-                <VBox GridPane.columnIndex="1" GridPane.rowIndex="9">
+                <VBox GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.vgrow="ALWAYS">
                     <children>
                         <Label styleClass="topControlLabel" text="%meetingUrl" />
-                        <TextField fx:id="urlTextField" styleClass="topLabeledControl" />
+                        <TextField fx:id="urlTextField" prefColumnCount="7" styleClass="topLabeledControl" />
                         <Label fx:id="urlValidationLabel" maxWidth="-Infinity" text="%required" visible="false">
                             <styleClass>
                                 <String fx:value="validationMessage" />
@@ -286,7 +286,7 @@
                             </styleClass>
                         </Label>
                         <Label styleClass="topControlLabel" text="%description" />
-                        <TextArea fx:id="descriptionTextArea" prefRowCount="4" styleClass="topLabeledControl" VBox.vgrow="ALWAYS" />
+                        <TextArea fx:id="descriptionTextArea" prefColumnCount="7" prefRowCount="4" styleClass="topLabeledControl" VBox.vgrow="ALWAYS" />
                     </children>
                     <GridPane.margin>
                         <Insets top="2.0" />
