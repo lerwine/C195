@@ -125,7 +125,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private static BinarySelective<LocalDateTime, String> calculateEndDateTime(LocalDateTime start, BinarySelective<Integer, String> hour, BinarySelective<Integer, String> minute) {
         if (null == start) {
-            return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("* Required")));
+            return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("")));
         }
         return hour.map(
                 (u) -> minute.map(
@@ -912,12 +912,14 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     startHourTextField.setText(INTN_FORMAT.format((hv > 12) ? 12 : hv - 12));
                 }
                 startMinuteTextField.setText(INT2_FORMAT.format(rangeStart.getMinute()));
+                checkStartChange();
                 LocalDateTime rangeEnd = model.getEnd();
                 if (null != rangeEnd) {
                     long h = Duration.between(rangeStart, rangeEnd).toMinutes();
                     long m = h % 60;
                     durationHourTextField.setText(INTN_FORMAT.format(h - m));
                     durationMinuteTextField.setText(INT2_FORMAT.format(m));
+                    checkEndChange(Optional.empty());
                 }
             }
             parsedStartHour = Bindings.createObjectBinding(() -> calculateHour(startHourTextField.getText(), 1, 12), startHourTextField.textProperty());
@@ -980,15 +982,16 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                         }
                     },
                     (t) -> {
-                        boolean c = null != endDateTimeValue.get();
+                        boolean c = !t.isEmpty();
+                        if (durationValidationLabel.isVisible() != c) {
+                            durationValidationLabel.setVisible(c);
+                        };
+                        c = null != endDateTimeValue.get();
                         if (c) {
                             endDateTimeValue.set(null);
                         }
                         if (!t.equals(durationValidationLabel.getText())) {
                             durationValidationLabel.setText(t);
-                        }
-                        if (!durationValidationLabel.isVisible()) {
-                            durationValidationLabel.setVisible(true);
                         }
                         if (!c) {
                             startChange.ifPresent((u) -> checkRangeChange(u, null));
@@ -1478,9 +1481,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 urlValidationLabel.setText(t);
                 urlValidationLabel.setVisible(true);
             });
-            appointmentConflicts.selectedCustomer.addListener((observable, oldValue, newValue) -> {
-                onContextSensitiveChange();
-            });
+            appointmentConflicts.selectedCustomer.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
             contactText.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
             selectedCorporateLocation.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
             locationText.addListener((observable, oldValue, newValue) -> onContextSensitiveChange());
@@ -1526,6 +1527,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     locationValidationLabel.setVisible(normalizedPhone.get().isEmpty());
                     break;
                 case VIRTUAL:
+                    onUrlChanged();
                     break;
                 default:
                     locationValidationLabel.setVisible(normalizedLocation.get().isEmpty());
@@ -1573,6 +1575,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     break;
                 case CUSTOMER_SITE:
                     if (newValue == AppointmentType.CORPORATE_LOCATION) {
+                        restoreNode(corporateLocationComboBox);
                         onContextSensitiveChange();
                         return;
                     }
@@ -1592,9 +1595,12 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     break;
                 default:
                     if (newValue == AppointmentType.VIRTUAL) {
+                        locationValidationLabel.setVisible(false);
+                        contactValidationLabel.setVisible(false);
                         onContextSensitiveChange();
                         return;
                     }
+                    contactValidationLabel.setVisible(false);
                     collapseNode(locationTextArea);
                     break;
             }
