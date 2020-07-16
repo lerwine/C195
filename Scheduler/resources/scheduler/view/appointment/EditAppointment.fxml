@@ -131,7 +131,7 @@
                     </GridPane.margin>
                 </Label>
                 <TextField fx:id="contactTextField" styleClass="topLabeledControl" GridPane.rowIndex="7" />
-                <Label fx:id="contactValidationLabel" text="%required" visible="false" GridPane.rowIndex="8">
+                <Label fx:id="contactValidationLabel" text="%required" GridPane.rowIndex="8">
                     <styleClass>
                         <String fx:value="validationMessage" />
                         <String fx:value="error" />
@@ -236,7 +236,11 @@
                                                 <String fx:value="collapsed" />
                                             </styleClass>
                                         </TextField>
-                                        <Label fx:id="implicitLocationLabel" />
+                                        <Label fx:id="implicitLocationLabel">
+                                 <styleClass>
+                                    <String fx:value="topLabeledControl" />
+                                    <String fx:value="collapsed" />
+                                 </styleClass></Label>
                                     </children>
                                 </StackPane>
                             </children>
