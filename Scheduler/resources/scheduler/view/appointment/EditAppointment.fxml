@@ -193,14 +193,33 @@
                                 <String fx:value="error" />
                             </styleClass>
                         </Label>
-                        <Label styleClass="topControlLabel" text="%duration" />
-                        <HBox>
-                            <children>
-                                <TextField fx:id="durationHourTextField" minWidth="75.0" prefWidth="75.0" promptText="%hours" styleClass="topLabeledControl" />
-                                <Label text=":" />
-                                <TextField fx:id="durationMinuteTextField" minWidth="75.0" prefWidth="75.0" promptText="%minutes" styleClass="topLabeledControl" />
-                            </children>
-                        </HBox>
+                  <GridPane hgap="16.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints vgrow="SOMETIMES" />
+                      <RowConstraints vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                              <Label styleClass="topControlLabel" text="%duration" />
+                              <HBox GridPane.rowIndex="1">
+                                  <children>
+                                      <TextField fx:id="durationHourTextField" minWidth="75.0" prefWidth="75.0" promptText="%hours" styleClass="topLabeledControl" />
+                                      <Label text=":" />
+                                      <TextField fx:id="durationMinuteTextField" minWidth="75.0" prefWidth="75.0" promptText="%minutes" styleClass="topLabeledControl" />
+                                  </children>
+                              </HBox>
+                        <Label styleClass="topControlLabel" text="End" GridPane.columnIndex="1" />
+                        <Label fx:id="endDateTimeLabel" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <styleClass>
+                              <String fx:value="topLabeledControl" />
+                              <String fx:value="information" />
+                           </styleClass>
+                        </Label>
+                     </children>
+                  </GridPane>
                         <Label fx:id="durationValidationLabel" text="%required">
                             <styleClass>
                                 <String fx:value="validationMessage" />

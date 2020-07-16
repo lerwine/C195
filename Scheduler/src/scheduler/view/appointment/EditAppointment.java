@@ -12,6 +12,8 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -115,6 +117,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private static final String INVALID_NUMBER = "Invalid number";
     public static final NumberFormat INTN_FORMAT;
     public static final NumberFormat INT2_FORMAT;
+    public static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL);
 
     static {
         INT2_FORMAT = NumberFormat.getIntegerInstance();
@@ -338,6 +341,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     @FXML // fx:id="durationMinuteTextField"
     private TextField durationMinuteTextField; // Value injected by FXMLLoader
 
+    @FXML // fx:id="endDateTimeLabel"
+    private Label endDateTimeLabel; // Value injected by FXMLLoader
+
     @FXML // fx:id="durationValidationLabel"
     private Label durationValidationLabel; // Value injected by FXMLLoader
 
@@ -526,16 +532,22 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert customerValidationLabel != null : "fx:id=\"customerValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert userComboBox != null : "fx:id=\"userComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert userValidationLabel != null : "fx:id=\"userValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert contactTextField != null : "fx:id=\"contactTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert contactValidationLabel != null : "fx:id=\"contactValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert typeComboBox != null : "fx:id=\"typeComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startDatePicker != null : "fx:id=\"startDatePicker\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startHourTextField != null : "fx:id=\"startHourTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startMinuteTextField != null : "fx:id=\"startMinuteTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert amPmComboBox != null : "fx:id=\"amPmComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert showConflictsButton != null : "fx:id=\"showConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert checkConflictsButton != null : "fx:id=\"checkConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert startValidationLabel != null : "fx:id=\"startValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert durationHourTextField != null : "fx:id=\"durationHourTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert durationMinuteTextField != null : "fx:id=\"durationMinuteTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert endDateTimeLabel != null : "fx:id=\"endDateTimeLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert durationValidationLabel != null : "fx:id=\"durationValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationLabel != null : "fx:id=\"locationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert includeRemoteCheckBox != null : "fx:id=\"includeRemoteCheckBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -544,14 +556,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         assert phoneTextField != null : "fx:id=\"phoneTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert implicitLocationLabel != null : "fx:id=\"implicitLocationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert locationValidationLabel != null : "fx:id=\"locationValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert typeComboBox != null : "fx:id=\"typeComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert contactTextField != null : "fx:id=\"contactTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert urlTextField != null : "fx:id=\"urlTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert urlValidationLabel != null : "fx:id=\"urlValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert descriptionTextArea != null : "fx:id=\"descriptionTextArea\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert customerValidationLabel != null : "fx:id=\"customerValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert userValidationLabel != null : "fx:id=\"userValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
-        assert contactValidationLabel != null : "fx:id=\"contactValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsBorderPane != null : "fx:id=\"dropdownOptionsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsLabel != null : "fx:id=\"dropdownOptionsLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert dropdownOptionsActiveRadioButton != null : "fx:id=\"dropdownOptionsActiveRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -912,14 +919,12 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     startHourTextField.setText(INTN_FORMAT.format((hv > 12) ? 12 : hv - 12));
                 }
                 startMinuteTextField.setText(INT2_FORMAT.format(rangeStart.getMinute()));
-                checkStartChange();
                 LocalDateTime rangeEnd = model.getEnd();
                 if (null != rangeEnd) {
                     long h = Duration.between(rangeStart, rangeEnd).toMinutes();
                     long m = h % 60;
                     durationHourTextField.setText(INTN_FORMAT.format(h - m));
                     durationMinuteTextField.setText(INT2_FORMAT.format(m));
-                    checkEndChange(Optional.empty());
                 }
             }
             parsedStartHour = Bindings.createObjectBinding(() -> calculateHour(startHourTextField.getText(), 1, 12), startHourTextField.textProperty());
@@ -941,6 +946,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> checkEndChange(Optional.empty()));
             durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> checkEndChange(Optional.empty()));
             endDateTimeValue.addListener((observable, oldValue, newValue) -> checkRangeChange(startDateTimeValue.get(), endDateTimeValue.get()));
+            checkStartChange();
+            checkEndChange(Optional.empty());
         }
 
         private synchronized void checkStartChange() {
@@ -970,6 +977,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                         boolean c = !t.equals(endDateTimeValue.get());
                         if (c) {
                             endDateTimeValue.set(t);
+                            String s = DATETIME_FORMAT.format(t);
+                            if (!endDateTimeLabel.getText().equals(s)) {
+                                endDateTimeLabel.setText(s);
+                            }
                         }
                         if (!durationValidationLabel.getText().isEmpty()) {
                             durationValidationLabel.setText("");
@@ -982,10 +993,13 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                         }
                     },
                     (t) -> {
+                        if (!endDateTimeLabel.getText().isEmpty()) {
+                            endDateTimeLabel.setText("");
+                        }
                         boolean c = !t.isEmpty();
                         if (durationValidationLabel.isVisible() != c) {
                             durationValidationLabel.setVisible(c);
-                        };
+                        }
                         c = null != endDateTimeValue.get();
                         if (c) {
                             endDateTimeValue.set(null);
@@ -1395,7 +1409,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
 
         private void initialize() {
-            appointmentConflicts.initialize();;
+            appointmentConflicts.initialize();
             contactTextField.setText(model.getContact());
             StringProperty contactText = contactTextField.textProperty();
             normalizedContact = BindingHelper.asNonNullAndWsNormalized(contactText);
