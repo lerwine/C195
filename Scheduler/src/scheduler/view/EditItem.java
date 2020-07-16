@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -50,20 +49,17 @@ import scheduler.view.task.WaitBorderPane;
 /**
  * The parent FXML custom control for editing {@link EntityModel} items in a new modal window.
  * <p>
- * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the
- * values for the {@link EntityModel#getCreatedBy()}, {@link EntityModel#getCreateDate()}, {@link EntityModel#getLastModifiedBy()} and
- * {@link EntityModel#getLastModifiedDate()} properties. Properties that are specific to the {@link EntityModel} type are edited in a child
- * {@link EditItem.ModelEditorController} custom control.</p>
+ * This controller manages the {@link #saveChangesButton}, {@link #deleteButton}, and cancel button controls as well as labels for displaying the values for the
+ * {@link EntityModel#getCreatedBy()}, {@link EntityModel#getCreateDate()}, {@link EntityModel#getLastModifiedBy()} and {@link EntityModel#getLastModifiedDate()} properties.
+ * Properties that are specific to the {@link EntityModel} type are edited in a child {@link EditItem.ModelEditorController} custom control.</p>
  * <p>
  * The child editor is intended to be instantiated through the {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method.</p>
  * <p>
- * The child {@link EditItem.ModelEditorController} can be initialized with the current {@link EntityModel} by annotating a field named
- * {@code "model"} with {@link ModelEditor}. It can also be initialized with the current {@link WaitBorderPane} by annotating a field named
- * {@code "waitBorderPane"} with {@link ModelEditor}</p>
+ * The child {@link EditItem.ModelEditorController} can be initialized with the current {@link EntityModel} by annotating a field named {@code "model"} with {@link ModelEditor}. It
+ * can also be initialized with the current {@link WaitBorderPane} by annotating a field named {@code "waitBorderPane"} with {@link ModelEditor}</p>
  * <p>
- * The child {@link EditItem.ModelEditorController} can be notified when a new {@link EntityModel} has been successfully saved and the edit window
- * is going to remain open by annotating a method named {@code "onModelInserted"} having a single parameter, that is the same as the generic event
- * type, with {@link ModelEditor}.</p>
+ * The child {@link EditItem.ModelEditorController} can be notified when a new {@link EntityModel} has been successfully saved and the edit window is going to remain open by
+ * annotating a method named {@code "onModelInserted"} having a single parameter, that is the same as the generic event type, with {@link ModelEditor}.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of data access object that the model represents.
@@ -90,13 +86,12 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
      * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window.
-     * @param editorRegion The {@link EditItem.ModelEditorController} that will be used for editing the entity-specific {@link EntityModel}
-     * properties.
+     * @param editorRegion The {@link EditItem.ModelEditorController} that will be used for editing the entity-specific {@link EntityModel} properties.
      * @param model The {@link EntityModel} to be edited.
-     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window
-     * immediately after a successful insert.
-     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or
-     * {@code null} if the {@code model} was not successfully saved to the database.
+     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window immediately after a successful
+     * insert.
+     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or {@code null} if the {@code model} was not
+     * successfully saved to the database.
      * @throws IOException if unable to open the edit window.
      */
     public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
@@ -119,13 +114,12 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
      * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
      * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window.
-     * @param editorType The {@link EditItem.ModelEditorController} class that will be instantiated for editing the entity-specific
-     * {@link EntityModel} properties.
+     * @param editorType The {@link EditItem.ModelEditorController} class that will be instantiated for editing the entity-specific {@link EntityModel} properties.
      * @param model The {@link EntityModel} to be edited.
-     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window
-     * immediately after a successful insert.
-     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or
-     * {@code null} if the {@code model} was not successfully saved to the database.
+     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window immediately after a successful
+     * insert.
+     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or {@code null} if the {@code model} was not
+     * successfully saved to the database.
      * @throws IOException if unable to open the edit window.
      */
     public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
@@ -139,7 +133,7 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
         return showAndWait(parentWindow, editorRegion, model, keepOpen);
     }
 
-    private final WindowChangeListener windowChangeListener;
+    private final ParentWindowChangeListener.StageListener stageChangeListener;
     private final S editorRegion;
     private final U model;
     private final boolean keepOpen;
@@ -179,7 +173,14 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
     private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
 
     private EditItem(S editorRegion, U model, boolean keepOpen) {
-        windowChangeListener = new WindowChangeListener();
+        stageChangeListener = ParentWindowChangeListener.createStageChangeHandler(sceneProperty(), (observable, oldValue, newValue) -> {
+            if (null != oldValue) {
+                oldValue.titleProperty().unbind();
+            }
+            if (null != newValue) {
+                newValue.titleProperty().bind(editorRegion.windowTitleProperty());
+            }
+        });
         this.editorRegion = editorRegion;
         this.model = model;
         this.keepOpen = keepOpen;
@@ -300,7 +301,6 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
         VBox.setVgrow(editorRegion, Priority.ALWAYS);
         VBox.setMargin(editorRegion, new Insets(8.0));
         saveChangesButton.disableProperty().bind(editorRegion.validProperty().and(editorRegion.modifiedProperty().or(model.newRowProperty())).not());
-        windowChangeListener.initialize(sceneProperty());
         if (model.isNewRow()) {
             deleteButton.setDisable(true);
             collapseNode(deleteButton);
@@ -330,25 +330,9 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
                 dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
     }
 
-    private class WindowChangeListener extends ParentWindowChangeListener {
-
-        @Override
-        protected void onStageChanged(ObservableValue<? extends Stage> observable, Stage oldValue, Stage newValue) {
-            super.onStageChanged(observable, oldValue, newValue);
-            if (null != oldValue) {
-                oldValue.titleProperty().unbind();
-            }
-            if (null != newValue) {
-                newValue.titleProperty().bind(editorRegion.windowTitleProperty());
-            }
-        }
-
-    }
-
     /**
      * Base class for editing specific {@link EntityModel} items. Derived controls are intended to be instantiated through the
-     * {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method. This control will be inserted as the first child node of the
-     * parent {@code EditItem} control.
+     * {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method. This control will be inserted as the first child node of the parent {@code EditItem} control.
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link EntityModel}.
      * @param <U> The {@link EntityModel} type.
@@ -371,11 +355,10 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
         String getWindowTitle();
 
         /**
-         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()}
-         * of the parent {@link Stage}.
+         * Gets the property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent {@link Stage}.
          *
-         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the
-         * {@link Stage#titleProperty()} of the parent {@link Stage}.
+         * @return The property that specifies the window title for the current parent {@link Stage}. This is bound to the {@link Stage#titleProperty()} of the parent
+         * {@link Stage}.
          */
         ReadOnlyStringProperty windowTitleProperty();
 
@@ -384,8 +367,8 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
         /**
          * The inverse value of this property is bound to the {@link Button#disableProperty()} of the {@link EditItem#saveChangesButton}.
          *
-         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled,
-         * otherwise {@code true} if it is to be enabled.
+         * @return A {@link ReadOnlyBooleanProperty} that contains a {@code false} value if the {@link EditItem#saveChangesButton} is to be disabled, otherwise {@code true} if it
+         * is to be enabled.
          */
         ReadOnlyBooleanProperty validProperty();
 

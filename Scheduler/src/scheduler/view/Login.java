@@ -23,6 +23,7 @@ import scheduler.SupportedLocale;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import scheduler.util.NodeUtil;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -53,6 +54,9 @@ public final class Login extends Scheduler.LoginBorderPane {
     public static final String RESOURCEKEY_EMPTYUSERNAME = "emptyUserName";
     public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
 
+    private final ParentWindowChangeListener.StageListener stageChangeHandler;
+    private ObjectBinding<SupportedLocale> selectedLanguage;
+    
     // Currently selected resource bundle
     private ObjectBinding<ResourceBundle> resourceBundle;
 
@@ -88,6 +92,13 @@ public final class Login extends Scheduler.LoginBorderPane {
 
     public Login() {
         super();
+        stageChangeHandler = ParentWindowChangeListener.createStageChangeHandler(sceneProperty(), (observable, oldValue, newValue) -> {
+            LOG.fine("stageChangeHandler#currentStage changed");
+            if (null != newValue && null != resourceBundle) {
+                LOG.fine("Setting stage title");
+                newValue.setTitle(resourceBundle.get().getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            }
+        });
     }
 
     @FXML
@@ -103,7 +114,7 @@ public final class Login extends Scheduler.LoginBorderPane {
     }
 
     private ObjectBinding<SupportedLocale> initializeLanguageBindings() {
-        ObjectBinding<SupportedLocale> selectedLanguage = Bindings.select(languageComboBox.selectionModelProperty(), "selectedItem");
+        selectedLanguage = Bindings.select(languageComboBox.selectionModelProperty(), "selectedItem");
         // Create binding which returns a resource bundle for the selected language, or the resource bundle loaded with the controller if no language
         // is selected in the languageComboBox.
         resourceBundle = Bindings.createObjectBinding(() -> {
@@ -119,37 +130,8 @@ public final class Login extends Scheduler.LoginBorderPane {
             return ResourceBundleHelper.getBundle(Login.class, l.getLocale());
         }, selectedLanguage);
 
-        // Create bindings for the current Stage so we can update the titleProperty when the language changes.
-        // Use low-level API to create a nested property binding to the window property of the scene property for the current custom control (Login).
-        // The class used by the BindingUtil.ofNestedObject method re-binds to the new nested window property when the scene property changes.
-        ObjectBinding<Window> currentWindow = Bindings.when(sceneProperty().isNull()).then((Window) null)
-                .otherwise(Bindings.<Window>select(sceneProperty(), "window"));
-        // Create an object binding which returns the nested windowProperty as a Stage object.
-        ObjectBinding<Stage> currentStage = Bindings.createObjectBinding(() -> {
-            LOG.fine("Calculating currentStage");
-            Window w = currentWindow.get();
-            // return window as a Stage object only if it's not null and it is actually a Stage object.
-            return (null != w && w instanceof Stage) ? (Stage) w : null;
-        }, currentWindow);
-
-        // Add a listener so the Stage title gets updated right away when the control gets added to a Scene and Stage.
-        currentStage.addListener((observable, oldValue, newValue) -> {
-            LOG.fine("currentStage changed");
-            if (null != newValue) {
-                LOG.fine("Setting stage title");
-                newValue.setTitle(resourceBundle.get().getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
-            }
-        });
-
         // Add a listener so we can update the Stage title right away when the language changes.
-        resourceBundle.addListener((observable, oldValue, newValue) -> {
-            LOG.fine("Resource bundle changed");
-            Stage stage = currentStage.get();
-            if (null != stage) {
-                LOG.fine("Setting stage title");
-                stage.setTitle(newValue.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
-            }
-        });
+        resourceBundle.addListener((observable, oldValue, newValue) -> onResourceBundleChanged(newValue));
 
         // Bind the text property of userNameLabel to a StringBinding that returns the label text in the currently selected language.
         userNameLabel.textProperty().bind(Bindings.createStringBinding(() -> {
@@ -170,6 +152,15 @@ public final class Login extends Scheduler.LoginBorderPane {
         }, resourceBundle));
 
         return selectedLanguage;
+    }
+
+    private void onResourceBundleChanged(ResourceBundle newValue) {
+        LOG.fine("Resource bundle changed");
+        Stage stage = stageChangeHandler.getCurrentStage();
+        if (null != stage) {
+            LOG.fine("Setting stage title");
+            stage.setTitle(newValue.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
