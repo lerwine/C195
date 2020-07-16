@@ -22,4 +22,4 @@ For forked repository:
 For forked repository:
 
 - Sync changes to forked repository: `git push origin master:master`
-- [Create Pull Request](https://github.com/fork_owner/C195/pulls)
+- [Create Pull Request](https://github.com/lerwine/C195/compare/master...fork_owner:master)
