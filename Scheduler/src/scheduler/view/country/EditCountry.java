@@ -35,7 +35,6 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
-import scheduler.dao.DataRowState;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
 import scheduler.events.CityOpRequestEvent;
@@ -66,25 +65,19 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_CITY_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #citiesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CityOpRequestEvent}
- * &#123;</dt>
+ * <dt>{@link #citiesTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CityOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#CITY_OP_REQUEST "SCHEDULER_CITY_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
- * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(CityOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_CITY_EDIT_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#EDIT_REQUEST}
- * &#125;</dt>
+ * <dt>SCHEDULER_CITY_EDIT_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditCity#edit(CityModel, javafx.stage.Window) EditCity.edit}(({@link CityModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
- * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
- * {@link scheduler.model.fx.CityModel.Factory}</dd>
- * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.fx.CityModel.Factory}</dd>
+ * <dt>SCHEDULER_CITY_DELETE_REQUEST {@link CityOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CityOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.CityDAO.DeleteTask#DeleteTask(scheduler.model.fx.CityModel, boolean) new CityDAO.DeleteTask}({@link CityOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr;
- * {@link scheduler.model.fx.CityModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.CityEvent#CITY_EVENT_TYPE "SCHEDULER_CITY_EVENT"} &rArr; {@link scheduler.model.fx.CityModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -110,7 +103,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CityModel> itemList;
     private final ObservableList<Locale> localeList;
-    private ObjectBinding<Locale> selectedLocale;
 
     @ModelEditor
     private CountryModel model;
@@ -140,6 +132,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     private final EventHandler<CitySuccessEvent> onCityUpdated;
     private final EventHandler<CitySuccessEvent> onCityDeleted;
     private BooleanBinding modificationBinding;
+    private ObjectBinding<Locale> modelLocale;
 
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper(this, "", "");
@@ -267,7 +260,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     @FXML
     private void onLocaleComboBoxAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onLocaleComboBoxAction", event);
-        valid.set(null != selectedLocale.get());
+        valid.set(null != localeComboBox.getSelectionModel().getSelectedItem());
         boolean m = modificationBinding.get();
         modified.set(m);
     }
@@ -291,13 +284,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         assert newButtonBar != null : "fx:id=\"newButtonBar\" was not injected: check your FXML file 'EditCountry.fxml'.";
 
         localeComboBox.setItems(localeList);
-        selectedLocale = Bindings.select(localeComboBox.selectionModelProperty(), "selectedItem");
-        languageValidationLabel.visibleProperty().bind(selectedLocale.isNull());
-
-        modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
-                .or(selectedLocale.isNotEqualTo(model.localeProperty()));
-
-        modified.set(modificationBinding.get());
+        languageValidationLabel.visibleProperty().bind(localeComboBox.getSelectionModel().selectedItemProperty().isNull());
 
         Locale locale = model.getLocale();
         if (null != locale) {
@@ -346,6 +333,16 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     }
 
     private void initializeEditMode() {
+        modelLocale = Bindings.createObjectBinding(() -> {
+            Locale l = model.getLocale();
+            if (null == l) {
+                return null;
+            }
+            String s = l.toLanguageTag();
+            return localeComboBox.getItems().stream().filter((t) -> t.toLanguageTag().equals(s)).findAny().orElse(null);
+        }, model.localeProperty());
+        modificationBinding = localeComboBox.getSelectionModel().selectedItemProperty().isNotEqualTo(modelLocale);
+        modified.set(modificationBinding.get());
         citiesTableView.setItems(itemList);
         windowTitle.set(String.format(resources.getString(RESOURCEKEY_EDITCOUNTRY), model.getName()));
     }
@@ -387,7 +384,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
 
     @Override
     public void applyChanges() {
-        model.setLocale(selectedLocale.get());
+        model.setLocale(localeComboBox.getSelectionModel().getSelectedItem());
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {
