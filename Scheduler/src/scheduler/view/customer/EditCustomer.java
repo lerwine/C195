@@ -382,7 +382,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         CityModel c;
         try {
             c = EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
-            LOG.fine("Edit window closed");
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);
             c = null;
