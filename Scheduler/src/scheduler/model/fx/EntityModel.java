@@ -171,6 +171,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
     }
 
     private void onModelEvent(ModelEvent<T, ? extends EntityModel<T>> event) {
+        LOG.fine(() -> String.format("Handling %s", event));
         T dao = event.getDataAccessObject();
         rowState.set(dao.getRowState());
         lastModifiedDate.set(DateTimeUtil.toLocalDateTime(dao.getLastModifiedDate()));
@@ -314,8 +315,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         }
 
         /**
-         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -326,8 +326,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         }
 
         /**
-         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -338,8 +337,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         }
 
         /**
-         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -350,8 +348,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         }
 
         /**
-         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.

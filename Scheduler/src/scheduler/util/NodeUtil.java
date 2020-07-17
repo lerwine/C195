@@ -112,8 +112,8 @@ public class NodeUtil {
     }
 
     /**
-     * Sets the computed height and width properties so the {@link Region} takes up only what space is needed. This sets the minimum and maximum
-     * computed width properties {@link Region#USE_PREF_SIZE}, and the preferred height and width properties to {@link Region#USE_COMPUTED_SIZE}.
+     * Sets the computed height and width properties so the {@link Region} takes up only what space is needed. This sets the minimum and maximum computed width properties
+     * {@link Region#USE_PREF_SIZE}, and the preferred height and width properties to {@link Region#USE_COMPUTED_SIZE}.
      *
      * @param <T> The {@link Region} type.
      * @param region The target {@link Region}.
@@ -603,8 +603,8 @@ public class NodeUtil {
     }
 
     /**
-     * Collapses a JavaFX scene graph {@link javafx.scene.Node}. This adds the CSS class "collapsed" to the {@link javafx.scene.Node#styleClass} list,
-     * which sets vertical and horizontal dimensions to zero and sets the {@link javafx.scene.Node#visible} property to {@code false}.
+     * Collapses a JavaFX scene graph {@link javafx.scene.Node}. This adds the CSS class "collapsed" to the {@link javafx.scene.Node#styleClass} list, which sets vertical and
+     * horizontal dimensions to zero and sets the {@link javafx.scene.Node#visible} property to {@code false}.
      *
      * @param <T> The type of {@link Node} to collapse.
      * @param node The JavaFX scene graph {@link javafx.scene.Node} to be collapsed and hidden.
@@ -718,8 +718,8 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the dimensions of a JavaFX scene graph {@link javafx.scene.Node} and ensures it's not visible. This removes the CSS class "collapsed"
-     * from the {@link javafx.scene.Node#styleClass} list.
+     * Restores the dimensions of a JavaFX scene graph {@link javafx.scene.Node} and ensures it's not visible. This removes the CSS class "collapsed" from the
+     * {@link javafx.scene.Node#styleClass} list.
      *
      * @param <T> The type of {@link Node} to restore.
      * @param node The JavaFX scene graph {@link javafx.scene.Node} to be un-collapsed.
@@ -734,9 +734,8 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control and sets the
-     * {@link javafx.scene.control.Labeled#text} property. This removes the CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list
-     * and sets the {@link javafx.scene.control.Labeled#text} property.
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control and sets the {@link javafx.scene.control.Labeled#text} property. This removes
+     * the CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list and sets the {@link javafx.scene.control.Labeled#text} property.
      *
      * @param <T> The type of {@link Labeled} control to restore.
      * @param control The JavaFX scene graph {@link javafx.scene.control.Labeled} control to be un-collapsed.
@@ -795,9 +794,8 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#ERROR}. This removes the
-     * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "error"} class and sets the
-     * {@link javafx.scene.control.Labeled#text} property.
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#ERROR}. This removes the CSS class "collapsed" from
+     * the {@link javafx.scene.Node#styleClass} list, adds the {@code "error"} class and sets the {@link javafx.scene.control.Labeled#text} property.
      *
      * @param <T> The type of {@link Labeled} control to restore.
      * @param control The JavaFX scene graph {@link javafx.scene.control.Labeled} control to be un-collapsed.
@@ -823,9 +821,8 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#WARNING}. This removes
-     * the CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "warning"} class and sets the
-     * {@link javafx.scene.control.Labeled#text} property.
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#WARNING}. This removes the CSS class "collapsed" from
+     * the {@link javafx.scene.Node#styleClass} list, adds the {@code "warning"} class and sets the {@link javafx.scene.control.Labeled#text} property.
      *
      * @param <T> The type of {@link Labeled} control to restore.
      * @param control The JavaFX scene graph {@link javafx.scene.control.Labeled} control to be un-collapsed.
@@ -851,9 +848,8 @@ public class NodeUtil {
     }
 
     /**
-     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#INFO}. This removes the
-     * CSS class "collapsed" from the {@link javafx.scene.Node#styleClass} list, adds the {@code "information"} class and sets the
-     * {@link javafx.scene.control.Labeled#text} property.
+     * Restores the visibility and dimensions of a JavaFX {@link javafx.scene.control.Labeled} control as {@link CssClassName#INFO}. This removes the CSS class "collapsed" from the
+     * {@link javafx.scene.Node#styleClass} list, adds the {@code "information"} class and sets the {@link javafx.scene.control.Labeled#text} property.
      *
      * @param <T> The type of {@link Labeled} control to restore.
      * @param control The JavaFX scene graph {@link javafx.scene.control.Labeled} control to be un-collapsed.
