@@ -364,7 +364,9 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
             String sql = sb.toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, dao.getUserName());
-                ps.setInt(2, dao.getPrimaryKey());
+                if (getOriginalRowState() != DataRowState.NEW) {
+                    ps.setInt(2, dao.getPrimaryKey());
+                }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
