@@ -178,6 +178,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         private void onCountryEvent(CountrySuccessEvent event) {
             CountryDAO newValue = event.getDataAccessObject();
+            // FIXME: Use findAll(), instead
             Iterator<CityDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 CityDAO item = iterator.next();
@@ -186,6 +187,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                     item.setCountry(newValue);
                 }
             }
+            // FIXME: Use AddressDAO.FACTORY.findAll(), instead
             Iterator<AddressDAO> iterator2 = AddressDAO.FACTORY.cacheIterator();
             while (iterator2.hasNext()) {
                 AddressDAO target = iterator2.next();
@@ -303,6 +305,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         public CityDAO lookupCacheByNameAndRegionCode(String name, String regionCode) {
             name = Values.asNonNullAndWsNormalized(name);
             regionCode = Values.asNonNullAndWsNormalized(regionCode);
+            // FIXME: Use findFirst(), instead
             Iterator<CityDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 CityDAO result = iterator.next();
@@ -318,6 +321,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         public CityDAO lookupCacheByName(String name, int countryPk) {
             name = Values.asNonNullAndWsNormalized(name);
+            // FIXME: Use findFirst(), instead
             Iterator<CityDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 CityDAO result = iterator.next();
@@ -337,7 +341,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             LOG.fine(() -> String.format("getByResourceKey", "Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 name = Values.asNonNullAndWsNormalized(name);
-                ps.setString(1, String.format("%s;*", DB.escapeWC(name)));
+                ps.setString(1, DB.escapeWC(name));
                 try (ResultSet rs = ps.getResultSet()) {
                     while (rs.next()) {
                         CityDAO result = fromResultSet(rs);
@@ -423,7 +427,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             int count;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, dao.getCountry().getPrimaryKey());
-                ps.setString(2, String.format("%s;*", DB.escapeWC(dao.name)));
+                ps.setString(2, DB.escapeWC(dao.name));
                 if (getOriginalRowState() != DataRowState.NEW) {
                     ps.setInt(3, dao.getPrimaryKey());
                 }
@@ -444,9 +448,11 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CityEvent.createInsertInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                    return CityEvent.createInsertInvalidEvent(targetModel, this,
+                            ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
                 }
-                return CityEvent.createUpdateInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
+                return CityEvent.createUpdateInvalidEvent(targetModel, this,
+                        ResourceBundleHelper.getResourceString(EditCity.class, RESOURCEKEY_CITYNAMEINUSE));
             }
 
             PartialCountryModel<? extends PartialCountryDAO> c = targetModel.getCountry();

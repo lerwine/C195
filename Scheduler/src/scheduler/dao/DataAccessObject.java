@@ -19,9 +19,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -58,9 +60,8 @@ import scheduler.view.task.WaitBorderPane;
 /**
  * Data access object that represents all columns from a data row.
  * <p>
- * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each
- * class must also have an associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static
- * {@code getFactory()} method.</p>
+ * Classes that inherit from this must use the {@link scheduler.dao.schema.DatabaseTable} annotation to indicate which data table they represent. Each class must also have an
+ * associated factory singleton instance that inherits from {@link DaoFactory} that can be retrieved using a static {@code getFactory()} method.</p>
  * <p>
  * The current {@link MainController} (if initialized) will be included in the event dispatch chain for events fired on this object.</p>
  *
@@ -93,8 +94,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s
-     * will be deferred while this is invoked.
+     * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s will be deferred while this is
+     * invoked.
      */
     protected abstract void onAcceptChanges();
 
@@ -107,8 +108,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * This gets called when property changes are rejected and are to be restored to their original values. {@link PropertyChangeEvent}s will be
-     * deferred while this is invoked.
+     * This gets called when property changes are rejected and are to be restored to their original values. {@link PropertyChangeEvent}s will be deferred while this is invoked.
      */
     protected abstract void onRejectChanges();
 
@@ -190,8 +190,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
      *
      * @param propertyName The name of the target property.
-     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to
-     * {@link DataRowState#MODIFIED}; otherwise, {@code false} to leave {@link #rowState} unchanged.
+     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
+     * to leave {@link #rowState} unchanged.
      */
     protected boolean propertyChangeModifiesState(String propertyName) {
         switch (propertyName) {
@@ -382,25 +382,20 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * Used by {@link DaoFactory} to keep a weakly-referenced cache of {@link DataAccessObject}s. The intent is to only have one instance of a
-     * {@link DataAccessObject} for each database record. This allows all related data references to be automatically updated whenever the data record
-     * itself is updated.
+     * Used by {@link DaoFactory} to keep a weakly-referenced cache of {@link DataAccessObject}s. The intent is to only have one instance of a {@link DataAccessObject} for each
+     * database record. This allows all related data references to be automatically updated whenever the data record itself is updated.
      * <p>
-     * For instance, the {@link scheduler.model.fx.AppointmentModel} class has an
-     * {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation} property, which is a calculated property where the calculation
-     * algorithm changes based upon the value of the {@link scheduler.model.fx.AppointmentModel#type type} property. Sometimes, the algorithm uses
-     * properties from the {@link scheduler.model.fx.PartialCustomerModel} referenced by the
-     * {@link scheduler.model.fx.AppointmentModel#customer customer} property. It is possible to have a navigation path in which the
-     * {@link scheduler.model.fx.CustomerModel#address} property is modified, and the application user will be eventually returned to a scene that has
-     * a listing of appointments where one of the columns displays the
-     * {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation}, with one or more of them displaying the customer's address. By
-     * using cached objects, it is much easier to ensure that the customer address in the columns of the parent listing is automatically updated after
-     * any change.</p>
+     * For instance, the {@link scheduler.model.fx.AppointmentModel} class has an {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation} property, which is
+     * a calculated property where the calculation algorithm changes based upon the value of the {@link scheduler.model.fx.AppointmentModel#type type} property. Sometimes, the
+     * algorithm uses properties from the {@link scheduler.model.fx.PartialCustomerModel} referenced by the {@link scheduler.model.fx.AppointmentModel#customer customer} property.
+     * It is possible to have a navigation path in which the {@link scheduler.model.fx.CustomerModel#address} property is modified, and the application user will be eventually
+     * returned to a scene that has a listing of appointments where one of the columns displays the {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation},
+     * with one or more of them displaying the customer's address. By using cached objects, it is much easier to ensure that the customer address in the columns of the parent
+     * listing is automatically updated after any change.</p>
      * This class was created (versus just using a {@link java.util.WeakHashMap} for the following reasons:
      * <ol>
-     * <li>The mapping is keyed by the value of the {@link DataAccessObject#primaryKey primaryKey}. Items which have not yet been added to the
-     * database will not have a primary key, so I wanted to prevent items with a {@link DataRowState#NEW} {@link DataAccessObject#rowState rowState}
-     * from being added.</li>
+     * <li>The mapping is keyed by the value of the {@link DataAccessObject#primaryKey primaryKey}. Items which have not yet been added to the database will not have a primary key,
+     * so I wanted to prevent items with a {@link DataRowState#NEW} {@link DataAccessObject#rowState rowState} from being added.</li>
      * <li>I want to be sure that it's not possible to add a {@link DataAccessObject} to the hash where they key is not the same as the value of the
      * {@link DataAccessObject#primaryKey primaryKey} property.</li>
      * <li>The key values of a {@link java.util.WeakHashMap} are weakly referenced as well, and integers are not reference types.</li>
@@ -420,8 +415,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * Gets the {@link DataAccessObject} whose {@link DataAccessObject#primaryKey} matches a specified value.
          *
          * @param key The value of the {@link DataAccessObject#primaryKey} to look up.
-         * @return The {@link DataAccessObject} whose {@link DataAccessObject#primaryKey} matches the specified {@code key} or {@code null} if no such
-         * object exists in the {@code DaoCache}.
+         * @return The {@link DataAccessObject} whose {@link DataAccessObject#primaryKey} matches the specified {@code key} or {@code null} if no such object exists in the
+         * {@code DaoCache}.
          */
         public synchronized T get(int key) {
             if (backingMap.containsKey(key)) {
@@ -439,8 +434,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @param key The value of the {@link DataAccessObject#primaryKey} to look up.
          * @param orElse This gets invoked if no matching {@link DataAccessObject} is found, whereby the result object will be added to the cache.
-         * @return The {@link DataAccessObject} whose {@link DataAccessObject#primaryKey} matches the specified {@code key} or the return value from
-         * the {@code orElse} callback no such object existed in the {@code DaoCache}.
+         * @return The {@link DataAccessObject} whose {@link DataAccessObject#primaryKey} matches the specified {@code key} or the return value from the {@code orElse} callback no
+         * such object existed in the {@code DaoCache}.
          */
         public synchronized T get(int key, Supplier<T> orElse) {
             T result;
@@ -453,6 +448,35 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 backingMap.remove(key);
             }
             return result;
+        }
+
+        public synchronized Stream<T> findAll(Predicate<T> filter) {
+            return backingMap.keySet().stream().map((t) -> {
+                if (backingMap.containsKey(t)) {
+                    T dao = backingMap.get(t).get();
+                    if (null != dao) {
+                        return dao;
+                    }
+                    backingMap.remove(t);
+                }
+
+                return null;
+            }).filter((t) -> null != t && filter.test(t));
+        }
+
+        public synchronized Optional<T> findFirst(Predicate<T> filter) {
+            Iterator<Integer> iterator = backingMap.keySet().stream().iterator();
+            while (iterator.hasNext()) {
+                int key = iterator.next();
+                if (backingMap.containsKey(key)) {
+                    T dao = backingMap.get(key).get();
+                    if (null != dao) {
+                        return Optional.of(dao);
+                    }
+                    backingMap.remove(key);
+                }
+            }
+            return Optional.empty();
         }
 
         private synchronized void put(T item) {
@@ -479,8 +503,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * Base factory class for CRUD operations on {@link DataAccessObject} objects. This maintains a {@link WeakReference} cache of loaded
-     * {@link DataAccessObject}s so that there will only ever be one instance of a {@link DataAccessObject} for each record in the database.
+     * Base factory class for CRUD operations on {@link DataAccessObject} objects. This maintains a {@link WeakReference} cache of loaded {@link DataAccessObject}s so that there
+     * will only ever be one instance of a {@link DataAccessObject} for each record in the database.
      *
      * @param <D> The type of {@link DataAccessObject} object supported.
      * @param <E> The {@link ModelEvent} type.
@@ -563,16 +587,28 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         /**
-         * This gets called when the properties of one {@link DataAccessObject} are being copied to another. {@link PropertyChangeEvent}s will be
-         * deferred while this is invoked.
+         * This gets called when the properties of one {@link DataAccessObject} are being copied to another. {@link PropertyChangeEvent}s will be deferred while this is invoked.
          *
          * @param fromDAO The source {@link DataAccessObject} to be copied from.
          * @param toDAO The target {@link DataAccessObject} to be copied to.
          */
         protected abstract void onCloneProperties(D fromDAO, D toDAO);
 
+        /**
+         *
+         * @return @deprecated Use {@link #findAll(java.util.function.Predicate)} or {@link #findFirst(java.util.function.Predicate)}, instead
+         */
+        @Deprecated
         final Iterator<D> cacheIterator() {
             return new DaoCacheIterator<>(cache);
+        }
+
+        final Stream<D> findAll(Predicate<D> filter) {
+            return cache.findAll(filter);
+        }
+
+        final Optional<D> findFirst(Predicate<D> filter) {
+            return cache.findFirst(filter);
         }
 
         /**
@@ -635,9 +671,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @param dao The {@link DataAccessObject} to be initialized.
          * @param rs The {@link ResultSet} to read from.
-         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow
-         * implementing classes to put fields directly while property change events are deferred. This value can be {@code null} if it is not
-         * applicable.
+         * @return A {@link Consumer} that gets invoked after the data access object is no longer in a synchronized state. This will allow implementing classes to put fields
+         * directly while property change events are deferred. This value can be {@code null} if it is not applicable.
          * @throws SQLException if unable to read from the {@link ResultSet}.
          */
         protected abstract Consumer<PropertyChangeSupport> onInitializeFromResultSet(D dao, ResultSet rs) throws SQLException;
@@ -688,8 +723,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         /**
          * Indicates whether {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables.
          *
-         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise,
-         * {@code false}.
+         * @return {@code true} if {@link #createDmlSelectQueryBuilder()} returns a {@link DmlSelectQueryBuilder} with joined tables; otherwise, {@code false}.
          */
         public abstract boolean isCompoundSelect();
 
@@ -748,8 +782,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         /**
-         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -760,8 +793,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         /**
-         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Registers a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -772,8 +804,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         /**
-         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Unregisters a {@link ModelEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -784,8 +815,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         /**
-         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-         * {@code DaoFactory}.
+         * Unregisters a {@link ModelEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
          *
          * @param <T> The {@link ModelEvent} type.
          * @param type The event type.
@@ -798,8 +828,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the
-     * backing {@link EntityModel#dataObject}. When completed, the {@link #finalEvent} is fired on the backing {@link DataAccessObject}.
+     * Background task which provides an opened database {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the backing
+     * {@link EntityModel#dataObject}. When completed, the {@link #finalEvent} is fired on the backing {@link DataAccessObject}.
      *
      * @param <D> The target {@link DataAccessObject} type.
      * @param <M> The associated {@link EntityModel} type.
@@ -843,8 +873,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         /**
          * Gets the {@link EntityModel} that wraps the target {@link DataAccessObject}.
          *
-         * @return The {@link EntityModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target {@link DataAccessObject}
-         * was provided to this task.
+         * @return The {@link EntityModel} that wraps the target {@link DataAccessObject} or {@code null} if only the target {@link DataAccessObject} was provided to this task.
          */
         public M getEntityModel() {
             return fxRecordModel.get();
@@ -866,8 +895,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         /**
          * Gets the final {@link ModelEvent} after the {@code DaoTask} is finished.
          *
-         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from
-         * {@link #createFaultedEvent()}; otherwise, this will be set to the value obtained from {@link #createCanceledEvent()}.
+         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from {@link #createFaultedEvent()}; otherwise,
+         * this will be set to the value obtained from {@link #createCanceledEvent()}.
          */
         public E getFinalEvent() {
             return finalEvent.get();
@@ -957,6 +986,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             super.succeeded();
             E event = getValue();
             if (null != event) {
+                LOG.fine(() -> String.format("Succeeded with %s", event));
                 try {
                     finalEvent.set(event);
                 } finally {
@@ -969,10 +999,10 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * A {@link DaoTask} that allows for validation before the actual operation is performed. This provides an opened database {@link Connection} and
-     * defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is
-     * fired on the {@link ValidatingDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for
-     * successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations.
+     * A {@link DaoTask} that allows for validation before the actual operation is performed. This provides an opened database {@link Connection} and defers the firing of
+     * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link ValidatingDaoTask} and the
+     * target {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also
+     * produced for task failures and cancellations.
      *
      * @param <D> The type of the target {@link DataAccessObject}.
      * @param <M> The type of associated {@link EntityModel}, if applicable.
@@ -994,8 +1024,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @param target The {@link EntityModel} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
-         * {@link #validate(Connection)} to perform validation.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
+         * perform validation.
          */
         protected ValidatingDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
             super(target);
@@ -1034,8 +1064,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         /**
          * Gets the {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
          *
-         * @return The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type or {@code null} if a
-         * {@link EntityModel} was not specified in the constructor.
+         * @return The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type or {@code null} if a {@link EntityModel} was not specified in
+         * the constructor.
          */
         public EntityModel.EntityModelFactory<D, M, E, ? extends E> getModelFactory() {
             return modelFactory.get();
@@ -1074,8 +1104,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * This gets called after validation is successful.
          *
          * @param connection The opened database {@link Connection}.
-         * @return A {@link ModelEvent} which will become the {@link DaoTask#finalEvent}, indicating successful completion. This should never return a
-         * {@code null} value.
+         * @return A {@link ModelEvent} which will become the {@link DaoTask#finalEvent}, indicating successful completion. This should never return a {@code null} value.
          * @throws Exception if unable to complete the operation.
          */
         protected abstract E onValidated(Connection connection) throws Exception;
@@ -1083,11 +1112,10 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * A {@link ValidatingDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database
-     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
-     * {@link #finalEvent} is fired on the {@link SaveDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task
-     * will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations. If
-     * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#UNMODIFIED}.
+     * A {@link ValidatingDaoTask} which saves the target {@link DataAccessObject} to the database. This provides an opened database {@link Connection} and defers the firing of
+     * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link SaveDaoTask} and the target
+     * {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced
+     * for task failures and cancellations. If successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#UNMODIFIED}.
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
      * @param <M> The type of associated {@link EntityModel}, if applicable.
@@ -1104,8 +1132,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @param target The {@link EntityModel} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
-         * {@link #validate(Connection)} to perform validation.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
+         * perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
         protected SaveDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
@@ -1273,11 +1301,10 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     }
 
     /**
-     * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database
-     * {@link Connection} and defers the firing of {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the
-     * {@link #finalEvent} is fired on the {@link DeleteDaoTask} and the target {@link DataAccessObject}. The {@link ModelEvent} produced by this task
-     * will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced for task failures and cancellations. If
-     * successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
+     * A {@link ValidatingDaoTask} which deletes the target {@link DataAccessObject} from the database. This provides an opened database {@link Connection} and defers the firing of
+     * {@link java.beans.PropertyChangeEvent}s on the target {@link DataAccessObject}. When completed, the {@link #finalEvent} is fired on the {@link DeleteDaoTask} and the target
+     * {@link DataAccessObject}. The {@link ModelEvent} produced by this task will be for successful completions as well as validation errors. {@link ModelEvent}s are also produced
+     * for task failures and cancellations. If successful, the target {@link DataAccessObject#rowState} will be set to {@link DataRowState#DELETED}.
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
      * @param <M> The type of associated {@link EntityModel}, if applicable.
@@ -1294,10 +1321,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @param target The {@link EntityModel} that contains the target {@link DataAccessObject}.
          * @param modelFactory The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type.
-         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke
-         * {@link #validate(Connection)} to perform validation.
-         * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or
-         * {@link DataRowState#NEW}.
+         * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
+         * perform validation.
+         * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
         protected DeleteDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {

@@ -264,6 +264,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         }
 
         public CountryDAO lookupCacheByRegionCode(String rc) {
+            // FIXME: Use findFirst(), instead
             Iterator<CountryDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 CountryDAO result = iterator.next();

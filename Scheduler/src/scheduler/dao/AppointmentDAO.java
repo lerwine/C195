@@ -311,8 +311,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     public boolean startEquals(Object value) {
-        Timestamp start = getStart();
-        if (null == start) {
+        Timestamp s = getStart();
+        if (null == s) {
             return null == value;
         }
 
@@ -321,7 +321,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         if (value instanceof Date) {
-            return start.equals((Date) value);
+            return s.equals((Date) value);
         }
 
         Timestamp other;
@@ -332,13 +332,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         } else {
             return false;
         }
-        return start.equals(other);
+        return s.equals(other);
     }
 
     @Override
     public int compareStart(Object value) {
-        Timestamp start = getStart();
-        if (null == start) {
+        Timestamp s = getStart();
+        if (null == s) {
             return (null == value) ? 0 : 1;
         }
 
@@ -347,15 +347,15 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         if (value instanceof Date) {
-            return start.compareTo((Date) value);
+            return s.compareTo((Date) value);
         }
 
         if (value instanceof ZonedDateTime) {
-            return start.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
+            return s.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
         }
 
         if (value instanceof LocalDateTime) {
-            return start.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
+            return s.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
         }
 
         throw new IllegalArgumentException();
@@ -363,8 +363,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     public boolean endEquals(Object value) {
-        Timestamp end = getEnd();
-        if (null == end) {
+        Timestamp e = getEnd();
+        if (null == e) {
             return null == value;
         }
 
@@ -373,7 +373,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         if (value instanceof Date) {
-            return end.equals((Date) value);
+            return e.equals((Date) value);
         }
 
         Timestamp other;
@@ -384,13 +384,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         } else {
             return false;
         }
-        return end.equals(other);
+        return e.equals(other);
     }
 
     @Override
     public int compareEnd(Object value) {
-        Timestamp end = getEnd();
-        if (null == end) {
+        Timestamp e = getEnd();
+        if (null == e) {
             return (null == value) ? 0 : 1;
         }
 
@@ -399,15 +399,15 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         if (value instanceof Date) {
-            return end.compareTo((Date) value);
+            return e.compareTo((Date) value);
         }
 
         if (value instanceof ZonedDateTime) {
-            return end.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
+            return e.compareTo(DateTimeUtil.toUtcTimestamp((ZonedDateTime) value));
         }
 
         if (value instanceof LocalDateTime) {
-            return end.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
+            return e.compareTo(DateTimeUtil.toUtcTimestamp((LocalDateTime) value));
         }
 
         throw new IllegalArgumentException();
@@ -536,6 +536,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         private void onCustomerEvent(CustomerSuccessEvent event) {
             CustomerDAO newValue = event.getDataAccessObject();
+            // FIXME: Use findAll(), instead
             Iterator<AppointmentDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 AppointmentDAO item = iterator.next();
@@ -548,6 +549,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         private void onUserEvent(UserSuccessEvent event) {
             UserDAO newValue = event.getDataAccessObject();
+            // FIXME: Use findAll(), instead
             Iterator<AppointmentDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 AppointmentDAO item = iterator.next();

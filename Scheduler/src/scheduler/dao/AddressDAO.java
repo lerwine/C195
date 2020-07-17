@@ -256,6 +256,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         private void onCityEvent(CitySuccessEvent event) {
             CityDAO newValue = event.getDataAccessObject();
+            // FIXME: Use findAll(), instead
             Iterator<AddressDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 AddressDAO item = iterator.next();
@@ -264,6 +265,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                     item.setCity(newValue);
                 }
             }
+            // FIXME: Use CustomerDAO.FACTORY.findAll(), instead
             Iterator<CustomerDAO> iterator2 = CustomerDAO.FACTORY.cacheIterator();
             while (iterator2.hasNext()) {
                 CustomerDAO target = iterator2.next();
@@ -326,6 +328,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
             values = values.asNormalizedAddressLookup();
             cityName = Values.asNonNullAndWsNormalized(cityName);
             regionCode = Values.asNonNullAndWsNormalized(regionCode);
+            // FIXME: Use findFirst(), instead
             Iterator<AddressDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 AddressDAO result = iterator.next();
@@ -345,6 +348,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         public AddressDAO lookupCacheByValues(AddressLookup values, String cityName, int countryPk) {
             values = values.asNormalizedAddressLookup();
             cityName = Values.asNonNullAndWsNormalized(cityName);
+            // FIXME: Use findFirst(), instead
             Iterator<AddressDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 AddressDAO result = iterator.next();
@@ -363,6 +367,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         public AddressDAO lookupCacheByValues(AddressLookup values, int cityPk) {
             values = values.asNormalizedAddressLookup();
+            // FIXME: Use findFirst(), instead
             Iterator<AddressDAO> iterator = cacheIterator();
             while (iterator.hasNext()) {
                 AddressDAO result = iterator.next();

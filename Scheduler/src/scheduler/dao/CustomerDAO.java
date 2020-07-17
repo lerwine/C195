@@ -204,6 +204,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         private void onAddressEvent(AddressSuccessEvent event) {
             AddressDAO newValue = event.getDataAccessObject();
+            // FIXME: Use findAll(), instead
             Iterator<CustomerDAO> iterator1 = cacheIterator();
             while (iterator1.hasNext()) {
                 CustomerDAO item = iterator1.next();
@@ -212,6 +213,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                     item.setAddress(newValue);
                 }
             }
+            // FIXME: Use AppointmentDAO.FACTORY.findAll(), instead
             Iterator<AppointmentDAO> iterator2 = AppointmentDAO.FACTORY.cacheIterator();
             while (iterator2.hasNext()) {
                 AppointmentDAO target = iterator2.next();
