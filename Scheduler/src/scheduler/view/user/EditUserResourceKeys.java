@@ -63,8 +63,7 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_CREATEDON = "createdOn";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Current and Future Appointments"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current and Future Appointments"}.
      */
     public static final String RESOURCEKEY_CURRENTANDFUTURE = "currentAndFuture";
 
@@ -79,6 +78,16 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_CUSTOMER = "customer";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Delete"}.
+     */
+    public static final String RESOURCEKEY_DELETE = "delete";
+
+    /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Edit"}.
+     */
+    public static final String RESOURCEKEY_EDIT = "edit";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Edit User \"%s\""}.
      */
     public static final String RESOURCEKEY_EDITUSER = "editUser";
@@ -89,8 +98,7 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_END = "end";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Error loading appointments.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading appointments.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGAPPOINTMENTS = "errorLoadingAppointments";
 
@@ -115,6 +123,11 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_LOCATION = "location";
 
     /**
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "(no appointments to show)"}.
+     */
+    public static final String RESOURCEKEY_NOAPPOINTMENTSTOSHOW = "noAppointmentsToShow";
+
+    /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Normal User"}.
      */
     public static final String RESOURCEKEY_NORMALUSER = "normalUser";
@@ -130,8 +143,7 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_PASSWORDCANNOTBEEMPTY = "passwordCannotBeEmpty";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Password and confirmation do not match."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Password and confirmation do not match."}.
      */
     public static final String RESOURCEKEY_PASSWORDMISMATCH = "passwordMismatch";
 
@@ -181,8 +193,7 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_USER = "user";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "That user is referenced in one or more appointments and cannot be deleted."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That user is referenced in one or more appointments and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 
@@ -197,8 +208,7 @@ public interface EditUserResourceKeys {
     public static final String RESOURCEKEY_USERNAMECANNOTBEEMPTY = "userNameCannotBeEmpty";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "That user name is already in use."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That user name is already in use."}.
      */
     public static final String RESOURCEKEY_USERNAMEINUSE = "userNameInUse";
 
