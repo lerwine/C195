@@ -1,13 +1,13 @@
 package scheduler.dao;
 
 import java.beans.PropertyChangeSupport;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -24,11 +24,14 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
+import scheduler.events.CountrySuccessEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryEntity;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.fx.CountryModel;
+import scheduler.model.fx.PartialCountryModel;
+import scheduler.model.fx.PartialCountryModelImpl;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -54,6 +57,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
     private final OriginalValues originalValues;
     private String name;
     private Locale locale;
+    private WeakReference<CountryModel> _cachedModel = null;
 
     /**
      * Initializes a {@link DataRowState#NEW} country data access object.
@@ -62,6 +66,37 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         super();
         name = "";
         originalValues = new OriginalValues();
+    }
+
+    @Override
+    public synchronized CountryModel cachedModel(boolean create) {
+        CountryModel model;
+        if (null != _cachedModel) {
+            model = _cachedModel.get();
+            if (null != model) {
+                return model;
+            }
+            _cachedModel = null;
+        }
+        if (create) {
+            model = CountryModel.FACTORY.createNew(this);
+            _cachedModel = new WeakReference<>(model);
+            return model;
+        }
+        return null;
+    }
+
+    private synchronized void setCachedModel(CountryModel model) {
+        if (null == model) {
+            if (null != _cachedModel) {
+                if (null != _cachedModel.get()) {
+                    _cachedModel.clear();
+                }
+                _cachedModel = null;
+            }
+        } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+            _cachedModel = new WeakReference<>(model);
+        }
     }
 
     @Override
@@ -263,16 +298,8 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
             return result;
         }
 
-        public CountryDAO lookupCacheByRegionCode(String rc) {
-            // FIXME: Use findFirst(), instead
-            Iterator<CountryDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                CountryDAO result = iterator.next();
-                if (result.getLocale().getCountry().equals(rc)) {
-                    return result;
-                }
-            }
-            return null;
+        public CountryDAO lookupCacheByRegionCode(final String rc) {
+            return findFirstCached((result) -> result.getLocale().getCountry().equals(rc)).orElse(null);
         }
 
         // PENDING: (FIXME) Complement usages of this method with {@link #lookupCacheByRegionCode(java.lang.String)}
@@ -312,14 +339,6 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         public SaveTask(CountryModel model, boolean alreadyValidated) {
             super(model, CountryModel.FACTORY, alreadyValidated);
             model.dataObject().setLocale(model.getLocale());
-        }
-
-        @Override
-        protected CountryEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertSuccessEvent(getEntityModel(), this);
-            }
-            return CountryEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -368,11 +387,11 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         }
 
         @Override
-        protected CountryEvent createFaultedEvent() {
+        protected CountryEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CountryEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+                return CountryEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return CountryEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+            return CountryEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -381,6 +400,23 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
                 return CountryEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
             return CountryEvent.createUpdateCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected CountryEvent createFaultedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CountryEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+            }
+            return CountryEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            CountryEvent event = getValue();
+            if (null != event && event instanceof CountrySuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -394,11 +430,6 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         public DeleteTask(CountryModel target, boolean alreadyValidated) {
             super(target, CountryModel.FACTORY, alreadyValidated);
-        }
-
-        @Override
-        protected CountryEvent createSuccessEvent() {
-            return CountryEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -423,13 +454,27 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         }
 
         @Override
-        protected CountryEvent createFaultedEvent() {
-            return CountryEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        protected CountryEvent createSuccessEvent() {
+            return CountryEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected CountryEvent createCanceledEvent() {
             return CountryEvent.createDeleteCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected CountryEvent createFaultedEvent() {
+            return CountryEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            CountryEvent event = getValue();
+            if (null != event && event instanceof CountrySuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -439,11 +484,44 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         private final int primaryKey;
         private final String name;
         private final Locale locale;
+        private WeakReference<PartialCountryModel<? extends PartialCountryDAO>> _cachedModel;
 
         private Partial(int primaryKey, Locale locale) {
             this.primaryKey = primaryKey;
             this.locale = locale;
             this.name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);
+        }
+
+        @Override
+        public synchronized PartialCountryModel<? extends PartialCountryDAO> cachedModel(boolean create) {
+            PartialCountryModel<? extends PartialCountryDAO> model;
+            if (null != _cachedModel) {
+                model = _cachedModel.get();
+                if (null != model) {
+                    return model;
+                }
+                _cachedModel = null;
+            }
+            if (create) {
+                model = new PartialCountryModelImpl(this);
+                _cachedModel = new WeakReference<>(model);
+                return model;
+            }
+
+            return null;
+        }
+
+        private synchronized void setCachedModel(PartialCountryModelImpl model) {
+            if (null == model) {
+                if (null != _cachedModel) {
+                    if (null != _cachedModel.get()) {
+                        _cachedModel.clear();
+                    }
+                    _cachedModel = null;
+                }
+            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+                _cachedModel = new WeakReference<>(model);
+            }
         }
 
         @Override

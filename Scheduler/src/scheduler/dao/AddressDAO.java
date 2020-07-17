@@ -1,12 +1,12 @@
 package scheduler.dao;
 
 import java.beans.PropertyChangeSupport;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -28,9 +28,9 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
+import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
-import scheduler.events.CitySuccessEvent;
 import scheduler.model.Address;
 import scheduler.model.AddressEntity;
 import scheduler.model.AddressLookup;
@@ -38,6 +38,8 @@ import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CityModel;
+import scheduler.model.fx.PartialAddressModel;
+import scheduler.model.fx.PartialAddressModelImpl;
 import scheduler.model.fx.PartialCityModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -57,12 +59,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AddressDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
 
-    public static final FactoryImpl FACTORY;
-
-    static {
-        FACTORY = new FactoryImpl();
-        CityDAO.FACTORY.addEventHandler(CitySuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onCityEvent);
-    }
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     private final OriginalPropertyValues originalValues;
     private String address1;
@@ -70,6 +67,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     private PartialCityDAO city;
     private String postalCode;
     private String phone;
+    private WeakReference<AddressModel> _cachedModel = null;
 
     /**
      * Initializes a {@link DataRowState#NEW} address object.
@@ -125,7 +123,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
      *
      * @param city new value of city
      */
-    private synchronized void setCity(PartialCityDAO city) {
+    synchronized void setCity(PartialCityDAO city) {
         PartialCityDAO oldValue = this.city;
         if (Objects.equals(oldValue, city)) {
             return;
@@ -164,6 +162,37 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         String oldValue = phone;
         phone = asNonNullAndWsNormalized(value);
         firePropertyChange(PROP_PHONE, oldValue, phone);
+    }
+
+    @Override
+    public synchronized AddressModel cachedModel(boolean create) {
+        AddressModel model;
+        if (null != _cachedModel) {
+            model = _cachedModel.get();
+            if (null != model) {
+                return model;
+            }
+            _cachedModel = null;
+        }
+        if (create) {
+            model = AddressModel.FACTORY.createNew(this);
+            _cachedModel = new WeakReference<>(model);
+            return model;
+        }
+        return null;
+    }
+
+    private synchronized void setCachedModel(AddressModel model) {
+        if (null == model) {
+            if (null != _cachedModel) {
+                if (null != _cachedModel.get()) {
+                    _cachedModel.clear();
+                }
+                _cachedModel = null;
+            }
+        } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+            _cachedModel = new WeakReference<>(model);
+        }
     }
 
     @Override
@@ -254,31 +283,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         private FactoryImpl() {
         }
 
-        private void onCityEvent(CitySuccessEvent event) {
-            CityDAO newValue = event.getDataAccessObject();
-            // FIXME: Use findAll(), instead
-            Iterator<AddressDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                AddressDAO item = iterator.next();
-                PartialCityDAO oldValue = item.getCity();
-                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                    item.setCity(newValue);
-                }
-            }
-            // FIXME: Use CustomerDAO.FACTORY.findAll(), instead
-            Iterator<CustomerDAO> iterator2 = CustomerDAO.FACTORY.cacheIterator();
-            while (iterator2.hasNext()) {
-                CustomerDAO target = iterator2.next();
-                PartialAddressDAO item = target.getAddress();
-                if (null != item && item instanceof Partial) {
-                    PartialCityDAO oldValue = item.getCity();
-                    if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                        ((Partial) item).setCity(newValue);
-                    }
-                }
-            }
-        }
-
         @Override
         public boolean isCompoundSelect() {
             return true;
@@ -325,60 +329,51 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         }
 
         public AddressDAO lookupCacheByValues(AddressLookup values, String cityName, String regionCode) {
-            values = values.asNormalizedAddressLookup();
-            cityName = Values.asNonNullAndWsNormalized(cityName);
-            regionCode = Values.asNonNullAndWsNormalized(regionCode);
-            // FIXME: Use findFirst(), instead
-            Iterator<AddressDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                AddressDAO result = iterator.next();
-                if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
-                    PartialCityDAO c = result.getCity();
-                    if (null != c && c.getName().equals(cityName)) {
+            final AddressLookup nzValues = values.asNormalizedAddressLookup();
+            final String nzName = Values.asNonNullAndWsNormalized(cityName);
+            final String nzRegionCode = Values.asNonNullAndWsNormalized(regionCode);
+            return findFirstCached((t) -> {
+                if (t.address1.equals(nzValues.getAddress1()) && t.address2.equals(nzValues.getAddress2()) && t.postalCode.equals(nzValues.getPostalCode()) && t.phone.equals(nzValues.getPhone())) {
+                    PartialCityDAO c = t.getCity();
+                    if (null != c && c.getName().equals(nzName)) {
                         PartialCountryDAO n = c.getCountry();
-                        if (null != n && n.getLocale().getCountry().equals(regionCode)) {
-                            return result;
+                        if (null != n && n.getLocale().getCountry().equals(nzRegionCode)) {
+                            return true;
                         }
                     }
                 }
-            }
-            return null;
+                return false;
+            }).orElse(null);
         }
 
-        public AddressDAO lookupCacheByValues(AddressLookup values, String cityName, int countryPk) {
-            values = values.asNormalizedAddressLookup();
-            cityName = Values.asNonNullAndWsNormalized(cityName);
-            // FIXME: Use findFirst(), instead
-            Iterator<AddressDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                AddressDAO result = iterator.next();
-                if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
-                    PartialCityDAO c = result.getCity();
-                    if (null != c && c.getName().equals(cityName)) {
+        public AddressDAO lookupCacheByValues(AddressLookup values, String cityName, final int countryPk) {
+            final AddressLookup nzValues = values.asNormalizedAddressLookup();
+            final String nzName = Values.asNonNullAndWsNormalized(cityName);
+            return findFirstCached((t) -> {
+                if (t.address1.equals(nzValues.getAddress1()) && t.address2.equals(nzValues.getAddress2()) && t.postalCode.equals(nzValues.getPostalCode()) && t.phone.equals(nzValues.getPhone())) {
+                    PartialCityDAO c = t.getCity();
+                    if (null != c && c.getName().equals(nzName)) {
                         PartialCountryDAO n = c.getCountry();
                         if (null != n && n.getPrimaryKey() == countryPk) {
-                            return result;
+                            return true;
                         }
                     }
                 }
-            }
-            return null;
+                return false;
+            }).orElse(null);
         }
 
-        public AddressDAO lookupCacheByValues(AddressLookup values, int cityPk) {
-            values = values.asNormalizedAddressLookup();
-            // FIXME: Use findFirst(), instead
-            Iterator<AddressDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                AddressDAO result = iterator.next();
-                if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode()) && result.phone.equals(values.getPhone())) {
-                    PartialCityDAO c = result.getCity();
+        public AddressDAO lookupCacheByValues(AddressLookup values, final int cityPk) {
+            final AddressLookup nzValues = values.asNormalizedAddressLookup();
+            return findFirstCached((t) -> {
+                if (t.address1.equals(nzValues.getAddress1()) && t.address2.equals(nzValues.getAddress2()) && t.postalCode.equals(nzValues.getPostalCode()) && t.phone.equals(nzValues.getPhone())) {
+                    PartialCityDAO c = t.getCity();
                     if (null != c && c.getPrimaryKey() == cityPk) {
-                        return result;
+                        return true;
                     }
                 }
-            }
-            return null;
+                return false;
+            }).orElse(null);
         }
 
         @Override
@@ -501,14 +496,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         }
 
         @Override
-        protected AddressEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertSuccessEvent(getEntityModel(), this);
-            }
-            return AddressEvent.createUpdateSuccessEvent(getEntityModel(), this);
-        }
-
-        @Override
         protected AddressEvent validate(Connection connection) throws Exception {
             AddressModel targetModel = getEntityModel();
             AddressEvent saveEvent = AddressModel.FACTORY.validateForSave(targetModel);
@@ -607,6 +594,22 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         }
 
         @Override
+        protected AddressEvent createCanceledEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return AddressEvent.createInsertCanceledEvent(getEntityModel(), this);
+            }
+            return AddressEvent.createUpdateCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected AddressEvent createSuccessEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return AddressEvent.createInsertSuccessEvent(getEntityModel(), this);
+            }
+            return AddressEvent.createUpdateSuccessEvent(getEntityModel(), this);
+        }
+
+        @Override
         protected AddressEvent createFaultedEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
                 return AddressEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
@@ -615,11 +618,12 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         }
 
         @Override
-        protected AddressEvent createCanceledEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AddressEvent.createInsertCanceledEvent(getEntityModel(), this);
+        protected void succeeded() {
+            AddressEvent event = getValue();
+            if (null != event && event instanceof AddressSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
             }
-            return AddressEvent.createUpdateCanceledEvent(getEntityModel(), this);
+            super.succeeded();
         }
 
     }
@@ -635,11 +639,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         public DeleteTask(AddressModel target, boolean alreadyValidated) {
             super(target, AddressModel.FACTORY, alreadyValidated);
-        }
-
-        @Override
-        protected AddressEvent createSuccessEvent() {
-            return AddressEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -665,13 +664,27 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         }
 
         @Override
-        protected AddressEvent createFaultedEvent() {
-            return AddressEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        protected AddressEvent createSuccessEvent() {
+            return AddressEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected AddressEvent createCanceledEvent() {
             return AddressEvent.createDeleteCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected AddressEvent createFaultedEvent() {
+            return AddressEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            AddressEvent event = getValue();
+            if (null != event && event instanceof AddressSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -687,6 +700,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         private PartialCityDAO city;
         private final String postalCode;
         private final String phone;
+        private WeakReference<PartialAddressModel<? extends PartialAddressDAO>> _cachedModel;
 
         private Partial(int primaryKey, String address1, String address2, PartialCityDAO city, String postalCode, String phone) {
             this.primaryKey = primaryKey;
@@ -734,6 +748,37 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         @Override
         public String getPhone() {
             return phone;
+        }
+
+        @Override
+        public synchronized PartialAddressModel<? extends PartialAddressDAO> cachedModel(boolean create) {
+            PartialAddressModel<? extends PartialAddressDAO> model;
+            if (null != _cachedModel) {
+                model = _cachedModel.get();
+                if (null != model) {
+                    return model;
+                }
+                _cachedModel = null;
+            }
+            if (create) {
+                model = new PartialAddressModelImpl(this);
+                _cachedModel = new WeakReference<>(model);
+                return model;
+            }
+            return null;
+        }
+
+        private synchronized void setCachedModel(PartialAddressModelImpl model) {
+            if (null == model) {
+                if (null != _cachedModel) {
+                    if (null != _cachedModel.get()) {
+                        _cachedModel.clear();
+                    }
+                    _cachedModel = null;
+                }
+            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+                _cachedModel = new WeakReference<>(model);
+            }
         }
 
         @Override

@@ -1,6 +1,7 @@
 package scheduler.dao;
 
 import java.beans.PropertyChangeSupport;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,7 +11,6 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -29,12 +29,11 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
+import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
-import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
-import scheduler.events.UserSuccessEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
@@ -65,13 +64,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
 
-    public static final FactoryImpl FACTORY;
-
-    static {
-        FACTORY = new FactoryImpl();
-        CustomerDAO.FACTORY.addEventHandler(CustomerSuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onCustomerEvent);
-        UserDAO.FACTORY.addEventHandler(UserSuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onUserEvent);
-    }
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     private final OriginalValues originalValues;
     private PartialCustomerDAO customer;
@@ -85,6 +78,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     private String url;
     private Timestamp start;
     private Timestamp end;
+    private WeakReference<AppointmentModel> _cachedModel = null;
 
     /**
      * Initializes a {@link DataRowState#NEW} appointment object.
@@ -107,6 +101,37 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     @Override
+    public synchronized AppointmentModel cachedModel(boolean create) {
+        AppointmentModel model;
+        if (null != _cachedModel) {
+            model = _cachedModel.get();
+            if (null != model) {
+                return model;
+            }
+            _cachedModel = null;
+        }
+        if (create) {
+            model = AppointmentModel.FACTORY.createNew(this);
+            _cachedModel = new WeakReference<>(model);
+            return model;
+        }
+        return null;
+    }
+
+    private synchronized void setCachedModel(AppointmentModel model) {
+        if (null == model) {
+            if (null != _cachedModel) {
+                if (null != _cachedModel.get()) {
+                    _cachedModel.clear();
+                }
+                _cachedModel = null;
+            }
+        } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+            _cachedModel = new WeakReference<>(model);
+        }
+    }
+
+    @Override
     public PartialCustomerDAO getCustomer() {
         return customer;
     }
@@ -116,7 +141,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param customer new value of customer
      */
-    private synchronized void setCustomer(PartialCustomerDAO customer) {
+    synchronized void setCustomer(PartialCustomerDAO customer) {
         PartialCustomerDAO oldValue = this.customer;
         if (Objects.equals(oldValue, customer)) {
             return;
@@ -135,7 +160,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param user new value of user
      */
-    private synchronized void setUser(PartialUserDAO user) {
+    synchronized void setUser(PartialUserDAO user) {
         PartialUserDAO oldValue = this.user;
         if (Objects.equals(oldValue, user)) {
             return;
@@ -532,32 +557,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        private void onCustomerEvent(CustomerSuccessEvent event) {
-            CustomerDAO newValue = event.getDataAccessObject();
-            // FIXME: Use findAll(), instead
-            Iterator<AppointmentDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                AppointmentDAO item = iterator.next();
-                PartialCustomerDAO oldValue = item.getCustomer();
-                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                    item.setCustomer(newValue);
-                }
-            }
-        }
-
-        private void onUserEvent(UserSuccessEvent event) {
-            UserDAO newValue = event.getDataAccessObject();
-            // FIXME: Use findAll(), instead
-            Iterator<AppointmentDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                AppointmentDAO item = iterator.next();
-                PartialUserDAO oldValue = item.getUser();
-                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                    item.setUser(newValue);
-                }
-            }
         }
 
         @Override
@@ -966,14 +965,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected AppointmentEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertSuccessEvent(getEntityModel(), this);
-            }
-            return AppointmentEvent.createUpdateSuccessEvent(getEntityModel(), this);
-        }
-
-        @Override
         protected AppointmentEvent validate(Connection connection) throws Exception {
             AppointmentModel targetModel = getEntityModel();
             AppointmentEvent event = AppointmentModel.FACTORY.validateForSave(targetModel);
@@ -1024,11 +1015,11 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected AppointmentEvent createFaultedEvent() {
+        protected AppointmentEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return AppointmentEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+                return AppointmentEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return AppointmentEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+            return AppointmentEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -1037,6 +1028,23 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 return AppointmentEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
             return AppointmentEvent.createUpdateCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected AppointmentEvent createFaultedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return AppointmentEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+            }
+            return AppointmentEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            AppointmentEvent event = getValue();
+            if (null != event && event instanceof AppointmentSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -1048,13 +1056,18 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
+        protected AppointmentEvent validate(Connection connection) throws Exception {
+            return null;
+        }
+
+        @Override
         protected AppointmentEvent createSuccessEvent() {
             return AppointmentEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
-        protected AppointmentEvent validate(Connection connection) throws Exception {
-            return null;
+        protected AppointmentEvent createCanceledEvent() {
+            return AppointmentEvent.createDeleteCanceledEvent(getEntityModel(), this);
         }
 
         @Override
@@ -1063,8 +1076,12 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         @Override
-        protected AppointmentEvent createCanceledEvent() {
-            return AppointmentEvent.createDeleteCanceledEvent(getEntityModel(), this);
+        protected void succeeded() {
+            AppointmentEvent event = getValue();
+            if (null != event && event instanceof AppointmentSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }

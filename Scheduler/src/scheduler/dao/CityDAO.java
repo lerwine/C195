@@ -1,13 +1,13 @@
 package scheduler.dao;
 
 import java.beans.PropertyChangeSupport;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -27,15 +27,17 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
+import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
-import scheduler.events.CountrySuccessEvent;
 import scheduler.model.City;
 import scheduler.model.CityEntity;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
+import scheduler.model.fx.PartialCityModel;
+import scheduler.model.fx.PartialCityModelImpl;
 import scheduler.model.fx.PartialCountryModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
@@ -60,16 +62,12 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CityDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());
 
-    public static final FactoryImpl FACTORY;
-
-    static {
-        FACTORY = new FactoryImpl();
-        CountryDAO.FACTORY.addEventHandler(CountrySuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onCountryEvent);
-    }
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     private final OriginalValues originalValues;
     private String name;
     private PartialCountryDAO country;
+    private WeakReference<CityModel> _cachedModel = null;
 
     /**
      * Initializes a {@link DataRowState#NEW} city object.
@@ -79,6 +77,37 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         name = "";
         country = null;
         originalValues = new OriginalValues();
+    }
+
+    @Override
+    public synchronized CityModel cachedModel(boolean create) {
+        CityModel model;
+        if (null != _cachedModel) {
+            model = _cachedModel.get();
+            if (null != model) {
+                return model;
+            }
+            _cachedModel = null;
+        }
+        if (create) {
+            model = CityModel.FACTORY.createNew(this);
+            _cachedModel = new WeakReference<>(model);
+            return model;
+        }
+        return null;
+    }
+
+    private synchronized void setCachedModel(CityModel model) {
+        if (null == model) {
+            if (null != _cachedModel) {
+                if (null != _cachedModel.get()) {
+                    _cachedModel.clear();
+                }
+                _cachedModel = null;
+            }
+        } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+            _cachedModel = new WeakReference<>(model);
+        }
     }
 
     @Override
@@ -97,7 +126,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         return country;
     }
 
-    private synchronized void setCountry(PartialCountryDAO country) {
+    synchronized void setCountry(PartialCountryDAO country) {
         PartialCountryDAO oldValue = this.country;
         if (Objects.equals(oldValue, country)) {
             return;
@@ -174,31 +203,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        private void onCountryEvent(CountrySuccessEvent event) {
-            CountryDAO newValue = event.getDataAccessObject();
-            // FIXME: Use findAll(), instead
-            Iterator<CityDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                CityDAO item = iterator.next();
-                PartialCountryDAO oldValue = item.getCountry();
-                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                    item.setCountry(newValue);
-                }
-            }
-            // FIXME: Use AddressDAO.FACTORY.findAll(), instead
-            Iterator<AddressDAO> iterator2 = AddressDAO.FACTORY.cacheIterator();
-            while (iterator2.hasNext()) {
-                AddressDAO target = iterator2.next();
-                PartialCityDAO item = target.getCity();
-                if (null != item && item instanceof Partial) {
-                    PartialCountryDAO oldValue = item.getCountry();
-                    if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                        ((Partial) item).setCountry(newValue);
-                    }
-                }
-            }
         }
 
         @Override
@@ -303,36 +307,30 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         }
 
         public CityDAO lookupCacheByNameAndRegionCode(String name, String regionCode) {
-            name = Values.asNonNullAndWsNormalized(name);
-            regionCode = Values.asNonNullAndWsNormalized(regionCode);
-            // FIXME: Use findFirst(), instead
-            Iterator<CityDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                CityDAO result = iterator.next();
-                if (result.name.equals(name)) {
-                    PartialCountryDAO c = result.getCountry();
-                    if (null != c && c.getLocale().getCountry().equals(regionCode)) {
-                        return result;
+            final String nzName = Values.asNonNullAndWsNormalized(name);
+            final String nzRegionCode = Values.asNonNullAndWsNormalized(regionCode);
+            return findFirstCached((t) -> {
+                if (t.name.equals(nzName)) {
+                    PartialCountryDAO c = t.getCountry();
+                    if (null != c && c.getLocale().getCountry().equals(nzRegionCode)) {
+                        return true;
                     }
                 }
-            }
-            return null;
+                return false;
+            }).orElse(null);
         }
 
-        public CityDAO lookupCacheByName(String name, int countryPk) {
-            name = Values.asNonNullAndWsNormalized(name);
-            // FIXME: Use findFirst(), instead
-            Iterator<CityDAO> iterator = cacheIterator();
-            while (iterator.hasNext()) {
-                CityDAO result = iterator.next();
-                if (result.name.equals(name)) {
-                    PartialCountryDAO c = result.getCountry();
+        public CityDAO lookupCacheByName(String name, final int countryPk) {
+            final String nzName = Values.asNonNullAndWsNormalized(name);
+            return findFirstCached((t) -> {
+                if (t.name.equals(nzName)) {
+                    PartialCountryDAO c = t.getCountry();
                     if (null != c && c.getPrimaryKey() == countryPk) {
-                        return result;
+                        return true;
                     }
                 }
-            }
-            return null;
+                return false;
+            }).orElse(null);
         }
 
         public CityDAO getByName(Connection connection, String name) throws SQLException {
@@ -394,14 +392,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             CityDAO dao = model.dataObject();
             dao.setName(model.getName());
             dao.setCountry(model.getCountry().dataObject());
-        }
-
-        @Override
-        protected CityEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertSuccessEvent(getEntityModel(), this);
-            }
-            return CityEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -479,11 +469,11 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         }
 
         @Override
-        protected CityEvent createFaultedEvent() {
+        protected CityEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CityEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+                return CityEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return CityEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+            return CityEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -492,6 +482,23 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                 return CityEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
             return CityEvent.createUpdateCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected CityEvent createFaultedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CityEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+            }
+            return CityEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            CityEvent event = getValue();
+            if (null != event && event instanceof CitySuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -503,11 +510,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         public DeleteTask(CityModel target, boolean alreadyValidated) {
             super(target, CityModel.FACTORY, alreadyValidated);
-        }
-
-        @Override
-        protected CityEvent createSuccessEvent() {
-            return CityEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -535,13 +537,27 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         }
 
         @Override
-        protected CityEvent createFaultedEvent() {
-            return CityEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        protected CityEvent createSuccessEvent() {
+            return CityEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected CityEvent createCanceledEvent() {
             return CityEvent.createDeleteCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected CityEvent createFaultedEvent() {
+            return CityEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            CityEvent event = getValue();
+            if (null != event && event instanceof CitySuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -554,11 +570,43 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         private final int primaryKey;
         private final String name;
         private PartialCountryDAO country;
+        private WeakReference<PartialCityModel<? extends PartialCityDAO>> _cachedModel;
 
         private Partial(int primaryKey, String name, PartialCountryDAO country) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.country = country;
+        }
+
+        @Override
+        public synchronized PartialCityModel<? extends PartialCityDAO> cachedModel(boolean create) {
+            PartialCityModel<? extends PartialCityDAO> model;
+            if (null != _cachedModel) {
+                model = _cachedModel.get();
+                if (null != model) {
+                    return model;
+                }
+                _cachedModel = null;
+            }
+            if (create) {
+                model = new PartialCityModelImpl(this);
+                _cachedModel = new WeakReference<>(model);
+                return model;
+            }
+            return null;
+        }
+
+        private synchronized void setCachedModel(PartialCityModelImpl model) {
+            if (null == model) {
+                if (null != _cachedModel) {
+                    if (null != _cachedModel.get()) {
+                        _cachedModel.clear();
+                    }
+                    _cachedModel = null;
+                }
+            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+                _cachedModel = new WeakReference<>(model);
+            }
         }
 
         @Override
