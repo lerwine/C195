@@ -10,6 +10,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -76,22 +77,19 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_APPOINTMENT_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
- * {@link AppointmentOpRequestEvent} &#123;</dt>
+ * <dt>{@link #appointmentsTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link AppointmentOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#APPOINTMENT_OP_REQUEST "SCHEDULER_APPOINTMENT_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
- * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(AppointmentOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_APPOINTMENT_EDIT_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; null {@link EditAppointment#edit(AppointmentModel, javafx.stage.Window) EditAppointment.edit}(({@link AppointmentModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.fx.AppointmentModel.Factory}</dd>
- * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_APPOINTMENT_DELETE_REQUEST {@link AppointmentOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link AppointmentOpRequestEvent#DELETE_REQUEST}
+ * &#125;</dt>
  * <dd>&rarr; null {@link scheduler.dao.AppointmentDAO.DeleteTask#DeleteTask(scheduler.model.fx.AppointmentModel, boolean) new AppointmentDAO.DeleteTask}({@link AppointmentOpRequestEvent},
  * {@code false}) (creates) {@link scheduler.events.AppointmentEvent#APPOINTMENT_EVENT_TYPE "SCHEDULER_APPOINTMENT_EVENT"} &rArr;
  * {@link scheduler.model.fx.AppointmentModel.Factory}</dd>
@@ -127,6 +125,10 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     private final EventHandler<AppointmentSuccessEvent> onAppointmentDeleted;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedUserName;
+    private StringBinding passwordErrorMessage;
+    private BooleanBinding userNameInvalid;
+    private StringBinding userNameErrorMessage;
+    private BooleanBinding passwordInvalid;
     private BooleanBinding validationBinding;
     private ObjectBinding<UserStatus> selectedStatus;
     private BooleanBinding modificationBinding;
@@ -149,6 +151,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     @FXML // fx:id="changePasswordCheckBox"
     private CheckBox changePasswordCheckBox; // Value injected by FXMLLoader
 
+    @FXML // fx:id="passwordLabel"
+    private Label passwordLabel; // Value injected by FXMLLoader
+
     @FXML // fx:id="passwordField"
     private PasswordField passwordField; // Value injected by FXMLLoader
 
@@ -169,10 +174,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
+    private StringExpression titleBinding;
 
     public EditUser() {
-        windowTitle = new ReadOnlyStringWrapper(this, "", "");
-        valid = new ReadOnlyBooleanWrapper(this, "", false);
+        windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
+        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         userActiveStateOptions = FXCollections.observableArrayList(UserStatus.values());
         unavailableUserNames = FXCollections.observableArrayList();
@@ -215,14 +221,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     @ModelEditor
     private void onModelInserted(UserEvent event) {
         LOG.entering(LOG.getName(), "onModelInserted", event);
-        changePasswordCheckBox.setDisable(false);
-        changePasswordCheckBox.setSelected(false);
         restoreNode(appointmentsFilterComboBox);
         restoreNode(appointmentsTableView);
+        collapseNode(passwordLabel);
+        restoreNode(changePasswordCheckBox);
+        changePasswordCheckBox.setSelected(false);
         initEditMode();
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
     @FXML
@@ -311,6 +315,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameErrorMessageLabel != null : "fx:id=\"userNameErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert changePasswordCheckBox != null : "fx:id=\"changePasswordCheckBox\" was not injected: check your FXML file 'EditUser.fxml'.";
+        assert passwordLabel != null : "fx:id=\"passwordLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert passwordField != null : "fx:id=\"passwordField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert passwordErrorMessageLabel != null : "fx:id=\"passwordErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert confirmLabel != null : "fx:id=\"confirmLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
@@ -319,13 +324,15 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         assert appointmentsFilterComboBox != null : "fx:id=\"appointmentsFilterComboBox\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditUser.fxml'.";
 
+        userNameTextField.setText(model.getUserName());
         activeComboBox.setItems(userActiveStateOptions);
+        activeComboBox.getSelectionModel().select(model.getStatus());
         appointmentsTableView.setItems(userAppointments);
 
         selectedFilter = Bindings.select(appointmentsFilterComboBox.selectionModelProperty(), "selectedItem");
 
         normalizedUserName = BindingHelper.asNonNullAndWsNormalized(userNameTextField.textProperty());
-        StringBinding userNameErrorMessage = Bindings.createStringBinding(() -> {
+        userNameErrorMessage = Bindings.createStringBinding(() -> {
             String n = normalizedUserName.get();
             if (n.isEmpty()) {
                 return resources.getString(RESOURCEKEY_USERNAMECANNOTBEEMPTY);
@@ -335,29 +342,24 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             }
             return "";
         }, normalizedUserName, unavailableUserNames);
-        BooleanBinding userNameInvalid = userNameErrorMessage.isNotEmpty();
+        userNameInvalid = userNameErrorMessage.isNotEmpty();
         userNameErrorMessageLabel.visibleProperty().bind(userNameInvalid);
 
-        StringBinding passwordErrorMessage = Bindings.when(changePasswordCheckBox.selectedProperty())
+        passwordErrorMessage = Bindings.when(changePasswordCheckBox.selectedProperty())
                 .then(Bindings.createStringBinding(() -> {
                     String p = passwordField.getText();
                     String c = confirmPasswordField.getText();
-                    if (changePasswordCheckBox.isSelected()) {
-                        if (p.trim().isEmpty()) {
-                            return resources.getString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
-                        }
-                        if (!p.equals(c)) {
-                            return resources.getString(RESOURCEKEY_PASSWORDMISMATCH);
-                        }
+                    if (p.trim().isEmpty()) {
+                        return resources.getString(RESOURCEKEY_PASSWORDCANNOTBEEMPTY);
+                    }
+                    if (!p.equals(c)) {
+                        return resources.getString(RESOURCEKEY_PASSWORDMISMATCH);
                     }
                     return "";
                 }, passwordField.textProperty(), confirmPasswordField.textProperty()))
                 .otherwise("");
 
-        BooleanBinding passwordInvalid = passwordErrorMessage.isNotEmpty();
-        passwordErrorMessageLabel.visibleProperty().bind(passwordInvalid);
-        passwordErrorMessageLabel.textProperty().bind(passwordErrorMessage);
-        changePasswordCheckBox.selectedProperty().addListener(this::changePasswordCheckBoxChanged);
+        passwordInvalid = passwordErrorMessage.isNotEmpty();
         userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
         confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
@@ -371,17 +373,19 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         if (model.isNewRow()) {
+            passwordErrorMessageLabel.visibleProperty().bind(passwordInvalid);
+            passwordErrorMessageLabel.textProperty().bind(passwordErrorMessage);
             waitBorderPane.startNow(pane, new LoadExistingUsersTask());
             changePasswordCheckBox.setSelected(true);
-            changePasswordCheckBox.setDisable(true);
             collapseNode(appointmentsFilterComboBox);
             collapseNode(appointmentsTableView);
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWUSER));
         } else {
+            collapseNode(passwordLabel);
+            restoreNode(changePasswordCheckBox);
             waitBorderPane.startNow(pane, new InitialLoadTask());
             initEditMode();
         }
-        changePasswordCheckBoxChanged(changePasswordCheckBox.selectedProperty(), false, changePasswordCheckBox.isSelected());
     }
 
     private void updateValidation() {
@@ -395,7 +399,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             restoreNode(confirmLabel);
             restoreNode(confirmPasswordField);
             restoreNode(passwordErrorMessageLabel);
+            passwordErrorMessageLabel.visibleProperty().bind(passwordInvalid);
+            passwordErrorMessageLabel.textProperty().bind(passwordErrorMessage);
         } else {
+            passwordErrorMessageLabel.visibleProperty().unbind();
+            passwordErrorMessageLabel.textProperty().unbind();
             collapseNode(passwordField);
             collapseNode(confirmLabel);
             collapseNode(confirmPasswordField);
@@ -405,7 +413,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     }
 
     private void initEditMode() {
-        windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITUSER), normalizedUserName));
+        titleBinding = Bindings.format(resources.getString(RESOURCEKEY_EDITUSER), normalizedUserName);
+        windowTitle.bind(titleBinding);
         LocalDate today = LocalDate.now();
         UserDAO dao = model.dataObject();
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_CURRENTANDFUTURE),
@@ -415,6 +424,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS),
                 AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
+        changePasswordCheckBoxChanged(changePasswordCheckBox.selectedProperty(), false, changePasswordCheckBox.isSelected());
+        changePasswordCheckBox.selectedProperty().addListener(this::changePasswordCheckBoxChanged);
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
     @Override
