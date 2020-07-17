@@ -50,7 +50,7 @@ public interface PartialAddressModel<T extends PartialAddressDAO> extends Addres
             return null;
         }
         if (t instanceof AddressDAO) {
-            return AddressModel.FACTORY.createNew((AddressDAO) t);
+            return ((AddressDAO) t).cachedModel(true);
         }
 
         return new PartialAddressModelImpl(t);

@@ -132,7 +132,7 @@ public class AppointmentAlert extends BorderPane {
             if (end.compareTo(DateTimeUtil.toLocalDateTime(dao.getStart())) >= 0) {
                 ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
                 Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
-                Stream.concat(stream, Stream.of(AppointmentModel.FACTORY.createNew(dao))).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
+                Stream.concat(stream, Stream.of(dao.cachedModel(true))).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
                     int index = -1;
 
                     @Override
@@ -157,7 +157,7 @@ public class AppointmentAlert extends BorderPane {
         LocalDateTime start = LocalDateTime.now();
         AppointmentModel item;
         if (null == view) {
-            item = AppointmentModel.FACTORY.createNew(dao);
+            item = dao.cachedModel(true);
         } else {
             item = (AppointmentModel) view.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL);
         }
@@ -489,9 +489,9 @@ public class AppointmentAlert extends BorderPane {
                     if (d.contains(pk)) {
                         dismissed.add(pk);
                     } else if (++index < itemsViewList.size()) {
-                        reBind((FlowPane) itemsViewList.get(index), AppointmentModel.FACTORY.createNew(t));
+                        reBind((FlowPane) itemsViewList.get(index), t.cachedModel(true));
                     } else {
-                        itemsViewList.add(createNew(AppointmentModel.FACTORY.createNew(t)));
+                        itemsViewList.add(createNew(t.cachedModel(true)));
                     }
                 }
             });

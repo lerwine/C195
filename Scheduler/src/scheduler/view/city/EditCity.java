@@ -108,8 +108,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     }
 
     public static CityModel editNew(PartialCountryModel<? extends PartialCountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
-        CityModel.Factory factory = CityModel.FACTORY;
-        CityModel model = factory.createNew(factory.getDaoFactory().createNew());
+        CityModel model = CityDAO.FACTORY.createNew().cachedModel(true);
         EditCity control = new EditCity();
         if (null != country) {
             control.getProperties().put(TARGET_COUNTRY_KEY, country);
@@ -170,7 +169,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             if (model.getRowState() != DataRowState.NEW) {
                 AddressDAO dao = event.getDataAccessObject();
                 if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                    addressItemList.add(AddressModel.FACTORY.createNew(dao));
+                    addressItemList.add(dao.cachedModel(true));
                 }
             }
         };
@@ -185,7 +184,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                         addressItemList.remove(m);
                     }
                 } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                    addressItemList.add(AddressModel.FACTORY.createNew(dao));
+                    addressItemList.add(dao.cachedModel(true));
                 }
             }
         };
@@ -413,14 +412,13 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
     private void loadCountries(List<CountryDAO> result, PartialCountryModel<? extends PartialCountryDAO> country) {
         HashMap<String, CountryModel> map = new HashMap<>();
-        CountryModel.Factory factory = CountryModel.FACTORY;
         for (Locale al : Locale.getAvailableLocales()) {
             if (!(al.getDisplayCountry().isEmpty() || al.getDisplayLanguage().isEmpty())) {
-                map.put(al.toLanguageTag(), factory.createNew(CountryDAO.FACTORY.fromLocale(al)));
+                map.put(al.toLanguageTag(), CountryDAO.FACTORY.fromLocale(al).cachedModel(true));
             }
         }
         if (null != result && !result.isEmpty()) {
-            result.forEach((t) -> map.put(t.getLocale().toLanguageTag(), factory.createNew(t)));
+            result.forEach((t) -> map.put(t.getLocale().toLanguageTag(), t.cachedModel(true)));
             map.values().stream().sorted(CountryProperties::compare).forEach((t) -> countryOptionList.add(t));
             if (null != country) {
                 Locale locale = country.getLocale();
@@ -461,8 +459,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             Tuple<List<CountryDAO>, List<AddressDAO>> result = getValue();
             loadCountries(result.getValue1(), model.getCountry());
             if (null != result.getValue2() && !result.getValue2().isEmpty()) {
-                AddressModel.Factory factory = AddressModel.FACTORY;
-                result.getValue2().forEach((t) -> addressItemList.add(factory.createNew(t)));
+                result.getValue2().forEach((t) -> addressItemList.add(t.cachedModel(true)));
             }
             AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressAdded));
             AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressUpdated));

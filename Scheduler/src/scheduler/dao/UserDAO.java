@@ -1,6 +1,7 @@
 package scheduler.dao;
 
 import java.beans.PropertyChangeSupport;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,10 +25,13 @@ import scheduler.dao.schema.DmlSelectQueryBuilder;
 import scheduler.dao.schema.SchemaHelper;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
+import scheduler.events.UserSuccessEvent;
 import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserEntity;
 import scheduler.model.UserStatus;
+import scheduler.model.fx.PartialUserModel;
+import scheduler.model.fx.PartialUserModelImpl;
 import scheduler.model.fx.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -55,6 +59,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
     // PENDING: Change to using something that can accept raw password and produce hash.
     private String password;
     private UserStatus status;
+    private WeakReference<UserModel> _cachedModel = null;
 
     /**
      * Initializes a {@link DataRowState#NEW} user object.
@@ -65,6 +70,37 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         password = "";
         status = UserStatus.NORMAL;
         originalValues = new OriginalValues();
+    }
+
+    @Override
+    public synchronized UserModel cachedModel(boolean create) {
+        UserModel model;
+        if (null != _cachedModel) {
+            model = _cachedModel.get();
+            if (null != model) {
+                return model;
+            }
+            _cachedModel = null;
+        }
+        if (create) {
+            model = UserModel.FACTORY.createNew(this);
+            _cachedModel = new WeakReference<>(model);
+            return model;
+        }
+        return null;
+    }
+
+    private synchronized void setCachedModel(UserModel model) {
+        if (null == model) {
+            if (null != _cachedModel) {
+                if (null != _cachedModel.get()) {
+                    _cachedModel.clear();
+                }
+                _cachedModel = null;
+            }
+        } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+            _cachedModel = new WeakReference<>(model);
+        }
     }
 
     @Override
@@ -340,14 +376,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         }
 
         @Override
-        protected UserEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertSuccessEvent(getEntityModel(), this);
-            }
-            return UserEvent.createUpdateSuccessEvent(getEntityModel(), this);
-        }
-
-        @Override
         protected UserEvent validate(Connection connection) throws Exception {
             UserModel targetModel = getEntityModel();
             UserEvent saveEvent = UserModel.FACTORY.validateForSave(targetModel);
@@ -391,11 +419,11 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         }
 
         @Override
-        protected UserEvent createFaultedEvent() {
+        protected UserEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+                return UserEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return UserEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+            return UserEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -404,6 +432,23 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
                 return UserEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
             return UserEvent.createUpdateCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected UserEvent createFaultedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return UserEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+            }
+            return UserEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            UserEvent event = getValue();
+            if (null != event && event instanceof UserSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -420,11 +465,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         public DeleteTask(UserModel target, boolean alreadyValidated) {
             super(target, UserModel.FACTORY, alreadyValidated);
-        }
-
-        @Override
-        protected UserEvent createSuccessEvent() {
-            return UserEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -453,13 +493,27 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         }
 
         @Override
-        protected UserEvent createFaultedEvent() {
-            return UserEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        protected UserEvent createSuccessEvent() {
+            return UserEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected UserEvent createCanceledEvent() {
             return UserEvent.createDeleteCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected UserEvent createFaultedEvent() {
+            return UserEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            UserEvent event = getValue();
+            if (null != event && event instanceof UserSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -469,11 +523,43 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         private final int primaryKey;
         private final String userName;
         private final UserStatus status;
+        private WeakReference<PartialUserModel<? extends PartialUserDAO>> _cachedModel;
 
         private Partial(int primaryKey, String userName, UserStatus status) {
             this.primaryKey = primaryKey;
             this.userName = userName;
             this.status = status;
+        }
+
+        @Override
+        public synchronized PartialUserModel<? extends PartialUserDAO> cachedModel(boolean create) {
+            PartialUserModel<? extends PartialUserDAO> model;
+            if (null != _cachedModel) {
+                model = _cachedModel.get();
+                if (null != model) {
+                    return model;
+                }
+                _cachedModel = null;
+            }
+            if (create) {
+                model = new PartialUserModelImpl(this);
+                _cachedModel = new WeakReference<>(model);
+                return model;
+            }
+            return null;
+        }
+
+        private synchronized void setCachedModel(PartialUserModelImpl model) {
+            if (null == model) {
+                if (null != _cachedModel) {
+                    if (null != _cachedModel.get()) {
+                        _cachedModel.clear();
+                    }
+                    _cachedModel = null;
+                }
+            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+                _cachedModel = new WeakReference<>(model);
+            }
         }
 
         @Override

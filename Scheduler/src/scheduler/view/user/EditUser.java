@@ -106,7 +106,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     public static UserModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
         UserModel.Factory factory = UserModel.FACTORY;
-        return EditItem.showAndWait(parentWindow, EditUser.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
+        return EditItem.showAndWait(parentWindow, EditUser.class, factory.getDaoFactory().createNew().cachedModel(true), keepOpen);
     }
 
     public static UserModel edit(UserModel model, Window parentWindow) throws IOException {
@@ -190,7 +190,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 AppointmentDAO dao = event.getDataAccessObject();
                 AppointmentFilterItem filter = selectedFilter.get();
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    userAppointments.add(AppointmentModel.FACTORY.createNew(dao));
+                    userAppointments.add(dao.cachedModel(true));
                 }
             }
         };
@@ -206,7 +206,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                         userAppointments.remove(m);
                     }
                 } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    userAppointments.add(AppointmentModel.FACTORY.createNew(dao));
+                    userAppointments.add(dao.cachedModel(true));
                 }
             }
         };
@@ -551,7 +551,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             List<AppointmentDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
-                    userAppointments.add(AppointmentModel.FACTORY.createNew(t));
+                    userAppointments.add(t.cachedModel(true));
                 });
             }
             loadUsers(users);

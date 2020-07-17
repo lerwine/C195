@@ -28,7 +28,7 @@ public interface PartialCityModel<T extends PartialCityDAO> extends City, Partia
             return null;
         }
         if (t instanceof CityDAO) {
-            return CityModel.FACTORY.createNew((CityDAO) t);
+            return ((CityDAO) t).cachedModel(true);
         }
 
         return new PartialCityModelImpl(t);

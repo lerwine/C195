@@ -91,7 +91,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
 
     public static CountryModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
         CountryModel.Factory factory = CountryModel.FACTORY;
-        return EditItem.showAndWait(parentWindow, EditCountry.class, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
+        return EditItem.showAndWait(parentWindow, EditCountry.class, factory.getDaoFactory().createNew().cachedModel(true), keepOpen);
     }
 
     public static CountryModel edit(CountryModel model, Window parentWindow) throws IOException {
@@ -149,7 +149,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
             if (null == m) {
                 CityDAO dao = event.getDataAccessObject();
                 if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(CityModel.FACTORY.createNew(dao));
+                    itemList.add(dao.cachedModel(true));
                 }
             } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
                 itemList.add(m);
@@ -164,7 +164,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
                 item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
                 if (null == item) {
                     if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                        itemList.add(CityModel.FACTORY.createNew(dao));
+                        itemList.add(dao.cachedModel(true));
                     }
                     return;
                 }
@@ -401,9 +401,8 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
             super.succeeded();
             List<CityDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
-                CityModel.Factory factory = CityModel.FACTORY;
                 result.stream().sorted(CityProperties::compare).forEach((t) -> {
-                    itemList.add(factory.createNew(t));
+                    itemList.add(t.cachedModel(true));
                 });
             }
             CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCountry.this.onCityAdded));

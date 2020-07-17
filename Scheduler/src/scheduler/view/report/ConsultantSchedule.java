@@ -120,7 +120,7 @@ public class ConsultantSchedule extends VBox {
         if (null != appointments && !appointments.isEmpty()) {
             HashMap<LocalDate, ArrayList<AppointmentModel>> byDate = new HashMap<>();
             appointments.forEach((t) -> {
-                AppointmentModel am = AppointmentModel.FACTORY.createNew(t);
+                AppointmentModel am = t.cachedModel(true);
                 LocalDate d = am.getStart().toLocalDate();
                 if (byDate.containsKey(d)) {
                     byDate.get(d).add(am);
@@ -153,7 +153,7 @@ public class ConsultantSchedule extends VBox {
             rangeStartDatePicker.setValue(start);
             rangeEndDatePicker.setValue(start);
             if (null != result && !result.isEmpty()) {
-                result.forEach((t) -> consultantList.add(UserModel.FACTORY.createNew(t)));
+                result.forEach((t) -> consultantList.add(t.cachedModel(true)));
                 int id = user.getPrimaryKey();
                 Optional<UserModel> um = consultantList.stream().filter((t) -> t.getPrimaryKey() == id).findFirst();
                 um.ifPresent((t) -> consultantsComboBox.getSelectionModel().select(t));

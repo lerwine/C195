@@ -123,8 +123,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 //    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
 
     public static CustomerModel editNew(PartialAddressModel<? extends PartialAddressDAO> address, Window parentWindow, boolean keepOpen) throws IOException {
-        CustomerModel.Factory factory = CustomerModel.FACTORY;
-        CustomerModel model = factory.createNew(factory.getDaoFactory().createNew());
+        CustomerModel model = CustomerModel.FACTORY.getDaoFactory().createNew().cachedModel(true);
         if (null != address) {
             model.setAddress(address);
         }
@@ -227,7 +226,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
     public EditCustomer() {
         addressCustomerCount = new ReadOnlyIntegerWrapper(this, "addressCustomerCount", 0);
-        selectedAddress = new ReadOnlyObjectWrapper<>(this, "selectedAddress", AddressModel.FACTORY.createNew(new AddressDAO()));
+        selectedAddress = new ReadOnlyObjectWrapper<>(this, "selectedAddress", new AddressDAO().cachedModel(true));
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
@@ -243,7 +242,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 AppointmentDAO dao = event.getDataAccessObject();
                 AppointmentFilterItem filter = selectedFilter.get();
                 if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    customerAppointments.add(AppointmentModel.FACTORY.createNew(dao));
+                    customerAppointments.add(dao.cachedModel(true));
                 }
             }
         };
@@ -259,7 +258,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                     }
                 } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey()
                         : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    customerAppointments.add(AppointmentModel.FACTORY.createNew(dao));
+                    customerAppointments.add(dao.cachedModel(true));
                 }
             }
         };
@@ -607,7 +606,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         if (null != addrItem && addrItem instanceof AddressModel) {
             address = (AddressModel) addrItem;
         } else {
-            address = AddressModel.FACTORY.createNew(addressAndCities.getValue1());
+            address = addressAndCities.getValue1().cachedModel(true);
         }
         selectedAddress.set(address);
         PartialCityModel<? extends PartialCityDAO> city;
@@ -626,8 +625,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         allCountries.clear();
         allCities.clear();
         cityOptions.clear();
-        countries.forEach((t) -> allCountries.add(CountryModel.FACTORY.createNew(t)));
-        addressAndCities.getValue2().forEach((t) -> allCities.add(CityModel.FACTORY.createNew(t)));
+        countries.forEach((t) -> allCountries.add(t.cachedModel(true)));
+        addressAndCities.getValue2().forEach((t) -> allCities.add(t.cachedModel(true)));
         if (null != country && country.getRowState() != DataRowState.NEW) {
             int pk = country.getPrimaryKey();
             allCountries.stream().filter((t) -> pk == t.getPrimaryKey()).findFirst().ifPresent((t) -> {
@@ -732,7 +731,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 allCustomers.stream().filter((t) -> t.getPrimaryKey() != pk).map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
             }
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
-                result.getValue1().stream().map((t) -> AppointmentModel.FACTORY.createNew(t)).forEach(customerAppointments::add);
+                result.getValue1().stream().map((t) -> t.cachedModel(true)).forEach(customerAppointments::add);
             }
             appointmentFilterComboBox.setOnAction(EditCustomer.this::onAppointmentFilterComboBoxAction);
             waitBorderPane.startNow(new AppointmentReloadTask());
@@ -840,7 +839,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             customerAppointments.clear();
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> {
-                    customerAppointments.add(AppointmentModel.FACTORY.createNew(t));
+                    customerAppointments.add(t.cachedModel(true));
                 });
             }
         }

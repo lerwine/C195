@@ -263,8 +263,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     public static AppointmentModel editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
             Window parentWindow, boolean keepOpen) throws IOException {
-        AppointmentModel.Factory factory = AppointmentModel.FACTORY;
-        AppointmentModel model = factory.createNew(factory.getDaoFactory().createNew());
+        AppointmentModel model = AppointmentDAO.FACTORY.createNew().cachedModel(true);
         if (null != customer) {
             model.setCustomer(customer);
         }
@@ -674,7 +673,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         CustomerModel selectedItem = customerComboBox.getSelectionModel().getSelectedItem();
         customerModelList.clear();
         if (null != customerDaoList && !customerDaoList.isEmpty()) {
-            customerDaoList.forEach((t) -> customerModelList.add(CustomerModel.FACTORY.createNew(t)));
+            customerDaoList.forEach((t) -> customerModelList.add(t.cachedModel(true)));
         }
         if (null != selectedItem) {
             int cpk = selectedItem.getPrimaryKey();
@@ -687,7 +686,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         LOG.info("Invoked scheduler.view.appointment.EditAppointment#onUsersLoaded");
         UserModel selectedItem = userComboBox.getSelectionModel().getSelectedItem();
         if (null != userDaoList && !userDaoList.isEmpty()) {
-            userDaoList.forEach((t) -> userModelList.add(UserModel.FACTORY.createNew(t)));
+            userDaoList.forEach((t) -> userModelList.add(t.cachedModel(true)));
         }
         if (null != selectedItem) {
             int cpk = selectedItem.getPrimaryKey();
@@ -1146,10 +1145,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 LOG.fine("Creating appointment models");
                 if (model.getRowState() != DataRowState.NEW) {
                     int pk = model.getPrimaryKey();
-                    appointments.stream().filter(t -> t.getPrimaryKey() != pk).map((t) -> AppointmentModel.FACTORY.createNew(t)).sorted(AppointmentModel::compareByDates)
+                    appointments.stream().filter(t -> t.getPrimaryKey() != pk).map((t) -> t.cachedModel(true)).sorted(AppointmentModel::compareByDates)
                             .forEachOrdered((t) -> allAppointments.add(t));
                 } else {
-                    appointments.stream().map((t) -> AppointmentModel.FACTORY.createNew(t)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
+                    appointments.stream().map((t) -> t.cachedModel(true)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
                 }
             }
             if (null != dateRange.range.get() && null != currentParticipants.get()) {
