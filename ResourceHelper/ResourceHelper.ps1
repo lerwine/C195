@@ -439,7 +439,7 @@ Function Prompt-BundleAction {
                         }
                         if ($Keys.Count -gt 0) {
                             $Keys | ForEach-Object {
-                                $SourceBundle.CopyTo($_.Name, $TargetBundle, $Force);
+                                $SourceBundle.CopyTo($_, $TargetBundle, $Force);
                             }
                         }
                     }
@@ -470,7 +470,7 @@ Function Prompt-BundleAction {
                         if ($Keys.Count -gt 0) {
                             $Modified[$SourceBundle.BaseName] = $SourceBundle;
                             $Keys | ForEach-Object {
-                                $SourceBundle.MoveTo($_.Name, $TargetBundle, $Force);
+                                $SourceBundle.MoveTo($_, $TargetBundle, $Force);
                             }
                         }
                     }
