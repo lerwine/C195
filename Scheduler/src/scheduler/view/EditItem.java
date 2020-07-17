@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -243,45 +242,41 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
         LOG.entering(LOG.getName(), "onSaveButtonAction", event);
         editorRegion.applyChanges();
         DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(model);
-        waitBorderPane.startNow(task);
-        E modelEvent;
-        try {
-            modelEvent = task.get();
-        } catch (InterruptedException | ExecutionException ex) {
-            LOG.log(Level.WARNING, "Failure executing save task", ex);
-            return;
-        }
-        if (modelEvent instanceof ModelFailedEvent) {
-            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
-        } else {
-            switch (modelEvent.getOperation()) {
-                case DB_INSERT:
-                    if (keepOpen) {
-                        if (null != onModelInserted) {
-                            boolean accessible = onModelInserted.isAccessible();
-                            if (!accessible) {
-                                onModelInserted.setAccessible(true);
-                            }
-                            try {
-                                onModelInserted.invoke(editorRegion, modelEvent);
-                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                                LOG.log(Level.SEVERE, "Error invoking onModelInserted method", ex);
-                            } finally {
+        task.setOnSucceeded((e) -> {
+            E modelEvent = task.getValue();
+            if (modelEvent instanceof ModelFailedEvent) {
+                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
+            } else {
+                switch (modelEvent.getOperation()) {
+                    case DB_INSERT:
+                        if (keepOpen) {
+                            if (null != onModelInserted) {
+                                boolean accessible = onModelInserted.isAccessible();
                                 if (!accessible) {
-                                    onModelInserted.setAccessible(false);
+                                    onModelInserted.setAccessible(true);
+                                }
+                                try {
+                                    onModelInserted.invoke(editorRegion, modelEvent);
+                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                    LOG.log(Level.SEVERE, "Error invoking onModelInserted method", ex);
+                                } finally {
+                                    if (!accessible) {
+                                        onModelInserted.setAccessible(false);
+                                    }
                                 }
                             }
+                            onEditMode();
+                        } else {
+                            getScene().getWindow().hide();
                         }
-                        onEditMode();
-                    } else {
+                        break;
+                    case DB_UPDATE:
                         getScene().getWindow().hide();
-                    }
-                    break;
-                case DB_UPDATE:
-                    getScene().getWindow().hide();
-                    break;
+                        break;
+                }
             }
-        }
+        });
+        waitBorderPane.startNow(task);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
