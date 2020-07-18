@@ -1,12 +1,12 @@
 package scheduler.dao;
 
 import java.beans.PropertyChangeSupport;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -25,9 +25,9 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
-import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
+import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerEntity;
@@ -35,6 +35,8 @@ import scheduler.model.ModelHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CustomerModel;
 import scheduler.model.fx.PartialAddressModel;
+import scheduler.model.fx.PartialCustomerModel;
+import scheduler.model.fx.PartialCustomerModelImpl;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -52,17 +54,13 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerDAO.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());
 
-    public static final FactoryImpl FACTORY;
-
-    static {
-        FACTORY = new FactoryImpl();
-        AddressDAO.FACTORY.addEventHandler(AddressSuccessEvent.SUCCESS_EVENT_TYPE, FACTORY::onAddressEvent);
-    }
+    public static final FactoryImpl FACTORY = new FactoryImpl();
 
     private final OriginalValues originalValues;
     private String name;
     private PartialAddressDAO address;
     private boolean active;
+    private WeakReference<CustomerModel> _cachedModel = null;
 
     /**
      * Initializes a {@link DataRowState#NEW} customer object.
@@ -101,7 +99,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
      *
      * @param address new value of address
      */
-    private synchronized void setAddress(PartialAddressDAO address) {
+    synchronized void setAddress(PartialAddressDAO address) {
         PartialAddressDAO oldValue = this.address;
         if (Objects.equals(oldValue, address)) {
             return;
@@ -124,6 +122,37 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         boolean oldValue = this.active;
         this.active = active;
         firePropertyChange(PROP_ADDRESS, oldValue, this.active);
+    }
+
+    @Override
+    public synchronized CustomerModel cachedModel(boolean create) {
+        CustomerModel model;
+        if (null != _cachedModel) {
+            model = _cachedModel.get();
+            if (null != model) {
+                return model;
+            }
+            _cachedModel = null;
+        }
+        if (create) {
+            model = CustomerModel.FACTORY.createNew(this);
+            _cachedModel = new WeakReference<>(model);
+            return model;
+        }
+        return null;
+    }
+
+    private synchronized void setCachedModel(CustomerModel model) {
+        if (null == model) {
+            if (null != _cachedModel) {
+                if (null != _cachedModel.get()) {
+                    _cachedModel.clear();
+                }
+                _cachedModel = null;
+            }
+        } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+            _cachedModel = new WeakReference<>(model);
+        }
     }
 
     @Override
@@ -200,31 +229,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        private void onAddressEvent(AddressSuccessEvent event) {
-            AddressDAO newValue = event.getDataAccessObject();
-            // FIXME: Use findAll(), instead
-            Iterator<CustomerDAO> iterator1 = cacheIterator();
-            while (iterator1.hasNext()) {
-                CustomerDAO item = iterator1.next();
-                PartialAddressDAO oldValue = item.getAddress();
-                if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                    item.setAddress(newValue);
-                }
-            }
-            // FIXME: Use AppointmentDAO.FACTORY.findAll(), instead
-            Iterator<AppointmentDAO> iterator2 = AppointmentDAO.FACTORY.cacheIterator();
-            while (iterator2.hasNext()) {
-                AppointmentDAO target = iterator2.next();
-                PartialCustomerDAO item = target.getCustomer();
-                if (null != item && item instanceof Partial) {
-                    PartialAddressDAO oldValue = item.getAddress();
-                    if (null != oldValue && oldValue.getPrimaryKey() == newValue.getPrimaryKey() && !Objects.equals(oldValue, newValue)) {
-                        ((Partial) item).setAddress(newValue);
-                    }
-                }
-            }
         }
 
         @Override
@@ -397,14 +401,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         }
 
         @Override
-        protected CustomerEvent createSuccessEvent() {
-            if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertSuccessEvent(getEntityModel(), this);
-            }
-            return CustomerEvent.createUpdateSuccessEvent(getEntityModel(), this);
-        }
-
-        @Override
         public CustomerEvent validate(Connection connection) throws Exception {
             CustomerModel targetModel = getEntityModel();
             CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(targetModel);
@@ -468,11 +464,11 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         }
 
         @Override
-        protected CustomerEvent createFaultedEvent() {
+        protected CustomerEvent createSuccessEvent() {
             if (getOriginalRowState() == DataRowState.NEW) {
-                return CustomerEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+                return CustomerEvent.createInsertSuccessEvent(getEntityModel(), this);
             }
-            return CustomerEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+            return CustomerEvent.createUpdateSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -481,6 +477,23 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                 return CustomerEvent.createInsertCanceledEvent(getEntityModel(), this);
             }
             return CustomerEvent.createUpdateCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected CustomerEvent createFaultedEvent() {
+            if (getOriginalRowState() == DataRowState.NEW) {
+                return CustomerEvent.createInsertFaultedEvent(getEntityModel(), this, getException());
+            }
+            return CustomerEvent.createUpdateFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            CustomerEvent event = getValue();
+            if (null != event && event instanceof CustomerSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -496,11 +509,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         public DeleteTask(CustomerModel target, boolean alreadyValidated) {
             super(target, CustomerModel.FACTORY, alreadyValidated);
-        }
-
-        @Override
-        protected CustomerEvent createSuccessEvent() {
-            return CustomerEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
@@ -525,13 +533,27 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         }
 
         @Override
-        protected CustomerEvent createFaultedEvent() {
-            return CustomerEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        protected CustomerEvent createSuccessEvent() {
+            return CustomerEvent.createDeleteSuccessEvent(getEntityModel(), this);
         }
 
         @Override
         protected CustomerEvent createCanceledEvent() {
             return CustomerEvent.createDeleteCanceledEvent(getEntityModel(), this);
+        }
+
+        @Override
+        protected CustomerEvent createFaultedEvent() {
+            return CustomerEvent.createDeleteFaultedEvent(getEntityModel(), this, getException());
+        }
+
+        @Override
+        protected void succeeded() {
+            CustomerEvent event = getValue();
+            if (null != event && event instanceof CustomerSuccessEvent) {
+                getDataAccessObject().setCachedModel(getEntityModel());
+            }
+            super.succeeded();
         }
 
     }
@@ -545,6 +567,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         private PartialAddressDAO address;
         private final boolean active;
         private final int primaryKey;
+        private WeakReference<PartialCustomerModel<? extends PartialCustomerDAO>> _cachedModel;
 
         private Partial(int primaryKey, String name, PartialAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
@@ -580,6 +603,37 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         @Override
         public int getPrimaryKey() {
             return primaryKey;
+        }
+
+        @Override
+        public synchronized PartialCustomerModel<? extends PartialCustomerDAO> cachedModel(boolean create) {
+            PartialCustomerModel<? extends PartialCustomerDAO> model;
+            if (null != _cachedModel) {
+                model = _cachedModel.get();
+                if (null != model) {
+                    return model;
+                }
+                _cachedModel = null;
+            }
+            if (create) {
+                model = new PartialCustomerModelImpl(this);
+                _cachedModel = new WeakReference<>(model);
+                return model;
+            }
+            return null;
+        }
+
+        private synchronized void setCachedModel(PartialCustomerModelImpl model) {
+            if (null == model) {
+                if (null != _cachedModel) {
+                    if (null != _cachedModel.get()) {
+                        _cachedModel.clear();
+                    }
+                    _cachedModel = null;
+                }
+            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
+                _cachedModel = new WeakReference<>(model);
+            }
         }
 
         @Override

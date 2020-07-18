@@ -85,25 +85,20 @@ import scheduler.view.task.WaitTitledPane;
  * <h3>Event Handling</h3>
  * <h4>SCHEDULER_CUSTOMER_OP_REQUEST</h4>
  * <dl>
- * <dt>{@link #customersTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates)
- * {@link CustomerOpRequestEvent} &#123;</dt>
+ * <dt>{@link #customersTableView} &#123; {@link scheduler.fx.ItemEditTableCellFactory#onItemActionRequest} &#125; (creates) {@link CustomerOpRequestEvent} &#123;</dt>
  * <dd>{@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#CUSTOMER_OP_REQUEST "SCHEDULER_CUSTOMER_OP_REQUEST"} &larr;
- * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr;
- * {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
+ * {@link scheduler.events.OperationRequestEvent#OP_REQUEST_EVENT "SCHEDULER_OP_REQUEST_EVENT"} &larr; {@link scheduler.events.ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"}
  * </dd>
  * </dl>
  * &#125; (fires) {@link #onItemActionRequest(CustomerOpRequestEvent)}
  * <dl>
- * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#EDIT_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link EditCustomer#edit(CustomerModel, javafx.stage.Window) EditCustomer.edit}(({@link CustomerModel}) {@link scheduler.events.ModelEvent#getEntityModel()},
  * {@link javafx.stage.Window}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
  * {@link scheduler.model.fx.CustomerModel.Factory}</dd>
- * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123;
- * {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
+ * <dt>SCHEDULER_CUSTOMER_EDIT_REQUEST {@link CustomerOpRequestEvent} &#123; {@link javafx.event.Event#eventType} = {@link CustomerOpRequestEvent#DELETE_REQUEST} &#125;</dt>
  * <dd>&rarr; {@link scheduler.dao.CustomerDAO.DeleteTask#DeleteTask(scheduler.model.fx.CustomerModel, boolean) new CustomerDAO.DeleteTask}({@link CustomerOpRequestEvent},
- * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr;
- * {@link scheduler.model.fx.CustomerModel.Factory}</dd>
+ * {@code false}) (creates) {@link scheduler.events.CustomerEvent#CUSTOMER_EVENT_TYPE "SCHEDULER_CUSTOMER_EVENT"} &rArr; {@link scheduler.model.fx.CustomerModel.Factory}</dd>
  * </dl>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
@@ -118,12 +113,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private static final Object TARGET_CITY_KEY = new Object();
 
     public static AddressModel editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {
-        AddressModel.Factory factory = AddressModel.FACTORY;
         EditAddress control = new EditAddress();
         if (null != city) {
             control.getProperties().put(TARGET_CITY_KEY, city);
         }
-        return EditItem.showAndWait(parentWindow, control, factory.createNew(factory.getDaoFactory().createNew()), keepOpen);
+        return EditItem.showAndWait(parentWindow, control, AddressDAO.FACTORY.createNew().cachedModel(true), keepOpen);
     }
 
     public static AddressModel edit(AddressModel model, Window parentWindow) throws IOException {
@@ -218,7 +212,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             LOG.entering(LOG.getName(), "onCustomerAdded", event);
             CustomerDAO dao = event.getDataAccessObject();
             if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(CustomerModel.FACTORY.createNew(dao));
+                itemList.add(dao.cachedModel(true));
             }
         };
         onCustomerUpdated = (CustomerSuccessEvent event) -> {
@@ -232,7 +226,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                         itemList.remove(m);
                     }
                 } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(CustomerModel.FACTORY.createNew(dao));
+                    itemList.add(dao.cachedModel(true));
                 }
             }
         };
@@ -555,7 +549,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     private void initializeCountriesAndCities(List<CountryDAO> countryDaoList, List<CityDAO> cityDaoList, PartialCityModel<? extends PartialCityDAO> targetCity) {
-        CountryModel.Factory nf = CountryModel.FACTORY;
         PartialCountryModel<? extends PartialCountryDAO> countryItem = (null == targetCity) ? null : targetCity.getCountry();
         if (null != countryDaoList && !countryDaoList.isEmpty()) {
             if (null != countryItem && countryItem instanceof CountryModel) {
@@ -564,14 +557,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                     if (t.getPrimaryKey() == pk) {
                         countryOptions.add((CountryModel) countryItem);
                     } else {
-                        countryOptions.add(nf.createNew(t));
+                        countryOptions.add(t.cachedModel(true));
                     }
                 });
             } else {
-                countryDaoList.forEach((t) -> countryOptions.add(nf.createNew(t)));
+                countryDaoList.forEach((t) -> countryOptions.add(t.cachedModel(true)));
             }
         }
-        CityModel.Factory cf = CityModel.FACTORY;
         if (null != cityDaoList && !cityDaoList.isEmpty()) {
             if (null != targetCity && targetCity instanceof CityModel) {
                 int pk = targetCity.getPrimaryKey();
@@ -579,11 +571,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                     if (t.getPrimaryKey() == pk) {
                         allCities.add((CityModel) targetCity);
                     } else {
-                        allCities.add(cf.createNew(t));
+                        allCities.add(t.cachedModel(true));
                     }
                 });
             } else {
-                cityDaoList.forEach((t) -> allCities.add(cf.createNew(t)));
+                cityDaoList.forEach((t) -> allCities.add(t.cachedModel(true)));
             }
         }
         if (null != countryItem) {
@@ -620,7 +612,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         @Override
         protected void succeeded() {
             CountryDAO value = getValue();
-            addCountryOption(CountryModel.FACTORY.createNew(value), city);
+            addCountryOption(value.cachedModel(true), city);
             super.succeeded();
         }
 
@@ -649,9 +641,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             initializeCountriesAndCities(result.getValue2(), result.getValue3(), model.getCity());
             List<CustomerDAO> customerDaoList = result.getValue1();
             if (null != customerDaoList && !customerDaoList.isEmpty()) {
-                CustomerModel.Factory factory = CustomerModel.FACTORY;
                 customerDaoList.forEach((t) -> {
-                    itemList.add(factory.createNew(t));
+                    itemList.add(t.cachedModel(true));
                 });
             }
             CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditAddress.this.onCustomerAdded));

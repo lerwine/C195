@@ -24,7 +24,7 @@ public interface PartialUserModel<T extends PartialUserDAO> extends User, Partia
             return null;
         }
         if (t instanceof UserDAO) {
-            return UserModel.FACTORY.createNew((UserDAO) t);
+            return ((UserDAO) t).cachedModel(true);
         }
 
         return new PartialUserModelImpl(t);

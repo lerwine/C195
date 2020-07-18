@@ -14,7 +14,7 @@ For forked repository:
 
 For forked repository:
 
-- Get changes from owner repository: `git fetch upstream/master`
+- Get changes from owner repository: `git fetch upstream`
 - Merge changes: `git merge upstream/master`
 
 ### Making Changes in Forked Repository Available to Source Repository

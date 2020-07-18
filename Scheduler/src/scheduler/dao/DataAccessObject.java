@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -48,6 +49,7 @@ import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.model.DataEntity;
 import scheduler.model.fx.EntityModel;
+import scheduler.model.fx.PartialEntityModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
@@ -93,13 +95,16 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         originalValues = new OriginalValues();
     }
 
+    @Override
+    public abstract PartialEntityModel<? extends DataAccessObject> cachedModel(boolean create);
+
     /**
      * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s will be deferred while this is
      * invoked.
      */
     protected abstract void onAcceptChanges();
 
-    private void acceptChanges() {
+    final void acceptChanges() {
         onAcceptChanges();
         originalValues.createDate = createDate;
         originalValues.createdBy = createdBy;
@@ -346,41 +351,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
     }
 
-    private static class DaoCacheIterator<T extends DataAccessObject> implements Iterator<T> {
-
-        private T next = null;
-        private final DaoCache<T> target;
-        private final Iterator<Integer> backingIterator;
-
-        private DaoCacheIterator(DaoCache<T> target) {
-            backingIterator = (this.target = target).backingMap.keySet().iterator();
-        }
-
-        @Override
-        public synchronized boolean hasNext() {
-            if (null != next) {
-                return true;
-            }
-            while (backingIterator.hasNext()) {
-                if (null != (next = target.get(backingIterator.next()))) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public synchronized T next() {
-            T result = next;
-            next = null;
-            while (null == result) {
-                result = target.get(backingIterator.next());
-            }
-            return result;
-        }
-
-    }
-
     /**
      * Used by {@link DaoFactory} to keep a weakly-referenced cache of {@link DataAccessObject}s. The intent is to only have one instance of a {@link DataAccessObject} for each
      * database record. This allows all related data references to be automatically updated whenever the data record itself is updated.
@@ -462,6 +432,19 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
                 return null;
             }).filter((t) -> null != t && filter.test(t));
+        }
+
+        public synchronized <U> Stream<U> map(Function<T, U> mapper) {
+            return backingMap.keySet().stream().map((t) -> {
+                if (backingMap.containsKey(t)) {
+                    T dao = backingMap.get(t).get();
+                    if (null != dao) {
+                        return dao;
+                    }
+                    backingMap.remove(t);
+                }
+                return null;
+            }).filter((t) -> null != t).map(mapper);
         }
 
         public synchronized Optional<T> findFirst(Predicate<T> filter) {
@@ -594,20 +577,15 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          */
         protected abstract void onCloneProperties(D fromDAO, D toDAO);
 
-        /**
-         *
-         * @return @deprecated Use {@link #findAll(java.util.function.Predicate)} or {@link #findFirst(java.util.function.Predicate)}, instead
-         */
-        @Deprecated
-        final Iterator<D> cacheIterator() {
-            return new DaoCacheIterator<>(cache);
-        }
-
-        final Stream<D> findAll(Predicate<D> filter) {
+        final Stream<D> findAllCached(Predicate<D> filter) {
             return cache.findAll(filter);
         }
 
-        final Optional<D> findFirst(Predicate<D> filter) {
+        final <T> Stream<T> mapCached(Function<D, T> mapper) {
+            return cache.map(mapper);
+        }
+
+        final Optional<D> findFirstCached(Predicate<D> filter) {
             return cache.findFirst(filter);
         }
 
@@ -940,18 +918,18 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         /**
-         * This gets called to create the {@link #finalEvent} when the task has failed.
-         *
-         * @return A {@link ModelEvent} representing a failure or {@code null} if no event will be produced for that failure.
-         */
-        protected abstract E createFaultedEvent();
-
-        /**
          * This gets called to create the {@link #finalEvent} when the task is canceled.
          *
          * @return A {@link ModelEvent} representing a cancellation or {@code null} if no event will be produced for the cancellation.
          */
         protected abstract E createCanceledEvent();
+
+        /**
+         * This gets called to create the {@link #finalEvent} when the task has failed.
+         *
+         * @return A {@link ModelEvent} representing a failure or {@code null} if no event will be produced for that failure.
+         */
+        protected abstract E createFaultedEvent();
 
         @Override
         protected void cancelled() {
@@ -1143,13 +1121,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             }
         }
 
-        /**
-         * This gets called to create the {@link ModelEvent} object that represents a successful insert or update.
-         *
-         * @return A {@link ModelEvent} object that represents a successful deletion. This should never return a {@code null} value.
-         */
-        protected abstract E createSuccessEvent();
-
         @Override
         protected final E onValidated(Connection connection) throws Exception {
             D dao = getDataAccessObject();
@@ -1285,6 +1256,13 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             }
             super.succeeded();
         }
+
+        /**
+         * This gets called to create the {@link ModelEvent} object that represents a successful insert or update.
+         *
+         * @return A {@link ModelEvent} object that represents a successful deletion. This should never return a {@code null} value.
+         */
+        protected abstract E createSuccessEvent();
 
         @Override
         protected void cancelled() {

@@ -24,7 +24,7 @@ public interface PartialCountryModel<T extends PartialCountryDAO> extends Countr
             return null;
         }
         if (t instanceof CountryDAO) {
-            return CountryModel.FACTORY.createNew((CountryDAO) t);
+            return ((CountryDAO) t).cachedModel(true);
         }
 
         return new PartialCountryModelImpl(t);
