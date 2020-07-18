@@ -132,6 +132,7 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
         return showAndWait(parentWindow, editorRegion, model, keepOpen);
     }
 
+    // FIXME: The value of the field EditItem<T,U,S,E>.stageChangeListener is not used
     private final ParentWindowChangeListener.StageListener stageChangeListener;
     private final S editorRegion;
     private final U model;

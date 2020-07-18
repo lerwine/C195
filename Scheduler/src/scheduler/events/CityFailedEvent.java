@@ -144,7 +144,6 @@ public final class CityFailedEvent extends CityEvent implements ModelFailedEvent
      */
     public static final EventType<CityFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    @SuppressWarnings("fallthrough")
     private static DbOperationType toDbOperationType(EventType<CityFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:

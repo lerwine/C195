@@ -511,19 +511,6 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
             return null;
         }
 
-        private synchronized void setCachedModel(PartialCountryModelImpl model) {
-            if (null == model) {
-                if (null != _cachedModel) {
-                    if (null != _cachedModel.get()) {
-                        _cachedModel.clear();
-                    }
-                    _cachedModel = null;
-                }
-            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
-                _cachedModel = new WeakReference<>(model);
-            }
-        }
-
         @Override
         public int getPrimaryKey() {
             return primaryKey;

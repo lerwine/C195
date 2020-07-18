@@ -596,19 +596,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             return null;
         }
 
-        private synchronized void setCachedModel(PartialCityModelImpl model) {
-            if (null == model) {
-                if (null != _cachedModel) {
-                    if (null != _cachedModel.get()) {
-                        _cachedModel.clear();
-                    }
-                    _cachedModel = null;
-                }
-            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
-                _cachedModel = new WeakReference<>(model);
-            }
-        }
-
         @Override
         public int getPrimaryKey() {
             return primaryKey;
@@ -622,15 +609,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         @Override
         public PartialCountryDAO getCountry() {
             return country;
-        }
-
-        private void setCountry(CountryDAO country) {
-            PartialCountryDAO oldValue = this.country;
-            if (Objects.equals(oldValue, country)) {
-                return;
-            }
-            this.country = country;
-            firePropertyChange(PROP_COUNTRY, oldValue, this.country);
         }
 
         @Override

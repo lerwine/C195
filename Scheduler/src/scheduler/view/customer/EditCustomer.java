@@ -856,7 +856,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
     }
 
-    // PENDING: (FIXME) The type EditCustomer.AddressCustomerLoadTask is never used locally
+    // FIXME: The type EditCustomer.AddressCustomerLoadTask is never used locally
     private class AddressCustomerLoadTask extends Task<Integer> {
 
         private final PartialAddressDAO address;

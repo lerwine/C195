@@ -144,7 +144,6 @@ public final class CountryFailedEvent extends CountryEvent implements ModelFaile
      */
     public static final EventType<CountryFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
-    @SuppressWarnings("fallthrough")
     private static DbOperationType toDbOperationType(EventType<CountryFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:

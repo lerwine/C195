@@ -586,15 +586,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
             return address;
         }
 
-        private void setAddress(AddressDAO address) {
-            PartialAddressDAO oldValue = this.address;
-            if (Objects.equals(oldValue, address)) {
-                return;
-            }
-            this.address = address;
-            firePropertyChange(PROP_ADDRESS, oldValue, this.address);
-        }
-
         @Override
         public boolean isActive() {
             return active;
@@ -621,19 +612,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                 return model;
             }
             return null;
-        }
-
-        private synchronized void setCachedModel(PartialCustomerModelImpl model) {
-            if (null == model) {
-                if (null != _cachedModel) {
-                    if (null != _cachedModel.get()) {
-                        _cachedModel.clear();
-                    }
-                    _cachedModel = null;
-                }
-            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
-                _cachedModel = new WeakReference<>(model);
-            }
         }
 
         @Override

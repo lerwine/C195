@@ -208,6 +208,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
     }
 
+    // FIXME: The method calculateEffectiveLocation(AppointmentType, String, String, CustomerModel, CorporateAddress) from the type EditAppointment is never used locally
     private static Optional<String> calculateEffectiveLocation(AppointmentType type, String location, String phone, CustomerModel customer, CorporateAddress corporateAddress) {
         switch (type) {
             case CORPORATE_LOCATION:
@@ -1156,6 +1157,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             }
         }
 
+        // FIXME: The method startLoadParticipantsAppointments(WaitBorderPane) from the type EditAppointment.AppointmentConflictsController is never used locally
         private synchronized void startLoadParticipantsAppointments(WaitBorderPane waitBorderPane) {
             if (null != currentTask && !currentTask.isDone()) {
                 currentTask.cancel(true);

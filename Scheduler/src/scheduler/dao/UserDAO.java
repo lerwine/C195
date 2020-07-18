@@ -549,19 +549,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
             return null;
         }
 
-        private synchronized void setCachedModel(PartialUserModelImpl model) {
-            if (null == model) {
-                if (null != _cachedModel) {
-                    if (null != _cachedModel.get()) {
-                        _cachedModel.clear();
-                    }
-                    _cachedModel = null;
-                }
-            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
-                _cachedModel = new WeakReference<>(model);
-            }
-        }
-
         @Override
         public String getUserName() {
             return userName;

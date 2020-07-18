@@ -721,15 +721,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
             return city;
         }
 
-        private void setCity(CityDAO city) {
-            PartialCityDAO oldValue = this.city;
-            if (Objects.equals(oldValue, city)) {
-                return;
-            }
-            this.city = city;
-            firePropertyChange(PROP_CITY, oldValue, this.city);
-        }
-
         @Override
         public String getAddress1() {
             return address1;
@@ -766,19 +757,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                 return model;
             }
             return null;
-        }
-
-        private synchronized void setCachedModel(PartialAddressModelImpl model) {
-            if (null == model) {
-                if (null != _cachedModel) {
-                    if (null != _cachedModel.get()) {
-                        _cachedModel.clear();
-                    }
-                    _cachedModel = null;
-                }
-            } else if (null == _cachedModel || !Objects.equals(_cachedModel.get(), model)) {
-                _cachedModel = new WeakReference<>(model);
-            }
         }
 
         @Override
