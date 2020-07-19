@@ -45,6 +45,7 @@ public interface PartialAddressModel<T extends PartialAddressDAO> extends Addres
      */
     public static final String PROP_LANGUAGE = "language";
 
+    @SuppressWarnings("unchecked")
     public static PartialAddressModel<? extends PartialAddressDAO> createModel(PartialAddressDAO t) {
         if (null == t) {
             return null;
@@ -53,7 +54,7 @@ public interface PartialAddressModel<T extends PartialAddressDAO> extends Addres
             return ((AddressDAO) t).cachedModel(true);
         }
 
-        return new PartialAddressModelImpl(t);
+        return new PartialAddressModelImpl((AddressDAO.Partial) t);
     }
 
     public static StringBinding createMultiLineAddressBinding(ObservableValue<String> address1, ObservableValue<String> address2,

@@ -19,6 +19,7 @@ public interface PartialCountryModel<T extends PartialCountryDAO> extends Countr
      */
     public static final String PROP_LANGUAGE = "language";
 
+    @SuppressWarnings("unchecked")
     public static PartialCountryModel<? extends PartialCountryDAO> createModel(PartialCountryDAO t) {
         if (null == t) {
             return null;
@@ -27,7 +28,7 @@ public interface PartialCountryModel<T extends PartialCountryDAO> extends Countr
             return ((CountryDAO) t).cachedModel(true);
         }
 
-        return new PartialCountryModelImpl(t);
+        return new PartialCountryModelImpl((CountryDAO.Partial) t);
     }
 
     ReadOnlyStringProperty nameProperty();

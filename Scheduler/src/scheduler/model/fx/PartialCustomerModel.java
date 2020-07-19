@@ -59,6 +59,7 @@ public interface PartialCustomerModel<T extends PartialCustomerDAO> extends Cust
      */
     public static final String PROP_PHONE = "phone";
 
+    @SuppressWarnings("unchecked")
     public static PartialCustomerModel<? extends PartialCustomerDAO> createModel(PartialCustomerDAO t) {
         if (null == t) {
             return null;
@@ -67,7 +68,7 @@ public interface PartialCustomerModel<T extends PartialCustomerDAO> extends Cust
             return ((CustomerDAO) t).cachedModel(true);
         }
 
-        return new PartialCustomerModelImpl(t);
+        return new PartialCustomerModelImpl((CustomerDAO.Partial) t);
     }
 
     /**

@@ -15,6 +15,7 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
@@ -38,6 +39,7 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.StageManager;
+import scheduler.util.ThrowableConsumer;
 import scheduler.util.ViewControllerLoader;
 import static scheduler.view.EditItemResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
@@ -68,7 +70,8 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
+public final class EditItem<
+        T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
@@ -89,12 +92,22 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
      * @param model The {@link EntityModel} to be edited.
      * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window immediately after a successful
      * insert.
-     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or {@code null} if the {@code model} was not
-     * successfully saved to the database.
+     * @param beforeShow The delegate to invoke after the {@code root} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if unable to open the edit window.
      */
     public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
-            U showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
+            void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        EditItem<T, U, S, E> root = new EditItem<>(editorRegion, model, keepOpen);
+        ViewControllerLoader.initializeCustomControl(root);
+        Class<ModelEditor> annotationClass = ModelEditor.class;
+        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
+        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, root.waitBorderPane);
+        ViewControllerLoader.initializeCustomControl(editorRegion);
+        StageManager.showAndWait(root, parentWindow, beforeShow);
+    }
+
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+            void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
         Class<ModelEditor> annotationClass = ModelEditor.class;
@@ -102,7 +115,6 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, result.waitBorderPane);
         ViewControllerLoader.initializeCustomControl(editorRegion);
         StageManager.showAndWait(result, parentWindow);
-        return (result.model.isNewRow()) ? null : result.model;
     }
 
     /**
@@ -117,22 +129,47 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
      * @param model The {@link EntityModel} to be edited.
      * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window immediately after a successful
      * insert.
-     * @return The {@link EditItem.ModelEditorController} that was used for editing the entity-specific {@link EntityModel} properties or {@code null} if the {@code model} was not
-     * successfully saved to the database.
+     * @param beforeShow The delegate to invoke after the {@code root} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if unable to open the edit window.
      */
     public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
-            U showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
+            void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
         S editorRegion;
         try {
             editorRegion = editorType.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
             throw new IOException("Error creating editor region", ex);
         }
-        return showAndWait(parentWindow, editorRegion, model, keepOpen);
+        showAndWait(parentWindow, editorRegion, model, keepOpen, beforeShow);
     }
 
-    // FIXME: The value of the field EditItem<T,U,S,E>.stageChangeListener is not used
+    /**
+     * Opens a new window for editing an {@link EntityModel} item.
+     *
+     * @param <T> The type of data access object.
+     * @param <U> The type of {@link EntityModel} that corresponds to the data access object.
+     * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
+     * @param <E> The {@link ModelEvent} type.
+     * @param parentWindow The parent window.
+     * @param editorType The {@link EditItem.ModelEditorController} class that will be instantiated for editing the entity-specific {@link EntityModel} properties.
+     * @param model The {@link EntityModel} to be edited.
+     * @param keepOpen {@code true} to keep the window open after saving the new {@link EntityModel}; otherwise {@code false} to close the window immediately after a successful
+     * insert.
+     * @throws IOException if unable to open the edit window.
+     */
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+            void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
+        S editorRegion;
+        try {
+            editorRegion = editorType.newInstance();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            throw new IOException("Error creating editor region", ex);
+        }
+        EditItem.showAndWait(parentWindow, editorRegion, model, keepOpen);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Fields">
+    @SuppressWarnings("unused")
     private final ParentWindowChangeListener.StageListener stageChangeListener;
     private final S editorRegion;
     private final U model;
@@ -172,6 +209,7 @@ public final class EditItem<T extends DataAccessObject, U extends EntityModel<T>
     @FXML // fx:id="waitBorderPane"
     private WaitBorderPane waitBorderPane; // Value injected by FXMLLoader
 
+    //</editor-fold>
     private EditItem(S editorRegion, U model, boolean keepOpen) {
         stageChangeListener = ParentWindowChangeListener.createStageChangeHandler(sceneProperty(), (observable, oldValue, newValue) -> {
             if (null != oldValue) {

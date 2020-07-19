@@ -519,8 +519,8 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
 
     @Override
     public boolean startEquals(Object value) {
-        LocalDateTime start = getStart();
-        if (null == start) {
+        LocalDateTime s = getStart();
+        if (null == s) {
             return null == value;
         }
 
@@ -529,19 +529,19 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         if (value instanceof ChronoLocalDateTime) {
-            return start.equals((ChronoLocalDateTime<?>) value);
+            return s.equals((ChronoLocalDateTime<?>) value);
         }
 
         if (value instanceof ZonedDateTime) {
-            return start.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+            return s.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
         }
-        return value instanceof Timestamp && start.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
+        return value instanceof Timestamp && s.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
     }
 
     @Override
     public int compareStart(Object value) {
-        LocalDateTime start = getStart();
-        if (null == start) {
+        LocalDateTime s = getStart();
+        if (null == s) {
             return (null == value) ? 0 : 1;
         }
 
@@ -550,19 +550,19 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         if (value instanceof ChronoLocalDateTime) {
-            return start.compareTo((ChronoLocalDateTime<?>) value);
+            return s.compareTo((ChronoLocalDateTime<?>) value);
         }
 
         if (value instanceof ZonedDateTime) {
-            return start.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+            return s.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
         }
 
         if (value instanceof Timestamp) {
-            return start.compareTo(((Timestamp) value).toLocalDateTime());
+            return s.compareTo(((Timestamp) value).toLocalDateTime());
         }
 
         if (value instanceof Date) {
-            return start.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
+            return s.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
         }
 
         throw new IllegalArgumentException();
@@ -570,8 +570,8 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
 
     @Override
     public boolean endEquals(Object value) {
-        LocalDateTime end = getEnd();
-        if (null == end) {
+        LocalDateTime e = getEnd();
+        if (null == e) {
             return null == value;
         }
 
@@ -580,19 +580,19 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         if (value instanceof ChronoLocalDateTime) {
-            return end.equals((ChronoLocalDateTime<?>) value);
+            return e.equals((ChronoLocalDateTime<?>) value);
         }
 
         if (value instanceof ZonedDateTime) {
-            return end.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+            return e.equals(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
         }
-        return value instanceof Timestamp && end.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
+        return value instanceof Timestamp && e.equals(DateTimeUtil.toLocalDateTime((Timestamp) value));
     }
 
     @Override
     public int compareEnd(Object value) {
-        LocalDateTime end = getEnd();
-        if (null == end) {
+        LocalDateTime e = getEnd();
+        if (null == e) {
             return (null == value) ? 0 : 1;
         }
 
@@ -601,19 +601,19 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         if (value instanceof ChronoLocalDateTime) {
-            return end.compareTo((ChronoLocalDateTime<?>) value);
+            return e.compareTo((ChronoLocalDateTime<?>) value);
         }
 
         if (value instanceof ZonedDateTime) {
-            return end.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
+            return e.compareTo(((ZonedDateTime) value).withZoneSameLocal(ZoneId.systemDefault()).toLocalDateTime());
         }
 
         if (value instanceof Timestamp) {
-            return end.compareTo(((Timestamp) value).toLocalDateTime());
+            return e.compareTo(((Timestamp) value).toLocalDateTime());
         }
 
         if (value instanceof Date) {
-            return end.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
+            return e.compareTo(new Timestamp(((Date) value).getTime()).toLocalDateTime());
         }
 
         throw new IllegalArgumentException();

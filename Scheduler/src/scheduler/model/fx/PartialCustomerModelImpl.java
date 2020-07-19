@@ -13,6 +13,7 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
+import scheduler.dao.CustomerDAO;
 import scheduler.model.AddressProperties;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
@@ -24,7 +25,7 @@ import scheduler.dao.PartialCustomerDAO;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PartialCustomerModelImpl extends RelatedModel<PartialCustomerDAO> implements PartialCustomerModel<PartialCustomerDAO> {
+public class PartialCustomerModelImpl extends PartialModel<PartialCustomerDAO> implements PartialCustomerModel<PartialCustomerDAO> {
 
     private static final Logger LOG = Logger.getLogger(PartialCustomerModelImpl.class.getName());
 
@@ -42,7 +43,7 @@ public class PartialCustomerModelImpl extends RelatedModel<PartialCustomerDAO> i
     private final ReadOnlyJavaBeanBooleanProperty active;
     private final ReadOnlyStringBindingProperty multiLineAddress;
 
-    public PartialCustomerModelImpl(PartialCustomerDAO rowData) {
+    public PartialCustomerModelImpl(CustomerDAO.Partial rowData) {
         super(rowData);
         try {
             name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_NAME).build();

@@ -171,7 +171,7 @@
                                         <AmPmListCell />
                                     </buttonCell>
                                 </ComboBox>
-                                <ButtonBar buttonMinWidth="42.0" HBox.hgrow="ALWAYS">
+                                <ButtonBar buttonMinWidth="46.0" HBox.hgrow="ALWAYS">
                                     <buttons>
                                         <Button fx:id="showConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%show">
                                             <font>

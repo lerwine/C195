@@ -129,25 +129,25 @@ public final class StageManager extends ObservableListBase<Stage> {
     /**
      * Opens a new {@link Modality#APPLICATION_MODAL} window.
      *
-     * @param content The {@link Scene#root} control for the new window.
+     * @param root The {@link Scene#root} control for the new window.
      * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this {@code StageManager}.
      * @param style Specifies the style for the new window ({@link Stage}) or {@code null} to use the {@link #DEFAULT_STAGE_STYLE}.
      * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
      * @throws NullPointerException if {@code content} is null.
      */
-    public static void showAndWait(Parent content, Window owner, StageStyle style) {
+    public static void showAndWait(Parent root, Window owner, StageStyle style) {
         if (null == owner && (null == (owner = getCurrentStage()))) {
             throw new IllegalStateException();
         }
 
         Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initModality(Modality.WINDOW_MODAL);
         stage.initStyle((null == style) ? DEFAULT_STAGE_STYLE : style);
-        stage.setScene(new Scene(content));
-        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
+        stage.setScene(new Scene(root));
+        EventHandler<WindowEvent> windowShownEventHandler = new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                LOG.entering(LOG.getName(), "handle", event);
+                LOG.fine(() -> String.format("Window open: %s", event));
                 synchronized (INSTANCE.backingList) {
                     if (null != INSTANCE.showingStage && INSTANCE.showingStage == stage) {
                         INSTANCE.showingStage = null;
@@ -155,27 +155,29 @@ public final class StageManager extends ObservableListBase<Stage> {
                 }
                 stage.removeEventHandler(WindowEvent.WINDOW_SHOWN, this);
             }
-        });
+        };
+        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, windowShownEventHandler);
         synchronized (INSTANCE.backingList) {
             INSTANCE.showingStage = stage;
             stage.initOwner(owner);
             register(stage, true);
         }
         stage.showAndWait();
+        LOG.fine("window hidden");
     }
 
     /**
      * Opens a new {@link Modality#APPLICATION_MODAL} {@link StageStyle#UTILITY} window.
      *
-     * @param content The {@link Scene#root} control for the new window.
+     * @param root The {@link Scene#root} control for the new window.
      * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this {@code StageManager}.
-     * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
+     * @param beforeShow The delegate to invoke after the {@code root} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if the {@code beforeShow} delegate throws an exception.
      * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
      * @throws NullPointerException if {@code content} is null.
      */
-    public static void showAndWait(Parent content, Window owner, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        showAndWait(content, owner, DEFAULT_STAGE_STYLE, beforeShow);
+    public static void showAndWait(Parent root, Window owner, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        showAndWait(root, owner, DEFAULT_STAGE_STYLE, beforeShow);
     }
 
     /**

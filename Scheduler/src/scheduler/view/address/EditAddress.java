@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -47,11 +48,14 @@ import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
+import scheduler.events.CitySuccessEvent;
+import scheduler.events.CountrySuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.City;
+import scheduler.model.CityProperties;
 import scheduler.model.Country;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -68,6 +72,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ThrowableConsumer;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
 import scheduler.view.EditItem;
@@ -112,21 +117,36 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
     private static final Object TARGET_CITY_KEY = new Object();
 
-    public static AddressModel editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {
+    public static void editNew(PartialCityModel<? extends PartialCityDAO> city, Window parentWindow, boolean keepOpen, Consumer<AddressModel> beforeShow) throws IOException {
+        AddressModel model = AddressDAO.FACTORY.createNew().cachedModel(true);
         EditAddress control = new EditAddress();
         if (null != city) {
-            control.getProperties().put(TARGET_CITY_KEY, city);
+            model.setCity(city);
         }
-        return EditItem.showAndWait(parentWindow, control, AddressDAO.FACTORY.createNew().cachedModel(true), keepOpen);
+        if (null != beforeShow) {
+            beforeShow.accept(model);
+        }
+        EditItem.showAndWait(parentWindow, control, model, keepOpen);
     }
 
-    public static AddressModel edit(AddressModel model, Window parentWindow) throws IOException {
-        return EditItem.showAndWait(parentWindow, EditAddress.class, model, false);
+    public static void editNew(CityModel city, Window parentWindow, boolean keepOpen) throws IOException {
+        editNew(city, parentWindow, keepOpen, null);
     }
 
+    public static void edit(AddressModel model, Window parentWindow, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        EditItem.showAndWait(parentWindow, EditAddress.class, model, false, beforeShow);
+    }
+
+    public static void edit(AddressModel model, Window parentWindow) throws IOException {
+        edit(model, parentWindow, null);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Instance Fields">
     private final EventHandler<CustomerSuccessEvent> onCustomerAdded;
     private final EventHandler<CustomerSuccessEvent> onCustomerUpdated;
     private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
+    private final EventHandler<CitySuccessEvent> onCityInserted;
+    private WeakEventHandler<CitySuccessEvent> cityWeakEventHandler;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -199,6 +219,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
 
+    //</editor-fold>
     public EditAddress() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
@@ -235,6 +256,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
                 itemList.remove(t);
             });
+        };
+        onCityInserted = (event) -> {
+            CityModel entityModel = event.getEntityModel();
+            entityModel.dataObject().removeEventFilter(CitySuccessEvent.INSERT_SUCCESS, cityWeakEventHandler);
+            cityWeakEventHandler = null;
+            // FIXME: Implement onCityInserted
         };
     }
 
@@ -345,23 +372,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     @FXML
     private void onNewCityButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
-        CityModel c;
         try {
-            c = EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
+            EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false, (model) -> {
+                // FIXME: Add success handler
+            });
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);
-            c = null;
-        }
-        if (null != c) {
-            allCities.add(c);
-            PartialCountryModel<? extends PartialCountryDAO> n = c.getCountry();
-            int pk = n.getPrimaryKey();
-            CountryModel sn = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
-            if (null != sn) {
-                addCountryOption(sn, c);
-            } else {
-                waitBorderPane.startNow(new GetCountryModelTask(n.getPrimaryKey(), c));
-            }
         }
     }
 

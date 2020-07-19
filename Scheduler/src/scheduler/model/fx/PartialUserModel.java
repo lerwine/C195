@@ -19,6 +19,7 @@ public interface PartialUserModel<T extends PartialUserDAO> extends User, Partia
      */
     public static final String PROP_STATUSDISPLAY = "statusDisplay";
 
+    @SuppressWarnings("unchecked")
     public static PartialUserModel<? extends PartialUserDAO> createModel(PartialUserDAO t) {
         if (null == t) {
             return null;
@@ -27,7 +28,7 @@ public interface PartialUserModel<T extends PartialUserDAO> extends User, Partia
             return ((UserDAO) t).cachedModel(true);
         }
 
-        return new PartialUserModelImpl(t);
+        return new PartialUserModelImpl((UserDAO.Partial) t);
     }
 
     ReadOnlyStringProperty userNameProperty();

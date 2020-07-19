@@ -19,7 +19,7 @@ import scheduler.dao.PartialCountryDAO;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PartialCountryModelImpl extends RelatedModel<PartialCountryDAO> implements PartialCountryModel<PartialCountryDAO> {
+public class PartialCountryModelImpl extends PartialModel<PartialCountryDAO> implements PartialCountryModel<PartialCountryDAO> {
 
     private static final Logger LOG = Logger.getLogger(PartialCountryModelImpl.class.getName());
 
@@ -27,7 +27,7 @@ public class PartialCountryModelImpl extends RelatedModel<PartialCountryDAO> imp
     private final ReadOnlyStringBindingProperty name;
     private final ReadOnlyStringBindingProperty language;
 
-    public PartialCountryModelImpl(PartialCountryDAO rowData) {
+    public PartialCountryModelImpl(CountryDAO.Partial rowData) {
         super(rowData);
         try {
             locale = ReadOnlyJavaBeanObjectPropertyBuilder.<Locale>create().bean(rowData).name(CountryDAO.PROP_LOCALE).build();

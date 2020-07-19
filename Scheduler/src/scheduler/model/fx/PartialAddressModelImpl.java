@@ -9,6 +9,7 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
+import scheduler.dao.AddressDAO;
 import scheduler.model.Address;
 import scheduler.model.CityProperties;
 import scheduler.model.ModelHelper;
@@ -22,7 +23,7 @@ import scheduler.dao.PartialCityDAO;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PartialAddressModelImpl extends RelatedModel<PartialAddressDAO> implements PartialAddressModel<PartialAddressDAO> {
+public class PartialAddressModelImpl extends PartialModel<PartialAddressDAO> implements PartialAddressModel<PartialAddressDAO> {
 
     private static final Logger LOG = Logger.getLogger(PartialAddressModelImpl.class.getName());
 
@@ -38,7 +39,7 @@ public class PartialAddressModelImpl extends RelatedModel<PartialAddressDAO> imp
     private final ReadOnlyStringBindingProperty cityZipCountry;
     private final ReadOnlyStringBindingProperty language;
 
-    public PartialAddressModelImpl(PartialAddressDAO rowData) {
+    public PartialAddressModelImpl(AddressDAO.Partial rowData) {
         super(rowData);
 
         try {

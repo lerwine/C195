@@ -36,8 +36,6 @@ import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
-import scheduler.model.fx.PartialCityModel;
-import scheduler.model.fx.PartialCityModelImpl;
 import scheduler.model.fx.PartialCountryModel;
 import scheduler.util.DB;
 import scheduler.util.InternalException;
@@ -570,30 +568,11 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         private final int primaryKey;
         private final String name;
         private PartialCountryDAO country;
-        private WeakReference<PartialCityModel<? extends PartialCityDAO>> _cachedModel;
 
         private Partial(int primaryKey, String name, PartialCountryDAO country) {
             this.primaryKey = primaryKey;
             this.name = name;
             this.country = country;
-        }
-
-        @Override
-        public synchronized PartialCityModel<? extends PartialCityDAO> cachedModel(boolean create) {
-            PartialCityModel<? extends PartialCityDAO> model;
-            if (null != _cachedModel) {
-                model = _cachedModel.get();
-                if (null != model) {
-                    return model;
-                }
-                _cachedModel = null;
-            }
-            if (create) {
-                model = new PartialCityModelImpl(this);
-                _cachedModel = new WeakReference<>(model);
-                return model;
-            }
-            return null;
         }
 
         @Override

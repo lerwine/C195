@@ -20,7 +20,7 @@ import scheduler.dao.PartialUserDAO;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class PartialUserModelImpl extends RelatedModel<PartialUserDAO> implements PartialUserModel<PartialUserDAO> {
+public class PartialUserModelImpl extends PartialModel<PartialUserDAO> implements PartialUserModel<PartialUserDAO> {
 
     private static final Logger LOG = Logger.getLogger(PartialUserModelImpl.class.getName());
 
@@ -28,7 +28,7 @@ public class PartialUserModelImpl extends RelatedModel<PartialUserDAO> implement
     private final ReadOnlyJavaBeanObjectProperty<UserStatus> status;
     private final ReadOnlyStringBindingProperty statusDisplay;
 
-    public PartialUserModelImpl(PartialUserDAO rowData) {
+    public PartialUserModelImpl(UserDAO.Partial rowData) {
         super(rowData);
         try {
             userName = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_USERNAME).build();

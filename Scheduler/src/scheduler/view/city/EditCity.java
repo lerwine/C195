@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -33,6 +34,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
@@ -60,6 +62,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ThrowableConsumer;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
@@ -103,19 +106,32 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
-    public static CityModel edit(CityModel model, Window parentWindow) throws IOException {
-        return EditItem.showAndWait(parentWindow, EditCity.class, model, false);
-    }
-
-    public static CityModel editNew(PartialCountryModel<? extends PartialCountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
+    public static void editNew(PartialCountryModel<? extends PartialCountryDAO> country, Window parentWindow, boolean keepOpen, Consumer<CityModel> beforeShow) throws IOException {
         CityModel model = CityDAO.FACTORY.createNew().cachedModel(true);
-        EditCity control = new EditCity();
         if (null != country) {
-            control.getProperties().put(TARGET_COUNTRY_KEY, country);
+            model.setCountry(country);
         }
-        return EditItem.showAndWait(parentWindow, control, model, keepOpen);
+        if (null != beforeShow) {
+            beforeShow.accept(model);
+        }
+        EditCity control = new EditCity();
+        EditItem.showAndWait(parentWindow, control, model, keepOpen);
     }
 
+    public static void editNew(PartialCountryModel<? extends PartialCountryDAO> country, Window parentWindow, boolean keepOpen) throws IOException {
+        editNew(country, parentWindow, keepOpen, null);
+    }
+
+    public static void edit(CityModel model, Window parentWindow, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        EditItem.showAndWait(parentWindow, EditCity.class, model, false, beforeShow);
+    }
+
+    public static void edit(CityModel model, Window parentWindow) throws IOException {
+        edit(model, parentWindow, null);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Instance Fields">
+    
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -127,37 +143,39 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private ObjectBinding<CountryModel> selectedCountry;
     private StringBinding normalizedName;
     private StringBinding nameValidationMessage;
-
+    
     @ModelEditor
     private CityModel model;
-
+    
     @ModelEditor
     private WaitBorderPane waitBorderPane;
-
+    
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-
+    
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
-
+    
     @FXML // fx:id="nameValidationLabel"
     private Label nameValidationLabel; // Value injected by FXMLLoader
-
+    
     @FXML // fx:id="countryComboBox"
     private ComboBox<CountryModel> countryComboBox; // Value injected by FXMLLoader
-
+    
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
-
+    
     @FXML // fx:id="addressesLabel"
     private Label addressesLabel; // Value injected by FXMLLoader
-
+    
     @FXML // fx:id="addressesTableView"
     private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
-
+    
     @FXML // fx:id="addCityButtonBar"
     private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
 
+    //</editor-fold>
+    
     public EditCity() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
@@ -282,17 +300,15 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     @FXML
     void onNewCountryButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCountryButtonAction", event);
-        CountryModel c;
         try {
-            c = EditCountry.editNew(getScene().getWindow(), false);
+            EditCountry.editNew(getScene().getWindow(), false, (model) -> {
+                // FIXME: Add success handler
+//                countryOptionList.add(c);
+//                countryOptionList.sort(CountryProperties::compare);
+//                countryComboBox.getSelectionModel().select(c);
+            });
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading country edit window", ex);
-            c = null;
-        }
-        if (null != c) {
-            countryOptionList.add(c);
-            countryOptionList.sort(CountryProperties::compare);
-            countryComboBox.getSelectionModel().select(c);
         }
     }
 

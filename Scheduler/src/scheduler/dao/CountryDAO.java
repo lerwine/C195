@@ -30,8 +30,6 @@ import scheduler.model.CountryEntity;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.fx.CountryModel;
-import scheduler.model.fx.PartialCountryModel;
-import scheduler.model.fx.PartialCountryModelImpl;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -484,31 +482,11 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         private final int primaryKey;
         private final String name;
         private final Locale locale;
-        private WeakReference<PartialCountryModel<? extends PartialCountryDAO>> _cachedModel;
 
         private Partial(int primaryKey, Locale locale) {
             this.primaryKey = primaryKey;
             this.locale = locale;
             this.name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);
-        }
-
-        @Override
-        public synchronized PartialCountryModel<? extends PartialCountryDAO> cachedModel(boolean create) {
-            PartialCountryModel<? extends PartialCountryDAO> model;
-            if (null != _cachedModel) {
-                model = _cachedModel.get();
-                if (null != model) {
-                    return model;
-                }
-                _cachedModel = null;
-            }
-            if (create) {
-                model = new PartialCountryModelImpl(this);
-                _cachedModel = new WeakReference<>(model);
-                return model;
-            }
-
-            return null;
         }
 
         @Override

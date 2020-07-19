@@ -23,6 +23,7 @@ public interface PartialCityModel<T extends PartialCityDAO> extends City, Partia
      */
     public static final String PROP_LANGUAGE = "language";
 
+    @SuppressWarnings("unchecked")
     public static PartialCityModel<? extends PartialCityDAO> createModel(PartialCityDAO t) {
         if (null == t) {
             return null;
@@ -31,7 +32,7 @@ public interface PartialCityModel<T extends PartialCityDAO> extends City, Partia
             return ((CityDAO) t).cachedModel(true);
         }
 
-        return new PartialCityModelImpl(t);
+        return new PartialCityModelImpl((CityDAO.Partial) t);
     }
 
     ReadOnlyStringProperty nameProperty();

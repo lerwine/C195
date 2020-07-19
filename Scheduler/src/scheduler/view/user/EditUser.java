@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -61,6 +62,7 @@ import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.PwHash;
+import scheduler.util.ThrowableConsumer;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -104,15 +106,27 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
-    public static UserModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
-        UserModel.Factory factory = UserModel.FACTORY;
-        return EditItem.showAndWait(parentWindow, EditUser.class, factory.getDaoFactory().createNew().cachedModel(true), keepOpen);
+    public static void editNew(Window parentWindow, boolean keepOpen, Consumer<UserModel> beforeShow) throws IOException {
+        UserModel model = UserDAO.FACTORY.createNew().cachedModel(true);
+        if (null != beforeShow) {
+            beforeShow.accept(model);
+        }
+        EditItem.showAndWait(parentWindow, EditUser.class, model, keepOpen);
     }
 
-    public static UserModel edit(UserModel model, Window parentWindow) throws IOException {
-        return EditItem.showAndWait(parentWindow, EditUser.class, model, false);
+    public static void editNew(Window parentWindow, boolean keepOpen) throws IOException {
+        editNew(parentWindow, keepOpen, null);
     }
 
+    public static void edit(UserModel model, Window parentWindow, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        EditItem.showAndWait(parentWindow, EditUser.class, model, false, beforeShow);
+    }
+
+    public static void edit(UserModel model, Window parentWindow) throws IOException {
+        edit(model, parentWindow, null);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Instance Fields">
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -132,6 +146,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     private BooleanBinding validationBinding;
     private ObjectBinding<UserStatus> selectedStatus;
     private BooleanBinding modificationBinding;
+    private StringExpression titleBinding;
 
     @ModelEditor
     private UserModel model;
@@ -174,8 +189,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
-    private StringExpression titleBinding;
 
+    //</editor-fold>
     public EditUser() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
@@ -431,6 +446,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
     }
 
+    //<editor-fold defaultstate="collapsed" desc="Properties">
     @Override
     public boolean isValid() {
         return valid.get();
@@ -461,6 +477,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         return windowTitle.getReadOnlyProperty();
     }
 
+    //</editor-fold>
     @Override
     public EntityModel.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> modelFactory() {
         return UserModel.FACTORY;

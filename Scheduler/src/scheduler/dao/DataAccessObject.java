@@ -50,6 +50,7 @@ import scheduler.events.ModelFailedEvent;
 import scheduler.model.DataEntity;
 import scheduler.model.fx.EntityModel;
 import scheduler.model.fx.PartialEntityModel;
+import scheduler.model.fx.PartialModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
@@ -95,8 +96,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         originalValues = new OriginalValues();
     }
 
-    @Override
-    public abstract PartialEntityModel<? extends DataAccessObject> cachedModel(boolean create);
+    public abstract EntityModel<? extends DataAccessObject> cachedModel(boolean create);
 
     /**
      * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s will be deferred while this is

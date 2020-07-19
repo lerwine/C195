@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -54,7 +55,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -94,6 +97,7 @@ import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import static scheduler.util.NodeUtil.setErrorMessage;
 import static scheduler.util.NodeUtil.setWarningMessage;
+import scheduler.util.ThrowableConsumer;
 import scheduler.util.Tuple;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -208,31 +212,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
     }
 
-    // FIXME: The method calculateEffectiveLocation(AppointmentType, String, String, CustomerModel, CorporateAddress) from the type EditAppointment is never used locally
-    private static Optional<String> calculateEffectiveLocation(AppointmentType type, String location, String phone, CustomerModel customer, CorporateAddress corporateAddress) {
-        switch (type) {
-            case CORPORATE_LOCATION:
-                if (null == corporateAddress) {
-                    return Optional.empty();
-                }
-                return Optional.of(corporateAddress.toMultiLineAddress());
-            case CUSTOMER_SITE:
-                return Optional.of((null == customer) ? "" : customer.getMultiLineAddress());
-            case PHONE:
-                if (phone.isEmpty()) {
-                    return Optional.empty();
-                }
-                return Optional.of(phone);
-            case VIRTUAL:
-                return Optional.of(location);
-            default:
-                if (location.isEmpty()) {
-                    return Optional.empty();
-                }
-                return Optional.of(location);
-        }
-    }
-
     private static BinarySelective<String, String> calculateURL(AppointmentType type, String text) {
         if (null == text || (text = text.trim()).isEmpty()) {
             if (type == AppointmentType.VIRTUAL) {
@@ -262,8 +241,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return BinarySelective.ofPrimary(text);
     }
 
-    public static AppointmentModel editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
-            Window parentWindow, boolean keepOpen) throws IOException {
+    public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
+            Window parentWindow, boolean keepOpen, Consumer<AppointmentModel> beforeShow) throws IOException {
         AppointmentModel model = AppointmentDAO.FACTORY.createNew().cachedModel(true);
         if (null != customer) {
             model.setCustomer(customer);
@@ -271,13 +250,26 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (null != user) {
             model.setUser(user);
         }
-        return EditItem.showAndWait(parentWindow, EditAppointment.class, model, keepOpen);
+        if (null != beforeShow) {
+            beforeShow.accept(model);
+        }
+        EditItem.showAndWait(parentWindow, EditAppointment.class, model, keepOpen);
     }
 
-    public static AppointmentModel edit(AppointmentModel model, Window parentWindow) throws IOException {
-        return EditItem.showAndWait(parentWindow, EditAppointment.class, model, false);
+    public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
+            Window parentWindow, boolean keepOpen) throws IOException {
+        editNew(customer, user, parentWindow, keepOpen, null);
     }
 
+    public static void edit(AppointmentModel model, Window parentWindow, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        EditItem.showAndWait(parentWindow, EditAppointment.class, model, false, beforeShow);
+    }
+
+    public static void edit(AppointmentModel model, Window parentWindow) throws IOException {
+        edit(model, parentWindow, null);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Instance Fields">
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -286,6 +278,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private final TypeContextController typeContext;
     private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
     private final EventHandler<UserSuccessEvent> onUserDeleted;
+    private EventHandler<WindowEvent> windowCloseEventHandler;
     private StringBinding normalizedTitleBinding;
     private StringBinding titleValidationMessage;
     private StringBinding normalizedDescriptionBinding;
@@ -416,6 +409,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
 
+    //</editor-fold>
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
@@ -611,6 +605,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return AppointmentModel.FACTORY;
     }
 
+    //<editor-fold defaultstate="collapsed" desc="Properties">
     @Override
     public String getWindowTitle() {
         return windowTitle.get();
@@ -641,6 +636,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return modified.getReadOnlyProperty();
     }
 
+    //</editor-fold>
     @Override
     public void applyChanges() {
         LOG.info("Applying changes");

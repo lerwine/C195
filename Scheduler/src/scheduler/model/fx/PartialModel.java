@@ -16,15 +16,15 @@ import scheduler.dao.PartialDataAccessObject;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public abstract class RelatedModel<T extends PartialDataAccessObject> implements PartialEntityModel<T> {
+public abstract class PartialModel<T extends PartialDataAccessObject> implements PartialEntityModel<T> {
 
-    private static final Logger LOG = Logger.getLogger(RelatedModel.class.getName());
+    private static final Logger LOG = Logger.getLogger(PartialModel.class.getName());
 
     private final T dataObject;
     private ReadOnlyJavaBeanIntegerProperty primaryKey;
     private ReadOnlyJavaBeanObjectProperty<DataRowState> rowState;
 
-    protected RelatedModel(T dao) {
+    protected PartialModel(T dao) {
         dataObject = dao;
         try {
             primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();

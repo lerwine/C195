@@ -30,8 +30,6 @@ import scheduler.model.ModelHelper;
 import scheduler.model.User;
 import scheduler.model.UserEntity;
 import scheduler.model.UserStatus;
-import scheduler.model.fx.PartialUserModel;
-import scheduler.model.fx.PartialUserModelImpl;
 import scheduler.model.fx.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -523,30 +521,11 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         private final int primaryKey;
         private final String userName;
         private final UserStatus status;
-        private WeakReference<PartialUserModel<? extends PartialUserDAO>> _cachedModel;
 
         private Partial(int primaryKey, String userName, UserStatus status) {
             this.primaryKey = primaryKey;
             this.userName = userName;
             this.status = status;
-        }
-
-        @Override
-        public synchronized PartialUserModel<? extends PartialUserDAO> cachedModel(boolean create) {
-            PartialUserModel<? extends PartialUserDAO> model;
-            if (null != _cachedModel) {
-                model = _cachedModel.get();
-                if (null != model) {
-                    return model;
-                }
-                _cachedModel = null;
-            }
-            if (create) {
-                model = new PartialUserModelImpl(this);
-                _cachedModel = new WeakReference<>(model);
-                return model;
-            }
-            return null;
         }
 
         @Override

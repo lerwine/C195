@@ -38,8 +38,6 @@ import scheduler.model.City;
 import scheduler.model.ModelHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CityModel;
-import scheduler.model.fx.PartialAddressModel;
-import scheduler.model.fx.PartialAddressModelImpl;
 import scheduler.model.fx.PartialCityModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -700,7 +698,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         private PartialCityDAO city;
         private final String postalCode;
         private final String phone;
-        private WeakReference<PartialAddressModel<? extends PartialAddressDAO>> _cachedModel;
 
         private Partial(int primaryKey, String address1, String address2, PartialCityDAO city, String postalCode, String phone) {
             this.primaryKey = primaryKey;
@@ -739,24 +736,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         @Override
         public String getPhone() {
             return phone;
-        }
-
-        @Override
-        public synchronized PartialAddressModel<? extends PartialAddressDAO> cachedModel(boolean create) {
-            PartialAddressModel<? extends PartialAddressDAO> model;
-            if (null != _cachedModel) {
-                model = _cachedModel.get();
-                if (null != model) {
-                    return model;
-                }
-                _cachedModel = null;
-            }
-            if (create) {
-                model = new PartialAddressModelImpl(this);
-                _cachedModel = new WeakReference<>(model);
-                return model;
-            }
-            return null;
         }
 
         @Override

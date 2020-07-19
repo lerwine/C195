@@ -35,8 +35,6 @@ import scheduler.model.ModelHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CustomerModel;
 import scheduler.model.fx.PartialAddressModel;
-import scheduler.model.fx.PartialCustomerModel;
-import scheduler.model.fx.PartialCustomerModelImpl;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -567,7 +565,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         private PartialAddressDAO address;
         private final boolean active;
         private final int primaryKey;
-        private WeakReference<PartialCustomerModel<? extends PartialCustomerDAO>> _cachedModel;
 
         private Partial(int primaryKey, String name, PartialAddressDAO address, boolean active) {
             this.primaryKey = primaryKey;
@@ -594,24 +591,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         @Override
         public int getPrimaryKey() {
             return primaryKey;
-        }
-
-        @Override
-        public synchronized PartialCustomerModel<? extends PartialCustomerDAO> cachedModel(boolean create) {
-            PartialCustomerModel<? extends PartialCustomerDAO> model;
-            if (null != _cachedModel) {
-                model = _cachedModel.get();
-                if (null != model) {
-                    return model;
-                }
-                _cachedModel = null;
-            }
-            if (create) {
-                model = new PartialCustomerModelImpl(this);
-                _cachedModel = new WeakReference<>(model);
-                return model;
-            }
-            return null;
         }
 
         @Override

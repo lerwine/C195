@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -50,6 +51,7 @@ import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
+import scheduler.util.ThrowableConsumer;
 import scheduler.util.Values;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -89,20 +91,37 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
 
-    public static CountryModel editNew(Window parentWindow, boolean keepOpen) throws IOException {
-        CountryModel.Factory factory = CountryModel.FACTORY;
-        return EditItem.showAndWait(parentWindow, EditCountry.class, factory.getDaoFactory().createNew().cachedModel(true), keepOpen);
+    public static void editNew(Window parentWindow, boolean keepOpen, Consumer<CountryModel> beforeShow) throws IOException {
+        CountryModel model = CountryDAO.FACTORY.createNew().cachedModel(true);
+        if (null != beforeShow) {
+            beforeShow.accept(model);
+        }
+        EditItem.showAndWait(parentWindow, EditCountry.class, model, keepOpen);
     }
 
-    public static CountryModel edit(CountryModel model, Window parentWindow) throws IOException {
-        return EditItem.showAndWait(parentWindow, EditCountry.class, model, false);
+    public static void editNew(Window parentWindow, boolean keepOpen) throws IOException {
+        editNew(parentWindow, keepOpen, null);
     }
 
+    public static void edit(CountryModel model, Window parentWindow, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        EditItem.showAndWait(parentWindow, EditCountry.class, model, false, beforeShow);
+    }
+
+    public static void edit(CountryModel model, Window parentWindow) throws IOException {
+        edit(model, parentWindow, null);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Instance Fields">
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CityModel> itemList;
     private final ObservableList<Locale> localeList;
+    private final EventHandler<CitySuccessEvent> onCityAdded;
+    private final EventHandler<CitySuccessEvent> onCityUpdated;
+    private final EventHandler<CitySuccessEvent> onCityDeleted;
+    private BooleanBinding modificationBinding;
+    private ObjectBinding<Locale> modelLocale;
 
     @ModelEditor
     private CountryModel model;
@@ -128,12 +147,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     @FXML // fx:id="newButtonBar"
     private ButtonBar newButtonBar; // Value injected by FXMLLoader
 
-    private final EventHandler<CitySuccessEvent> onCityAdded;
-    private final EventHandler<CitySuccessEvent> onCityUpdated;
-    private final EventHandler<CitySuccessEvent> onCityDeleted;
-    private BooleanBinding modificationBinding;
-    private ObjectBinding<Locale> modelLocale;
-
+    //</editor-fold>
     public EditCountry() {
         windowTitle = new ReadOnlyStringWrapper(this, "", "");
         valid = new ReadOnlyBooleanWrapper(this, "", false);
