@@ -820,7 +820,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         private final ReadOnlyObjectWrapper<D> dataAccessObject;
         private final ReadOnlyObjectWrapper<M> fxRecordModel;
-        private final ReadOnlyObjectWrapper<E> finalEvent;
+//        private final ReadOnlyObjectWrapper<E> finalEvent;
         private final DataRowState originalRowState;
 
         /**
@@ -832,7 +832,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", target.dataObject());
             fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", target);
             originalRowState = dataAccessObject.get().getRowState();
-            finalEvent = new ReadOnlyObjectWrapper<>(this, "finalEvent", null);
+//            finalEvent = new ReadOnlyObjectWrapper<>(this, "finalEvent", null);
         }
 
         /**
@@ -870,19 +870,19 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             return originalRowState;
         }
 
-        /**
-         * Gets the final {@link ModelEvent} after the {@code DaoTask} is finished.
-         *
-         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from {@link #createFaultedEvent()}; otherwise,
-         * this will be set to the value obtained from {@link #createCanceledEvent()}.
-         */
-        public E getFinalEvent() {
-            return finalEvent.get();
-        }
-
-        public ReadOnlyObjectProperty<E> finalEventProperty() {
-            return finalEvent.getReadOnlyProperty();
-        }
+//        /**
+//         * Gets the final {@link ModelEvent} after the {@code DaoTask} is finished.
+//         *
+//         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from {@link #createFaultedEvent()}; otherwise,
+//         * this will be set to the value obtained from {@link #createCanceledEvent()}.
+//         */
+//        public E getFinalEvent() {
+//            return finalEvent.get();
+//        }
+//
+//        public ReadOnlyObjectProperty<E> finalEventProperty() {
+//            return finalEvent.getReadOnlyProperty();
+//        }
 
         /**
          * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
@@ -936,12 +936,12 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             super.cancelled();
             E event = createCanceledEvent();
             if (null != event) {
-                try {
-                    finalEvent.set(event);
-                } finally {
+//                try {
+//                    finalEvent.set(event);
+//                } finally {
                     LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                     Event.fireEvent(getDataAccessObject(), event);
-                }
+//                }
             }
         }
 
@@ -950,12 +950,12 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             super.failed();
             E event = createFaultedEvent();
             if (null != event) {
-                try {
-                    finalEvent.set(event);
-                } finally {
+//                try {
+//                    finalEvent.set(event);
+//                } finally {
                     LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                     Event.fireEvent(getDataAccessObject(), event);
-                }
+//                }
             }
         }
 
@@ -965,12 +965,12 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             E event = getValue();
             if (null != event) {
                 LOG.fine(() -> String.format("Succeeded with %s", event));
-                try {
-                    finalEvent.set(event);
-                } finally {
+//                try {
+//                    finalEvent.set(event);
+//                } finally {
                     LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                     Event.fireEvent(getDataAccessObject(), event);
-                }
+//                }
             }
         }
 
