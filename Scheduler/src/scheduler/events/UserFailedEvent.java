@@ -165,6 +165,7 @@ public final class UserFailedEvent extends UserEvent implements ModelFailedEvent
         }
     }
 
+    @SuppressWarnings("fallthrough")
     private static DbOperationType toDbOperationType(EventType<UserFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:

@@ -144,6 +144,7 @@ public final class AddressFailedEvent extends AddressEvent implements ModelFaile
      */
     public static final EventType<AddressFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
+    @SuppressWarnings("fallthrough")
     private static DbOperationType toDbOperationType(EventType<AddressFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:

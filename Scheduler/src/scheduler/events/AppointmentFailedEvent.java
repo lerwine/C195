@@ -144,6 +144,7 @@ public final class AppointmentFailedEvent extends AppointmentEvent implements Mo
      */
     public static final EventType<AppointmentFailedEvent> DELETE_CANCELED = new EventType<>(DELETE_FAILED, DELETE_CANCELED_EVENT_NAME);
 
+    @SuppressWarnings("fallthrough")
     private static DbOperationType toDbOperationType(EventType<AppointmentFailedEvent> eventType, Throwable fault) {
         switch (eventType.getName()) {
             case INSERT_INVALID_EVENT_NAME:
