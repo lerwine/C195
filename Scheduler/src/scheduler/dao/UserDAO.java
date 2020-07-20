@@ -54,7 +54,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
     private final OriginalValues originalValues;
     private String userName;
-    // PENDING: Change to using something that can accept raw password and produce hash.
     private String password;
     private UserStatus status;
     private WeakReference<UserModel> _cachedModel = null;
@@ -354,7 +353,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
         }
-
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {

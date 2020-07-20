@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.filter.DaoFilterExpression;
@@ -25,6 +26,7 @@ import scheduler.dao.schema.SchemaHelper;
 import scheduler.dao.schema.TableJoinType;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressFailedEvent;
+import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerSuccessEvent;
@@ -53,6 +55,12 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 //    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final EventHandler<AddressSuccessEvent> ADDRESS_UPDATE_EVENT_HANDLER;
+
+    static {
+        ADDRESS_UPDATE_EVENT_HANDLER = FACTORY::onAddressSaved;
+        AddressDAO.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, ADDRESS_UPDATE_EVENT_HANDLER);
+    }
 
     private final OriginalValues originalValues;
     private String name;
@@ -81,10 +89,13 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
      *
      * @param value new value of name
      */
-    private void setName(String value) {
-        String oldValue = this.name;
-        this.name = asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_NAME, oldValue, this.name);
+    private synchronized void setName(String value) {
+        String oldValue = name;
+        name = asNonNullAndWsNormalized(value);
+        if (!name.equals(oldValue)) {
+            firePropertyChange(PROP_NAME, oldValue, name);
+            setModified();
+        }
     }
 
     @Override
@@ -104,6 +115,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         }
         this.address = address;
         firePropertyChange(PROP_ADDRESS, oldValue, this.address);
+        setModified();
     }
 
     @Override
@@ -116,10 +128,13 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
      *
      * @param active new value of active
      */
-    private void setActive(boolean active) {
+    private synchronized void setActive(boolean active) {
         boolean oldValue = this.active;
         this.active = active;
-        firePropertyChange(PROP_ADDRESS, oldValue, this.active);
+        if (this.active != active) {
+            firePropertyChange(PROP_ADDRESS, oldValue, this.active);
+            setModified();
+        }
     }
 
     @Override
@@ -215,6 +230,27 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                 .addString(PROP_CREATEDBY, getCreatedBy())
                 .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
                 .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+    }
+
+    private void onAddressUpdated(AddressModel newModel) {
+        if (null == address) {
+            return;
+        }
+        AddressDAO newDao = newModel.dataObject();
+        if (address == newDao || address.getPrimaryKey() != newDao.getPrimaryKey()) {
+            return;
+        }
+        PartialAddressDAO oldAddress = address;
+        address = newDao;
+        firePropertyChange(PROP_ADDRESS, oldAddress, address);
+
+        CustomerModel customerModel = cachedModel(false);
+        if (null != customerModel) {
+            PartialAddressModel<? extends PartialAddressDAO> oldModel = customerModel.getAddress();
+            if (null != oldModel && oldModel != newModel) {
+                customerModel.setAddress(newModel);
+            }
+        }
     }
 
     /**
@@ -378,6 +414,17 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+        private void onAddressSaved(AddressSuccessEvent event) {
+            AddressModel newModel = event.getEntityModel();
+            streamCached().forEach((t) -> t.onAddressUpdated(newModel));
+            AddressDAO dao = newModel.dataObject();
+            AppointmentDAO.FACTORY.streamCached().map((t) -> t.getCustomer()).forEach((t) -> {
+                if (null != t && t instanceof Partial) {
+                    ((Partial) t).onAddressUpdated(dao);
+                }
+            });
         }
 
     }
@@ -615,6 +662,15 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                     .addString(PROP_NAME, name)
                     .addDataObject(PROP_ADDRESS, address)
                     .addBoolean(PROP_ACTIVE, active);
+        }
+
+        private void onAddressUpdated(AddressDAO newDao) {
+            if (null == address || address == newDao || address.getPrimaryKey() != newDao.getPrimaryKey()) {
+                return;
+            }
+            PartialAddressDAO oldAddress = address;
+            address = newDao;
+            firePropertyChange(PROP_ADDRESS, oldAddress, address);
         }
 
     }

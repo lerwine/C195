@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGADDRESSES;
 import static scheduler.AppResourceKeys.RESOURCEKEY_READINGFROMDB;
@@ -31,6 +32,7 @@ import scheduler.events.AddressFailedEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
+import scheduler.events.CitySuccessEvent;
 import scheduler.model.Address;
 import scheduler.model.AddressEntity;
 import scheduler.model.AddressLookup;
@@ -58,6 +60,12 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 //    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final EventHandler<CitySuccessEvent> CITY_UPDATE_EVENT_HANDLER;
+
+    static {
+        CITY_UPDATE_EVENT_HANDLER = FACTORY::onCitySaved;
+        CityDAO.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, CITY_UPDATE_EVENT_HANDLER);
+    }
 
     private final OriginalPropertyValues originalValues;
     private String address1;
@@ -92,7 +100,10 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     private synchronized void setAddress1(String value) {
         String oldValue = address1;
         address1 = asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_ADDRESS1, oldValue, address1);
+        if (!address1.equals(oldValue)) {
+            firePropertyChange(PROP_ADDRESS1, oldValue, address1);
+            setModified();
+        }
     }
 
     @Override
@@ -108,7 +119,10 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     private synchronized void setAddress2(String value) {
         String oldValue = address2;
         address2 = asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_ADDRESS2, oldValue, address2);
+        if (!address2.equals(oldValue)) {
+            firePropertyChange(PROP_ADDRESS2, oldValue, address2);
+            setModified();
+        }
     }
 
     @Override
@@ -128,6 +142,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         }
         this.city = city;
         firePropertyChange(PROP_CITY, oldValue, this.city);
+        setModified();
     }
 
     @Override
@@ -143,7 +158,10 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     private synchronized void setPostalCode(String value) {
         String oldValue = postalCode;
         postalCode = asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_POSTALCODE, oldValue, postalCode);
+        if (!postalCode.equals(oldValue)) {
+            firePropertyChange(PROP_POSTALCODE, oldValue, postalCode);
+            setModified();
+        }
     }
 
     @Override
@@ -159,7 +177,10 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     private synchronized void setPhone(String value) {
         String oldValue = phone;
         phone = asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_PHONE, oldValue, phone);
+        if (!phone.equals(oldValue)) {
+            firePropertyChange(PROP_PHONE, oldValue, phone);
+            setModified();
+        }
     }
 
     @Override
@@ -267,6 +288,27 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     @Override
     public String toString() {
         return toStringBuilder().build();
+    }
+
+    private synchronized void onCityUpdated(CityModel newModel) {
+        if (null == city) {
+            return;
+        }
+        CityDAO newDao = newModel.dataObject();
+        if (city == newDao || city.getPrimaryKey() != newDao.getPrimaryKey()) {
+            return;
+        }
+        PartialCityDAO oldCity = city;
+        city = newDao;
+        firePropertyChange(PROP_CITY, oldCity, city);
+
+        AddressModel addressModel = cachedModel(false);
+        if (null != addressModel) {
+            PartialCityModel<? extends PartialCityDAO> oldModel = addressModel.getCity();
+            if (null != oldModel && oldModel != newModel) {
+                addressModel.setCity(newModel);
+            }
+        }
     }
 
     /**
@@ -471,6 +513,19 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+        private void onCitySaved(CitySuccessEvent event) {
+            CityModel newModel = event.getEntityModel();
+            streamCached().forEach((t) -> t.onCityUpdated(newModel));
+            CityDAO newDao = newModel.dataObject();
+            Consumer<PartialAddressDAO> addressConsumer = (t) -> {
+                if (null != t && t instanceof Partial) {
+                    ((Partial) t).onCityUpdated(newDao);
+                }
+            };
+            CustomerDAO.FACTORY.streamCached().map((t) -> t.getAddress()).forEach(addressConsumer);
+            AppointmentDAO.FACTORY.streamCached().map((t) -> t.getCustomer()).filter(Objects::nonNull).map((t) -> t.getAddress()).forEach(addressConsumer);
         }
 
     }
@@ -762,6 +817,15 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                     .addDataObject(PROP_CITY, city)
                     .addString(PROP_POSTALCODE, postalCode)
                     .addString(PROP_PHONE, phone);
+        }
+
+        private void onCityUpdated(CityDAO newDao) {
+            if (city == newDao || city.getPrimaryKey() != newDao.getPrimaryKey()) {
+                return;
+            }
+            PartialCityDAO oldCity = city;
+            city = newDao;
+            firePropertyChange(PROP_CITY, oldCity, city);
         }
 
     }

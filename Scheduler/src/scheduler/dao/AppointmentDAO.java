@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import scheduler.AppointmentAlertManager;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.DaoFilter;
@@ -32,8 +33,10 @@ import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
+import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
+import scheduler.events.UserSuccessEvent;
 import scheduler.model.Appointment;
 import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
@@ -65,6 +68,15 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 //    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final EventHandler<CustomerSuccessEvent> CUSTOMER_UPDATE_EVENT_HANDLER;
+    private static final EventHandler<UserSuccessEvent> USER_UPDATE_EVENT_HANDLER;
+
+    static {
+        CUSTOMER_UPDATE_EVENT_HANDLER = FACTORY::onCustomerSaved;
+        USER_UPDATE_EVENT_HANDLER = FACTORY::onUserSaved;
+        CustomerDAO.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, CUSTOMER_UPDATE_EVENT_HANDLER);
+        UserDAO.FACTORY.addEventHandler(UserSuccessEvent.UPDATE_SUCCESS, USER_UPDATE_EVENT_HANDLER);
+    }
 
     private final OriginalValues originalValues;
     private PartialCustomerDAO customer;
@@ -148,6 +160,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
         this.customer = customer;
         firePropertyChange(PROP_CUSTOMER, oldValue, this.customer);
+        setModified();
     }
 
     @Override
@@ -167,6 +180,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
         this.user = user;
         firePropertyChange(PROP_USER, oldValue, this.user);
+        setModified();
     }
 
     @Override
@@ -179,10 +193,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of title
      */
-    private void setTitle(String value) {
+    private synchronized void setTitle(String value) {
         String oldValue = this.title;
-        this.title = asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_TITLE, oldValue, this.title);
+        title = asNonNullAndWsNormalized(value);
+        if (!title.equals(oldValue)) {
+            firePropertyChange(PROP_TITLE, oldValue, title);
+            setModified();
+        }
     }
 
     @Override
@@ -195,10 +212,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of description
      */
-    private void setDescription(String value) {
+    private synchronized void setDescription(String value) {
         String oldValue = this.description;
-        this.description = asNonNullAndTrimmed(value);
-        firePropertyChange(PROP_DESCRIPTION, oldValue, this.description);
+        description = asNonNullAndWsNormalizedMultiLine(value);
+        if (!description.equals(oldValue)) {
+            firePropertyChange(PROP_DESCRIPTION, oldValue, description);
+            setModified();
+        }
     }
 
     @Override
@@ -217,7 +237,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of location
      */
-    private void setLocation(String value) {
+    private synchronized void setLocation(String value) {
         String oldValue;
         switch (this.type) {
             case CORPORATE_LOCATION:
@@ -231,7 +251,10 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 locationSl = null;
                 break;
         }
-        firePropertyChange(PROP_LOCATION, oldValue, location);
+        if (!location.equals(oldValue)) {
+            firePropertyChange(PROP_LOCATION, oldValue, location);
+            setModified();
+        }
     }
 
     @Override
@@ -244,10 +267,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of contact
      */
-    private void setContact(String value) {
-        String oldValue = this.contact;
-        this.contact = asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_CONTACT, oldValue, this.contact);
+    private synchronized void setContact(String value) {
+        String oldValue = contact;
+        contact = asNonNullAndWsNormalized(value);
+        if (!contact.equals(oldValue)) {
+            firePropertyChange(PROP_CONTACT, oldValue, contact);
+            setModified();
+        }
     }
 
     @Override
@@ -264,6 +290,9 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         AppointmentType oldValue = this.type;
         String oldLocation = getLocation();
         this.type = (null == type) ? AppointmentType.OTHER : type;
+        if (this.type == oldValue) {
+            return;
+        }
         switch (this.type) {
             case CORPORATE_LOCATION:
             case PHONE:
@@ -276,6 +305,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                             locationSl = asNonNullAndWsNormalized(oldLocation);
                             firePropertyChange(PROP_TYPE, oldValue, this.type);
                             firePropertyChange(PROP_LOCATION, oldLocation, getLocation());
+                            setModified();
                             return;
                     }
                 }
@@ -284,6 +314,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 break;
         }
         firePropertyChange(PROP_TYPE, oldValue, this.type);
+        setModified();
     }
 
     @Override
@@ -296,10 +327,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of url
      */
-    private void setUrl(String value) {
-        String oldValue = this.url;
-        this.url = asNonNullAndTrimmed(value);
-        firePropertyChange(PROP_URL, oldValue, this.url);
+    private synchronized void setUrl(String value) {
+        String oldValue = url;
+        url = asNonNullAndTrimmed(value);
+        if (!url.equals(oldValue)) {
+            firePropertyChange(PROP_URL, oldValue, url);
+            setModified();
+        }
     }
 
     @Override
@@ -312,10 +346,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of start
      */
-    private void setStart(Timestamp value) {
-        Timestamp oldValue = this.start;
-        this.start = Objects.requireNonNull(value);
-        firePropertyChange(PROP_START, oldValue, this.start);
+    private synchronized void setStart(Timestamp value) {
+        Timestamp oldValue = start;
+        start = Objects.requireNonNull(value);
+        if (!Objects.equals(oldValue, start)) {
+            firePropertyChange(PROP_START, oldValue, start);
+            setModified();
+        }
     }
 
     @Override
@@ -328,10 +365,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      *
      * @param value new value of end
      */
-    private void setEnd(Timestamp value) {
-        Timestamp oldValue = this.end;
-        this.end = Objects.requireNonNull(value);
-        firePropertyChange(PROP_END, oldValue, this.end);
+    private synchronized void setEnd(Timestamp value) {
+        Timestamp oldValue = end;
+        end = Objects.requireNonNull(value);
+        if (!Objects.equals(oldValue, end)) {
+            firePropertyChange(PROP_END, oldValue, end);
+            setModified();
+        }
     }
 
     @Override
@@ -545,6 +585,48 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 .addString(PROP_CREATEDBY, getCreatedBy())
                 .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
                 .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+    }
+
+    private void onCustomerUpdated(CustomerModel newCustomerModel) {
+        if (null == customer) {
+            return;
+        }
+        CustomerDAO newDao = newCustomerModel.dataObject();
+        if (customer == newDao || customer.getPrimaryKey() != newDao.getPrimaryKey()) {
+            return;
+        }
+        PartialCustomerDAO oldCustomer = customer;
+        customer = newDao;
+        firePropertyChange(PROP_CUSTOMER, oldCustomer, customer);
+
+        AppointmentModel appointmentModel = cachedModel(false);
+        if (null != appointmentModel) {
+            PartialCustomerModel<? extends PartialCustomerDAO> oldCustomerModel = appointmentModel.getCustomer();
+            if (!Objects.equals(newCustomerModel, oldCustomerModel)) {
+                appointmentModel.setCustomer(newCustomerModel);
+            }
+        }
+    }
+
+    private void onUserUpdated(UserModel newModel) {
+        if (null == user) {
+            return;
+        }
+        UserDAO newDao = newModel.dataObject();
+        if (user == newDao || user.getPrimaryKey() != newDao.getPrimaryKey()) {
+            return;
+        }
+        PartialUserDAO oldUser = user;
+        user = newDao;
+        firePropertyChange(PROP_USER, oldUser, user);
+
+        AppointmentModel appointmentModel = cachedModel(false);
+        if (null != appointmentModel) {
+            PartialUserModel<? extends PartialUserDAO> oldModel = appointmentModel.getUser();
+            if (null != oldModel && oldModel != newModel) {
+                appointmentModel.setUser(newModel);
+            }
+        }
     }
 
     /**
@@ -943,6 +1025,16 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+        private void onCustomerSaved(CustomerSuccessEvent event) {
+            CustomerModel newModel = event.getEntityModel();
+            streamCached().forEach((t) -> t.onCustomerUpdated(newModel));
+        }
+
+        private void onUserSaved(UserSuccessEvent event) {
+            UserModel newModel = event.getEntityModel();
+            streamCached().forEach((t) -> t.onUserUpdated(newModel));
         }
 
     }

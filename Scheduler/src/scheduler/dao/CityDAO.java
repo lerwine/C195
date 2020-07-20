@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.EventDispatchChain;
+import javafx.event.EventHandler;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.filter.ComparisonOperator;
@@ -30,6 +31,7 @@ import scheduler.events.CityFailedEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
+import scheduler.events.CountrySuccessEvent;
 import scheduler.model.City;
 import scheduler.model.CityEntity;
 import scheduler.model.Country;
@@ -61,6 +63,12 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 //    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
+    private static final EventHandler<CountrySuccessEvent> COUNTRY_UPDATE_EVENT_HANDLER;
+
+    static {
+        COUNTRY_UPDATE_EVENT_HANDLER = FACTORY::onCountrySaved;
+        CountryDAO.FACTORY.addEventHandler(CountrySuccessEvent.UPDATE_SUCCESS, COUNTRY_UPDATE_EVENT_HANDLER);
+    }
 
     private final OriginalValues originalValues;
     private String name;
@@ -113,10 +121,13 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         return name;
     }
 
-    private void setName(String value) {
+    private synchronized void setName(String value) {
         String oldValue = name;
         name = Values.asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_NAME, oldValue, name);
+        if (!name.equals(oldValue)) {
+            firePropertyChange(PROP_NAME, oldValue, name);
+            setModified();
+        }
     }
 
     @Override
@@ -131,6 +142,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         }
         this.country = country;
         firePropertyChange(PROP_COUNTRY, oldValue, this.country);
+        setModified();
     }
 
     @Override
@@ -189,6 +201,27 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                 .addString(PROP_CREATEDBY, getCreatedBy())
                 .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
                 .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+    }
+
+    private synchronized void onCountryUpdated(CountryModel newModel) {
+        if (null == country) {
+            return;
+        }
+        CountryDAO newDao = newModel.dataObject();
+        if (country == newDao || country.getPrimaryKey() != newDao.getPrimaryKey()) {
+            return;
+        }
+        PartialCountryDAO oldCountry = country;
+        country = newDao;
+        firePropertyChange(PROP_COUNTRY, oldCountry, country);
+
+        CityModel cityModel = cachedModel(false);
+        if (null != cityModel) {
+            PartialCountryModel<? extends PartialCountryDAO> oldModel = cityModel.getCountry();
+            if (null != oldModel && oldModel != newModel) {
+                cityModel.setCountry(newModel);
+            }
+        }
     }
 
     /**
@@ -374,6 +407,21 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
             return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        }
+
+        private void onCountrySaved(CountrySuccessEvent event) {
+            CountryModel newModel = event.getEntityModel();
+            streamCached().forEach((t) -> t.onCountryUpdated(newModel));
+            CountryDAO dao = newModel.dataObject();
+            Consumer<PartialCityDAO> cityConsumer = (t) -> {
+                if (null != t && t instanceof Partial) {
+                    ((Partial) t).onCountryUpdated(dao);
+                }
+            };
+            AddressDAO.FACTORY.streamCached().map((t) -> t.getCity()).forEach(cityConsumer);
+            CustomerDAO.FACTORY.streamCached().map((t) -> t.getAddress()).filter(Objects::nonNull).map((t) -> t.getCity()).forEach(cityConsumer);
+            AppointmentDAO.FACTORY.streamCached().map((t) -> t.getCustomer()).filter(Objects::nonNull)
+                    .map((t) -> t.getAddress()).filter(Objects::nonNull).map((t) -> t.getCity()).forEach(cityConsumer);
         }
 
     }
@@ -611,6 +659,16 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                     .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
                     .addString(PROP_NAME, name)
                     .addDataObject(PROP_COUNTRY, country);
+        }
+
+        synchronized void onCountryUpdated(CountryDAO newDao) {
+            if (null == country || country == newDao) {
+                return;
+            }
+
+            PartialCountryDAO oldCountry = country;
+            country = newDao;
+            firePropertyChange(PROP_COUNTRY, oldCountry, country);
         }
 
     }

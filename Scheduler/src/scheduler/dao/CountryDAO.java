@@ -102,10 +102,13 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         return name;
     }
 
-    private void setName(String value) {
+    private synchronized void setName(String value) {
         String oldValue = name;
         name = Values.asNonNullAndWsNormalized(value);
-        firePropertyChange(PROP_NAME, oldValue, name);
+        if (!name.equals(oldValue)) {
+            firePropertyChange(PROP_NAME, oldValue, name);
+            setModified();
+        }
     }
 
     @Override
@@ -113,13 +116,17 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         return locale;
     }
 
-    private void setLocale(Locale locale) {
+    private synchronized void setLocale(Locale locale) {
         Locale oldLocale = this.locale;
+        if (Objects.equals(locale, oldLocale)) {
+            return;
+        }
         String oldName = name;
         this.locale = locale;
-        name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);
+        name = Values.asNonNullAndWsNormalized(CountryProperties.getCountryAndLanguageDisplayText(this.locale));
         firePropertyChange(PROP_LOCALE, oldLocale, this.locale);
         firePropertyChange(PROP_NAME, oldName, name);
+        setModified();
     }
 
     @Override

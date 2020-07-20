@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -49,8 +48,6 @@ import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.model.DataEntity;
 import scheduler.model.fx.EntityModel;
-import scheduler.model.fx.PartialEntityModel;
-import scheduler.model.fx.PartialModel;
 import scheduler.util.AnnotationHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
@@ -74,6 +71,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
+    public static final String DEFAULT_USER_NAME = "admin";
 
     private final EventHandlerManager eventHandlerManager;
     private final OriginalValues originalValues;
@@ -105,11 +103,11 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     protected abstract void onAcceptChanges();
 
     final void acceptChanges() {
-        onAcceptChanges();
         originalValues.createDate = createDate;
         originalValues.createdBy = createdBy;
         originalValues.lastModifiedDate = lastModifiedDate;
         originalValues.lastModifiedBy = lastModifiedBy;
+        onAcceptChanges();
     }
 
     /**
@@ -128,7 +126,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             Timestamp oldLastModifiedDate = lastModifiedDate;
             String oldLastModifiedBy = lastModifiedBy;
             DataRowState oldRowState = rowState;
-            onRejectChanges();
             createDate = originalValues.createDate;
             createdBy = originalValues.createdBy;
             lastModifiedDate = originalValues.lastModifiedDate;
@@ -136,6 +133,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             if (rowState == DataRowState.MODIFIED) {
                 rowState = DataRowState.UNMODIFIED;
             }
+            onRejectChanges();
             firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
             firePropertyChange(PROP_CREATEDBY, oldCreatedBy, createdBy);
             firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, lastModifiedDate);
@@ -191,60 +189,93 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
     }
 
-    /**
-     * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
-     *
-     * @param propertyName The name of the target property.
-     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
-     * to leave {@link #rowState} unchanged.
-     */
-    protected boolean propertyChangeModifiesState(String propertyName) {
-        switch (propertyName) {
-            case PROP_CREATEDATE:
-            case PROP_CREATEDBY:
-            case PROP_LASTMODIFIEDBY:
-            case PROP_LASTMODIFIEDDATE:
-            case PROP_PRIMARYKEY:
-            case PROP_ROWSTATE:
-                return false;
+//    /**
+//     * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
+//     *
+//     * @param propertyName The name of the target property.
+//     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
+//     * to leave {@link #rowState} unchanged.
+//     * @deprecated - need more control over row state changes.
+//     */
+//    @Deprecated
+//    protected boolean propertyChangeModifiesState(String propertyName) {
+//        switch (propertyName) {
+//            case PROP_CREATEDATE:
+//            case PROP_CREATEDBY:
+//            case PROP_LASTMODIFIEDBY:
+//            case PROP_LASTMODIFIEDDATE:
+//            case PROP_PRIMARYKEY:
+//            case PROP_ROWSTATE:
+//                return false;
+//        }
+//        return true;
+//    }
+    protected synchronized void setModified() {
+        UserDAO currentUser = Scheduler.getCurrentUser();
+        String oldModifiedby = lastModifiedBy;
+        Timestamp oldModifiedDate = lastModifiedDate;
+        switch (rowState) {
+            case NEW:
+                String oldCreatedby = createdBy;
+                Timestamp oldCreateDate = createDate;
+                createDate = lastModifiedDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
+                createdBy = lastModifiedBy = (null == currentUser) ? DEFAULT_USER_NAME : currentUser.getUserName();
+                firePropertyChange(PROP_CREATEDBY, oldCreatedby, createdBy);
+                firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
+                break;
+            case UNMODIFIED:
+                DataRowState oldRowState = rowState;
+                lastModifiedBy = (null == currentUser) ? DEFAULT_USER_NAME : currentUser.getUserName();
+                lastModifiedDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
+                rowState = DataRowState.MODIFIED;
+                firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedby, lastModifiedBy);
+                firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, lastModifiedDate);
+                firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
+                return;
+            case MODIFIED:
+                lastModifiedBy = (null == currentUser) ? DEFAULT_USER_NAME : currentUser.getUserName();
+                lastModifiedDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
+                break;
+            default:
+                return;
         }
-        return true;
+        firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedby, lastModifiedBy);
+        firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, lastModifiedDate);
     }
 
-    @Override
-    protected void onPropertyChange(PropertyChangeEvent event) throws Exception {
-        super.onPropertyChange(event);
-        String propertyName = event.getPropertyName();
-        if ((null == propertyName || propertyChangeModifiesState(propertyName)) && !arePropertyChangeEventsDeferred()) {
-            UserDAO currentUser = Scheduler.getCurrentUser();
-            String oldModifiedby = lastModifiedBy;
-            Timestamp oldModifiedDate = lastModifiedDate;
-            DataRowState oldRowState = rowState;
-            lastModifiedBy = (null == currentUser) ? "admin" : currentUser.getUserName();
-            lastModifiedDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
-            switch (rowState) {
-                case DELETED:
-                case MODIFIED:
-                    break;
-                case UNMODIFIED:
-                    rowState = DataRowState.MODIFIED;
-                    break;
-                default:
-                    String oldCreatedby = createdBy;
-                    Timestamp oldCreateDate = createDate;
-                    createdBy = lastModifiedBy;
-                    createDate = lastModifiedDate;
-                    rowState = DataRowState.NEW;
-                    firePropertyChange(PROP_CREATEDBY, oldCreatedby, createdBy);
-                    firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
-                    break;
-            }
-            firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedby, lastModifiedBy);
-            firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, lastModifiedDate);
-            firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
-        }
-    }
-
+//    @Override
+//    protected void onPropertyChange(PropertyChangeEvent event) throws Exception {
+//        super.onPropertyChange(event);
+//        String propertyName = event.getPropertyName();
+//        if ((null == propertyName || propertyChangeModifiesState(propertyName)) && !arePropertyChangeEventsDeferred()) {
+//            UserDAO currentUser = Scheduler.getCurrentUser();
+//            String oldModifiedby = lastModifiedBy;
+//            Timestamp oldModifiedDate = lastModifiedDate;
+//            DataRowState oldRowState = rowState;
+//            lastModifiedBy = (null == currentUser) ? DEFAULT_USER_NAME : currentUser.getUserName();
+//            lastModifiedDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
+//            switch (rowState) {
+//                case DELETED:
+//                case MODIFIED:
+//                    break;
+//                case UNMODIFIED:
+//                    rowState = DataRowState.MODIFIED;
+//                    break;
+//                default:
+//                    String oldCreatedby = createdBy;
+//                    Timestamp oldCreateDate = createDate;
+//                    createdBy = lastModifiedBy;
+//                    createDate = lastModifiedDate;
+//                    rowState = DataRowState.NEW;
+//                    firePropertyChange(PROP_CREATEDBY, oldCreatedby, createdBy);
+//                    firePropertyChange(PROP_CREATEDATE, oldCreateDate, createDate);
+//                    break;
+//            }
+//            firePropertyChange(PROP_LASTMODIFIEDBY, oldModifiedby, lastModifiedBy);
+//            firePropertyChange(PROP_LASTMODIFIEDDATE, oldModifiedDate, lastModifiedDate);
+//            firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
+//        }
+//    }
     /**
      * Registers a {@link ModelEvent} handler in the {@code EventHandlerManager} for the current {@link DataAccessObject}.
      *
@@ -420,31 +451,18 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             return result;
         }
 
-        public synchronized Stream<T> findAll(Predicate<T> filter) {
-            return backingMap.keySet().stream().map((t) -> {
+        public Stream<T> stream() {
+            Stream.Builder<T> result = Stream.builder();
+            backingMap.keySet().stream().forEach((t) -> {
                 if (backingMap.containsKey(t)) {
                     T dao = backingMap.get(t).get();
                     if (null != dao) {
-                        return dao;
+                        result.accept(dao);
                     }
                     backingMap.remove(t);
                 }
-
-                return null;
-            }).filter((t) -> null != t && filter.test(t));
-        }
-
-        public synchronized <U> Stream<U> map(Function<T, U> mapper) {
-            return backingMap.keySet().stream().map((t) -> {
-                if (backingMap.containsKey(t)) {
-                    T dao = backingMap.get(t).get();
-                    if (null != dao) {
-                        return dao;
-                    }
-                    backingMap.remove(t);
-                }
-                return null;
-            }).filter((t) -> null != t).map(mapper);
+            });
+            return result.build();
         }
 
         public synchronized Optional<T> findFirst(Predicate<T> filter) {
@@ -577,12 +595,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          */
         protected abstract void onCloneProperties(D fromDAO, D toDAO);
 
-        final Stream<D> findAllCached(Predicate<D> filter) {
-            return cache.findAll(filter);
-        }
-
-        final <T> Stream<T> mapCached(Function<D, T> mapper) {
-            return cache.map(mapper);
+        final Stream<D> streamCached() {
+            return cache.stream();
         }
 
         final Optional<D> findFirstCached(Predicate<D> filter) {
@@ -883,7 +897,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 //        public ReadOnlyObjectProperty<E> finalEventProperty() {
 //            return finalEvent.getReadOnlyProperty();
 //        }
-
         /**
          * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
          *
@@ -939,8 +952,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 //                try {
 //                    finalEvent.set(event);
 //                } finally {
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
-                    Event.fireEvent(getDataAccessObject(), event);
+                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                Event.fireEvent(getDataAccessObject(), event);
 //                }
             }
         }
@@ -953,8 +966,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 //                try {
 //                    finalEvent.set(event);
 //                } finally {
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
-                    Event.fireEvent(getDataAccessObject(), event);
+                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                Event.fireEvent(getDataAccessObject(), event);
 //                }
             }
         }
@@ -968,8 +981,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 //                try {
 //                    finalEvent.set(event);
 //                } finally {
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
-                    Event.fireEvent(getDataAccessObject(), event);
+                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                Event.fireEvent(getDataAccessObject(), event);
 //                }
             }
         }
