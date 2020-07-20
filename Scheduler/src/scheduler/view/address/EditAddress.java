@@ -261,7 +261,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             CityModel entityModel = event.getEntityModel();
             entityModel.dataObject().removeEventFilter(CitySuccessEvent.INSERT_SUCCESS, cityWeakEventHandler);
             cityWeakEventHandler = null;
-            // FIXME: Implement onCityInserted
+            // TODO: 1. Implement onCityInserted
         };
     }
 
@@ -374,7 +374,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
         try {
             EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false, (model) -> {
-                // FIXME: Add success handler
+                // TODO: 1. Add success handler
             });
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);

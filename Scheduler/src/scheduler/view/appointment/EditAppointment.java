@@ -1153,7 +1153,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             }
         }
 
-        // FIXME: The method startLoadParticipantsAppointments(WaitBorderPane) from the type EditAppointment.AppointmentConflictsController is never used locally
+        // XXX: The method startLoadParticipantsAppointments(WaitBorderPane) from the type EditAppointment.AppointmentConflictsController is never used locally
         private synchronized void startLoadParticipantsAppointments(WaitBorderPane waitBorderPane) {
             if (null != currentTask && !currentTask.isDone()) {
                 currentTask.cancel(true);

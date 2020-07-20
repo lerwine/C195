@@ -34,7 +34,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
@@ -49,6 +48,8 @@ import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CitySuccessEvent;
+import scheduler.events.CountryEvent;
+import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
 import scheduler.model.fx.AddressModel;
@@ -131,7 +132,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     }
 
     //<editor-fold defaultstate="collapsed" desc="Instance Fields">
-    
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -143,39 +143,39 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private ObjectBinding<CountryModel> selectedCountry;
     private StringBinding normalizedName;
     private StringBinding nameValidationMessage;
-    
+
     @ModelEditor
     private CityModel model;
-    
+
     @ModelEditor
     private WaitBorderPane waitBorderPane;
-    
+
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
-    
+
     @FXML // fx:id="nameTextField"
     private TextField nameTextField; // Value injected by FXMLLoader
-    
+
     @FXML // fx:id="nameValidationLabel"
     private Label nameValidationLabel; // Value injected by FXMLLoader
-    
+
     @FXML // fx:id="countryComboBox"
     private ComboBox<CountryModel> countryComboBox; // Value injected by FXMLLoader
-    
+
     @FXML // fx:id="countryValidationLabel"
     private Label countryValidationLabel; // Value injected by FXMLLoader
-    
+
     @FXML // fx:id="addressesLabel"
     private Label addressesLabel; // Value injected by FXMLLoader
-    
+
     @FXML // fx:id="addressesTableView"
     private TableView<AddressModel> addressesTableView; // Value injected by FXMLLoader
-    
+
     @FXML // fx:id="addCityButtonBar"
     private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
+    private final NewCountryHandler newCountryHandler = new NewCountryHandler();
 
     //</editor-fold>
-    
     public EditCity() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
@@ -301,12 +301,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     void onNewCountryButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCountryButtonAction", event);
         try {
-            EditCountry.editNew(getScene().getWindow(), false, (model) -> {
-                // FIXME: Add success handler
-//                countryOptionList.add(c);
-//                countryOptionList.sort(CountryProperties::compare);
-//                countryComboBox.getSelectionModel().select(c);
-            });
+            EditCountry.editNew(getScene().getWindow(), false, (m) -> newCountryHandler.addTo(m));
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading country edit window", ex);
         }
@@ -458,6 +453,34 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     public void applyChanges() {
         model.setName(normalizedName.get());
         model.setCountry(selectedCountry.get());
+    }
+
+    private class NewCountryHandler implements EventHandler<CountryEvent> {
+
+        private CountryModel countryModel;
+        private WeakEventHandler<CountryEvent> weakHandler;
+
+        @Override
+        public synchronized void handle(CountryEvent event) {
+            if (null != weakHandler) {
+                countryModel.dataObject().removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, weakHandler);
+                weakHandler = null;
+            }
+            if (event instanceof CountrySuccessEvent) {
+                countryOptionList.add(countryModel);
+                countryOptionList.sort(CountryProperties::compare);
+                countryComboBox.getSelectionModel().select(countryModel);
+            }
+        }
+
+        synchronized void addTo(CountryModel model) {
+            if (null != weakHandler) {
+                countryModel.dataObject().removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, weakHandler);
+            }
+            weakHandler = new WeakEventHandler<>(this);
+            (countryModel = model).dataObject().addEventHandler(CountryEvent.CHANGE_EVENT_TYPE, weakHandler);
+        }
+
     }
 
     private class EditDataLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {

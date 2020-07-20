@@ -162,10 +162,10 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private final ObservableList<CountryModel> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentAdded;
-    // FIXME: See if this is not necessary (it should be automatically updating)
+    // TODO: 2. See if this is not necessary (it should be automatically updating)
     private final EventHandler<AppointmentSuccessEvent> onAppointmentUpdated;
     private final EventHandler<AppointmentSuccessEvent> onAppointmentDeleted;
-    // FIXME: Make handlers for country and city same concept as address
+    // TODO: 2. Make handlers for country and city same concept as address
     private final EventHandler<CountrySuccessEvent> onCountryInserted;
     private final EventHandler<CitySuccessEvent> onCityInserted;
     private WeakEventHandler<CountrySuccessEvent> countryWeakEventHandler;
