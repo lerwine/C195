@@ -140,6 +140,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private final EventHandler<AddressSuccessEvent> onAddressAdded;
     private final EventHandler<AddressSuccessEvent> onAddressUpdated;
     private final EventHandler<AddressSuccessEvent> onAddressDeleted;
+    private final NewCountryHandler newCountryHandler;
     private ObjectBinding<CountryModel> selectedCountry;
     private StringBinding normalizedName;
     private StringBinding nameValidationMessage;
@@ -173,10 +174,10 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
     @FXML // fx:id="addCityButtonBar"
     private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
-    private final NewCountryHandler newCountryHandler = new NewCountryHandler();
 
     //</editor-fold>
     public EditCity() {
+        newCountryHandler = new NewCountryHandler();
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);

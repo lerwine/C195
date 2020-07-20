@@ -275,8 +275,10 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     private void onLocaleComboBoxAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onLocaleComboBoxAction", event);
         valid.set(null != localeComboBox.getSelectionModel().getSelectedItem());
-        boolean m = modificationBinding.get();
-        modified.set(m);
+        if (null != modificationBinding) {
+            boolean m = modificationBinding.get();
+            modified.set(m);
+        }
     }
 
     @FXML

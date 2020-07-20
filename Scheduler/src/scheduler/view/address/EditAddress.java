@@ -48,8 +48,8 @@ import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
+import scheduler.events.CityEvent;
 import scheduler.events.CitySuccessEvent;
-import scheduler.events.CountrySuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
@@ -145,7 +145,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private final EventHandler<CustomerSuccessEvent> onCustomerAdded;
     private final EventHandler<CustomerSuccessEvent> onCustomerUpdated;
     private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
-    private final EventHandler<CitySuccessEvent> onCityInserted;
+//    private final EventHandler<CitySuccessEvent> onCityInserted;
+    private final NewCityHandler newCityHandler;
     private WeakEventHandler<CitySuccessEvent> cityWeakEventHandler;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
@@ -221,6 +222,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
     //</editor-fold>
     public EditAddress() {
+        newCityHandler = new NewCityHandler();
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
@@ -256,12 +258,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
                 itemList.remove(t);
             });
-        };
-        onCityInserted = (event) -> {
-            CityModel entityModel = event.getEntityModel();
-            entityModel.dataObject().removeEventFilter(CitySuccessEvent.INSERT_SUCCESS, cityWeakEventHandler);
-            cityWeakEventHandler = null;
-            // TODO: 1. Implement onCityInserted
         };
     }
 
@@ -373,13 +369,12 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private void onNewCityButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
         try {
-            EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false, (model) -> {
-                // TODO: 1. Add success handler
-            });
+            EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false, (m) -> newCityHandler.addTo(m));
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);
         }
     }
+
 
     @FXML
     private void onNewCustomerButtonAction(ActionEvent event) {
@@ -613,6 +608,54 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             }
         }
         onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
+    }
+    private class NewCityHandler implements EventHandler<CityEvent> {
+        
+        private CityModel cityModel;
+        private WeakEventHandler<CityEvent> weakHandler;
+        
+        @Override
+        public synchronized void handle(CityEvent event) {
+            if (null != weakHandler) {
+                cityModel.dataObject().removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, weakHandler);
+                weakHandler = null;
+            }
+            if (event instanceof CitySuccessEvent) {
+                CountryModel oldCountry = selectedCountry.get();
+                CountryModel newCountry;
+                CityModel newCity = event.getEntityModel();
+                allCities.add(newCity);
+                allCities.sort(CityProperties::compare);
+                int pk = cityModel.getCountry().getPrimaryKey();
+                if (null == oldCountry || oldCountry.getPrimaryKey() != pk) {
+                    newCountry = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElseGet(() -> {
+                        PartialCountryModel<? extends PartialCountryDAO> rm = cityModel.getCountry();
+                        if (rm instanceof CountryModel) {
+                            CountryModel nc = (CountryModel) rm;
+                            countryOptions.add(nc);
+                            countryOptions.sort(CountryProperties::compare);
+                            return nc;
+                        }
+                        return null;
+                    });
+                    if (null == newCountry) {
+                        return;
+                    }
+                    countryListView.getSelectionModel().clearSelection();
+                    countryListView.getSelectionModel().select(newCountry);
+                }
+                cityListView.getSelectionModel().select(cityModel);
+            }
+        }
+        
+        synchronized void addTo(CityModel model) {
+            if (null != weakHandler) {
+                cityModel.dataObject().removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, weakHandler);
+            }
+            weakHandler = new WeakEventHandler<>(this);
+            (cityModel = model).dataObject().addEventHandler(CityEvent.CHANGE_EVENT_TYPE, weakHandler);
+        }
+        
     }
 
     private class GetCountryModelTask extends Task<CountryDAO> {

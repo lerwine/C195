@@ -423,7 +423,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private void onNewCityButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
         try {
-            
+
             EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false, (model) -> {
                 countryWeakEventHandler = new WeakEventHandler<>(onCountryInserted);
                 model.dataObject().addEventFilter(CountrySuccessEvent.INSERT_SUCCESS, countryWeakEventHandler);
