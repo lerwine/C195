@@ -1,9 +1,0 @@
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\bin\Release\ResourceHelper.dll.config
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\bin\Release\ResourceHelper.dll
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\bin\Release\ResourceHelper.pdb
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Release\ResourceHelper.csprojAssemblyReference.cache
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Release\ResourceHelper.Properties.Resources.resources
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Release\ResourceHelper.csproj.GenerateResource.cache
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Release\ResourceHelper.csproj.CoreCompileInputs.cache
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Release\ResourceHelper.dll
-C:\Users\lerwi\NetBeansProjects\C195\ResourceHelper\obj\Release\ResourceHelper.pdb
