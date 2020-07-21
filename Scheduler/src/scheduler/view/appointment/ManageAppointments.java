@@ -19,8 +19,8 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableColumn;
 import javafx.scene.layout.BorderPane;
@@ -43,8 +43,8 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
+import scheduler.events.ModelFailedEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.fx.MainListingControl;
 import scheduler.model.Appointment;
 import scheduler.model.Customer;
 import scheduler.model.fx.AppointmentModel;
@@ -59,6 +59,7 @@ import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
+import scheduler.view.MainListingControl;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -91,7 +92,7 @@ import scheduler.view.export.TsvDataExporter;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/ManageAppointments.fxml")
-public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> {
+public final class ManageAppointments extends MainListingControl<AppointmentDAO, AppointmentModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageAppointments.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
@@ -157,7 +158,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         LOG.entering(LOG.getName(), "filterButtonClick", event);
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "This method is not implemented");
         alert.initStyle(StageStyle.UTILITY);
-        alert.initOwner((Stage) ((Button) event.getSource()).getScene().getWindow());
+        alert.initOwner(((Node) event.getSource()).getScene().getWindow());
         alert.initModality(Modality.APPLICATION_MODAL);
         alert.setTitle("Not implemented");
         alert.showAndWait();
@@ -172,7 +173,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @FXML
     private void onExportButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onExportButtonAction", event);
-        Stage stage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         FileChooser fc = new FileChooser();
         ObservableList<FileChooser.ExtensionFilter> filterList = fc.getExtensionFilters();
         FileChooser.ExtensionFilter csvDisp = new FileChooser.ExtensionFilter("Comma-separated values, displayed columns (*.csv)", "*.csv");
@@ -520,11 +521,11 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     protected void onDeleteItem(AppointmentModel item) {
         AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(item, this, true);
         Event.fireEvent(item.dataObject(), deleteRequestEvent);
-        Stage stage = (Stage) getScene().getWindow();
+        Window window = getScene().getWindow();
         if (deleteRequestEvent.isCanceled()) {
-            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+            AlertHelper.showWarningAlert(window, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
         } else {
-            AlertHelper.showWarningAlert(stage, LOG,
+            AlertHelper.showWarningAlert(window, LOG,
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
@@ -533,7 +534,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                         AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
                         if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
                         }
                     });
                     MainController.startBusyTaskNow(task);

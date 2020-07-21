@@ -12,7 +12,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -22,7 +21,7 @@ import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
-import scheduler.fx.MainListingControl;
+import scheduler.events.ModelFailedEvent;
 import scheduler.model.Customer;
 import scheduler.model.fx.CustomerModel;
 import scheduler.util.AlertHelper;
@@ -31,6 +30,7 @@ import static scheduler.util.NodeUtil.bindExtents;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
+import scheduler.view.MainListingControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.customer.ManageCustomersResourceKeys.*;
@@ -42,7 +42,7 @@ import static scheduler.view.customer.ManageCustomersResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/customer/ManageCustomers")
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
-public final class ManageCustomers extends MainListingControl<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> {
+public final class ManageCustomers extends MainListingControl<CustomerDAO, CustomerModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCustomers.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
@@ -166,11 +166,11 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     protected void onDeleteItem(CustomerModel item) {
         CustomerOpRequestEvent deleteRequestEvent = new CustomerOpRequestEvent(item, this, true);
         Event.fireEvent(item.dataObject(), deleteRequestEvent);
-        Stage stage = (Stage) getScene().getWindow();
+        Window window = getScene().getWindow();
         if (deleteRequestEvent.isCanceled()) {
-            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+            AlertHelper.showWarningAlert(window, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
         } else {
-            AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+            AlertHelper.showWarningAlert(window, LOG,
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
@@ -179,7 +179,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                         CustomerEvent customerEvent = (CustomerEvent) task.getValue();
                         if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);
+                                    ((ModelFailedEvent<CustomerDAO, CustomerModel>) customerEvent).getMessage(), ButtonType.OK);
                         }
                     });
                     MainController.startBusyTaskNow(task);

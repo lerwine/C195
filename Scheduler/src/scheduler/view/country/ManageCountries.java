@@ -21,7 +21,7 @@ import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
 import scheduler.events.CountryOpRequestEvent;
 import scheduler.events.CountrySuccessEvent;
-import scheduler.fx.MainListingControl;
+import scheduler.events.ModelFailedEvent;
 import scheduler.model.CountryProperties;
 import scheduler.model.fx.CountryModel;
 import scheduler.util.AlertHelper;
@@ -29,6 +29,7 @@ import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
+import scheduler.view.MainListingControl;
 import scheduler.view.ModelFilter;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -41,7 +42,7 @@ import static scheduler.view.country.ManageCountriesResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/country/ManageCountries")
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
-public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> {
+public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCountries.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
@@ -135,7 +136,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                         CountryEvent countryEvent = (CountryEvent) task.getValue();
                         if (null != countryEvent && countryEvent instanceof CountryFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((CountryFailedEvent) countryEvent).getMessage(), ButtonType.OK);
+                                    ((ModelFailedEvent<CountryDAO, CountryModel>) countryEvent).getMessage(), ButtonType.OK);
                         }
                     });
                     MainController.startBusyTaskNow(task);

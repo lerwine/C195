@@ -11,16 +11,15 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.dao.UserDAO;
+import scheduler.events.ModelFailedEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.events.UserSuccessEvent;
-import scheduler.fx.MainListingControl;
 import scheduler.model.User;
 import scheduler.model.fx.UserModel;
 import scheduler.util.AlertHelper;
@@ -28,6 +27,7 @@ import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.view.MainController;
+import scheduler.view.MainListingControl;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import static scheduler.view.user.ManageUsersResourceKeys.*;
@@ -39,7 +39,7 @@ import static scheduler.view.user.ManageUsersResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/ManageUsers")
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
-public final class ManageUsers extends MainListingControl<UserDAO, UserModel, UserEvent, UserSuccessEvent> {
+public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageUsers.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
@@ -159,7 +159,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
 
     @Override
     protected void onDeleteItem(UserModel item) {
-        AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+        AlertHelper.showWarningAlert(getScene().getWindow(), LOG,
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
@@ -168,7 +168,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
                     UserEvent userEvent = (UserEvent) task.getValue();
                     if (userEvent instanceof UserFailedEvent) {
                         scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                ((UserFailedEvent) userEvent).getMessage(), ButtonType.OK);
+                                ((ModelFailedEvent<UserDAO, UserModel>) userEvent).getMessage(), ButtonType.OK);
                     }
                 });
                 MainController.startBusyTaskNow(task);

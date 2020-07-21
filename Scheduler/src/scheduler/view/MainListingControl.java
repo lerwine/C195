@@ -85,20 +85,18 @@ import scheduler.util.WeakEventHandlingReference;
  *
  * @param <D> Data access object type wrapped by the model.
  * @param <M> The FX model type.
- * @param <E> The data object event type.
- * @param <S> The data object success event type.
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>, S extends E> extends StackPane {
+public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModel<D>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
 
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
     private final ObservableList<M> items;
-    private final WeakEventHandlingReference<S> insertEventHandler;
-    private final WeakEventHandlingReference<S> updateEventHandler;
-    private final WeakEventHandlingReference<S> deleteEventHandler;
+    private final WeakEventHandlingReference<ModelEvent<D, M>> insertEventHandler;
+    private final WeakEventHandlingReference<ModelEvent<D, M>> updateEventHandler;
+    private final WeakEventHandlingReference<ModelEvent<D, M>> deleteEventHandler;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -273,13 +271,13 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     protected abstract void onDeleteItem(M item);
 
-    protected abstract EventType<S> getInsertedEventType();
+    protected abstract EventType<? extends ModelEvent<D, M>> getInsertedEventType();
 
-    protected abstract EventType<S> getUpdatedEventType();
+    protected abstract EventType<? extends ModelEvent<D, M>> getUpdatedEventType();
 
-    protected abstract EventType<S> getDeletedEventType();
+    protected abstract EventType<? extends ModelEvent<D, M>> getDeletedEventType();
 
-    private void onItemInserted(S event) {
+    private void onItemInserted(ModelEvent<D, M> event) {
         LOG.entering(LOG.getName(), "onItemInserted", event);
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
@@ -290,7 +288,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         }
     }
 
-    private void onItemUpdated(S event) {
+    private void onItemUpdated(ModelEvent<D, M> event) {
         LOG.entering(LOG.getName(), "onItemUpdated", event);
         M entityModel = event.getEntityModel();
         EntityModel.EntityModelFactory<D, M> mf = getModelFactory();
@@ -322,7 +320,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         }
     }
 
-    private void onItemDeleted(S event) {
+    private void onItemDeleted(ModelEvent<D, M> event) {
         LOG.entering(LOG.getName(), "onItemDeleted", event);
         if (!items.isEmpty()) {
             getModelFactory().find(items, event.getEntityModel()).ifPresent((t) -> items.remove(t));
