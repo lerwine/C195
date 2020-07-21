@@ -198,7 +198,7 @@ public class AppointmentAlertManager implements EventTarget {
             appointmentCheckTimer.purge();
         }
         appointmentCheckTimer = new Timer();
-        appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, (long) checkFrequency * 60_000L);
+        appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, checkFrequency * 60_000L);
     }
 
     private synchronized boolean stop(boolean isPermanent) {

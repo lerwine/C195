@@ -7,7 +7,86 @@
         </node>
         <node name="org.netbeans.modules.java.hints.bugs.NPECheck">
             <attribute name="enable-for-fields" value="false"/>
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.ClassStructure.publicConstructorInNonPublicClass">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.perf.Tiny.lengthOneStringIndexOf">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="Javac_SERIALIZATION">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="Javac_UNNECESSARY_CAST">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.jdk.AddUnderscores">
+            <attribute name="size-binary" value="4"/>
+            <attribute name="size-hexadecimal" value="4"/>
+            <attribute name="size-decimal" value="3"/>
+            <attribute name="also-with-underscores" value="false"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.ClassStructure.classMayBeInterface">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.UtilityClass_1">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.OrganizeMembers">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.ClassStructure.finalClass">
             <attribute name="enabled" value="false"/>
+        </node>
+        <node name="Javac_DIVISION_BY_ZERO">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.perf.Tiny.getClassInsteadOfDotClass">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="Javac_EMPTY_STATEMENT_AFTER_IF">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="Javac_UNCHECKED">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.perf.Tiny.stringEqualsEmpty">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="Javac_DEPRECATED">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.ClassStructure.protectedMemberInFinalClass">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="Javac_FINALLY">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.suggestions.TooStrongCast.broadTypeCast">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="Javac_FALLTHROUGH">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.UtilityClass_2">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.NoLoggers">
+            <attribute name="custom-loggers" value="false"/>
+            <attribute name="custom-loggers-list" value=""/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.AssignmentIssues.assignmentToMethodParam">
+            <attribute name="enabled" value="false"/>
+        </node>
+        <node name="Javac_RAWTYPES">
+            <attribute name="enabled" value="true"/>
+        </node>
+        <node name="org.netbeans.modules.java.hints.SuspiciousNamesCombination">
+            <attribute name="groups" value="x, width|y, height"/>
+        </node>
+        <node name="Javac_OVERRIDES">
+            <attribute name="enabled" value="true"/>
         </node>
     </tool>
 </configuration>

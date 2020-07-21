@@ -16,7 +16,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import scheduler.AppResources;
 import scheduler.Scheduler;
 import scheduler.SupportedLocale;
@@ -179,7 +178,7 @@ public final class Login extends Scheduler.LoginBorderPane {
         languageComboBox.setItems(languages);
         languageComboBox.getSelectionModel().select(AppResources.getCurrentLocale());
 
-        ObjectBinding<SupportedLocale> selectedLanguage = initializeLanguageBindings();
+        selectedLanguage = initializeLanguageBindings();
 
         BooleanBinding userNameValid = Bindings.createBooleanBinding(() -> {
             LOG.fine("Calculating userNameValid");
