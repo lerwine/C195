@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -134,10 +135,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         listingTableView.setItems(items);
 
-        EntityModel.EntityModelFactory<D, M> factory = getModelFactory();
-        factory.addEventHandler(getInsertedEventType(), insertEventHandler.getWeakEventHandler());
-        factory.addEventHandler(getUpdatedEventType(), updateEventHandler.getWeakEventHandler());
-        factory.addEventHandler(getDeletedEventType(), deleteEventHandler.getWeakEventHandler());
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());
@@ -145,6 +142,10 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
                 Platform.runLater(() -> onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get()));
             }
         });
+        EntityModel.EntityModelFactory<D, M> factory = getModelFactory();
+        factory.addEventHandler(getInsertedEventType(), insertEventHandler.getWeakEventHandler());
+        factory.addEventHandler(getUpdatedEventType(), updateEventHandler.getWeakEventHandler());
+        factory.addEventHandler(getDeletedEventType(), deleteEventHandler.getWeakEventHandler());
     }
 
     @FXML
@@ -240,7 +241,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
                 restoreLabeled(subHeadingLabel, s);
             }
             Task<List<D>> task = createLoadTask(f);
-            task.setOnSucceeded((event) -> setItems(task.getValue()));
+            task.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, (event) -> setItems(task.getValue()));
             MainController.startBusyTaskNow(task);
         }
     }
