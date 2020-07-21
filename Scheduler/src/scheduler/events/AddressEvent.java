@@ -10,8 +10,7 @@ import scheduler.model.fx.AddressModel;
  * Base {@link ModelEvent} for appointment events.
  * <h3>Event Registration</h3>
  * <dl>
- * <dt>{@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr;
- * {@link javafx.event.Event#ANY "EVENT"}</dt>
+ * <dt>{@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_EVENT"} &lArr; {@link ModelEvent#MODEL_EVENT_TYPE "SCHEDULER_MODEL_EVENT"} &lArr; {@link javafx.event.Event#ANY "EVENT"}</dt>
  * <dd>
  * <dl>
  * <dt>(inherit) {@link #ADDRESS_EVENT_TYPE "SCHEDULER_ADDRESS_OP_EVENT"}</dt>

@@ -19,11 +19,10 @@ import scheduler.util.LogHelper;
  * <dd>
  * <dl style="margin-top:0px">
  * <dt>{@link CustomerEvent} | {@link UserEvent} | {@link AddressEvent} | {@link CityEvent} | {@link CountryEvent}</dt>
- * <dd>{@link scheduler.dao.DataAccessObject} &rArr; {@link scheduler.dao.DataAccessObject.DaoFactory} &rArr;
- * {@link scheduler.model.fx.EntityModelImpl.EntityModelFactory}</dd>
+ * <dd>{@link scheduler.dao.DataAccessObject} &rArr; {@link scheduler.dao.DataAccessObject.DaoFactory} &rArr; {@link scheduler.model.fx.EntityModel.EntityModelFactory}</dd>
  * <dt>{@link AppointmentEvent}</dt>
- * <dd>{@link scheduler.dao.DataAccessObject} &rArr; {@link scheduler.dao.DataAccessObject.DaoFactory} &rArr;
- * {@link scheduler.model.fx.EntityModelImpl.EntityModelFactory} &rArr; {@link scheduler.AppointmentAlertManager}</dd>
+ * <dd>{@link scheduler.dao.DataAccessObject} &rArr; {@link scheduler.dao.DataAccessObject.DaoFactory} &rArr; {@link scheduler.model.fx.EntityModel.EntityModelFactory} &rArr;
+ * {@link scheduler.AppointmentAlertManager}</dd>
  * </dl></dd>
  * <dt>{@link scheduler.fx.ItemEditTableCell}: {@link scheduler.fx.ItemEditTableCell#onEditButtonAction(javafx.event.ActionEvent) onEditButtonAction(ActionEvent)} | {@link scheduler.fx.ItemEditTableCell#onDeleteButtonAction(javafx.event.ActionEvent) onDeleteButtonAction(ActionEvent)}</dt>
  * <dd>
