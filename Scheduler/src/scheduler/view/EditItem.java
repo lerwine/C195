@@ -13,6 +13,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -30,6 +31,7 @@ import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.events.ModelEvent;
 import scheduler.events.ModelFailedEvent;
+import scheduler.events.OperationRequestEvent;
 import scheduler.model.fx.EntityModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.AnnotationHelper;
@@ -255,24 +257,30 @@ public final class EditItem<
     @SuppressWarnings("unchecked")
     void onDeleteButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onDeleteButtonAction", event);
+        OperationRequestEvent<T, U> deleteRequestEvent = editorRegion.modelFactory().createDeleteRequestEvent(model, resources);
+        Event.fireEvent(model.dataObject(), deleteRequestEvent);
         Stage stage = (Stage) getScene().getWindow();
-        AlertHelper.showWarningAlert(stage, LOG,
-                resources.getString(RESOURCEKEY_CONFIRMDELETE),
-                resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
-                .ifPresent((t) -> {
-                    if (t == ButtonType.YES) {
-                        DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(model);
-                        task.setOnSucceeded((e) -> {
-                            E result = task.getValue();
-                            if (result instanceof ModelFailedEvent) {
-                                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
-                            } else {
-                                getScene().getWindow().hide();
-                            }
-                        });
-                        waitBorderPane.startNow(task);
-                    }
-                });
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    resources.getString(RESOURCEKEY_CONFIRMDELETE),
+                    resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
+                    .ifPresent((t) -> {
+                        if (t == ButtonType.YES) {
+                            DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(model);
+                            task.setOnSucceeded((e) -> {
+                                E result = task.getValue();
+                                if (result instanceof ModelFailedEvent) {
+                                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
+                                } else {
+                                    getScene().getWindow().hide();
+                                }
+                            });
+                            waitBorderPane.startNow(task);
+                        }
+                    });
+        }
     }
 
     @FXML

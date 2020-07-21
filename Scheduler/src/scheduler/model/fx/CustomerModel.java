@@ -75,7 +75,8 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
     }
 
     @Override
-    protected void onModelSaved(ModelEvent<CustomerDAO, ? extends EntityModel<CustomerDAO>> event) {
+    protected void onDaoChanged(ModelEvent<CustomerDAO, ? extends EntityModel<CustomerDAO>> event) {
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         CustomerDAO dao = event.getDataAccessObject();
         name.set(dao.getName());
         PartialAddressModel<? extends PartialAddressDAO> currentAddress = address.get();

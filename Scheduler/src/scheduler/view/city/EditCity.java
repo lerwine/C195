@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -21,8 +20,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -48,7 +46,6 @@ import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CitySuccessEvent;
-import scheduler.events.CountryEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -66,6 +63,7 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.Tuple;
 import scheduler.util.Values;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.EditItem;
 import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
@@ -137,10 +135,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CountryModel> countryOptionList;
     private final ObservableList<AddressModel> addressItemList;
-    private final EventHandler<AddressSuccessEvent> onAddressAdded;
-    private final EventHandler<AddressSuccessEvent> onAddressUpdated;
-    private final EventHandler<AddressSuccessEvent> onAddressDeleted;
-    private final NewCountryHandler newCountryHandler;
+    private final WeakEventHandlingReference<AddressSuccessEvent> addressInsertEventHandler;
+    private final WeakEventHandlingReference<AddressSuccessEvent> addressUpdateEventHandler;
+    private final WeakEventHandlingReference<AddressSuccessEvent> addressDeleteEventHandler;
+    private final WeakEventHandlingReference<CountrySuccessEvent> countryInsertEventHandler;
+    private final WeakEventHandlingReference<CountrySuccessEvent> countryDeleteEventHandler;
     private ObjectBinding<CountryModel> selectedCountry;
     private StringBinding normalizedName;
     private StringBinding nameValidationMessage;
@@ -177,42 +176,16 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
     //</editor-fold>
     public EditCity() {
-        newCountryHandler = new NewCountryHandler();
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         countryOptionList = FXCollections.observableArrayList();
         addressItemList = FXCollections.observableArrayList();
-        onAddressAdded = (AddressSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onAddressAdded", event);
-            if (model.getRowState() != DataRowState.NEW) {
-                AddressDAO dao = event.getDataAccessObject();
-                if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                    addressItemList.add(dao.cachedModel(true));
-                }
-            }
-        };
-        onAddressUpdated = (AddressSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onAddressUpdated", event);
-            if (model.getRowState() != DataRowState.NEW) {
-                AddressDAO dao = event.getDataAccessObject();
-                int pk = dao.getPrimaryKey();
-                AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
-                if (null != m) {
-                    if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
-                        addressItemList.remove(m);
-                    }
-                } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                    addressItemList.add(dao.cachedModel(true));
-                }
-            }
-        };
-        onAddressDeleted = (AddressSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onAddressDeleted", event);
-            AddressModel.FACTORY.find(addressItemList, event.getDataAccessObject()).ifPresent((t) -> {
-                addressItemList.remove(t);
-            });
-        };
+        addressInsertEventHandler = WeakEventHandlingReference.create(this::onAddressAdded);
+        addressUpdateEventHandler = WeakEventHandlingReference.create(this::onAddressUpdated);
+        addressDeleteEventHandler = WeakEventHandlingReference.create(this::onAddressDeleted);
+        countryInsertEventHandler = WeakEventHandlingReference.create(this::onCountryInserted);
+        countryDeleteEventHandler = WeakEventHandlingReference.create(this::onCountryDeleted);
     }
 
     @ModelEditor
@@ -221,9 +194,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         restoreNode(addressesLabel);
         restoreNode(addressesTableView);
         restoreNode(addCityButtonBar);
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressAdded));
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressUpdated));
-        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressDeleted));
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, addressInsertEventHandler.getWeakEventHandler());
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, addressUpdateEventHandler.getWeakEventHandler());
+        AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, addressDeleteEventHandler.getWeakEventHandler());
         initializeEditMode();
     }
 
@@ -302,7 +275,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     void onNewCountryButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCountryButtonAction", event);
         try {
-            EditCountry.editNew(getScene().getWindow(), false, (m) -> newCountryHandler.addTo(m));
+            EditCountry.editNew(getScene().getWindow(), false);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading country edit window", ex);
         }
@@ -358,19 +331,27 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     }
 
     private void deleteItem(AddressModel target) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> task = AddressModel.FACTORY.createDeleteTask(target);
-            task.setOnSucceeded((e) -> {
-                AddressEvent addressEvent = task.getValue();
-                if (null != addressEvent && addressEvent instanceof AddressFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                            ((AddressFailedEvent) addressEvent).getMessage(), ButtonType.OK);
+        AddressOpRequestEvent deleteRequestEvent = new AddressOpRequestEvent(target, this, true);
+        Event.fireEvent(model.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> task = AddressModel.FACTORY.createDeleteTask(target);
+                    task.setOnSucceeded((e) -> {
+                        AddressEvent addressEvent = task.getValue();
+                        if (null != addressEvent && addressEvent instanceof AddressFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((AddressFailedEvent) addressEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    waitBorderPane.startNow(task);
                 }
             });
-            waitBorderPane.startNow(task);
         }
     }
 
@@ -448,6 +429,8 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                 }
             }
         }
+        CountryModel.FACTORY.addEventHandler(CountrySuccessEvent.INSERT_SUCCESS, countryInsertEventHandler.getWeakEventHandler());
+        CountryModel.FACTORY.addEventHandler(CountrySuccessEvent.DELETE_SUCCESS, countryDeleteEventHandler.getWeakEventHandler());
     }
 
     @Override
@@ -456,32 +439,58 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         model.setCountry(selectedCountry.get());
     }
 
-    private class NewCountryHandler implements EventHandler<CountryEvent> {
-
-        private CountryModel countryModel;
-        private WeakEventHandler<CountryEvent> weakHandler;
-
-        @Override
-        public synchronized void handle(CountryEvent event) {
-            if (null != weakHandler) {
-                countryModel.dataObject().removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, weakHandler);
-                weakHandler = null;
-            }
-            if (event instanceof CountrySuccessEvent) {
-                countryOptionList.add(countryModel);
-                countryOptionList.sort(CountryProperties::compare);
-                countryComboBox.getSelectionModel().select(countryModel);
+    private void onAddressAdded(AddressSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAddressAdded", event);
+        if (model.getRowState() != DataRowState.NEW) {
+            // FIXME: Use ModelEvent#getEntityModel(), instead
+            AddressDAO dao = event.getDataAccessObject();
+            if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+                addressItemList.add(dao.cachedModel(true));
             }
         }
+    }
 
-        synchronized void addTo(CountryModel model) {
-            if (null != weakHandler) {
-                countryModel.dataObject().removeEventHandler(CountryEvent.CHANGE_EVENT_TYPE, weakHandler);
+    private void onAddressUpdated(AddressSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAddressUpdated", event);
+        if (model.getRowState() != DataRowState.NEW) {
+            // FIXME: Use ModelEvent#getEntityModel(), instead
+            AddressDAO dao = event.getDataAccessObject();
+            int pk = dao.getPrimaryKey();
+            AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            if (null != m) {
+                if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
+                    addressItemList.remove(m);
+                }
+            } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+                addressItemList.add(dao.cachedModel(true));
             }
-            weakHandler = new WeakEventHandler<>(this);
-            (countryModel = model).dataObject().addEventHandler(CountryEvent.CHANGE_EVENT_TYPE, weakHandler);
         }
+    }
 
+    private void onAddressDeleted(AddressSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAddressDeleted", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
+        AddressModel.FACTORY.find(addressItemList, event.getDataAccessObject()).ifPresent((t) -> {
+            addressItemList.remove(t);
+        });
+    }
+
+    private void onCountryInserted(CountrySuccessEvent event) {
+        CountryModel countryModel = event.getEntityModel();
+        countryOptionList.add(countryModel);
+        countryOptionList.sort(CountryProperties::compare);
+        countryComboBox.getSelectionModel().select(countryModel);
+    }
+
+    private void onCountryDeleted(CountrySuccessEvent event) {
+        int pk = event.getEntityModel().getPrimaryKey();
+        countryOptionList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> {
+            CountryModel currentCountry = selectedCountry.get();
+            if (null != currentCountry && currentCountry == t) {
+                countryComboBox.getSelectionModel().clearSelection();
+                countryOptionList.remove(t);
+            }
+        });
     }
 
     private class EditDataLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {
@@ -501,9 +510,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             if (null != result.getValue2() && !result.getValue2().isEmpty()) {
                 result.getValue2().forEach((t) -> addressItemList.add(t.cachedModel(true)));
             }
-            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressAdded));
-            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressUpdated));
-            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCity.this.onAddressDeleted));
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, addressInsertEventHandler.getWeakEventHandler());
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, addressUpdateEventHandler.getWeakEventHandler());
+            AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, addressDeleteEventHandler.getWeakEventHandler());
         }
 
         @Override

@@ -235,7 +235,8 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
     }
 
     @Override
-    protected void onModelSaved(ModelEvent<AppointmentDAO, ? extends EntityModel<AppointmentDAO>> event) {
+    protected void onDaoChanged(ModelEvent<AppointmentDAO, ? extends EntityModel<AppointmentDAO>> event) {
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         AppointmentDAO dao = event.getDataAccessObject();
         PartialCustomerModel<? extends PartialCustomerDAO> currentCustomer = customer.get();
         PartialCustomerDAO newCustomer = dao.getCustomer();

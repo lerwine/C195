@@ -200,7 +200,8 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
     }
 
     @Override
-    protected void onModelSaved(ModelEvent<AddressDAO, ? extends EntityModel<AddressDAO>> event) {
+    protected void onDaoChanged(ModelEvent<AddressDAO, ? extends EntityModel<AddressDAO>> event) {
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         AddressDAO dao = event.getDataAccessObject();
         address1.set(dao.getAddress1());
         address2.set(dao.getAddress2());

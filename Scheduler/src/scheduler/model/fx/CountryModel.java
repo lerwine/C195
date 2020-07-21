@@ -48,7 +48,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
     }
 
     @Override
-    protected void onModelSaved(ModelEvent<CountryDAO, ? extends EntityModel<CountryDAO>> event) {
+    protected void onDaoChanged(ModelEvent<CountryDAO, ? extends EntityModel<CountryDAO>> event) {
         locale.set(event.getDataAccessObject().getLocale());
     }
 

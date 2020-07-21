@@ -12,11 +12,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -41,6 +41,7 @@ import scheduler.dao.filter.DaoFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
+import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.fx.MainListingControl;
@@ -517,20 +518,29 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected void onDeleteItem(AppointmentModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            AppointmentDAO.DeleteTask task = new AppointmentDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                AppointmentEvent appointmentEvent = task.getValue();
-                if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                            ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+        AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(item, this, true);
+        Event.fireEvent(item.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    AppointmentDAO.DeleteTask task = new AppointmentDAO.DeleteTask(item, false);
+                    task.setOnSucceeded((e) -> {
+                        AppointmentEvent appointmentEvent = task.getValue();
+                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    MainController.startBusyTaskNow(task);
                 }
             });
-            MainController.startBusyTaskNow(task);
         }
+
     }
 
     @Override

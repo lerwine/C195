@@ -15,6 +15,7 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ComboBox;
@@ -38,6 +39,7 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import javafx.util.Callback;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ValidationStatus;
@@ -54,6 +56,36 @@ public class NodeUtil {
         if (!styleClass.contains(name)) {
             styleClass.add(name);
         }
+    }
+    
+    public static boolean isVisibleInWindow(Node node) {
+        if (node != null && node.isVisible()) {
+            Scene scene = node.getScene();
+            if (null != scene) {
+                Window window = scene.getWindow();
+                return null != window && window.isShowing();
+            }
+        }
+        return false;
+    }
+
+    public static boolean isInShownWindow(Node node) {
+        if (node != null) {
+            Scene scene = node.getScene();
+            if (null != scene) {
+                Window window = scene.getWindow();
+                return null != window && window.isShowing();
+            }
+        }
+        return false;
+    }
+
+    public static boolean isInWindow(Node node) {
+        if (node != null) {
+            Scene scene = node.getScene();
+            return null != scene && null != scene.getWindow();
+        }
+        return false;
     }
 
     /**

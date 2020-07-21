@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -20,8 +19,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -53,6 +51,7 @@ import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.Values;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -117,9 +116,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     private final ReadOnlyStringWrapper windowTitle;
     private final ObservableList<CityModel> itemList;
     private final ObservableList<Locale> localeList;
-    private final EventHandler<CitySuccessEvent> onCityAdded;
-    private final EventHandler<CitySuccessEvent> onCityUpdated;
-    private final EventHandler<CitySuccessEvent> onCityDeleted;
+    private final WeakEventHandlingReference<CitySuccessEvent> cityInsertEventHandler;
+    private final WeakEventHandlingReference<CitySuccessEvent> cityUpdateEventHandler;
+    private final WeakEventHandlingReference<CitySuccessEvent> cityDeleteEventHandler;
     private BooleanBinding modificationBinding;
     private ObjectBinding<Locale> modelLocale;
 
@@ -157,58 +156,17 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
-        onCityAdded = (CitySuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCityAdded", event);
-            CityModel m = event.getEntityModel();
-            if (null == m) {
-                CityDAO dao = event.getDataAccessObject();
-                if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(dao.cachedModel(true));
-                }
-            } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(m);
-            }
-        };
-        onCityUpdated = (CitySuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCityUpdated", event);
-            CityModel item = event.getEntityModel();
-            if (null == item) {
-                CityDAO dao = event.getDataAccessObject();
-                int pk = dao.getPrimaryKey();
-                item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
-                if (null == item) {
-                    if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                        itemList.add(dao.cachedModel(true));
-                    }
-                    return;
-                }
-            }
-            if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
-                itemList.remove(item);
-            } else if (!itemList.contains(item)) {
-                int pk = item.getPrimaryKey();
-                CityModel existing = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
-                if (null == existing) {
-                    itemList.add(item);
-                } else {
-                    itemList.set(itemList.indexOf(existing), item);
-                }
-            }
-        };
-        onCityDeleted = (CitySuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCityDeleted", event);
-            CityModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
-                itemList.remove(t);
-            });
-        };
+        cityInsertEventHandler = WeakEventHandlingReference.create(this::onCityAdded);
+        cityUpdateEventHandler = WeakEventHandlingReference.create(this::onCityUpdated);
+        cityDeleteEventHandler = WeakEventHandlingReference.create(this::onCityDeleted);
     }
 
     @ModelEditor
     private void onModelInserted(CountryEvent event) {
         LOG.entering(LOG.getName(), "onModelInserted", event);
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCityAdded));
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCityUpdated));
-        CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCityDeleted));
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, cityUpdateEventHandler.getWeakEventHandler());
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, cityDeleteEventHandler.getWeakEventHandler());
         restoreNode(citiesLabel);
         restoreNode(citiesTableView);
         restoreNode(newButtonBar);
@@ -332,19 +290,27 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     }
 
     private void deleteItem(CityModel target) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            CityDAO.DeleteTask task = new CityDAO.DeleteTask(target, false);
-            task.setOnSucceeded((e) -> {
-                CityEvent cityEvent = task.getValue();
-                if (null != cityEvent && cityEvent instanceof CityFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                            ((CityFailedEvent) cityEvent).getMessage(), ButtonType.OK);
+        CityOpRequestEvent deleteRequestEvent = new CityOpRequestEvent(target, this, true);
+        Event.fireEvent(target.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    CityDAO.DeleteTask task = new CityDAO.DeleteTask(target, false);
+                    task.setOnSucceeded((e) -> {
+                        CityEvent cityEvent = task.getValue();
+                        if (null != cityEvent && cityEvent instanceof CityFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((CityFailedEvent) cityEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    waitBorderPane.startNow(task);
                 }
             });
-            waitBorderPane.startNow(task);
         }
     }
 
@@ -403,6 +369,56 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         model.setLocale(localeComboBox.getSelectionModel().getSelectedItem());
     }
 
+    private void onCityAdded(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityAdded", event);
+        CityModel m = event.getEntityModel();
+        // FIXME: Use ModelEvent#getEntityModel() is never null
+        if (null == m) {
+            CityDAO dao = event.getDataAccessObject();
+            if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(dao.cachedModel(true));
+            }
+        } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+            itemList.add(m);
+        }
+    }
+
+    private void onCityUpdated(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityUpdated", event);
+        CityModel item = event.getEntityModel();
+        // FIXME: Use ModelEvent#getEntityModel() is never null
+        if (null == item) {
+            CityDAO dao = event.getDataAccessObject();
+            int pk = dao.getPrimaryKey();
+            item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            if (null == item) {
+                if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+                    itemList.add(dao.cachedModel(true));
+                }
+                return;
+            }
+        }
+        if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
+            itemList.remove(item);
+        } else if (!itemList.contains(item)) {
+            int pk = item.getPrimaryKey();
+            CityModel existing = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            if (null == existing) {
+                itemList.add(item);
+            } else {
+                itemList.set(itemList.indexOf(existing), item);
+            }
+        }
+    }
+
+    private void onCityDeleted(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityDeleted", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
+        CityModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
+            itemList.remove(t);
+        });
+    }
+
     private class ItemsLoadTask extends Task<List<CityDAO>> {
 
         private final int pk;
@@ -421,9 +437,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
                     itemList.add(t.cachedModel(true));
                 });
             }
-            CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCountry.this.onCityAdded));
-            CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCountry.this.onCityUpdated));
-            CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCountry.this.onCityDeleted));
+            CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
+            CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, cityUpdateEventHandler.getWeakEventHandler());
+            CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, cityDeleteEventHandler.getWeakEventHandler());
         }
 
         @Override

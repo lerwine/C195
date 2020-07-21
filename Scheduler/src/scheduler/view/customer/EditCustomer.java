@@ -3,7 +3,6 @@ package scheduler.view.customer;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -24,8 +23,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -53,6 +51,7 @@ import scheduler.dao.PartialAddressDAO;
 import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
@@ -78,10 +77,12 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.Quadruplet;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.Tuple;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -161,15 +162,15 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private final ObservableList<CityModel> cityOptions;
     private final ObservableList<CountryModel> allCountries;
     private final ObservableList<AppointmentFilterItem> filterOptions;
-    private final EventHandler<AppointmentSuccessEvent> onAppointmentAdded;
-    // TODO: 2. See if this is not necessary (it should be automatically updating)
-    private final EventHandler<AppointmentSuccessEvent> onAppointmentUpdated;
-    private final EventHandler<AppointmentSuccessEvent> onAppointmentDeleted;
-    // TODO: 2. Make handlers for country and city same concept as address
-    private final EventHandler<CountrySuccessEvent> onCountryInserted;
-    private final EventHandler<CitySuccessEvent> onCityInserted;
-    private WeakEventHandler<CountrySuccessEvent> countryWeakEventHandler;
-    private WeakEventHandler<CitySuccessEvent> cityWeakEventHandler;
+    private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentInsertEventHandler;
+    private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentUpdateEventHandler;
+    private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentDeleteEventHandler;
+    private final WeakEventHandlingReference<CountrySuccessEvent> countryInsertEventHandler;
+    private final WeakEventHandlingReference<CountrySuccessEvent> countryDeleteEventHandler;
+    private final WeakEventHandlingReference<CitySuccessEvent> cityInsertEventHandler;
+    private final WeakEventHandlingReference<CitySuccessEvent> cityUpdateEventHandler;
+    private final WeakEventHandlingReference<CitySuccessEvent> cityDeleteEventHandler;
+    private final WeakEventHandlingReference<AddressOpRequestEvent> addressDeleteEventHandler;
     private ObjectBinding<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedName;
     private StringBinding normalizedAddress1;
@@ -259,67 +260,24 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         allCountries = FXCollections.observableArrayList();
-        onAppointmentAdded = (event) -> {
-            LOG.entering(LOG.getName(), "onAppointmentAdded", event);
-            if (model.getRowState() != DataRowState.NEW) {
-                AppointmentDAO dao = event.getDataAccessObject();
-                AppointmentFilterItem filter = selectedFilter.get();
-                if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    customerAppointments.add(dao.cachedModel(true));
-                }
-            }
-        };
-        onAppointmentUpdated = (event) -> {
-            LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
-            if (model.getRowState() != DataRowState.NEW) {
-                AppointmentDAO dao = event.getDataAccessObject();
-                AppointmentFilterItem filter = selectedFilter.get();
-                AppointmentModel m = AppointmentModel.FACTORY.find(customerAppointments, dao).orElse(null);
-                if (null != m) {
-                    if ((null == filter) ? dao.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
-                        customerAppointments.remove(m);
-                    }
-                } else if ((null == filter) ? dao.getCustomer().getPrimaryKey() == model.getPrimaryKey()
-                        : filter.getModelFilter().getDaoFilter().test(dao)) {
-                    customerAppointments.add(dao.cachedModel(true));
-                }
-            }
-        };
-        onAppointmentDeleted = (event) -> {
-            LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
-            AppointmentModel.FACTORY.find(customerAppointments, event.getDataAccessObject()).ifPresent((t) -> {
-                customerAppointments.remove(t);
-            });
-        };
-        onCountryInserted = (event) -> {
-            CountryModel entityModel = event.getEntityModel();
-            entityModel.dataObject().removeEventFilter(CountrySuccessEvent.INSERT_SUCCESS, countryWeakEventHandler);
-            countryWeakEventHandler = null;
-            allCountries.add(entityModel);
-            allCountries.sort(CountryProperties::compare);
-            countryComboBox.getSelectionModel().select(entityModel);
-        };
-        onCityInserted = (event) -> {
-            CityModel entityModel = event.getEntityModel();
-            entityModel.dataObject().removeEventFilter(CitySuccessEvent.INSERT_SUCCESS, cityWeakEventHandler);
-            cityWeakEventHandler = null;
-            allCities.add(entityModel);
-            allCities.sort(CityProperties::compare);
-            CountryModel countryModel = selectedCountry.get();
-            if (null != countryModel && countryModel.getPrimaryKey() == entityModel.getCountry().getPrimaryKey()) {
-                cityOptions.add(entityModel);
-                cityOptions.sort(CityProperties::compare);
-                cityComboBox.getSelectionModel().select(entityModel);
-            }
-        };
+        appointmentInsertEventHandler = WeakEventHandlingReference.create(this::onAppointmentInserted);
+        appointmentUpdateEventHandler = WeakEventHandlingReference.create(this::onAppointmentUpdated);
+        appointmentDeleteEventHandler = WeakEventHandlingReference.create(this::onAppointmentDeleted);
+        countryInsertEventHandler = WeakEventHandlingReference.create(this::onCountryInserted);
+        countryDeleteEventHandler = WeakEventHandlingReference.create(this::onCountryDeleted);
+        cityInsertEventHandler = WeakEventHandlingReference.create(this::onCityInserted);
+        cityUpdateEventHandler = WeakEventHandlingReference.create(this::onCityUpdated);
+        cityDeleteEventHandler = WeakEventHandlingReference.create(this::onCityDeleted);
+        addressDeleteEventHandler = WeakEventHandlingReference.create(this::onAddressDeleteRequest);
     }
 
     @ModelEditor
     private void onModelInserted(CustomerEvent event) {
         LOG.entering(LOG.getName(), "onModelInserted", event);
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onAppointmentAdded));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onAppointmentUpdated));
-        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onAppointmentDeleted));
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, appointmentInsertEventHandler.getWeakEventHandler());
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, appointmentUpdateEventHandler.getWeakEventHandler());
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, appointmentDeleteEventHandler.getWeakEventHandler());
+        AddressModel.FACTORY.addEventHandler(AddressOpRequestEvent.DELETE_REQUEST, addressDeleteEventHandler.getWeakEventHandler());
         restoreNode(appointmentFilterComboBox);
         restoreNode(appointmentsTableView);
         restoreNode(addAppointmentButtonBar);
@@ -389,20 +347,29 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     }
 
     private void deleteItem(AppointmentModel target) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
-            task.setOnSucceeded((e) -> {
-                AppointmentEvent appointmentEvent = task.getValue();
-                if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                            ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+        AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(target, this, true);
+        Event.fireEvent(target.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                    task.setOnSucceeded((e) -> {
+                        AppointmentEvent appointmentEvent = task.getValue();
+                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    waitBorderPane.startNow(task);
                 }
             });
-            waitBorderPane.startNow(task);
         }
+
     }
 
     @FXML
@@ -423,11 +390,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private void onNewCityButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
         try {
-
-            EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false, (model) -> {
-                countryWeakEventHandler = new WeakEventHandler<>(onCountryInserted);
-                model.dataObject().addEventFilter(CountrySuccessEvent.INSERT_SUCCESS, countryWeakEventHandler);
-            });
+            EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);
         }
@@ -437,10 +400,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private void onNewCountryButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCountryButtonAction", event);
         try {
-            EditCountry.editNew(getScene().getWindow(), false, (model) -> {
-                cityWeakEventHandler = new WeakEventHandler<>(onCityInserted);
-                model.dataObject().addEventFilter(CitySuccessEvent.INSERT_SUCCESS, cityWeakEventHandler);
-            });
+            EditCountry.editNew(getScene().getWindow(), false);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);
         }
@@ -665,6 +625,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
         cityComboBox.setOnAction((event) -> updateValidation());
         countryComboBox.setOnAction((event) -> updateValidation());
+        CountryDAO.FACTORY.addEventFilter(CountrySuccessEvent.INSERT_SUCCESS, countryInsertEventHandler.getWeakEventHandler());
+        CountryDAO.FACTORY.addEventFilter(CountrySuccessEvent.DELETE_SUCCESS, countryDeleteEventHandler.getWeakEventHandler());
+        CityDAO.FACTORY.addEventFilter(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
+        CityDAO.FACTORY.addEventFilter(CitySuccessEvent.UPDATE_SUCCESS, cityUpdateEventHandler.getWeakEventHandler());
+        CityDAO.FACTORY.addEventFilter(CitySuccessEvent.DELETE_SUCCESS, cityDeleteEventHandler.getWeakEventHandler());
         updateValidation();
     }
 
@@ -681,6 +646,136 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             model.setAddress(selectedAddress.get());
         }
         model.setActive(activeTrueRadioButton.isSelected());
+    }
+
+    private void onAppointmentInserted(AppointmentSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentAdded", event);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
+            AppointmentModel entityModel = event.getEntityModel();
+            AppointmentFilterItem filter = selectedFilter.get();
+            if ((null == filter) ? entityModel.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().test(entityModel)) {
+                customerAppointments.add(entityModel);
+                customerAppointments.sort(AppointmentModel::compareByDates);
+            }
+        }
+    }
+
+    private void onAppointmentUpdated(AppointmentSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
+            AppointmentFilterItem filter = selectedFilter.get();
+            AppointmentModel entityModel = event.getEntityModel();
+            AppointmentModel m = AppointmentModel.FACTORY.find(customerAppointments, entityModel).orElse(null);
+            if (null != m) {
+                if (m != entityModel) {
+                    customerAppointments.remove(m);
+                    customerAppointments.add(entityModel);
+                    customerAppointments.sort(AppointmentModel::compareByDates);
+                }
+                if ((null == filter) ? entityModel.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(entityModel)) {
+                    customerAppointments.remove(entityModel);
+                }
+            } else if ((null == filter) ? entityModel.getCustomer().getPrimaryKey() == model.getPrimaryKey()
+                    : filter.getModelFilter().test(entityModel)) {
+                customerAppointments.add(entityModel);
+                customerAppointments.sort(AppointmentModel::compareByDates);
+            }
+        }
+    }
+
+    private void onAppointmentDeleted(AppointmentSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
+        if (isInShownWindow(this)) {
+            AppointmentModel.FACTORY.find(customerAppointments, event.getEntityModel()).ifPresent((t) -> {
+                customerAppointments.remove(t);
+            });
+        }
+    }
+
+    private void onCountryInserted(CountrySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCountryInserted", event);
+        if (isInShownWindow(this)) {
+            CountryModel entityModel = event.getEntityModel();
+            allCountries.add(entityModel);
+            allCountries.sort(CountryProperties::compare);
+            countryComboBox.getSelectionModel().select(entityModel);
+        }
+    }
+
+    private void onCountryDeleted(CountrySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCountryDeleted", event);
+        if (isInShownWindow(this)) {
+            int pk = event.getEntityModel().getPrimaryKey();
+            CountryModel deletedCountry = allCountries.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            if (null != deletedCountry) {
+                CountryModel currentCountry = selectedCountry.get();
+                if (null != currentCountry && currentCountry == deletedCountry) {
+                    countryComboBox.getSelectionModel().clearSelection();
+                }
+                allCountries.remove(deletedCountry);
+            }
+        }
+    }
+
+    private void onCityInserted(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityInserted", event);
+        if (isInShownWindow(this)) {
+            CityModel entityModel = event.getEntityModel();
+            allCities.add(entityModel);
+            allCities.sort(CityProperties::compare);
+            CountryModel countryModel = selectedCountry.get();
+            if (null != countryModel && countryModel.getPrimaryKey() == entityModel.getCountry().getPrimaryKey()) {
+                cityOptions.add(entityModel);
+                cityOptions.sort(CityProperties::compare);
+                cityComboBox.getSelectionModel().select(entityModel);
+            }
+        }
+    }
+
+    private void onCityUpdated(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityUpdated", event);
+        if (isInShownWindow(this)) {
+            int pk = event.getEntityModel().getPrimaryKey();
+            CityModel entityModel = cityOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            if (null != entityModel && selectedCountry.get().getPrimaryKey() != entityModel.getCountry().getPrimaryKey()) {
+                CityModel currentCity = selectedCity.get();
+                if (null != currentCity && currentCity == entityModel) {
+                    cityComboBox.getSelectionModel().clearSelection();
+                }
+                cityOptions.remove(entityModel);
+            } else if (null != (entityModel = allCities.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null))) {
+                CountryModel currentCountry = selectedCountry.get();
+                if (null != currentCountry && currentCountry.getPrimaryKey() == entityModel.getCountry().getPrimaryKey()) {
+                    cityOptions.add(entityModel);
+                }
+            }
+        }
+    }
+
+    private void onCityDeleted(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityDeleted", event);
+        if (isInShownWindow(this)) {
+            int pk = event.getEntityModel().getPrimaryKey();
+            CityModel entityModel = cityOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            if (null != entityModel) {
+                CityModel currentCity = selectedCity.get();
+                if (null != currentCity && currentCity == entityModel) {
+                    cityComboBox.getSelectionModel().clearSelection();
+                }
+                cityOptions.remove(entityModel);
+                allCities.remove(entityModel);
+            } else {
+                allCities.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> allCities.remove(t));
+            }
+        }
+    }
+
+    private void onAddressDeleteRequest(AddressOpRequestEvent event) {
+        LOG.entering(LOG.getName(), "onAddressDeleteRequest", event);
+        AddressModel currentAddress = selectedAddress.get();
+        if (isInShownWindow(this) && currentAddress.isExisting() && event.getEntityModel().getPrimaryKey() == selectedAddress.get().getPrimaryKey()) {
+            event.setCancelMessage("Cannot delete the current address");
+        }
     }
 
     private class AppointmentFilterItem {
@@ -755,13 +850,15 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             }
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
                 result.getValue1().stream().map((t) -> t.cachedModel(true)).forEach(customerAppointments::add);
+                customerAppointments.sort(AppointmentModel::compareByDates);
             }
             appointmentFilterComboBox.setOnAction(EditCustomer.this::onAppointmentFilterComboBoxAction);
             waitBorderPane.startNow(new AppointmentReloadTask());
             loadData(sameAddr, result.getValue3(), result.getValue4());
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditCustomer.this.onAppointmentAdded));
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditCustomer.this.onAppointmentUpdated));
-            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditCustomer.this.onAppointmentDeleted));
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, appointmentInsertEventHandler.getWeakEventHandler());
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, appointmentUpdateEventHandler.getWeakEventHandler());
+            AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, appointmentDeleteEventHandler.getWeakEventHandler());
+            AddressModel.FACTORY.addEventHandler(AddressOpRequestEvent.DELETE_REQUEST, addressDeleteEventHandler.getWeakEventHandler());
         }
 
         @Override
@@ -864,6 +961,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 result.forEach((t) -> {
                     customerAppointments.add(t.cachedModel(true));
                 });
+                customerAppointments.sort(AppointmentModel::compareByDates);
             }
         }
 

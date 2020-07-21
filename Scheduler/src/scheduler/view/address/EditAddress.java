@@ -2,7 +2,6 @@ package scheduler.view.address;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -22,8 +21,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -48,7 +46,6 @@ import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
 import scheduler.events.AddressEvent;
 import scheduler.events.AddressSuccessEvent;
-import scheduler.events.CityEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
@@ -75,6 +72,7 @@ import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.Triplet;
 import scheduler.util.Tuple;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.EditItem;
 import static scheduler.view.address.EditAddressResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
@@ -142,12 +140,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     //<editor-fold defaultstate="collapsed" desc="Instance Fields">
-    private final EventHandler<CustomerSuccessEvent> onCustomerAdded;
-    private final EventHandler<CustomerSuccessEvent> onCustomerUpdated;
-    private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
-//    private final EventHandler<CitySuccessEvent> onCityInserted;
-    private final NewCityHandler newCityHandler;
-    private WeakEventHandler<CitySuccessEvent> cityWeakEventHandler;
+    private final WeakEventHandlingReference<CustomerSuccessEvent> customerInsertEventHandler;
+    private final WeakEventHandlingReference<CustomerSuccessEvent> customerUpdateEventHandler;
+    private final WeakEventHandlingReference<CustomerSuccessEvent> customerDeleteEventHandler;
+    private final WeakEventHandlingReference<CitySuccessEvent> cityInsertEventHandler;
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
     private final ReadOnlyStringWrapper windowTitle;
@@ -222,7 +218,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
     //</editor-fold>
     public EditAddress() {
-        newCityHandler = new NewCityHandler();
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
@@ -231,34 +226,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         allCities = FXCollections.observableArrayList();
         cityOptions = FXCollections.observableArrayList();
         itemList = FXCollections.observableArrayList();
-        onCustomerAdded = (CustomerSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCustomerAdded", event);
-            CustomerDAO dao = event.getDataAccessObject();
-            if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(dao.cachedModel(true));
-            }
-        };
-        onCustomerUpdated = (CustomerSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCustomerUpdated", event);
-            if (model.getRowState() != DataRowState.NEW) {
-                CustomerDAO dao = event.getDataAccessObject();
-                int pk = dao.getPrimaryKey();
-                CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
-                if (null != m) {
-                    if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
-                        itemList.remove(m);
-                    }
-                } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(dao.cachedModel(true));
-                }
-            }
-        };
-        onCustomerDeleted = (CustomerSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-            CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
-                itemList.remove(t);
-            });
-        };
+        customerInsertEventHandler = WeakEventHandlingReference.create(this::onCustomerInserted);
+        customerUpdateEventHandler = WeakEventHandlingReference.create(this::onCustomerUpdated);
+        customerDeleteEventHandler = WeakEventHandlingReference.create(this::onCustomerDeleted);
+        cityInsertEventHandler = WeakEventHandlingReference.create(this::onCityInserted);
     }
 
     @ModelEditor
@@ -269,9 +240,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         restoreNode(customersTableView);
         restoreNode(newCustomerButtonBar);
         initializeEditMode();
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(onCustomerAdded));
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(onCustomerUpdated));
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
     }
 
     @Override
@@ -339,19 +310,27 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     private void onDelete(CustomerModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                CustomerEvent customerEvent = task.getValue();
-                if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                            ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);
+        CustomerOpRequestEvent deleteRequestEvent = new CustomerOpRequestEvent(item, this, true);
+        Event.fireEvent(item.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
+                    task.setOnSucceeded((e) -> {
+                        CustomerEvent customerEvent = task.getValue();
+                        if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    waitBorderPane.startNow(task);
                 }
             });
-            waitBorderPane.startNow(task);
         }
     }
 
@@ -369,12 +348,11 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private void onNewCityButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
         try {
-            EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false, (m) -> newCityHandler.addTo(m));
+            EditCity.editNew(selectedCountry.get(), getScene().getWindow(), false);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading city edit window", ex);
         }
     }
-
 
     @FXML
     private void onNewCustomerButtonAction(ActionEvent event) {
@@ -607,55 +585,70 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                 }
             }
         }
+        CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
         onShowEditCityControlsChanged(showEditCityControls, false, showEditCityControls.get());
     }
-    private class NewCityHandler implements EventHandler<CityEvent> {
-        
-        private CityModel cityModel;
-        private WeakEventHandler<CityEvent> weakHandler;
-        
-        @Override
-        public synchronized void handle(CityEvent event) {
-            if (null != weakHandler) {
-                cityModel.dataObject().removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, weakHandler);
-                weakHandler = null;
-            }
-            if (event instanceof CitySuccessEvent) {
-                CountryModel oldCountry = selectedCountry.get();
-                CountryModel newCountry;
-                CityModel newCity = event.getEntityModel();
-                allCities.add(newCity);
-                allCities.sort(CityProperties::compare);
-                int pk = cityModel.getCountry().getPrimaryKey();
-                if (null == oldCountry || oldCountry.getPrimaryKey() != pk) {
-                    newCountry = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElseGet(() -> {
-                        PartialCountryModel<? extends PartialCountryDAO> rm = cityModel.getCountry();
-                        if (rm instanceof CountryModel) {
-                            CountryModel nc = (CountryModel) rm;
-                            countryOptions.add(nc);
-                            countryOptions.sort(CountryProperties::compare);
-                            return nc;
-                        }
-                        return null;
-                    });
-                    if (null == newCountry) {
-                        return;
-                    }
-                    countryListView.getSelectionModel().clearSelection();
-                    countryListView.getSelectionModel().select(newCountry);
+
+    private void onCustomerInserted(CustomerSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerAdded", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
+        CustomerDAO dao = event.getDataAccessObject();
+        if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+            itemList.add(dao.cachedModel(true));
+        }
+    }
+
+    private void onCustomerUpdated(CustomerSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerUpdated", event);
+        if (model.getRowState() != DataRowState.NEW) {
+            // FIXME: Use ModelEvent#getEntityModel(), instead
+            CustomerDAO dao = event.getDataAccessObject();
+            int pk = dao.getPrimaryKey();
+            CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            if (null != m) {
+                if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
+                    itemList.remove(m);
                 }
-                cityListView.getSelectionModel().select(cityModel);
+            } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(dao.cachedModel(true));
             }
         }
-        
-        synchronized void addTo(CityModel model) {
-            if (null != weakHandler) {
-                cityModel.dataObject().removeEventHandler(CityEvent.CHANGE_EVENT_TYPE, weakHandler);
+    }
+
+    private void onCustomerDeleted(CustomerSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
+        CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
+            itemList.remove(t);
+        });
+    }
+
+    private void onCityInserted(CitySuccessEvent event) {
+        CityModel cityModel = event.getEntityModel();
+        CountryModel oldCountry = selectedCountry.get();
+        CountryModel newCountry;
+        CityModel newCity = event.getEntityModel();
+        allCities.add(newCity);
+        allCities.sort(CityProperties::compare);
+        int pk = cityModel.getCountry().getPrimaryKey();
+        if (null == oldCountry || oldCountry.getPrimaryKey() != pk) {
+            newCountry = countryOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElseGet(() -> {
+                PartialCountryModel<? extends PartialCountryDAO> rm = cityModel.getCountry();
+                if (rm instanceof CountryModel) {
+                    CountryModel nc = (CountryModel) rm;
+                    countryOptions.add(nc);
+                    countryOptions.sort(CountryProperties::compare);
+                    return nc;
+                }
+                return null;
+            });
+            if (null == newCountry) {
+                return;
             }
-            weakHandler = new WeakEventHandler<>(this);
-            (cityModel = model).dataObject().addEventHandler(CityEvent.CHANGE_EVENT_TYPE, weakHandler);
+            countryListView.getSelectionModel().clearSelection();
+            countryListView.getSelectionModel().select(newCountry);
         }
-        
+        cityListView.getSelectionModel().select(cityModel);
     }
 
     private class GetCountryModelTask extends Task<CountryDAO> {
@@ -704,9 +697,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                     itemList.add(t.cachedModel(true));
                 });
             }
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, new WeakEventHandler<>(EditAddress.this.onCustomerAdded));
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, new WeakEventHandler<>(EditAddress.this.onCustomerUpdated));
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(EditAddress.this.onCustomerDeleted));
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
             super.succeeded();
         }
 

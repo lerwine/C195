@@ -125,6 +125,7 @@ public class AppointmentAlert extends BorderPane {
 
     private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         AppointmentDAO dao = event.getDataAccessObject();
         LocalDateTime start = LocalDateTime.now();
         if (start.compareTo(DateTimeUtil.toLocalDateTime(dao.getEnd())) < 0) {
@@ -150,6 +151,7 @@ public class AppointmentAlert extends BorderPane {
 
     private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         AppointmentDAO dao = event.getDataAccessObject();
         int key = dao.getPrimaryKey();
         FlowPane view = getViewNode(key);
@@ -199,6 +201,7 @@ public class AppointmentAlert extends BorderPane {
 
     private synchronized void onAppointmentDeleted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         AppointmentDAO dao = event.getDataAccessObject();
         int pk = dao.getPrimaryKey();
         if (dismissed.contains(pk)) {

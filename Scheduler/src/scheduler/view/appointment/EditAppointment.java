@@ -39,8 +39,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -99,6 +97,7 @@ import static scheduler.util.NodeUtil.setErrorMessage;
 import static scheduler.util.NodeUtil.setWarningMessage;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.Tuple;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -276,9 +275,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private final ObservableList<CustomerModel> customerModelList;
     private final ObservableList<UserModel> userModelList;
     private final TypeContextController typeContext;
-    private final EventHandler<CustomerSuccessEvent> onCustomerDeleted;
-    private final EventHandler<UserSuccessEvent> onUserDeleted;
-    private EventHandler<WindowEvent> windowCloseEventHandler;
+    private final WeakEventHandlingReference<CustomerSuccessEvent> customerDeleteEventHandler;
+    private final WeakEventHandlingReference<UserSuccessEvent> userDeleteEventHandler;
+    // FIXME: See if this needs deleted or changed
+    private WeakEventHandlingReference<WindowEvent> windowCloseEventHandler;
     private StringBinding normalizedTitleBinding;
     private StringBinding titleValidationMessage;
     private StringBinding normalizedDescriptionBinding;
@@ -419,22 +419,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
-        onCustomerDeleted = (CustomerSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-            if (model.getRowState() != DataRowState.NEW) {
-                CustomerDAO dao = event.getDataAccessObject();
-                int pk = dao.getPrimaryKey();
-                customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
-            }
-        };
-        onUserDeleted = (UserSuccessEvent event) -> {
-            LOG.entering(LOG.getName(), "onUserDeleted", event);
-            if (model.getRowState() != DataRowState.NEW) {
-                UserDAO dao = event.getDataAccessObject();
-                int pk = dao.getPrimaryKey();
-                customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
-            }
-        };
+        customerDeleteEventHandler = WeakEventHandlingReference.create(this::onCustomerDeleted);
+        userDeleteEventHandler = WeakEventHandlingReference.create(this::onUserDeleted);
     }
 
     @ModelEditor
@@ -596,8 +582,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
         InitializationTask task = new InitializationTask();
         waitBorderPane.startNow(task);
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onCustomerDeleted));
-        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, new WeakEventHandler<>(onUserDeleted));
+        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
+        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, userDeleteEventHandler.getWeakEventHandler());
     }
 
     @Override
@@ -696,6 +682,26 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         boolean v = titleValid && contextValid;
         if (v != valid.get()) {
             valid.set(v);
+        }
+    }
+
+    private void onCustomerDeleted(CustomerSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerDeleted", event);
+        if (model.getRowState() != DataRowState.NEW) {
+            // FIXME: Use ModelEvent#getEntityModel(), instead
+            CustomerDAO dao = event.getDataAccessObject();
+            int pk = dao.getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+        }
+    }
+
+    private void onUserDeleted(UserSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onUserDeleted", event);
+        if (model.getRowState() != DataRowState.NEW) {
+            // FIXME: Use ModelEvent#getEntityModel(), instead
+            UserDAO dao = event.getDataAccessObject();
+            int pk = dao.getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
         }
     }
 

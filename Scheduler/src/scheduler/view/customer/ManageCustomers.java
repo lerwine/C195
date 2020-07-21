@@ -2,10 +2,10 @@ package scheduler.view.customer;
 
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
@@ -20,6 +20,7 @@ import scheduler.Scheduler;
 import scheduler.dao.CustomerDAO;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
+import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.Customer;
@@ -163,19 +164,27 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected void onDeleteItem(CustomerModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                CustomerEvent customerEvent = task.getValue();
-                if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                            ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);
+        CustomerOpRequestEvent deleteRequestEvent = new CustomerOpRequestEvent(item, this, true);
+        Event.fireEvent(item.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
+                    task.setOnSucceeded((e) -> {
+                        CustomerEvent customerEvent = task.getValue();
+                        if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    MainController.startBusyTaskNow(task);
                 }
             });
-            MainController.startBusyTaskNow(task);
         }
     }
 

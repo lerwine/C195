@@ -59,7 +59,8 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
     }
 
     @Override
-    protected void onModelSaved(ModelEvent<CityDAO, ? extends EntityModel<CityDAO>> event) {
+    protected void onDaoChanged(ModelEvent<CityDAO, ? extends EntityModel<CityDAO>> event) {
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         CityDAO dao = event.getDataAccessObject();
         name.set(dao.getName());
         PartialCountryModel<? extends PartialCountryDAO> currentCountry = country.get();

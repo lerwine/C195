@@ -46,7 +46,8 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
     }
 
     @Override
-    protected void onModelSaved(ModelEvent<UserDAO, ? extends EntityModel<UserDAO>> event) {
+    protected void onDaoChanged(ModelEvent<UserDAO, ? extends EntityModel<UserDAO>> event) {
+        // FIXME: Use ModelEvent#getEntityModel(), instead
         UserDAO dao = event.getDataAccessObject();
         userName.set(dao.getUserName());
         password.set(dao.getPassword());

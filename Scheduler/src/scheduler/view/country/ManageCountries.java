@@ -2,10 +2,10 @@ package scheduler.view.country;
 
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
@@ -19,6 +19,7 @@ import scheduler.dao.CountryDAO;
 import scheduler.dao.filter.DaoFilter;
 import scheduler.events.CountryEvent;
 import scheduler.events.CountryFailedEvent;
+import scheduler.events.CountryOpRequestEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.fx.MainListingControl;
 import scheduler.model.CountryProperties;
@@ -119,19 +120,27 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected void onDeleteItem(CountryModel item) {
-        Optional<ButtonType> response = AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO);
-        if (response.isPresent() && response.get() == ButtonType.YES) {
-            CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
-            task.setOnSucceeded((e) -> {
-                CountryEvent countryEvent = task.getValue();
-                if (null != countryEvent && countryEvent instanceof CountryFailedEvent) {
-                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                            ((CountryFailedEvent) countryEvent).getMessage(), ButtonType.OK);
+        CountryOpRequestEvent deleteRequestEvent = new CountryOpRequestEvent(item, this, true);
+        Event.fireEvent(item.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
+                    task.setOnSucceeded((e) -> {
+                        CountryEvent countryEvent = task.getValue();
+                        if (null != countryEvent && countryEvent instanceof CountryFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((CountryFailedEvent) countryEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    MainController.startBusyTaskNow(task);
                 }
             });
-            MainController.startBusyTaskNow(task);
         }
     }
 

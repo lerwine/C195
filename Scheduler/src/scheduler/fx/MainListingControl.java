@@ -15,9 +15,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.event.EventType;
-import javafx.event.WeakEventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -35,6 +33,7 @@ import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ViewControllerLoader;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.MainController;
 import scheduler.view.ModelFilter;
 
@@ -100,6 +99,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
     private final ObservableList<M> items;
+    private final WeakEventHandlingReference<S> insertEventHandler;
+    private final WeakEventHandlingReference<S> updateEventHandler;
+    private final WeakEventHandlingReference<S> deleteEventHandler;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -112,52 +114,14 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     @FXML // fx:id="listingTableView"
     private TableView<M> listingTableView; // Value injected by FXMLLoader
-    private final EventHandler<S> onInsertedEvent;
-    private final EventHandler<S> onUpdatedEvent;
-    private final EventHandler<S> onDeletedEvent;
 
-    @SuppressWarnings({ "LeakingThisInConstructor", "unchecked" })
+    @SuppressWarnings({"LeakingThisInConstructor", "unchecked"})
     protected MainListingControl() {
         filter = new SimpleObjectProperty<>();
         items = FXCollections.observableArrayList();
-        onInsertedEvent = (S event) -> {
-            LOG.entering(LOG.getName(), "onInsertedEvent", event);
-            ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
-            if (null != f) {
-                D dao = event.getDataAccessObject();
-                if (f.getDaoFilter().test(dao)) {
-                    items.add((M) dao.cachedModel(true));
-                }
-            }
-        };
-        onUpdatedEvent = (S event) -> {
-            LOG.entering(LOG.getName(), "onUpdatedEvent", event);
-            D dao = event.getDataAccessObject();
-            EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> mf = getModelFactory();
-            if (null != mf) {
-                Optional<M> m = mf.find(items, dao);
-                ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
-                if (null != f) {
-                    if (m.isPresent()) {
-                        if (!f.getDaoFilter().test(dao)) {
-                            items.remove(m.get());
-                        }
-                    } else if (f.getDaoFilter().test(dao)) {
-                        getItems().add((M) dao.cachedModel(true));
-                    }
-                } else {
-                    getItems().add((M) dao.cachedModel(true));
-                }
-            }
-        };
-        onDeletedEvent = (S event) -> {
-            LOG.entering(LOG.getName(), "onDeletedEvent", event);
-            if (!items.isEmpty()) {
-                getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> {
-                    items.remove(t);
-                });
-            }
-        };
+        insertEventHandler = WeakEventHandlingReference.create(this::onItemInserted);
+        updateEventHandler = WeakEventHandlingReference.create(this::onItemUpdated);
+        deleteEventHandler = WeakEventHandlingReference.create(this::onItemDeleted);
         try {
             ViewControllerLoader.initializeCustomControl(this);
         } catch (IOException ex) {
@@ -176,9 +140,9 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         listingTableView.setItems(items);
 
         EntityModel.EntityModelFactory<D, M, E, S> factory = getModelFactory();
-        factory.addEventHandler(getInsertedEventType(), new WeakEventHandler<>(onInsertedEvent));
-        factory.addEventHandler(getUpdatedEventType(), new WeakEventHandler<>(onUpdatedEvent));
-        factory.addEventHandler(getDeletedEventType(), new WeakEventHandler<>(onDeletedEvent));
+        factory.addEventHandler(getInsertedEventType(), insertEventHandler.getWeakEventHandler());
+        factory.addEventHandler(getUpdatedEventType(), updateEventHandler.getWeakEventHandler());
+        factory.addEventHandler(getDeletedEventType(), deleteEventHandler.getWeakEventHandler());
         filter.addListener((observable) -> {
             if (Platform.isFxApplicationThread()) {
                 onFilterChanged(((ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>>) observable).get());
@@ -281,20 +245,16 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
                 restoreLabeled(subHeadingLabel, s);
             }
             Task<List<D>> task = createLoadTask(f);
-            task.setOnSucceeded((event) -> {
-                setItems(task.getValue());
-            });
+            task.setOnSucceeded((event) -> setItems(task.getValue()));
             MainController.startBusyTaskNow(task);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     private void setItems(List<D> daoItems) {
         items.clear();
         if (null != daoItems && !daoItems.isEmpty()) {
-            daoItems.stream().sorted(getComparator()).forEach((D t) -> {
-                items.add((M) t.cachedModel(true));
-            });
+            daoItems.stream().sorted(getComparator()).forEach((D t) -> items.add((M) t.cachedModel(true)));
         }
     }
 
@@ -321,6 +281,48 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
     protected abstract EventType<S> getUpdatedEventType();
 
     protected abstract EventType<S> getDeletedEventType();
+
+    private void onItemInserted(S event) {
+        LOG.entering(LOG.getName(), "onItemInserted", event);
+        ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
+        if (null != f) {
+            // FIXME: Use ModelEvent#getEntityModel(), instead
+            D dao = event.getDataAccessObject();
+            if (f.getDaoFilter().test(dao)) {
+                items.add((M) dao.cachedModel(true));
+            }
+        }
+    }
+
+    private void onItemUpdated(S event) {
+        LOG.entering(LOG.getName(), "onItemUpdated", event);
+        // FIXME: Use ModelEvent#getEntityModel(), instead
+        D dao = event.getDataAccessObject();
+        EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> mf = getModelFactory();
+        if (null != mf) {
+            Optional<M> m = mf.find(items, dao);
+            ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
+            if (null != f) {
+                if (m.isPresent()) {
+                    if (!f.getDaoFilter().test(dao)) {
+                        items.remove(m.get());
+                    }
+                } else if (f.getDaoFilter().test(dao)) {
+                    getItems().add((M) dao.cachedModel(true));
+                }
+            } else {
+                getItems().add((M) dao.cachedModel(true));
+            }
+        }
+    }
+
+    private void onItemDeleted(S event) {
+        LOG.entering(LOG.getName(), "onItemDeleted", event);
+        if (!items.isEmpty()) {
+            // FIXME: Use ModelEvent#getEntityModel(), instead
+            getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> items.remove(t));
+        }
+    }
 
     protected class LoadItemsTask extends Task<List<D>> {
 

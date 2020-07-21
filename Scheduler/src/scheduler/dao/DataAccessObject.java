@@ -189,27 +189,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
     }
 
-//    /**
-//     * Indicates whether the specified property should change current {@link #rowState}. This is invoked when a {@link PropertyChangeEvent} is raised.
-//     *
-//     * @param propertyName The name of the target property.
-//     * @return {@code true} if the property change should change a {@link #rowState} of {@link DataRowState#UNMODIFIED} to {@link DataRowState#MODIFIED}; otherwise, {@code false}
-//     * to leave {@link #rowState} unchanged.
-//     * @deprecated - need more control over row state changes.
-//     */
-//    @Deprecated
-//    protected boolean propertyChangeModifiesState(String propertyName) {
-//        switch (propertyName) {
-//            case PROP_CREATEDATE:
-//            case PROP_CREATEDBY:
-//            case PROP_LASTMODIFIEDBY:
-//            case PROP_LASTMODIFIEDDATE:
-//            case PROP_PRIMARYKEY:
-//            case PROP_ROWSTATE:
-//                return false;
-//        }
-//        return true;
-//    }
     protected synchronized void setModified() {
         UserDAO currentUser = Scheduler.getCurrentUser();
         String oldModifiedby = lastModifiedBy;
@@ -780,7 +759,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+        public final <T extends ModelEvent<D, ? extends EntityModel<D>>> void addEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -791,7 +770,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
+        public final <T extends ModelEvent<D, ? extends EntityModel<D>>> void addEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
@@ -802,7 +781,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+        public final <T extends ModelEvent<D, ? extends EntityModel<D>>> void removeEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -813,7 +792,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
+        public final <T extends ModelEvent<D, ? extends EntityModel<D>>> void removeEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 

@@ -18,7 +18,6 @@ import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
-import javafx.event.WeakEventHandler;
 import javafx.util.Pair;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
@@ -30,6 +29,7 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.LogHelper;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
 
 /**
@@ -59,7 +59,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
     private final T dataObject;
     private final ReadOnlyBooleanBindingProperty newRow;
     private final ReadOnlyBooleanBindingProperty existingInDb;
-    private final EventHandler<ModelEvent<T, ? extends EntityModel<T>>> modelEventHandler;
+    private final WeakEventHandlingReference<? extends ModelEvent<T, ? extends EntityModel<T>>> modelEventHandler;
     private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
     private final ReadOnlyStringWrapper createdBy;
@@ -86,7 +86,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         dataObject = dao;
         newRow = new ReadOnlyBooleanBindingProperty(this, PROP_NEWROW, () -> DataRowState.isNewRow(rowState.get()), rowState);
         existingInDb = new ReadOnlyBooleanBindingProperty(this, PROP_EXISTINGINDB, () -> DataRowState.existsInDb(rowState.get()), rowState);
-        modelEventHandler = this::onModelEvent;
+        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -172,25 +172,25 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
 
     private void onModelEvent(ModelEvent<T, ? extends EntityModel<T>> event) {
         LOG.fine(() -> String.format("Handling %s", event));
-        T dao = event.getDataAccessObject();
-        rowState.set(dao.getRowState());
-        lastModifiedDate.set(DateTimeUtil.toLocalDateTime(dao.getLastModifiedDate()));
-        lastModifiedBy.set(dao.getLastModifiedBy());
+        EntityModel<T> entityModel = event.getEntityModel();
+        rowState.set(entityModel.getRowState());
+        lastModifiedDate.set(entityModel.getLastModifiedDate());
+        lastModifiedBy.set(entityModel.getLastModifiedBy());
         switch (event.getOperation()) {
             case DB_INSERT:
-                primaryKey.set(dao.getPrimaryKey());
-                createDate.set(DateTimeUtil.toLocalDateTime(dao.getCreateDate()));
-                createdBy.set(dao.getCreatedBy());
+                primaryKey.set(entityModel.getPrimaryKey());
+                createDate.set(entityModel.getCreateDate());
+                createdBy.set(entityModel.getCreatedBy());
                 break;
             case DB_UPDATE:
                 break;
             default:
                 return;
         }
-        onModelSaved(event);
+        onDaoChanged(event);
     }
 
-    protected abstract void onModelSaved(ModelEvent<T, ? extends EntityModel<T>> event);
+    protected abstract void onDaoChanged(ModelEvent<T, ? extends EntityModel<T>> event);
 
     /**
      *
@@ -217,7 +217,8 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
 
         public final M createNew(D dao) {
             M result = onCreateNew(dao);
-            dao.addEventFilter(getSuccessEventType(), new WeakEventHandler<>(((EntityModel<D>) result).modelEventHandler));
+            // FIXME: Add event filter for ((EntityModel<D>) result).modelEventHandler.getWeakEventHandler() of type getSuccessEventType()
+            //dao.addEventFilter(getSuccessEventType(), ((EntityModel<D>) result).modelEventHandler.getWeakEventHandler());
             return result;
         }
 
@@ -321,7 +322,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void addEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+        public final <T extends ModelEvent<D, M>> void addEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.addEventHandler(type, eventHandler);
         }
 
@@ -332,7 +333,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void addEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
+        public final <T extends ModelEvent<D, M>> void addEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.addEventFilter(type, eventFilter);
         }
 
@@ -343,7 +344,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
          * @param type The event type.
          * @param eventHandler The event handler.
          */
-        public final <T extends E> void removeEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
+        public final <T extends ModelEvent<D, M>> void removeEventHandler(EventType<T> type, EventHandler<? super T> eventHandler) {
             eventHandlerManager.removeEventHandler(type, eventHandler);
         }
 
@@ -354,7 +355,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
          * @param type The event type.
          * @param eventFilter The event filter.
          */
-        public final <T extends E> void removeEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
+        public final <T extends ModelEvent<D, M>> void removeEventFilter(EventType<T> type, EventHandler<? super T> eventFilter) {
             eventHandlerManager.removeEventFilter(type, eventFilter);
         }
 
