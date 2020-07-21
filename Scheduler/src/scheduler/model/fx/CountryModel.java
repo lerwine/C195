@@ -122,7 +122,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModel.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<CountryDAO, CountryModel> {
 
         // Singleton
         private Factory() {
@@ -133,7 +133,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CountryDAO, CountryEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CountryDAO> getDaoFactory() {
             return CountryDAO.FACTORY;
         }
 
@@ -173,12 +173,12 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel, CountryEvent> createSaveTask(CountryModel model) {
+        public DataAccessObject.SaveDaoTask<CountryDAO, CountryModel> createSaveTask(CountryModel model) {
             return new CountryDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> createDeleteTask(CountryModel model) {
+        public DataAccessObject.DeleteDaoTask<CountryDAO, CountryModel> createDeleteTask(CountryModel model) {
             return new CountryDAO.DeleteTask(model, false);
         }
 

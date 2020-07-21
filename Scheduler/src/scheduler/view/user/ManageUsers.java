@@ -165,7 +165,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel, Us
             if (response == ButtonType.YES) {
                 UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
                 task.setOnSucceeded((event) -> {
-                    UserEvent userEvent = task.getValue();
+                    UserEvent userEvent = (UserEvent) task.getValue();
                     if (userEvent instanceof UserFailedEvent) {
                         scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                 ((UserFailedEvent) userEvent).getMessage(), ButtonType.OK);

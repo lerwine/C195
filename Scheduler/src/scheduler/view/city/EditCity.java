@@ -45,7 +45,6 @@ import scheduler.events.AddressFailedEvent;
 import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
-import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -341,9 +340,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
-                    DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> task = AddressModel.FACTORY.createDeleteTask(target);
+                    DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel> task = AddressModel.FACTORY.createDeleteTask(target);
                     task.setOnSucceeded((e) -> {
-                        AddressEvent addressEvent = task.getValue();
+                        AddressEvent addressEvent = (AddressEvent) task.getValue();
                         if (null != addressEvent && addressEvent instanceof AddressFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((AddressFailedEvent) addressEvent).getMessage(), ButtonType.OK);
@@ -369,7 +368,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     }
 
     @Override
-    public EntityModel.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<CityDAO, CityModel> modelFactory() {
         return CityModel.FACTORY;
     }
 
@@ -442,10 +441,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private void onAddressAdded(AddressSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAddressAdded", event);
         if (model.getRowState() != DataRowState.NEW) {
-            // FIXME: Use ModelEvent#getEntityModel(), instead
-            AddressDAO dao = event.getDataAccessObject();
-            if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                addressItemList.add(dao.cachedModel(true));
+            AddressModel entityModel = event.getEntityModel();
+            if (entityModel.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+                addressItemList.add(entityModel);
             }
         }
     }
@@ -453,26 +451,22 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private void onAddressUpdated(AddressSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAddressUpdated", event);
         if (model.getRowState() != DataRowState.NEW) {
-            // FIXME: Use ModelEvent#getEntityModel(), instead
-            AddressDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
+            AddressModel entityModel = event.getEntityModel();
+            int pk = entityModel.getPrimaryKey();
             AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                if (dao.getCity().getPrimaryKey() != model.getPrimaryKey()) {
+                if (entityModel.getCity().getPrimaryKey() != model.getPrimaryKey()) {
                     addressItemList.remove(m);
                 }
-            } else if (dao.getCity().getPrimaryKey() == model.getPrimaryKey()) {
-                addressItemList.add(dao.cachedModel(true));
+            } else if (entityModel.getCity().getPrimaryKey() == model.getPrimaryKey()) {
+                addressItemList.add(entityModel);
             }
         }
     }
 
     private void onAddressDeleted(AddressSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAddressDeleted", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        AddressModel.FACTORY.find(addressItemList, event.getDataAccessObject()).ifPresent((t) -> {
-            addressItemList.remove(t);
-        });
+        AddressModel.FACTORY.find(addressItemList, event.getEntityModel()).ifPresent(addressItemList::remove);
     }
 
     private void onCountryInserted(CountrySuccessEvent event) {

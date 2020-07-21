@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,7 +138,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         listingTableView.setItems(items);
 
-        EntityModel.EntityModelFactory<D, M, E, S> factory = getModelFactory();
+        EntityModel.EntityModelFactory<D, M> factory = getModelFactory();
         factory.addEventHandler(getInsertedEventType(), insertEventHandler.getWeakEventHandler());
         factory.addEventHandler(getUpdatedEventType(), updateEventHandler.getWeakEventHandler());
         factory.addEventHandler(getDeletedEventType(), deleteEventHandler.getWeakEventHandler());
@@ -264,7 +263,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
     protected abstract Comparator<? super D> getComparator();
 
-    protected abstract EntityModel.EntityModelFactory<D, M, E, S> getModelFactory();
+    protected abstract EntityModel.EntityModelFactory<D, M> getModelFactory();
 
     protected abstract String getLoadingTitle();
 
@@ -286,32 +285,41 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         LOG.entering(LOG.getName(), "onItemInserted", event);
         ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
         if (null != f) {
-            // FIXME: Use ModelEvent#getEntityModel(), instead
-            D dao = event.getDataAccessObject();
-            if (f.getDaoFilter().test(dao)) {
-                items.add((M) dao.cachedModel(true));
+            M entityModel = event.getEntityModel();
+            if (f.test(entityModel)) {
+                items.add(entityModel);
             }
         }
     }
 
     private void onItemUpdated(S event) {
         LOG.entering(LOG.getName(), "onItemUpdated", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        D dao = event.getDataAccessObject();
-        EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> mf = getModelFactory();
+        M entityModel = event.getEntityModel();
+        EntityModel.EntityModelFactory<D, M> mf = getModelFactory();
         if (null != mf) {
-            Optional<M> m = mf.find(items, dao);
+            M m = mf.find(items, entityModel).orElse(null);
             ModelFilter<D, M, ? extends DaoFilter<D>> f = filter.get();
             if (null != f) {
-                if (m.isPresent()) {
-                    if (!f.getDaoFilter().test(dao)) {
-                        items.remove(m.get());
+                if (null != m) {
+                    if (f.test(entityModel)) {
+                        if (m != entityModel) {
+                            items.remove(m);
+                            items.add(entityModel);
+                        }
+                    } else if (m == entityModel) {
+                        items.remove(entityModel);
                     }
-                } else if (f.getDaoFilter().test(dao)) {
-                    getItems().add((M) dao.cachedModel(true));
+                } else if (f.test(entityModel)) {
+                    items.add(entityModel);
                 }
             } else {
-                getItems().add((M) dao.cachedModel(true));
+                items.add(entityModel);
+            }
+            if (null != m) {
+                if (m != entityModel) {
+                    items.remove(m);
+                    items.add(entityModel);
+                }
             }
         }
     }
@@ -319,8 +327,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
     private void onItemDeleted(S event) {
         LOG.entering(LOG.getName(), "onItemDeleted", event);
         if (!items.isEmpty()) {
-            // FIXME: Use ModelEvent#getEntityModel(), instead
-            getModelFactory().find(items, event.getDataAccessObject()).ifPresent((t) -> items.remove(t));
+            getModelFactory().find(items, event.getEntityModel()).ifPresent((t) -> items.remove(t));
         }
     }
 

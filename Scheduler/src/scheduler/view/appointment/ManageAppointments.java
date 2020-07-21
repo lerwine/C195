@@ -483,7 +483,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     }
 
     @Override
-    protected EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> getModelFactory() {
+    protected EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel> getModelFactory() {
         return AppointmentModel.FACTORY;
     }
 
@@ -530,7 +530,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                 if (t == ButtonType.YES) {
                     AppointmentDAO.DeleteTask task = new AppointmentDAO.DeleteTask(item, false);
                     task.setOnSucceeded((e) -> {
-                        AppointmentEvent appointmentEvent = task.getValue();
+                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
                         if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);

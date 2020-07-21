@@ -12,7 +12,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
 import scheduler.dao.DataAccessObject;
-import scheduler.events.ModelEvent;
 import scheduler.events.OperationRequestEvent;
 import scheduler.model.fx.EntityModel;
 
@@ -37,7 +36,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>();
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
-            EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> factory = getFactory();
+            EntityModel.EntityModelFactory<D, M> factory = getFactory();
             if (null != oldValue) {
                 eventHandlerManager.removeEventHandler((EventType<E>) factory.getBaseRequestEventType(), oldValue);
             }
@@ -74,7 +73,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         return new ItemEditTableCell<>(this);
     }
 
-    public abstract EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> getFactory();
+    public abstract EntityModel.EntityModelFactory<D, M> getFactory();
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
@@ -83,8 +82,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Registers a {@link OperationRequestEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Registers a {@link OperationRequestEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.
@@ -94,8 +92,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Registers a {@link OperationRequestEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Registers a {@link OperationRequestEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.
@@ -105,8 +102,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Unregisters a {@link OperationRequestEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Unregisters a {@link OperationRequestEvent} handler in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.
@@ -116,8 +112,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     }
 
     /**
-     * Unregisters a {@link OperationRequestEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this
-     * {@code DaoFactory}.
+     * Unregisters a {@link OperationRequestEvent} filter in the {@code EventHandlerManager} for {@link DataAccessObject} types supported by this {@code DaoFactory}.
      *
      * @param type The event type.
      * @param eventHandler The event handler.

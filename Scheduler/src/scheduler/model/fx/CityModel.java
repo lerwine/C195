@@ -60,7 +60,6 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
 
     @Override
     protected void onDaoChanged(ModelEvent<CityDAO, ? extends EntityModel<CityDAO>> event) {
-        // FIXME: Use ModelEvent#getEntityModel(), instead
         CityDAO dao = event.getDataAccessObject();
         name.set(dao.getName());
         PartialCountryModel<? extends PartialCountryDAO> currentCountry = country.get();
@@ -159,7 +158,7 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModel.EntityModelFactory<CityDAO, CityModel, CityEvent, CitySuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<CityDAO, CityModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -173,7 +172,7 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CityDAO, CityEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CityDAO> getDaoFactory() {
             return CityDAO.FACTORY;
         }
 
@@ -213,12 +212,12 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CityDAO, CityModel, CityEvent> createSaveTask(CityModel model) {
+        public DataAccessObject.SaveDaoTask<CityDAO, CityModel> createSaveTask(CityModel model) {
             return new CityDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel, CityEvent> createDeleteTask(CityModel model) {
+        public DataAccessObject.DeleteDaoTask<CityDAO, CityModel> createDeleteTask(CityModel model) {
             return new CityDAO.DeleteTask(model, false);
         }
 

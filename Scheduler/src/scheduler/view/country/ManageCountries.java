@@ -132,7 +132,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                 if (t == ButtonType.YES) {
                     CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
                     task.setOnSucceeded((e) -> {
-                        CountryEvent countryEvent = task.getValue();
+                        CountryEvent countryEvent = (CountryEvent) task.getValue();
                         if (null != countryEvent && countryEvent instanceof CountryFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((CountryFailedEvent) countryEvent).getMessage(), ButtonType.OK);

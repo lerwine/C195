@@ -39,7 +39,6 @@ import scheduler.events.CityFailedEvent;
 import scheduler.events.CityOpRequestEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
-import scheduler.events.CountrySuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
@@ -302,7 +301,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
                 if (t == ButtonType.YES) {
                     CityDAO.DeleteTask task = new CityDAO.DeleteTask(target, false);
                     task.setOnSucceeded((e) -> {
-                        CityEvent cityEvent = task.getValue();
+                        CityEvent cityEvent = (CityEvent) task.getValue();
                         if (null != cityEvent && cityEvent instanceof CityFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((CityFailedEvent) cityEvent).getMessage(), ButtonType.OK);
@@ -360,7 +359,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     }
 
     @Override
-    public EntityModel.EntityModelFactory<CountryDAO, CountryModel, CountryEvent, CountrySuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<CountryDAO, CountryModel> modelFactory() {
         return CountryModel.FACTORY;
     }
 
@@ -372,13 +371,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     private void onCityAdded(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityAdded", event);
         CityModel m = event.getEntityModel();
-        // FIXME: Use ModelEvent#getEntityModel() is never null
-        if (null == m) {
-            CityDAO dao = event.getDataAccessObject();
-            if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(dao.cachedModel(true));
-            }
-        } else if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+        if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
             itemList.add(m);
         }
     }
@@ -386,18 +379,6 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     private void onCityUpdated(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityUpdated", event);
         CityModel item = event.getEntityModel();
-        // FIXME: Use ModelEvent#getEntityModel() is never null
-        if (null == item) {
-            CityDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
-            item = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
-            if (null == item) {
-                if (dao.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-                    itemList.add(dao.cachedModel(true));
-                }
-                return;
-            }
-        }
         if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
             itemList.remove(item);
         } else if (!itemList.contains(item)) {
@@ -413,10 +394,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
 
     private void onCityDeleted(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityDeleted", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        CityModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
-            itemList.remove(t);
-        });
+        CityModel.FACTORY.find(itemList, event.getEntityModel()).ifPresent(itemList::remove);
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {

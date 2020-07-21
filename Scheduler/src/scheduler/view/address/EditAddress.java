@@ -45,7 +45,6 @@ import scheduler.dao.DataRowState;
 import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
 import scheduler.events.AddressEvent;
-import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CustomerEvent;
 import scheduler.events.CustomerFailedEvent;
@@ -322,7 +321,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                 if (t == ButtonType.YES) {
                     CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
                     task.setOnSucceeded((e) -> {
-                        CustomerEvent customerEvent = task.getValue();
+                        CustomerEvent customerEvent = (CustomerEvent) task.getValue();
                         if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);
@@ -482,7 +481,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     @Override
-    public EntityModel.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<AddressDAO, AddressModel> modelFactory() {
         return AddressModel.FACTORY;
     }
 
@@ -591,36 +590,31 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
     private void onCustomerInserted(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerAdded", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        CustomerDAO dao = event.getDataAccessObject();
-        if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-            itemList.add(dao.cachedModel(true));
+        CustomerModel entityModel = event.getEntityModel();
+        if (entityModel.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+            itemList.add(entityModel);
         }
     }
 
     private void onCustomerUpdated(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerUpdated", event);
         if (model.getRowState() != DataRowState.NEW) {
-            // FIXME: Use ModelEvent#getEntityModel(), instead
-            CustomerDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
+            CustomerModel entityModel = event.getEntityModel();
+            int pk = entityModel.getPrimaryKey();
             CustomerModel m = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
             if (null != m) {
-                if (dao.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
+                if (entityModel.getAddress().getPrimaryKey() != model.getPrimaryKey()) {
                     itemList.remove(m);
                 }
-            } else if (dao.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
-                itemList.add(dao.cachedModel(true));
+            } else if (entityModel.getAddress().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(entityModel);
             }
         }
     }
 
     private void onCustomerDeleted(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        CustomerModel.FACTORY.find(itemList, event.getDataAccessObject()).ifPresent((t) -> {
-            itemList.remove(t);
-        });
+        CustomerModel.FACTORY.find(itemList, event.getEntityModel()).ifPresent(itemList::remove);
     }
 
     private void onCityInserted(CitySuccessEvent event) {

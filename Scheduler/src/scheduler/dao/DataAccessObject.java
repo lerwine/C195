@@ -323,12 +323,12 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
     private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
 
-        private final DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModel<T>>> factory;
+        private final DaoFactory<T> factory;
         private final DaoFilter<T> filter;
         private final Consumer<List<T>> onSuccess;
         private final Consumer<Throwable> onFail;
 
-        LoadTask(DaoFactory<T, ? extends ModelEvent<T, ? extends EntityModel<T>>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess,
+        LoadTask(DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess,
                 Consumer<Throwable> onFail) {
             updateTitle(filter.getLoadingTitle());
             this.factory = Objects.requireNonNull(factory);
@@ -487,9 +487,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      * will only ever be one instance of a {@link DataAccessObject} for each record in the database.
      *
      * @param <D> The type of {@link DataAccessObject} object supported.
-     * @param <E> The {@link ModelEvent} type.
      */
-    public static abstract class DaoFactory<D extends DataAccessObject, E extends ModelEvent<D, ? extends EntityModel<D>>>
+    public static abstract class DaoFactory<D extends DataAccessObject>
             implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
@@ -804,9 +803,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      *
      * @param <D> The target {@link DataAccessObject} type.
      * @param <M> The associated {@link EntityModel} type.
-     * @param <E> The result {@link ModelEvent} type.
      */
-    public static abstract class DaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>> extends Task<E> {
+    public static abstract class DaoTask<D extends DataAccessObject, M extends EntityModel<D>> extends Task<ModelEvent<D, M>> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DaoTask.class.getName());
@@ -883,11 +881,11 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @return The {@link ModelEvent} for a successful task completion. This should never return a {@code null} value.
          * @throws Exception if an un-handled exception occurred during the task operation.
          */
-        protected abstract E call(Connection connection) throws Exception;
+        protected abstract ModelEvent<D, M> call(Connection connection) throws Exception;
 
         @Override
         @SuppressWarnings("try")
-        protected E call() throws Exception {
+        protected ModelEvent<D, M> call() throws Exception {
             if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
                 throw new IllegalStateException("Row state has changed");
             }
@@ -899,7 +897,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 }
                 try (ChangeEventDeferral eventDeferral = ((DataAccessObject) dataAccessObject.get()).deferChangeEvents()) {
                     synchronized (dataAccessObject) {
-                        E event = call(dbConnector.getConnection());
+                        ModelEvent<D, M> event = call(dbConnector.getConnection());
                         if (null == event && !isCancelled()) {
                             throw new NullPointerException("No result event was produced");
                         }
@@ -914,19 +912,19 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @return A {@link ModelEvent} representing a cancellation or {@code null} if no event will be produced for the cancellation.
          */
-        protected abstract E createCanceledEvent();
+        protected abstract ModelEvent<D, M> createCanceledEvent();
 
         /**
          * This gets called to create the {@link #finalEvent} when the task has failed.
          *
          * @return A {@link ModelEvent} representing a failure or {@code null} if no event will be produced for that failure.
          */
-        protected abstract E createFaultedEvent();
+        protected abstract ModelEvent<D, M> createFaultedEvent();
 
         @Override
         protected void cancelled() {
             super.cancelled();
-            E event = createCanceledEvent();
+            ModelEvent<D, M> event = createCanceledEvent();
             if (null != event) {
 //                try {
 //                    finalEvent.set(event);
@@ -940,7 +938,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         @Override
         protected void failed() {
             super.failed();
-            E event = createFaultedEvent();
+            ModelEvent<D, M> event = createFaultedEvent();
             if (null != event) {
 //                try {
 //                    finalEvent.set(event);
@@ -954,7 +952,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         @Override
         protected void succeeded() {
             super.succeeded();
-            E event = getValue();
+            ModelEvent<D, M> event = getValue();
             if (null != event) {
                 LOG.fine(() -> String.format("Succeeded with %s", event));
 //                try {
@@ -976,16 +974,15 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      *
      * @param <D> The type of the target {@link DataAccessObject}.
      * @param <M> The type of associated {@link EntityModel}, if applicable.
-     * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>>
-            extends DaoTask<D, M, E> {
+    public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
+            extends DaoTask<D, M> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
-        private final ReadOnlyObjectWrapper<DaoFactory<D, E>> daoFactory;
-        private final ReadOnlyObjectWrapper<EntityModel.EntityModelFactory<D, M, E, ? extends E>> modelFactory;
+        private final ReadOnlyObjectWrapper<DaoFactory<D>> daoFactory;
+        private final ReadOnlyObjectWrapper<EntityModel.EntityModelFactory<D, M>> modelFactory;
         private boolean validationSuccessful;
         private final ReadOnlyBooleanWrapper validationFailed;
 
@@ -997,7 +994,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @param skipValidation {@code true} to skip validation for the target {@link DataAccessObject}; otherwise, {@code false} to invoke {@link #validate(Connection)} to
          * perform validation.
          */
-        protected ValidatingDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
+        protected ValidatingDaoTask(M target, EntityModel.EntityModelFactory<D, M> modelFactory, boolean skipValidation) {
             super(target);
             daoFactory = new ReadOnlyObjectWrapper<>(modelFactory.getDaoFactory());
             this.modelFactory = new ReadOnlyObjectWrapper<>(modelFactory);
@@ -1023,11 +1020,11 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @return The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
          */
-        public DaoFactory<D, E> getDaoFactory() {
+        public DaoFactory<D> getDaoFactory() {
             return daoFactory.get();
         }
 
-        public ReadOnlyObjectProperty<DaoFactory<D, E>> daoFactoryProperty() {
+        public ReadOnlyObjectProperty<DaoFactory<D>> daoFactoryProperty() {
             return daoFactory.getReadOnlyProperty();
         }
 
@@ -1037,20 +1034,20 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @return The {@link EntityModelImpl.EntityModelFactory} associated with the source {@link EntityModel} type or {@code null} if a {@link EntityModel} was not specified in
          * the constructor.
          */
-        public EntityModel.EntityModelFactory<D, M, E, ? extends E> getModelFactory() {
+        public EntityModel.EntityModelFactory<D, M> getModelFactory() {
             return modelFactory.get();
         }
 
-        public ReadOnlyObjectProperty<EntityModel.EntityModelFactory<D, M, E, ? extends E>> modelFactoryProperty() {
+        public ReadOnlyObjectProperty<EntityModel.EntityModelFactory<D, M>> modelFactoryProperty() {
             return modelFactory.getReadOnlyProperty();
         }
 
         @Override
-        protected final E call(Connection connection) throws Exception {
+        protected final ModelEvent<D, M> call(Connection connection) throws Exception {
             LOG.entering(LOG.getName(), "call", connection);
             if (!validationSuccessful) {
                 LOG.fine("Validating");
-                E event = validate(connection);
+                ModelEvent<D, M> event = validate(connection);
                 if (null != event && event instanceof ModelFailedEvent) {
                     LOG.fine(() -> String.format("Validation failed: %s", event));
                     return event;
@@ -1068,7 +1065,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @return The validation event, which can be {@code null} if the target {@link DataAccessObject} is valid.
          * @throws Exception if unable to perform validation.
          */
-        protected abstract E validate(Connection connection) throws Exception;
+        protected abstract ModelEvent<D, M> validate(Connection connection) throws Exception;
 
         /**
          * This gets called after validation is successful.
@@ -1077,7 +1074,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @return A {@link ModelEvent} which will become the {@link DaoTask#finalEvent}, indicating successful completion. This should never return a {@code null} value.
          * @throws Exception if unable to complete the operation.
          */
-        protected abstract E onValidated(Connection connection) throws Exception;
+        protected abstract ModelEvent<D, M> onValidated(Connection connection) throws Exception;
 
     }
 
@@ -1089,10 +1086,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
      * @param <M> The type of associated {@link EntityModel}, if applicable.
-     * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>>
-            extends ValidatingDaoTask<D, M, E> {
+    public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
+            extends ValidatingDaoTask<D, M> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
@@ -1106,7 +1102,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * perform validation.
          * @throws IllegalArgumentException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED}.
          */
-        protected SaveDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
+        protected SaveDaoTask(M target, EntityModel.EntityModelFactory<D, M> modelFactory, boolean skipValidation) {
             super(target, modelFactory, skipValidation);
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
@@ -1114,9 +1110,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         @Override
-        protected final E onValidated(Connection connection) throws Exception {
+        protected final ModelEvent<D, M> onValidated(Connection connection) throws Exception {
             D dao = getDataAccessObject();
-            DaoFactory<D, E> factory = getDaoFactory();
+            DaoFactory<D> factory = getDaoFactory();
             DataAccessObject dataObj = (DataAccessObject) dao;
             Timestamp timeStamp = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
             StringBuilder sb = new StringBuilder();
@@ -1237,7 +1233,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         @Override
         protected void succeeded() {
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
-            E event = getValue();
+            ModelEvent<D, M> event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
             if (event instanceof ModelFailedEvent) {
                 obj.rejectChanges();
@@ -1254,7 +1250,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @return A {@link ModelEvent} object that represents a successful deletion. This should never return a {@code null} value.
          */
-        protected abstract E createSuccessEvent();
+        protected abstract ModelEvent<D, M> createSuccessEvent();
 
         @Override
         protected void cancelled() {
@@ -1278,10 +1274,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      *
      * @param <D> The type of the target {@link DataAccessObject} to be saved.
      * @param <M> The type of associated {@link EntityModel}, if applicable.
-     * @param <E> The type of result {@link ModelEvent} produced by this task.
      */
-    public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>>
-            extends ValidatingDaoTask<D, M, E> {
+    public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
+            extends ValidatingDaoTask<D, M> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteDaoTask.class.getName());
@@ -1296,7 +1291,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @throws IllegalStateException if {@link DataAccessObject#rowState} for the {@code fxRecordModel} is {@link DataRowState#DELETED} or {@link DataRowState#NEW}.
          */
         @SuppressWarnings("incomplete-switch")
-        protected DeleteDaoTask(M target, EntityModel.EntityModelFactory<D, M, E, ? extends E> modelFactory, boolean skipValidation) {
+        protected DeleteDaoTask(M target, EntityModel.EntityModelFactory<D, M> modelFactory, boolean skipValidation) {
             super(target, modelFactory, skipValidation);
             switch (getOriginalRowState()) {
                 case DELETED:
@@ -1307,9 +1302,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         @Override
-        protected E onValidated(Connection connection) throws Exception {
+        protected ModelEvent<D, M> onValidated(Connection connection) throws Exception {
             D dao = getDataAccessObject();
-            DaoFactory<D, E> factory = getDaoFactory();
+            DaoFactory<D> factory = getDaoFactory();
             StringBuilder sb = new StringBuilder("DELETE FROM ");
             sb.append(factory.getDbTable().getDbName()).append(" WHERE ").append(factory.getPrimaryKeyColumn().getDbName()).append("=?");
             String sql = sb.toString();
@@ -1332,12 +1327,12 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @return A {@link ModelEvent} object that represents a successful deletion. This should never return a {@code null} value.
          */
-        protected abstract E createSuccessEvent();
+        protected abstract ModelEvent<D, M> createSuccessEvent();
 
         @Override
         protected void succeeded() {
             DataAccessObject obj = (DataAccessObject) getDataAccessObject();
-            E event = getValue();
+            ModelEvent<D, M> event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
             if (event instanceof ModelFailedEvent) {
                 obj.rejectChanges();

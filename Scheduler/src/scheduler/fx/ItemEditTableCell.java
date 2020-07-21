@@ -33,7 +33,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends Entit
 //    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
     private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
-    private final EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>, ? extends ModelEvent<D, M>> modelFactory;
+    private final EntityModel.EntityModelFactory<D, M> modelFactory;
     private final HBox graphic;
     private final ObjectProperty<EventHandler<E>> onItemActionRequest;
     private final WeakReference<? extends ItemEditTableCellFactory<D, M, ? extends OperationRequestEvent<D, M>>> cellFactory;

@@ -236,7 +236,6 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
 
     @Override
     protected void onDaoChanged(ModelEvent<AppointmentDAO, ? extends EntityModel<AppointmentDAO>> event) {
-        // FIXME: Use ModelEvent#getEntityModel(), instead
         AppointmentDAO dao = event.getDataAccessObject();
         PartialCustomerModel<? extends PartialCustomerDAO> currentCustomer = customer.get();
         PartialCustomerDAO newCustomer = dao.getCustomer();
@@ -676,7 +675,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, AppointmentSuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel> {
 
         private Factory() {
             super();
@@ -686,7 +685,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         @Override
-        public DataAccessObject.DaoFactory<AppointmentDAO, AppointmentEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<AppointmentDAO> getDaoFactory() {
             return AppointmentDAO.FACTORY;
         }
 
@@ -706,12 +705,12 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createSaveTask(AppointmentModel model) {
+        public DataAccessObject.SaveDaoTask<AppointmentDAO, AppointmentModel> createSaveTask(AppointmentModel model) {
             return new AppointmentDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> createDeleteTask(AppointmentModel model) {
+        public DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> createDeleteTask(AppointmentModel model) {
             return new AppointmentDAO.DeleteTask(model, false);
         }
 

@@ -1,7 +1,6 @@
 package scheduler.fx;
 
 import java.util.Locale;
-
 import javafx.scene.control.ListCell;
 import scheduler.model.CountryProperties;
 

@@ -201,7 +201,6 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
 
     @Override
     protected void onDaoChanged(ModelEvent<AddressDAO, ? extends EntityModel<AddressDAO>> event) {
-        // FIXME: Use ModelEvent#getEntityModel(), instead
         AddressDAO dao = event.getDataAccessObject();
         address1.set(dao.getAddress1());
         address2.set(dao.getAddress2());
@@ -387,7 +386,7 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModel.EntityModelFactory<AddressDAO, AddressModel, AddressEvent, AddressSuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<AddressDAO, AddressModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -401,7 +400,7 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
         }
 
         @Override
-        public DataAccessObject.DaoFactory<AddressDAO, AddressEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<AddressDAO> getDaoFactory() {
             return AddressDAO.FACTORY;
         }
 
@@ -441,12 +440,12 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel, AddressEvent> createSaveTask(AddressModel model) {
+        public DataAccessObject.SaveDaoTask<AddressDAO, AddressModel> createSaveTask(AddressModel model) {
             return new AddressDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> createDeleteTask(AddressModel model) {
+        public DataAccessObject.DeleteDaoTask<AddressDAO, AddressModel> createDeleteTask(AddressModel model) {
             return new AddressDAO.DeleteTask(model, false);
         }
 

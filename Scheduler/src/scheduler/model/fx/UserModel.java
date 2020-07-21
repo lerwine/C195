@@ -47,7 +47,6 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
 
     @Override
     protected void onDaoChanged(ModelEvent<UserDAO, ? extends EntityModel<UserDAO>> event) {
-        // FIXME: Use ModelEvent#getEntityModel(), instead
         UserDAO dao = event.getDataAccessObject();
         userName.set(dao.getUserName());
         password.set(dao.getPassword());
@@ -159,7 +158,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModel.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<UserDAO, UserModel> {
 
         // Singleton
         private Factory() {
@@ -170,7 +169,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
         }
 
         @Override
-        public DataAccessObject.DaoFactory<UserDAO, UserEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<UserDAO> getDaoFactory() {
             return UserDAO.FACTORY;
         }
 
@@ -190,12 +189,12 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<UserDAO, UserModel, UserEvent> createSaveTask(UserModel model) {
+        public DataAccessObject.SaveDaoTask<UserDAO, UserModel> createSaveTask(UserModel model) {
             return new UserDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<UserDAO, UserModel, UserEvent> createDeleteTask(UserModel model) {
+        public DataAccessObject.DeleteDaoTask<UserDAO, UserModel> createDeleteTask(UserModel model) {
             return new UserDAO.DeleteTask(model, false);
         }
 

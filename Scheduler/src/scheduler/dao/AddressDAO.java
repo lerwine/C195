@@ -314,7 +314,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     /**
      * Factory implementation for {@link AddressDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO, AddressEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -530,7 +530,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
     }
 
-    public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel, AddressEvent> {
+    public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -630,7 +630,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                     case MODIFIED:
                         CityDAO.SaveTask saveTask = new CityDAO.SaveTask((CityModel) cityModel, false);
                         saveTask.run();
-                        CityEvent event = saveTask.get();
+                        CityEvent event = (CityEvent) saveTask.get();
                         if (null != event && event instanceof CityFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
                                 return AddressEvent.createInsertInvalidEvent(targetModel, this, (CityFailedEvent) event);
@@ -672,7 +672,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         @Override
         protected void succeeded() {
-            AddressEvent event = getValue();
+            AddressEvent event = (AddressEvent) getValue();
             if (null != event && event instanceof AddressSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
@@ -681,7 +681,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel, AddressEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -733,7 +733,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         @Override
         protected void succeeded() {
-            AddressEvent event = getValue();
+            AddressEvent event = (AddressEvent) getValue();
             if (null != event && event instanceof AddressSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }

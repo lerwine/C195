@@ -49,7 +49,6 @@ import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.UserEvent;
-import scheduler.events.UserSuccessEvent;
 import scheduler.model.UserStatus;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.EntityModel;
@@ -275,9 +274,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
-                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(target);
                     task.setOnSucceeded((e) -> {
-                        AppointmentEvent appointmentEvent = task.getValue();
+                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
                         if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
@@ -457,7 +456,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     //</editor-fold>
     @Override
-    public EntityModel.EntityModelFactory<UserDAO, UserModel, UserEvent, UserSuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<UserDAO, UserModel> modelFactory() {
         return UserModel.FACTORY;
     }
 

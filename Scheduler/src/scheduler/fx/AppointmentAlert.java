@@ -125,15 +125,14 @@ public class AppointmentAlert extends BorderPane {
 
     private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        AppointmentDAO dao = event.getDataAccessObject();
+        AppointmentModel entityModel = event.getEntityModel();
         LocalDateTime start = LocalDateTime.now();
-        if (start.compareTo(DateTimeUtil.toLocalDateTime(dao.getEnd())) < 0) {
+        if (start.compareTo(entityModel.getEnd()) < 0) {
             LocalDateTime end = start.plusMinutes(alertLeadtime);
-            if (end.compareTo(DateTimeUtil.toLocalDateTime(dao.getStart())) >= 0) {
+            if (end.compareTo(entityModel.getStart()) >= 0) {
                 ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
                 Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
-                Stream.concat(stream, Stream.of(dao.cachedModel(true))).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
+                Stream.concat(stream, Stream.of(entityModel)).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
                     int index = -1;
 
                     @Override
@@ -151,15 +150,14 @@ public class AppointmentAlert extends BorderPane {
 
     private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        AppointmentDAO dao = event.getDataAccessObject();
-        int key = dao.getPrimaryKey();
+        AppointmentModel entityModel = event.getEntityModel();
+        int key = entityModel.getPrimaryKey();
         FlowPane view = getViewNode(key);
         ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
         LocalDateTime start = LocalDateTime.now();
         AppointmentModel item;
         if (null == view) {
-            item = dao.cachedModel(true);
+            item = entityModel;
         } else {
             item = (AppointmentModel) view.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL);
         }
@@ -201,9 +199,8 @@ public class AppointmentAlert extends BorderPane {
 
     private synchronized void onAppointmentDeleted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
-        // FIXME: Use ModelEvent#getEntityModel(), instead
-        AppointmentDAO dao = event.getDataAccessObject();
-        int pk = dao.getPrimaryKey();
+        AppointmentModel entityModel = event.getEntityModel();
+        int pk = entityModel.getPrimaryKey();
         if (dismissed.contains(pk)) {
             dismissed.remove(pk);
         } else {

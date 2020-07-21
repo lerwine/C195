@@ -227,7 +227,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
     /**
      * Factory implementation for {@link CityDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO, CityEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -426,7 +426,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
     }
 
-    public static class SaveTask extends SaveDaoTask<CityDAO, CityModel, CityEvent> {
+    public static class SaveTask extends SaveDaoTask<CityDAO, CityModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -498,7 +498,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                     case MODIFIED:
                         CountryDAO.SaveTask saveTask = new CountryDAO.SaveTask((CountryModel) c, false);
                         saveTask.run();
-                        CountryEvent event = saveTask.get();
+                        CountryEvent event = (CountryEvent) saveTask.get();
                         if (null != event && event instanceof CountryFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
                                 return CityEvent.createInsertInvalidEvent(targetModel, this, (CountryFailedEvent) event);
@@ -540,7 +540,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         @Override
         protected void succeeded() {
-            CityEvent event = getValue();
+            CityEvent event = (CityEvent) getValue();
             if (null != event && event instanceof CitySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
@@ -549,7 +549,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<CityDAO, CityModel, CityEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CityDAO, CityModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -599,7 +599,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         @Override
         protected void succeeded() {
-            CityEvent event = getValue();
+            CityEvent event = (CityEvent) getValue();
             if (null != event && event instanceof CitySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }

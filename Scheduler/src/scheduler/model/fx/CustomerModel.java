@@ -76,7 +76,6 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
 
     @Override
     protected void onDaoChanged(ModelEvent<CustomerDAO, ? extends EntityModel<CustomerDAO>> event) {
-        // FIXME: Use ModelEvent#getEntityModel(), instead
         CustomerDAO dao = event.getDataAccessObject();
         name.set(dao.getName());
         PartialAddressModel<? extends PartialAddressDAO> currentAddress = address.get();
@@ -271,7 +270,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
                 .addString(lastModifiedByProperty());
     }
 
-    public final static class Factory extends EntityModel.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> {
+    public final static class Factory extends EntityModel.EntityModelFactory<CustomerDAO, CustomerModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
@@ -284,7 +283,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CustomerDAO> getDaoFactory() {
             return CustomerDAO.FACTORY;
         }
 
@@ -304,12 +303,12 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         }
 
         @Override
-        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createSaveTask(CustomerModel model) {
+        public DataAccessObject.SaveDaoTask<CustomerDAO, CustomerModel> createSaveTask(CustomerModel model) {
             return new CustomerDAO.SaveTask(model, false);
         }
 
         @Override
-        public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> createDeleteTask(CustomerModel model) {
+        public DataAccessObject.DeleteDaoTask<CustomerDAO, CustomerModel> createDeleteTask(CustomerModel model) {
             return new CustomerDAO.DeleteTask(model, false);
         }
 

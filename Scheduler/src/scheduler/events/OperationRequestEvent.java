@@ -170,6 +170,7 @@ public abstract class OperationRequestEvent<D extends DataAccessObject, M extend
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public synchronized Event copyFor(Object newSource, EventTarget newTarget) {
         Event result = super.copyFor(newSource, newTarget);
         ((OperationRequestEvent<D, M>)result).state = state;

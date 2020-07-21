@@ -632,7 +632,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     /**
      * Factory implementation for {@link AppointmentDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO, AppointmentEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -1039,7 +1039,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     }
 
-    public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public static class SaveTask extends SaveDaoTask<AppointmentDAO, AppointmentModel> {
 
         public SaveTask(AppointmentModel model, boolean alreadyValidated) {
             super(model, AppointmentModel.FACTORY, alreadyValidated);
@@ -1071,7 +1071,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     case MODIFIED:
                         CustomerDAO.SaveTask saveTask = new CustomerDAO.SaveTask((CustomerModel) c, false);
                         saveTask.run();
-                        CustomerEvent customerEvent = saveTask.get();
+                        CustomerEvent customerEvent = (CustomerEvent) saveTask.get();
                         if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
                                 return AppointmentEvent.createInsertInvalidEvent(targetModel, this, (CustomerFailedEvent) customerEvent);
@@ -1090,7 +1090,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     case MODIFIED:
                         UserDAO.SaveTask saveTask = new UserDAO.SaveTask((UserModel) u, false);
                         saveTask.run();
-                        UserEvent userEvent = saveTask.get();
+                        UserEvent userEvent = (UserEvent) saveTask.get();
                         if (null != userEvent && userEvent instanceof UserFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
                                 return AppointmentEvent.createInsertInvalidEvent(targetModel, this, (UserFailedEvent) userEvent);
@@ -1132,7 +1132,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected void succeeded() {
-            AppointmentEvent event = getValue();
+            AppointmentEvent event = (AppointmentEvent) getValue();
             if (null != event && event instanceof AppointmentSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
@@ -1141,7 +1141,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<AppointmentDAO, AppointmentModel> {
 
         public DeleteTask(AppointmentModel target, boolean alreadyValidated) {
             super(target, AppointmentModel.FACTORY, alreadyValidated);
@@ -1169,7 +1169,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected void succeeded() {
-            AppointmentEvent event = getValue();
+            AppointmentEvent event = (AppointmentEvent) getValue();
             if (null != event && event instanceof AppointmentSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }

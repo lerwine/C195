@@ -190,7 +190,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
     /**
      * Factory implementation for {@link CountryDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO, CountryEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -334,7 +334,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
     }
 
-    public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel, CountryEvent> {
+    public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -417,7 +417,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         @Override
         protected void succeeded() {
-            CountryEvent event = getValue();
+            CountryEvent event = (CountryEvent) getValue();
             if (null != event && event instanceof CountrySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
@@ -426,7 +426,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel, CountryEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -475,7 +475,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         @Override
         protected void succeeded() {
-            CountryEvent event = getValue();
+            CountryEvent event = (CountryEvent) getValue();
             if (null != event && event instanceof CountrySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }

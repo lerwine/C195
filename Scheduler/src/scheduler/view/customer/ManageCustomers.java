@@ -176,7 +176,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                 if (t == ButtonType.YES) {
                     CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
                     task.setOnSucceeded((e) -> {
-                        CustomerEvent customerEvent = task.getValue();
+                        CustomerEvent customerEvent = (CustomerEvent) task.getValue();
                         if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((CustomerFailedEvent) customerEvent).getMessage(), ButtonType.OK);

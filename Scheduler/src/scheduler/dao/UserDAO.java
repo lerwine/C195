@@ -214,7 +214,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
     /**
      * Factory implementation for {@link UserDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO, UserEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -355,7 +355,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         }
     }
 
-    public static class SaveTask extends SaveDaoTask<UserDAO, UserModel, UserEvent> {
+    public static class SaveTask extends SaveDaoTask<UserDAO, UserModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -440,7 +440,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected void succeeded() {
-            UserEvent event = getValue();
+            UserEvent event = (UserEvent) getValue();
             if (null != event && event instanceof UserSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
@@ -449,7 +449,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<UserDAO, UserModel, UserEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<UserDAO, UserModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -505,7 +505,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected void succeeded() {
-            UserEvent event = getValue();
+            UserEvent event = (UserEvent) getValue();
             if (null != event && event instanceof UserSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }

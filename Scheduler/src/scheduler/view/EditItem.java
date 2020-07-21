@@ -268,9 +268,9 @@ public final class EditItem<
                     resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
                     .ifPresent((t) -> {
                         if (t == ButtonType.YES) {
-                            DataAccessObject.DeleteDaoTask<T, U, E> task = editorRegion.modelFactory().createDeleteTask(model);
+                            DataAccessObject.DeleteDaoTask<T, U> task = editorRegion.modelFactory().createDeleteTask(model);
                             task.setOnSucceeded((e) -> {
-                                E result = task.getValue();
+                                ModelEvent<T, U> result = task.getValue();
                                 if (result instanceof ModelFailedEvent) {
                                     scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
                                 } else {
@@ -288,9 +288,9 @@ public final class EditItem<
     void onSaveButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onSaveButtonAction", event);
         editorRegion.applyChanges();
-        DataAccessObject.SaveDaoTask<T, U, E> task = editorRegion.modelFactory().createSaveTask(model);
+        DataAccessObject.SaveDaoTask<T, U> task = editorRegion.modelFactory().createSaveTask(model);
         task.setOnSucceeded((e) -> {
-            E modelEvent = task.getValue();
+            ModelEvent<T, U> modelEvent = task.getValue();
             if (modelEvent instanceof ModelFailedEvent) {
                 scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
             } else {
@@ -387,7 +387,7 @@ public final class EditItem<
          *
          * @return The factory object for managing the current {@link EntityModel}.
          */
-        EntityModel.EntityModelFactory<T, U, E, ? extends E> modelFactory();
+        EntityModel.EntityModelFactory<T, U> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.

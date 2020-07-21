@@ -587,7 +587,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @Override
-    public EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel, AppointmentEvent, ? extends AppointmentEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel> modelFactory() {
         return AppointmentModel.FACTORY;
     }
 
@@ -688,20 +688,16 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private void onCustomerDeleted(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
-            // FIXME: Use ModelEvent#getEntityModel(), instead
-            CustomerDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+            int pk = event.getEntityModel().getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent(customerModelList::remove);
         }
     }
 
     private void onUserDeleted(UserSuccessEvent event) {
         LOG.entering(LOG.getName(), "onUserDeleted", event);
         if (model.getRowState() != DataRowState.NEW) {
-            // FIXME: Use ModelEvent#getEntityModel(), instead
-            UserDAO dao = event.getDataAccessObject();
-            int pk = dao.getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> customerModelList.remove(t));
+            int pk = event.getEntityModel().getPrimaryKey();
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent(customerModelList::remove);
         }
     }
 

@@ -196,10 +196,8 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
      *
      * @param <D> The {@link DataAccessObject} type
      * @param <M> The {@link EntityModel} type.
-     * @param <E> The base {@link ModelEvent} type.
-     * @param <S> The success {@link ModelEvent} type.
      */
-    public static abstract class EntityModelFactory<D extends DataAccessObject, M extends EntityModel<D>, E extends ModelEvent<D, M>, S extends E>
+    public static abstract class EntityModelFactory<D extends DataAccessObject, M extends EntityModel<D>>
             implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelFactory.class.getName()), Level.FINER);
@@ -211,7 +209,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
             eventHandlerManager = new EventHandlerManager(this);
         }
 
-        public abstract DataAccessObject.DaoFactory<D, E> getDaoFactory();
+        public abstract DataAccessObject.DaoFactory<D> getDaoFactory();
 
         protected abstract M onCreateNew(D dao);
 
@@ -291,9 +289,10 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
             return Optional.empty();
         }
 
-        public abstract Class<E> getModelEventClass();
+        // FIXME: Clarify class name to signify it's for crud operation results, not request
+        public abstract Class<? extends ModelEvent<D, M>> getModelEventClass();
 
-        public abstract EventType<S> getSuccessEventType();
+        public abstract EventType<? extends ModelEvent<D, M>> getSuccessEventType();
 
         public abstract EventType<? extends OperationRequestEvent<D, M>> getBaseRequestEventType();
 
@@ -305,9 +304,9 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
 
         public abstract OperationRequestEvent<D, M> createDeleteRequestEvent(M model, Object source);
 
-        public abstract DataAccessObject.SaveDaoTask<D, M, E> createSaveTask(M model);
+        public abstract DataAccessObject.SaveDaoTask<D, M> createSaveTask(M model);
 
-        public abstract DataAccessObject.DeleteDaoTask<D, M, E> createDeleteTask(M model);
+        public abstract DataAccessObject.DeleteDaoTask<D, M> createDeleteTask(M model);
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {

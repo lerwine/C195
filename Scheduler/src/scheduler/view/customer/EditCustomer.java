@@ -59,7 +59,6 @@ import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.events.CustomerEvent;
-import scheduler.events.CustomerSuccessEvent;
 import scheduler.model.CityProperties;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
@@ -357,9 +356,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
-                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel, AppointmentEvent> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(target);
                     task.setOnSucceeded((e) -> {
-                        AppointmentEvent appointmentEvent = task.getValue();
+                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
                         if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
                                     ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
@@ -576,7 +575,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     }
 
     @Override
-    public EntityModel.EntityModelFactory<CustomerDAO, CustomerModel, CustomerEvent, CustomerSuccessEvent> modelFactory() {
+    public EntityModel.EntityModelFactory<CustomerDAO, CustomerModel> modelFactory() {
         return CustomerModel.FACTORY;
     }
 

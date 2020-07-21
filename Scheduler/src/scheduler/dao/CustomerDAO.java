@@ -256,7 +256,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
     /**
      * Factory implementation for {@link CustomerDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO, CustomerEvent> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
@@ -429,7 +429,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
     }
 
-    public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+    public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
@@ -493,7 +493,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                     case UNMODIFIED:
                         AddressDAO.SaveTask saveTask = new AddressDAO.SaveTask((AddressModel) addressModel, false);
                         saveTask.run();
-                        AddressEvent event = saveTask.get();
+                        AddressEvent event = (AddressEvent) saveTask.get();
                         if (null != event && event instanceof AddressFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
                                 return CustomerEvent.createInsertInvalidEvent(targetModel, this, (AddressFailedEvent) event);
@@ -534,7 +534,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         @Override
         protected void succeeded() {
-            CustomerEvent event = getValue();
+            CustomerEvent event = (CustomerEvent) getValue();
             if (null != event && event instanceof CustomerSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
@@ -543,7 +543,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
     }
 
-    public static final class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel, CustomerEvent> {
+    public static final class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
@@ -594,7 +594,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         @Override
         protected void succeeded() {
-            CustomerEvent event = getValue();
+            CustomerEvent event = (CustomerEvent) getValue();
             if (null != event && event instanceof CustomerSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
