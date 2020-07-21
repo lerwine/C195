@@ -32,6 +32,7 @@ import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.customer.CustomerModelFilter;
 
 /**
@@ -42,6 +43,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
 
     public static final Factory FACTORY = new Factory();
 
+    private final WeakEventHandlingReference<CustomerSuccessEvent> modelEventHandler;
     private final NonNullableStringProperty name;
     private final SimpleObjectProperty<PartialAddressModel<? extends PartialAddressDAO>> address;
     private final ReadOnlyStringBindingProperty address1;
@@ -72,6 +74,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
                 () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
+        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -288,8 +291,10 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         }
 
         @Override
-        protected CustomerModel onCreateNew(CustomerDAO dao) {
-            return new CustomerModel(dao);
+        public CustomerModel createNew(CustomerDAO dao) {
+            CustomerModel newModel = new CustomerModel(dao);
+            dao.addEventFilter(CustomerSuccessEvent.SUCCESS_EVENT_TYPE, newModel.modelEventHandler.getWeakEventHandler());
+            return newModel;
         }
 
         @Override
@@ -369,7 +374,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         }
 
         @Override
-        public Class<CustomerEvent> getModelEventClass() {
+        public Class<CustomerEvent> getModelResultEventClass() {
             return CustomerEvent.class;
         }
 

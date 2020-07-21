@@ -225,7 +225,7 @@ public final class EditItem<
         this.model = model;
         this.keepOpen = keepOpen;
         onModelInserted = (keepOpen) ? AnnotationHelper.getAnnotatedInstanceMethodsByNameAndParameter(editorRegion.getClass(), ModelEditor.class,
-                Void.TYPE, METHOD_NAME_ON_MODEL_INSERTED, editorRegion.modelFactory().getModelEventClass()).findFirst().orElse(null) : null;
+                Void.TYPE, METHOD_NAME_ON_MODEL_INSERTED, editorRegion.modelFactory().getModelResultEventClass()).findFirst().orElse(null) : null;
     }
 
     @FXML

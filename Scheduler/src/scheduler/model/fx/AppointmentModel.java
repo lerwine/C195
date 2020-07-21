@@ -50,6 +50,7 @@ import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.appointment.AppointmentModelFilter;
 
 /**
@@ -134,6 +135,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         return x.compareTo(y);
     }
 
+    private final WeakEventHandlingReference<AppointmentSuccessEvent> modelEventHandler;
     private final SimpleObjectProperty<PartialCustomerModel<? extends PartialCustomerDAO>> customer;
     private final ReadOnlyStringBindingProperty customerName;
     private final ReadOnlyStringBindingProperty customerAddress1;
@@ -231,7 +233,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
             }
             return l;
         }, type, wsNormalizedLocation, customerAddressText, wsNormalizedUrl);
-
+        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -690,8 +692,10 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         @Override
-        protected AppointmentModel onCreateNew(AppointmentDAO dao) {
-            return new AppointmentModel(dao);
+        public AppointmentModel createNew(AppointmentDAO dao) {
+            AppointmentModel newModel = new AppointmentModel(dao);
+            dao.addEventFilter(AppointmentSuccessEvent.SUCCESS_EVENT_TYPE, newModel.modelEventHandler.getWeakEventHandler());
+            return newModel;
         }
 
         @Override
@@ -820,7 +824,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         @Override
-        public Class<AppointmentEvent> getModelEventClass() {
+        public Class<AppointmentEvent> getModelResultEventClass() {
             return AppointmentEvent.class;
         }
 

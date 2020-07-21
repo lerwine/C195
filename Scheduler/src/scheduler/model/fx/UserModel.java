@@ -22,6 +22,7 @@ import scheduler.model.UserEntity;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.user.UserModelFilter;
 
 /**
@@ -32,6 +33,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
 
     public static final Factory FACTORY = new Factory();
 
+    private final WeakEventHandlingReference<UserSuccessEvent> modelEventHandler;
     private final SimpleStringProperty userName;
     private final SimpleStringProperty password;
     private final SimpleObjectProperty<UserStatus> status;
@@ -43,6 +45,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
         password = new SimpleStringProperty(this, PROP_PASSWORD, dao.getPassword());
         status = new SimpleObjectProperty<>(this, PROP_STATUS, dao.getStatus());
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
+        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -174,8 +177,10 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
         }
 
         @Override
-        protected UserModel onCreateNew(UserDAO dao) {
-            return new UserModel(dao);
+        public UserModel createNew(UserDAO dao) {
+            UserModel newModel = new UserModel(dao);
+            dao.addEventFilter(UserSuccessEvent.SUCCESS_EVENT_TYPE, newModel.modelEventHandler.getWeakEventHandler());
+            return newModel;
         }
 
         @Override
@@ -238,7 +243,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
         }
 
         @Override
-        public Class<UserEvent> getModelEventClass() {
+        public Class<UserEvent> getModelResultEventClass() {
             return UserEvent.class;
         }
 

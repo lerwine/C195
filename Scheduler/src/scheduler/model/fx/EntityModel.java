@@ -29,7 +29,6 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.LogHelper;
-import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
 
 /**
@@ -59,7 +58,6 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
     private final T dataObject;
     private final ReadOnlyBooleanBindingProperty newRow;
     private final ReadOnlyBooleanBindingProperty existingInDb;
-    private final WeakEventHandlingReference<? extends ModelEvent<T, ? extends EntityModel<T>>> modelEventHandler;
     private final ReadOnlyIntegerWrapper primaryKey;
     private final ReadOnlyObjectWrapper<LocalDateTime> createDate;
     private final ReadOnlyStringWrapper createdBy;
@@ -86,7 +84,6 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         dataObject = dao;
         newRow = new ReadOnlyBooleanBindingProperty(this, PROP_NEWROW, () -> DataRowState.isNewRow(rowState.get()), rowState);
         existingInDb = new ReadOnlyBooleanBindingProperty(this, PROP_EXISTINGINDB, () -> DataRowState.existsInDb(rowState.get()), rowState);
-        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -170,7 +167,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         return null != model && dataObject.equals(model);
     }
 
-    private void onModelEvent(ModelEvent<T, ? extends EntityModel<T>> event) {
+    protected void onModelEvent(ModelEvent<T, ? extends EntityModel<T>> event) {
         LOG.fine(() -> String.format("Handling %s", event));
         EntityModel<T> entityModel = event.getEntityModel();
         rowState.set(entityModel.getRowState());
@@ -211,14 +208,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
 
         public abstract DataAccessObject.DaoFactory<D> getDaoFactory();
 
-        protected abstract M onCreateNew(D dao);
-
-        public final M createNew(D dao) {
-            M result = onCreateNew(dao);
-            // FIXME: Add event filter for ((EntityModel<D>) result).modelEventHandler.getWeakEventHandler() of type getSuccessEventType()
-            //dao.addEventFilter(getSuccessEventType(), ((EntityModel<D>) result).modelEventHandler.getWeakEventHandler());
-            return result;
-        }
+        public abstract M createNew(D dao);
 
         public abstract ModelFilter<D, M, ? extends DaoFilter<D>> getAllItemsFilter();
 
@@ -289,8 +279,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
             return Optional.empty();
         }
 
-        // FIXME: Clarify class name to signify it's for crud operation results, not request
-        public abstract Class<? extends ModelEvent<D, M>> getModelEventClass();
+        public abstract Class<? extends ModelEvent<D, M>> getModelResultEventClass();
 
         public abstract EventType<? extends ModelEvent<D, M>> getSuccessEventType();
 

@@ -26,6 +26,7 @@ import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
 
 /**
@@ -36,6 +37,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
 
     public static final Factory FACTORY = new Factory();
 
+    private final WeakEventHandlingReference<CountrySuccessEvent> modelEventHandler;
     private final ObjectProperty<Locale> locale;
     private final ReadOnlyStringBindingProperty name;
     private final ReadOnlyStringBindingProperty language;
@@ -45,6 +47,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
         locale = new SimpleObjectProperty<>(this, PROP_LOCALE, dao.getLocale());
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
+        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -138,8 +141,10 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
         }
 
         @Override
-        protected CountryModel onCreateNew(CountryDAO dao) {
-            return new CountryModel(dao);
+        public CountryModel createNew(CountryDAO dao) {
+            CountryModel newModel = new CountryModel(dao);
+            dao.addEventFilter(CountrySuccessEvent.SUCCESS_EVENT_TYPE, newModel.modelEventHandler.getWeakEventHandler());
+            return newModel;
         }
 
         @Override
@@ -215,7 +220,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
         }
 
         @Override
-        public Class<CountryEvent> getModelEventClass() {
+        public Class<CountryEvent> getModelResultEventClass() {
             return CountryEvent.class;
         }
 

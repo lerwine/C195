@@ -42,6 +42,7 @@ import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
@@ -166,6 +167,7 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
                 : String.format("%s, %s, %s, %s", address1, address2, cityZipCountry, phone);
     }
 
+    private final WeakEventHandlingReference<AddressSuccessEvent> modelEventHandler;
     private final NonNullableStringProperty address1;
     private final NonNullableStringProperty address2;
     private final ReadOnlyStringBindingProperty addressLines;
@@ -197,6 +199,7 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
                 () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
+        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -405,8 +408,10 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
         }
 
         @Override
-        protected AddressModel onCreateNew(AddressDAO dao) {
-            return new AddressModel(dao);
+        public AddressModel createNew(AddressDAO dao) {
+            AddressModel newModel = new AddressModel(dao);
+            dao.addEventFilter(AddressSuccessEvent.SUCCESS_EVENT_TYPE, newModel.modelEventHandler.getWeakEventHandler());
+            return newModel;
         }
 
         @Override
@@ -513,7 +518,7 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
         }
 
         @Override
-        public Class<AddressEvent> getModelEventClass() {
+        public Class<AddressEvent> getModelResultEventClass() {
             return AddressEvent.class;
         }
 

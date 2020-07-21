@@ -35,6 +35,7 @@ import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
 
 /**
@@ -45,6 +46,7 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
 
     public static final Factory FACTORY = new Factory();
 
+    private final WeakEventHandlingReference<CitySuccessEvent> modelEventHandler;
     private final StringProperty name;
     private final ObjectProperty<PartialCountryModel<? extends PartialCountryDAO>> country;
     private final ReadOnlyStringBindingProperty countryName;
@@ -56,6 +58,7 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
         country = new SimpleObjectProperty<>(this, PROP_COUNTRY, PartialCountryModel.createModel(dao.getCountry()));
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, PartialCountryModel.PROP_LANGUAGE));
+        modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 
     @Override
@@ -177,8 +180,10 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
         }
 
         @Override
-        protected CityModel onCreateNew(CityDAO dao) {
-            return new CityModel(dao);
+        public CityModel createNew(CityDAO dao) {
+            CityModel newModel = new CityModel(dao);
+            dao.addEventFilter(CitySuccessEvent.SUCCESS_EVENT_TYPE, newModel.modelEventHandler.getWeakEventHandler());
+            return newModel;
         }
 
         @Override
@@ -283,7 +288,7 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
         }
 
         @Override
-        public Class<CityEvent> getModelEventClass() {
+        public Class<CityEvent> getModelResultEventClass() {
             return CityEvent.class;
         }
 

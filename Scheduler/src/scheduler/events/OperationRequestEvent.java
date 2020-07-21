@@ -1,7 +1,5 @@
 package scheduler.events;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
@@ -130,7 +128,8 @@ public abstract class OperationRequestEvent<D extends DataAccessObject, M extend
      */
     public static final EventType<OperationRequestEvent<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>> OP_REQUEST_EVENT
             = new EventType<>(MODEL_EVENT_TYPE, "SCHEDULER_OP_REQUEST_EVENT");
-    
+    private State state;
+
     protected OperationRequestEvent(ModelEvent<D, M> event, Object source, EventTarget target, EventType<? extends OperationRequestEvent<D, M>> eventType, boolean isDelete) {
         super(event, source, target, eventType, (isDelete) ? DbOperationType.DB_DELETE : DbOperationType.NONE);
         state = new State();
@@ -154,7 +153,6 @@ public abstract class OperationRequestEvent<D extends DataAccessObject, M extend
         return state.canceled;
     }
 
-    private State state;
 
     public String getCancelMessage() {
         return state.message;
@@ -173,11 +171,12 @@ public abstract class OperationRequestEvent<D extends DataAccessObject, M extend
     @SuppressWarnings("unchecked")
     public synchronized Event copyFor(Object newSource, EventTarget newTarget) {
         Event result = super.copyFor(newSource, newTarget);
-        ((OperationRequestEvent<D, M>)result).state = state;
+        ((OperationRequestEvent<D, M>) result).state = state;
         return result;
     }
 
     private class State {
+
         private boolean canceled;
         private String message;
     }
