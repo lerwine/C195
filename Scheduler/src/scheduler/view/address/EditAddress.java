@@ -249,6 +249,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         restoreNode(customersHeadingLabel);
         restoreNode(customersTableView);
         restoreNode(newCustomerButtonBar);
+        modified.set(false);
         initializeEditMode();
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
