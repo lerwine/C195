@@ -115,7 +115,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentDAO, AppointmentModel> {
+public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());

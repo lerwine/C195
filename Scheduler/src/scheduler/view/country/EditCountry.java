@@ -88,7 +88,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public final class EditCountry extends VBox implements EditItem.ModelEditorController<CountryDAO, CountryModel> {
+public final class EditCountry extends VBox implements EditItem.ModelEditorController<CountryModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());

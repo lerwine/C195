@@ -86,7 +86,7 @@ public final class StageManager extends ObservableListBase<Stage> {
     /**
      * Opens a new {@link Modality#APPLICATION_MODAL} window.
      *
-     * @param content The {@link Scene#root} control for the new window.
+     * @param root The {@link Scene#root} control for the new window.
      * @param owner The {@link Window} that will be the owner of the new window or {@code null} to use the latest {@link Window} loaded using this {@code StageManager}.
      * @param style Specifies the style for the new window ({@link Stage}) or {@code null} to use the {@link #DEFAULT_STAGE_STYLE}.
      * @param beforeShow The delegate to invoke after the {@code content} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
@@ -94,7 +94,8 @@ public final class StageManager extends ObservableListBase<Stage> {
      * @throws IllegalStateException if {@code owner} is null and the view {@link scheduler.view.MainController} has not been initialized.
      * @throws NullPointerException if {@code content} is null.
      */
-    public static void showAndWait(Parent content, Window owner, StageStyle style, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+    public static void showAndWait(Parent root, Window owner, StageStyle style, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        LOG.entering(LOG.getName(), "showAndWait", new Object[] { root, owner, style, beforeShow });
         if (null == owner && (null == (owner = getCurrentStage()))) {
             throw new IllegalStateException();
         }
@@ -102,17 +103,18 @@ public final class StageManager extends ObservableListBase<Stage> {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle((null == style) ? DEFAULT_STAGE_STYLE : style);
-        stage.setScene(new Scene(content));
+        stage.setScene(new Scene(root));
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                LOG.entering(LOG.getName(), "handle", event);
+                LOG.entering(LOG.getName(), "showAndWait$handle", event);
                 synchronized (INSTANCE.backingList) {
                     if (null != INSTANCE.showingStage && INSTANCE.showingStage == stage) {
                         INSTANCE.showingStage = null;
                     }
                 }
                 stage.removeEventHandler(WindowEvent.WINDOW_SHOWN, this);
+                LOG.exiting(LOG.getName(), "showAndWait$handle");
             }
         });
         synchronized (INSTANCE.backingList) {
@@ -124,6 +126,7 @@ public final class StageManager extends ObservableListBase<Stage> {
             beforeShow.accept(stage);
         }
         stage.showAndWait();
+        LOG.exiting(LOG.getName(), "showAndWait");
     }
 
     /**
@@ -136,6 +139,7 @@ public final class StageManager extends ObservableListBase<Stage> {
      * @throws NullPointerException if {@code content} is null.
      */
     public static void showAndWait(Parent root, Window owner, StageStyle style) {
+        LOG.entering(LOG.getName(), "showAndWait", new Object[] { root, owner, style });
         if (null == owner && (null == (owner = getCurrentStage()))) {
             throw new IllegalStateException();
         }
@@ -147,13 +151,14 @@ public final class StageManager extends ObservableListBase<Stage> {
         EventHandler<WindowEvent> windowShownEventHandler = new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                LOG.fine(() -> String.format("Window open: %s", event));
+                LOG.entering(LOG.getName(), "showAndWait$handle", event);
                 synchronized (INSTANCE.backingList) {
                     if (null != INSTANCE.showingStage && INSTANCE.showingStage == stage) {
                         INSTANCE.showingStage = null;
                     }
                 }
                 stage.removeEventHandler(WindowEvent.WINDOW_SHOWN, this);
+                LOG.exiting(LOG.getName(), "showAndWait$handle");
             }
         };
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, windowShownEventHandler);
@@ -163,7 +168,7 @@ public final class StageManager extends ObservableListBase<Stage> {
             register(stage, true);
         }
         stage.showAndWait();
-        LOG.fine("window hidden");
+        LOG.exiting(LOG.getName(), "showAndWait");
     }
 
     /**
@@ -411,6 +416,7 @@ public final class StageManager extends ObservableListBase<Stage> {
                 }
             });
         }
+        LOG.exiting(LOG.getName(), "onStageShown");
     }
 
     private void onStageHidden(WindowEvent event) {
@@ -434,6 +440,7 @@ public final class StageManager extends ObservableListBase<Stage> {
                 }
             });
         }
+        LOG.exiting(LOG.getName(), "onStageHidden");
     }
 
 }

@@ -72,8 +72,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
-public final class EditItem<
-        T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>> extends StackPane {
+public final class EditItem<U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
@@ -96,26 +95,30 @@ public final class EditItem<
      * @param beforeShow The delegate to invoke after the {@code root} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
+    public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        EditItem<T, U, S> root = new EditItem<>(editorRegion, model, keepOpen);
+        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorRegion, model, keepOpen, beforeShow });
+        EditItem<U, S> root = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(root);
         Class<ModelEditor> annotationClass = ModelEditor.class;
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, root.waitBorderPane);
         ViewControllerLoader.initializeCustomControl(editorRegion);
         StageManager.showAndWait(root, parentWindow, beforeShow);
+        LOG.exiting(LOG.getName(), "showAndWait");
     }
 
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
+    public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
-        EditItem<T, U, S> result = new EditItem<>(editorRegion, model, keepOpen);
+        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorRegion, model, keepOpen });
+        EditItem<U, S> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
         Class<ModelEditor> annotationClass = ModelEditor.class;
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, result.waitBorderPane);
         ViewControllerLoader.initializeCustomControl(editorRegion);
         StageManager.showAndWait(result, parentWindow);
+        LOG.exiting(LOG.getName(), "showAndWait");
     }
 
     /**
@@ -132,8 +135,9 @@ public final class EditItem<
      * @param beforeShow The delegate to invoke after the {@code root} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
+    public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
+        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorType, model, keepOpen, beforeShow });
         S editorRegion;
         try {
             editorRegion = editorType.newInstance();
@@ -141,6 +145,7 @@ public final class EditItem<
             throw new IOException("Error creating editor region", ex);
         }
         showAndWait(parentWindow, editorRegion, model, keepOpen, beforeShow);
+        LOG.exiting(LOG.getName(), "showAndWait");
     }
 
     /**
@@ -156,15 +161,17 @@ public final class EditItem<
      * insert.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
+    public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
+        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorType, model, keepOpen });
         S editorRegion;
         try {
             editorRegion = editorType.newInstance();
         } catch (InstantiationException | IllegalAccessException ex) {
             throw new IOException("Error creating editor region", ex);
         }
-        EditItem.showAndWait(parentWindow, editorRegion, model, keepOpen);
+        showAndWait(parentWindow, editorRegion, model, keepOpen);
+        LOG.exiting(LOG.getName(), "showAndWait");
     }
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
@@ -254,7 +261,7 @@ public final class EditItem<
     @SuppressWarnings("unchecked")
     void onDeleteButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onDeleteButtonAction", event);
-        OperationRequestEvent<T, U> deleteRequestEvent = editorRegion.modelFactory().createDeleteRequestEvent(model, resources);
+        OperationRequestEvent<?, U> deleteRequestEvent = editorRegion.modelFactory().createDeleteRequestEvent(model, resources);
         Event.fireEvent(model.dataObject(), deleteRequestEvent);
         Stage stage = (Stage) getScene().getWindow();
         if (deleteRequestEvent.isCanceled()) {
@@ -265,7 +272,7 @@ public final class EditItem<
                     resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
                     .ifPresent((t) -> {
                         if (t == ButtonType.YES) {
-                            DataAccessObject.DeleteDaoTask<T, U> task = editorRegion.modelFactory().createDeleteTask(model);
+                            DataAccessObject.DeleteDaoTask<?, U> task = editorRegion.modelFactory().createDeleteTask(model);
                             task.setOnSucceeded((e) -> {
                                 onDeleteDaoTaskSucceeded(e);
                             });
@@ -279,7 +286,7 @@ public final class EditItem<
     void onSaveButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onSaveButtonAction", event);
         editorRegion.applyChanges();
-        DataAccessObject.SaveDaoTask<T, U> task = editorRegion.modelFactory().createSaveTask(model);
+        DataAccessObject.SaveDaoTask<?, U> task = editorRegion.modelFactory().createSaveTask(model);
         task.setOnSucceeded(this::onSaveDaoTaskSucceeded);
         waitBorderPane.startNow(task);
     }
@@ -332,9 +339,9 @@ public final class EditItem<
 
     private void onSaveDaoTaskSucceeded(WorkerStateEvent event) {
         @SuppressWarnings("unchecked")
-        ModelEvent<T, U> modelEvent = ((DataAccessObject.SaveDaoTask<T, U>) event.getSource()).getValue();
+        ModelEvent<?, U> modelEvent = ((DataAccessObject.SaveDaoTask<?, U>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
-            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<?, U>) modelEvent).getMessage(), ButtonType.OK);
         } else {
             switch (modelEvent.getOperation()) {
                 case DB_INSERT:
@@ -370,9 +377,9 @@ public final class EditItem<
 
     private void onDeleteDaoTaskSucceeded(WorkerStateEvent event) {
         @SuppressWarnings("unchecked")
-        ModelEvent<T, U> modelEvent = ((DataAccessObject.DeleteDaoTask<T, U>) event.getSource()).getValue();
+        ModelEvent<?, U> modelEvent = ((DataAccessObject.DeleteDaoTask<?, U>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
-            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<?, U>) modelEvent).getMessage(), ButtonType.OK);
         } else {
             getScene().getWindow().hide();
         }
@@ -385,14 +392,14 @@ public final class EditItem<
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link EntityModel}.
      * @param <U> The {@link EntityModel} type.
      */
-    public interface ModelEditorController<T extends DataAccessObject, U extends EntityModel<T>> {
+    public interface ModelEditorController<U extends EntityModel<?>> {
 
         /**
          * Gets the factory object for managing the current {@link EntityModel}.
          *
          * @return The factory object for managing the current {@link EntityModel}.
          */
-        EntityModel.EntityModelFactory<T, U> modelFactory();
+        EntityModel.EntityModelFactory<?, U> modelFactory();
 
         /**
          * Gets the window title for the current parent {@link Stage}.

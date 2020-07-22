@@ -103,7 +103,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends VBox implements EditItem.ModelEditorController<UserDAO, UserModel> {
+public final class EditUser extends VBox implements EditItem.ModelEditorController<UserModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
