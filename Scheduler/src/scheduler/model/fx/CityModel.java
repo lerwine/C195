@@ -32,6 +32,7 @@ import scheduler.model.CityEntity;
 import static scheduler.model.CityProperties.MAX_LENGTH_NAME;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
@@ -55,7 +56,7 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
     private CityModel(CityDAO dao) {
         super(dao);
         name = new SimpleStringProperty(this, PROP_NAME, dao.getName());
-        country = new SimpleObjectProperty<>(this, PROP_COUNTRY, PartialCountryModel.createModel(dao.getCountry()));
+        country = new SimpleObjectProperty<>(this, PROP_COUNTRY, CountryHelper.createModel(dao.getCountry()));
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, Country.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, PartialCountryModel.PROP_LANGUAGE));
         modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
@@ -68,11 +69,11 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
         PartialCountryModel<? extends PartialCountryDAO> currentCountry = country.get();
         PartialCountryDAO newCountry = dao.getCountry();
         if (null == currentCountry || null == newCountry) {
-            country.set(PartialCountryModel.createModel(dao.getCountry()));
+            country.set(CountryHelper.createModel(dao.getCountry()));
         } else {
             PartialCountryDAO currentDao = currentCountry.dataObject();
             if (currentDao != newCountry && !(ModelHelper.areSameRecord(currentDao, newCountry) && currentDao instanceof CountryDAO)) {
-                country.set(PartialCountryModel.createModel(dao.getCountry()));
+                country.set(CountryHelper.createModel(dao.getCountry()));
             }
         }
     }

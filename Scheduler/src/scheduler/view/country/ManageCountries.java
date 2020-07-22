@@ -22,7 +22,7 @@ import scheduler.events.CountryFailedEvent;
 import scheduler.events.CountryOpRequestEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.events.ModelFailedEvent;
-import scheduler.model.CountryProperties;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.model.fx.CountryModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
@@ -82,7 +82,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 
     @Override
     protected Comparator<? super CountryDAO> getComparator() {
-        return CountryProperties::compare;
+        return CountryHelper::compare;
     }
 
     @Override

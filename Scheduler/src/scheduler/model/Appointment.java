@@ -91,57 +91,6 @@ public interface Appointment<T extends Serializable & Comparable<? super T>> ext
      */
     public static final String PROP_END = "end";
 
-    public static int compare(Appointment<?> a, Appointment<?> b) {
-        if (Objects.equals(a, b)) {
-            return 0;
-        }
-        if (null == a) {
-            return 1;
-        }
-        if (null == b) {
-            return -1;
-        }
-
-        int result = a.compareStart(b.getStart());
-        if (result == 0 && (result = a.compareEnd(b.getEnd())) == 0 && (result = Customer.compare(a.getCustomer(), b.getCustomer())) == 0
-                && (result = User.compare(a.getUser(), b.getUser())) == 0) {
-            return a.getPrimaryKey() - b.getPrimaryKey();
-        }
-        return result;
-    }
-
-    public static int compareByDates(Appointment<?> a, Appointment<?> b) {
-        if (Objects.equals(a, b)) {
-            return 0;
-        }
-        if (null == a) {
-            return 1;
-        }
-        if (null == b) {
-            return -1;
-        }
-
-        int result = a.compareStart(b.getStart());
-        return (result == 0) ? a.compareEnd(b.getEnd()) : result;
-    }
-
-    public static boolean arePropertiesEqual(Appointment<?> a, Appointment<?> b) {
-        if (null == a) {
-            return null == b;
-        }
-
-        return null != b && (a == b || (ModelHelper.areSameRecord(a.getCustomer(), b.getCustomer())
-                && ModelHelper.areSameRecord(a.getUser(), b.getUser())
-                && a.getContact().equalsIgnoreCase(b.getContact())
-                && a.getDescription().equalsIgnoreCase(b.getDescription())
-                && a.getLocation().equalsIgnoreCase(b.getLocation())
-                && a.getType() == b.getType()
-                && a.getTitle().equalsIgnoreCase(b.getTitle())
-                && a.getUrl().equalsIgnoreCase(b.getUrl())
-                && a.startEquals(b.getStart())
-                && a.endEquals(b.getEnd())));
-    }
-
     /**
      * Gets the {@link Customer} for the current appointment. This corresponds to the "customer" data row referenced by the "customerId" database
      * column.

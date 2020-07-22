@@ -34,12 +34,15 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.DataRowState;
 import scheduler.events.CityEvent;
 import scheduler.events.CityFailedEvent;
 import scheduler.events.CityOpRequestEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountryEvent;
-import scheduler.model.CityProperties;
+import scheduler.events.ModelFailedEvent;
+import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CityHelper;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
 import scheduler.model.fx.EntityModel;
@@ -47,6 +50,7 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.Values;
@@ -84,7 +88,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/country/EditCountry")
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
-public final class EditCountry extends VBox implements EditItem.ModelEditorController<CountryDAO, CountryModel, CountryEvent> {
+public final class EditCountry extends VBox implements EditItem.ModelEditorController<CountryDAO, CountryModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
@@ -249,7 +253,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    protected void initialize() {
+    void initialize() {
         assert localeComboBox != null : "fx:id=\"localeComboBox\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert languageValidationLabel != null : "fx:id=\"languageValidationLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesLabel != null : "fx:id=\"citiesLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
@@ -304,7 +308,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
                         CityEvent cityEvent = (CityEvent) task.getValue();
                         if (null != cityEvent && cityEvent instanceof CityFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((CityFailedEvent) cityEvent).getMessage(), ButtonType.OK);
+                                    ((ModelFailedEvent<CityDAO, CityModel>) cityEvent).getMessage(), ButtonType.OK);
                         }
                     });
                     waitBorderPane.startNow(task);
@@ -370,31 +374,36 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
 
     private void onCityAdded(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityAdded", event);
-        CityModel m = event.getEntityModel();
-        if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
-            itemList.add(m);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
+            CityModel m = event.getEntityModel();
+            if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
+                itemList.add(m);
+            }
         }
     }
 
     private void onCityUpdated(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityUpdated", event);
-        CityModel item = event.getEntityModel();
-        if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
-            itemList.remove(item);
-        } else if (!itemList.contains(item)) {
-            int pk = item.getPrimaryKey();
-            CityModel existing = itemList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
-            if (null == existing) {
-                itemList.add(item);
-            } else {
-                itemList.set(itemList.indexOf(existing), item);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
+            CityModel item = event.getEntityModel();
+            if (item.getCountry().getPrimaryKey() != model.getPrimaryKey()) {
+                itemList.remove(item);
+            } else if (!itemList.contains(item)) {
+                CityModel existing = ModelHelper.findByPrimaryKey(item.getPrimaryKey(), itemList).orElse(null);
+                if (null == existing) {
+                    itemList.add(item);
+                } else {
+                    itemList.set(itemList.indexOf(existing), item);
+                }
             }
         }
     }
 
     private void onCityDeleted(CitySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCityDeleted", event);
-        CityModel.FACTORY.find(itemList, event.getEntityModel()).ifPresent(itemList::remove);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
+            CityModel.FACTORY.find(itemList, event.getEntityModel()).ifPresent(itemList::remove);
+        }
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {
@@ -411,9 +420,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
             super.succeeded();
             List<CityDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
-                result.stream().sorted(CityProperties::compare).forEach((t) -> {
-                    itemList.add(t.cachedModel(true));
-                });
+                result.stream().sorted(CityHelper::compare).forEach((t) -> itemList.add(t.cachedModel(true)));
             }
             CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
             CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, cityUpdateEventHandler.getWeakEventHandler());

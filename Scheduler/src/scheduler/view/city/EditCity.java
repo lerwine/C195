@@ -46,8 +46,9 @@ import scheduler.events.AddressOpRequestEvent;
 import scheduler.events.AddressSuccessEvent;
 import scheduler.events.CityEvent;
 import scheduler.events.CountrySuccessEvent;
-import scheduler.model.CountryProperties;
+import scheduler.events.ModelFailedEvent;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
@@ -58,6 +59,7 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.ThrowableConsumer;
 import scheduler.util.Tuple;
@@ -98,7 +100,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/city/EditCity")
 @FXMLResource("/scheduler/view/city/EditCity.fxml")
-public final class EditCity extends VBox implements EditItem.ModelEditorController<CityDAO, CityModel, CityEvent> {
+public final class EditCity extends VBox implements EditItem.ModelEditorController<CityDAO, CityModel> {
 
     private static final Object TARGET_COUNTRY_KEY = new Object();
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
@@ -180,7 +182,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
         countryOptionList = FXCollections.observableArrayList();
         addressItemList = FXCollections.observableArrayList();
-        addressInsertEventHandler = WeakEventHandlingReference.create(this::onAddressAdded);
+        addressInsertEventHandler = WeakEventHandlingReference.create(this::onAddressInserted);
         addressUpdateEventHandler = WeakEventHandlingReference.create(this::onAddressUpdated);
         addressDeleteEventHandler = WeakEventHandlingReference.create(this::onAddressDeleted);
         countryInsertEventHandler = WeakEventHandlingReference.create(this::onCountryInserted);
@@ -260,11 +262,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     void onItemActionRequest(AddressOpRequestEvent event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
-            try {
-                EditAddress.edit(event.getEntityModel(), getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
-            }
+            editItem(event.getEntityModel());
         } else {
             deleteItem(event.getEntityModel());
         }
@@ -332,11 +330,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     private void deleteItem(AddressModel target) {
         AddressOpRequestEvent deleteRequestEvent = new AddressOpRequestEvent(target, this, true);
         Event.fireEvent(model.dataObject(), deleteRequestEvent);
-        Stage stage = (Stage) getScene().getWindow();
+        Window window = getScene().getWindow();
         if (deleteRequestEvent.isCanceled()) {
-            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+            AlertHelper.showWarningAlert(window, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
         } else {
-            AlertHelper.showWarningAlert((Stage) getScene().getWindow(), LOG,
+            AlertHelper.showWarningAlert(window, LOG,
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
@@ -345,7 +343,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                         AddressEvent addressEvent = (AddressEvent) task.getValue();
                         if (null != addressEvent && addressEvent instanceof AddressFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((AddressFailedEvent) addressEvent).getMessage(), ButtonType.OK);
+                                    ((ModelFailedEvent<AddressDAO, AddressModel>) addressEvent).getMessage(), ButtonType.OK);
                         }
                     });
                     waitBorderPane.startNow(task);
@@ -411,7 +409,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         }
         if (null != result && !result.isEmpty()) {
             result.forEach((t) -> map.put(t.getLocale().toLanguageTag(), t.cachedModel(true)));
-            map.values().stream().sorted(CountryProperties::compare).forEach((t) -> countryOptionList.add(t));
+            map.values().stream().sorted(CountryHelper::compare).forEach((t) -> countryOptionList.add(t));
             if (null != country) {
                 Locale locale = country.getLocale();
                 if (null != locale) {
@@ -438,9 +436,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         model.setCountry(selectedCountry.get());
     }
 
-    private void onAddressAdded(AddressSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAddressAdded", event);
-        if (model.getRowState() != DataRowState.NEW) {
+    private void onAddressInserted(AddressSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAddressInserted", event);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AddressModel entityModel = event.getEntityModel();
             if (entityModel.getCity().getPrimaryKey() == model.getPrimaryKey()) {
                 addressItemList.add(entityModel);
@@ -450,10 +448,9 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
     private void onAddressUpdated(AddressSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAddressUpdated", event);
-        if (model.getRowState() != DataRowState.NEW) {
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AddressModel entityModel = event.getEntityModel();
-            int pk = entityModel.getPrimaryKey();
-            AddressModel m = addressItemList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            AddressModel m = ModelHelper.findByPrimaryKey(entityModel.getPrimaryKey(), addressItemList).orElse(null);
             if (null != m) {
                 if (entityModel.getCity().getPrimaryKey() != model.getPrimaryKey()) {
                     addressItemList.remove(m);
@@ -466,25 +463,32 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
     private void onAddressDeleted(AddressSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAddressDeleted", event);
-        AddressModel.FACTORY.find(addressItemList, event.getEntityModel()).ifPresent(addressItemList::remove);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
+            AddressModel.FACTORY.find(addressItemList, event.getEntityModel()).ifPresent(addressItemList::remove);
+        }
     }
 
     private void onCountryInserted(CountrySuccessEvent event) {
-        CountryModel countryModel = event.getEntityModel();
-        countryOptionList.add(countryModel);
-        countryOptionList.sort(CountryProperties::compare);
-        countryComboBox.getSelectionModel().select(countryModel);
+        LOG.entering(LOG.getName(), "onCountryInserted", event);
+        if (isInShownWindow(this)) {
+            CountryModel countryModel = event.getEntityModel();
+            countryOptionList.add(countryModel);
+            countryOptionList.sort(CountryHelper::compare);
+            countryComboBox.getSelectionModel().select(countryModel);
+        }
     }
 
     private void onCountryDeleted(CountrySuccessEvent event) {
-        int pk = event.getEntityModel().getPrimaryKey();
-        countryOptionList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> {
-            CountryModel currentCountry = selectedCountry.get();
-            if (null != currentCountry && currentCountry == t) {
-                countryComboBox.getSelectionModel().clearSelection();
-                countryOptionList.remove(t);
-            }
-        });
+        LOG.entering(LOG.getName(), "onCountryDeleted", event);
+        if (isInShownWindow(this)) {
+            ModelHelper.findByPrimaryKey(event.getEntityModel().getPrimaryKey(), countryOptionList).ifPresent((t) -> {
+                CountryModel currentCountry = selectedCountry.get();
+                if (null != currentCountry && currentCountry == t) {
+                    countryComboBox.getSelectionModel().clearSelection();
+                    countryOptionList.remove(t);
+                }
+            });
+        }
     }
 
     private class EditDataLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {
@@ -539,7 +543,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             if (null == targetCountry) {
                 ObservableMap<Object, Object> properties = getProperties();
                 if (properties.containsKey(TARGET_COUNTRY_KEY)) {
-                    targetCountry = (CountryModel) properties.get(TARGET_COUNTRY_KEY);
+                    targetCountry = (PartialCountryModel<? extends PartialCountryDAO>) properties.get(TARGET_COUNTRY_KEY);
                     properties.remove(TARGET_COUNTRY_KEY);
                 }
             }

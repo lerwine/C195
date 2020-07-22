@@ -1,5 +1,7 @@
 package scheduler.util;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -47,6 +49,36 @@ public final class Values {
             }
         }
         return result;
+    }
+    
+    public static int compareLocalDateTimeToTimestamp(LocalDateTime a, Timestamp b) {
+        if (null == a) {
+            return (null == b) ? 0 : 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+        return compare(a, DateTimeUtil.toLocalDateTime(b));
+    }
+
+    public static int compareTimestampToLocalDateTime(Timestamp a, LocalDateTime b) {
+        if (null == a) {
+            return (null == b) ? 0 : 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+        return compare(a, DateTimeUtil.toUtcTimestamp(b));
+    }
+
+    public static <T extends Comparable<? super T>> int compare(T a, T b) {
+        if (null == a) {
+            return (null == b) ? 0 : 1;
+        }
+        if (null == b) {
+            return -1;
+        }
+        return (a == b) ? 0 : a.compareTo(b);
     }
 
     public static int compareLocaleCountryFirst(Locale o1, Locale o2) {

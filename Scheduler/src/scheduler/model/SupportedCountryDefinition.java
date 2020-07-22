@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.util.ToStringPropertyBuilder;
 
 /**
@@ -32,7 +33,7 @@ public class SupportedCountryDefinition extends PredefinedData.PredefinedCountry
     @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof CountryProperties
-                && (obj == this || CountryProperties.arePropertiesEqual((CountryProperties) obj, this));
+                && (obj == this || CountryHelper.arePropertiesEqual((CountryProperties) obj, this));
     }
 
     @Override

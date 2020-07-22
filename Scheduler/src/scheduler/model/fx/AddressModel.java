@@ -35,6 +35,8 @@ import scheduler.model.City;
 import scheduler.model.CityProperties;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AddressHelper;
+import scheduler.model.ModelHelper.CityHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -54,118 +56,6 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 public final class AddressModel extends EntityModel<AddressDAO> implements PartialAddressModel<AddressDAO>, AddressEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
-
-    /**
-     * Formats both address lines into a one or two line string.
-     *
-     * @param line1 The first address line.
-     * @param line2 The second address line.
-     * @return A First and second address lines formatted as a 1 or 2 line white-space-normalized string.
-     */
-    public static String calculateAddressLines(String line1, String line2) {
-        if ((line1 = asNonNullAndWsNormalized(line1)).isEmpty()) {
-            return asNonNullAndWsNormalized(line2);
-        }
-        return ((line2 = asNonNullAndWsNormalized(line2)).isEmpty()) ? line1 : String.format("%s%n%s", line1, line2);
-    }
-
-    /**
-     * Formats city, postal code and country into a single line.
-     *
-     * @param city The name of the city.
-     * @param country The name of the country.
-     * @param postalCode The postal code.
-     * @return The city, postal code and country formated as a single white-space-normalized string.
-     */
-    public static String calculateCityZipCountry(String city, String country, String postalCode) {
-        if ((city = asNonNullAndWsNormalized(city)).isEmpty()) {
-            return ((postalCode = asNonNullAndWsNormalized(postalCode)).isEmpty())
-                    ? asNonNullAndWsNormalized(country)
-                    : (((asNonNullAndWsNormalized(country)).isEmpty())
-                    ? postalCode : String.format("%s, %s", postalCode, country));
-        }
-        if ((country = asNonNullAndWsNormalized(country)).isEmpty()) {
-            return ((postalCode = asNonNullAndWsNormalized(postalCode)).isEmpty())
-                    ? city : String.format("%s %s", city, postalCode);
-        }
-        return ((postalCode = asNonNullAndWsNormalized(postalCode)).isEmpty())
-                ? String.format("%s, %s", city, country)
-                : String.format("%s %s, %s", city, postalCode, country);
-    }
-
-    public static String calculateCityZipCountry(City city, String postalCode) {
-        if (null == city) {
-            return calculateCityZipCountry("", "", postalCode);
-        }
-        Country country = city.getCountry();
-        return calculateCityZipCountry(city.getName(), (null == country) ? "" : country.getName(), postalCode);
-    }
-
-    /**
-     * Formats address as a multi-line string.
-     *
-     * @param address A 1 or 2 line white-space-normalized string, usually formatted using {@link #calculateAddressLines(String, String)}.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
-     * @param phone The phone number string which will be normalized in this method.
-     * @return A multi-line white-space-normalized address string.
-     */
-    public static String calculateMultiLineAddress(String address, String cityZipCountry, String phone) {
-        if (address.isEmpty()) {
-            if (cityZipCountry.isEmpty()) {
-                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? ""
-                        : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
-            }
-            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? cityZipCountry : String.format("%s%n%s %s", cityZipCountry,
-                    getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
-        }
-        if (cityZipCountry.isEmpty()) {
-            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? address
-                    : String.format("%s%n%s %s", address, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
-        }
-        return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? String.format("%s%n%s", address, cityZipCountry)
-                : String.format("%s%n%s%n%s %s", address, cityZipCountry, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
-    }
-
-    /**
-     * Formats an address as a single line string.
-     *
-     * @param address1 The first line of the street address which will be normalized by this method.
-     * @param address2 The second line of the street address which will be normalized by this method.
-     * @param cityZipCountry A single line white-space-normalized string, usually formatted using {@link #calculateCityZipCountry(String, String, String)}.
-     * @param phone The phone number string which will be normalized in this method.
-     * @return The address formatted as a single line white-space-normalized string.
-     */
-    public static String calculateSingleLineAddress(String address1, String address2, String cityZipCountry, String phone) {
-        if ((address1 = asNonNullAndWsNormalized(address1)).isEmpty()) {
-            if ((address2 = asNonNullAndWsNormalized(address2)).isEmpty()) {
-                return (cityZipCountry.isEmpty()) ? asNonNullAndWsNormalized(phone)
-                        : (((phone = asNonNullAndWsNormalized(phone)).isEmpty())
-                        ? cityZipCountry : String.format("%s, %s", cityZipCountry, phone));
-            }
-            if (cityZipCountry.isEmpty()) {
-                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? address2 : String.format("%s, %s", address2, phone);
-            }
-            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
-                    ? String.format("%s, %s", address2, cityZipCountry)
-                    : String.format("%s, %s, %s", address2, cityZipCountry, phone);
-        }
-        if ((address2 = asNonNullAndWsNormalized(address2)).isEmpty()) {
-            if (cityZipCountry.isEmpty()) {
-                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? address1 : String.format("%s, %s", address1, phone);
-            }
-            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
-                    ? String.format("%s, %s", address1, cityZipCountry)
-                    : String.format("%s, %s, %s", address1, cityZipCountry, phone);
-        }
-        if (cityZipCountry.isEmpty()) {
-            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
-                    ? String.format("%s, %s", address1, address2)
-                    : String.format("%s, %s, %s", address1, address2, phone);
-        }
-        return ((phone = asNonNullAndWsNormalized(phone)).isEmpty())
-                ? String.format("%s, %s, %s", address1, address2, cityZipCountry)
-                : String.format("%s, %s, %s, %s", address1, address2, cityZipCountry, phone);
-    }
 
     private final WeakEventHandlingReference<AddressSuccessEvent> modelEventHandler;
     private final NonNullableStringProperty address1;
@@ -189,14 +79,14 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
         address1 = new NonNullableStringProperty(this, PROP_ADDRESS1, dao.getAddress1());
         address2 = new NonNullableStringProperty(this, PROP_ADDRESS2, dao.getAddress2());
         addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
-                () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
-        city = new SimpleObjectProperty<>(this, PROP_CITY, PartialCityModel.createModel(dao.getCity()));
+                () -> AddressHelper.calculateAddressLines(address1.get(), address2.get()), address1, address2);
+        city = new SimpleObjectProperty<>(this, PROP_CITY, CityHelper.createModel(dao.getCity()));
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(city, CityProperties.PROP_NAME));
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, PartialCityModel.PROP_COUNTRYNAME));
         postalCode = new NonNullableStringProperty(this, PROP_POSTALCODE, dao.getPostalCode());
         phone = new NonNullableStringProperty(this, PROP_PHONE, dao.getPhone());
         cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY,
-                () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
+                () -> AddressHelper.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
         modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
@@ -210,11 +100,11 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
         PartialCityModel<? extends PartialCityDAO> currentCity = city.get();
         PartialCityDAO newCity = dao.getCity();
         if (null == currentCity || null == newCity) {
-            city.set(PartialCityModel.createModel(dao.getCity()));
+            city.set(CityHelper.createModel(dao.getCity()));
         } else {
             PartialCityDAO currentDao = currentCity.dataObject();
             if (currentDao != newCity && !(ModelHelper.areSameRecord(currentDao, newCity) && currentDao instanceof CityDAO)) {
-                city.set(PartialCityModel.createModel(dao.getCity()));
+                city.set(CityHelper.createModel(dao.getCity()));
             }
         }
         postalCode.set(dao.getPostalCode());

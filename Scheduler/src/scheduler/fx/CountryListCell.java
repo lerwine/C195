@@ -1,8 +1,8 @@
 package scheduler.fx;
 
 import javafx.scene.control.ListCell;
-import scheduler.model.CountryProperties;
 import scheduler.dao.PartialCountryDAO;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.model.fx.PartialCountryModel;
 
 /**
@@ -18,7 +18,7 @@ public class CountryListCell<T extends PartialCountryModel<? extends PartialCoun
         if (null == item) {
             setText("");
         } else {
-            setText(CountryProperties.getCountryAndLanguageDisplayText(item.getLocale()));
+            setText(CountryHelper.getCountryAndLanguageDisplayText(item.getLocale()));
         }
     }
 

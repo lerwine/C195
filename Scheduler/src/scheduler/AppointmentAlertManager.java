@@ -23,6 +23,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentSuccessEvent;
+import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DateTimeUtil;
@@ -112,7 +113,7 @@ public class AppointmentAlertManager implements EventTarget {
             if (end.compareTo(DateTimeUtil.toLocalDateTime(dao.getStart())) >= 0) {
                 alertingList.add(dao.cachedModel(true));
                 if (sortOnChange) {
-                    alertingList.sort(AppointmentModel::compareByDates);
+                    alertingList.sort(AppointmentHelper::compareByDates);
                 }
                 return alertingList.size() == 1;
             }
@@ -135,7 +136,7 @@ public class AppointmentAlertManager implements EventTarget {
         LocalDateTime now = LocalDateTime.now();
         if (now.compareTo(item.getEnd()) < 0 && now.plusMinutes(alertLeadtime).compareTo(item.getStart()) >= 0) {
             if (alertingList.contains(item) && sortOnChange) {
-                alertingList.sort(AppointmentModel::compareByDates);
+                alertingList.sort(AppointmentHelper::compareByDates);
             }
         } else if (alertingList.contains(item)) {
             alertingList.remove(item);
@@ -256,7 +257,7 @@ public class AppointmentAlertManager implements EventTarget {
             return !wasEmpty;
         }
         if (alertingList.size() > 1) {
-            alertingList.sort(AppointmentModel::compareByDates);
+            alertingList.sort(AppointmentHelper::compareByDates);
         }
         return wasEmpty;
     }

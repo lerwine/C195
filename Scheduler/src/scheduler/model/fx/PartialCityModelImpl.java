@@ -15,6 +15,7 @@ import scheduler.dao.PartialCountryDAO;
 import scheduler.model.City;
 import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
@@ -42,7 +43,7 @@ public class PartialCityModelImpl extends PartialModel<PartialCityDAO> implement
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        country = new ReadOnlyObjectBindingProperty<>(this, PROP_COUNTRY, () -> PartialCountryModel.createModel(countryDAO.get()), countryDAO);
+        country = new ReadOnlyObjectBindingProperty<>(this, PROP_COUNTRY, () -> CountryHelper.createModel(countryDAO.get()), countryDAO);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, CountryProperties.PROP_NAME));
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(country, PartialCountryModel.PROP_LANGUAGE));
     }

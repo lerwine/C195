@@ -3,7 +3,6 @@ package scheduler.model.fx;
 import java.util.Locale;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import scheduler.dao.CountryDAO;
 import scheduler.dao.PartialCountryDAO;
 import scheduler.model.Country;
 
@@ -18,18 +17,6 @@ public interface PartialCountryModel<T extends PartialCountryDAO> extends Countr
      * The name of the 'language' property.
      */
     public static final String PROP_LANGUAGE = "language";
-
-    @SuppressWarnings("unchecked")
-    public static PartialCountryModel<? extends PartialCountryDAO> createModel(PartialCountryDAO t) {
-        if (null == t) {
-            return null;
-        }
-        if (t instanceof CountryDAO) {
-            return ((CountryDAO) t).cachedModel(true);
-        }
-
-        return new PartialCountryModelImpl((CountryDAO.Partial) t);
-    }
 
     ReadOnlyStringProperty nameProperty();
 

@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -68,12 +69,11 @@ import scheduler.view.task.WaitBorderPane;
  * @param <T> The type of data access object that the model represents.
  * @param <U> The type of model being edited.
  * @param <S> The content node.
- * @param <E> The base {@link ModelEvent} type.
  */
 @GlobalizationResource("scheduler/view/EditItem")
 @FXMLResource("/scheduler/view/EditItem.fxml")
 public final class EditItem<
-        T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>> extends StackPane {
+        T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>> extends StackPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
@@ -88,7 +88,6 @@ public final class EditItem<
      * @param <T> The type of data access object.
      * @param <U> The type of {@link EntityModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
-     * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window.
      * @param editorRegion The {@link EditItem.ModelEditorController} that will be used for editing the entity-specific {@link EntityModel} properties.
      * @param model The {@link EntityModel} to be edited.
@@ -97,9 +96,9 @@ public final class EditItem<
      * @param beforeShow The delegate to invoke after the {@code root} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
             void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        EditItem<T, U, S, E> root = new EditItem<>(editorRegion, model, keepOpen);
+        EditItem<T, U, S> root = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(root);
         Class<ModelEditor> annotationClass = ModelEditor.class;
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
@@ -108,9 +107,9 @@ public final class EditItem<
         StageManager.showAndWait(root, parentWindow, beforeShow);
     }
 
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
             void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
-        EditItem<T, U, S, E> result = new EditItem<>(editorRegion, model, keepOpen);
+        EditItem<T, U, S> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
         Class<ModelEditor> annotationClass = ModelEditor.class;
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
@@ -125,7 +124,6 @@ public final class EditItem<
      * @param <T> The type of data access object.
      * @param <U> The type of {@link EntityModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
-     * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window.
      * @param editorType The {@link EditItem.ModelEditorController} class that will be instantiated for editing the entity-specific {@link EntityModel} properties.
      * @param model The {@link EntityModel} to be edited.
@@ -134,7 +132,7 @@ public final class EditItem<
      * @param beforeShow The delegate to invoke after the {@code root} has been added to the {@link Scene} of the new {@link Stage}, but before it is shown.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
             void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
         S editorRegion;
         try {
@@ -151,7 +149,6 @@ public final class EditItem<
      * @param <T> The type of data access object.
      * @param <U> The type of {@link EntityModel} that corresponds to the data access object.
      * @param <S> The type of {@link ModelEditorController} control for editing the model properties.
-     * @param <E> The {@link ModelEvent} type.
      * @param parentWindow The parent window.
      * @param editorType The {@link EditItem.ModelEditorController} class that will be instantiated for editing the entity-specific {@link EntityModel} properties.
      * @param model The {@link EntityModel} to be edited.
@@ -159,7 +156,7 @@ public final class EditItem<
      * insert.
      * @throws IOException if unable to open the edit window.
      */
-    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U, E>, E extends ModelEvent<T, U>>
+    public static <T extends DataAccessObject, U extends EntityModel<T>, S extends Region & EditItem.ModelEditorController<T, U>>
             void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
         S editorRegion;
         try {
@@ -270,12 +267,7 @@ public final class EditItem<
                         if (t == ButtonType.YES) {
                             DataAccessObject.DeleteDaoTask<T, U> task = editorRegion.modelFactory().createDeleteTask(model);
                             task.setOnSucceeded((e) -> {
-                                ModelEvent<T, U> result = task.getValue();
-                                if (result instanceof ModelFailedEvent) {
-                                    scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) result).getMessage(), ButtonType.OK);
-                                } else {
-                                    getScene().getWindow().hide();
-                                }
+                                onDeleteDaoTaskSucceeded(e);
                             });
                             waitBorderPane.startNow(task);
                         }
@@ -284,45 +276,11 @@ public final class EditItem<
     }
 
     @FXML
-    @SuppressWarnings({"incomplete-switch", "unchecked"})
     void onSaveButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onSaveButtonAction", event);
         editorRegion.applyChanges();
         DataAccessObject.SaveDaoTask<T, U> task = editorRegion.modelFactory().createSaveTask(model);
-        task.setOnSucceeded((e) -> {
-            ModelEvent<T, U> modelEvent = task.getValue();
-            if (modelEvent instanceof ModelFailedEvent) {
-                scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
-            } else {
-                switch (modelEvent.getOperation()) {
-                    case DB_INSERT:
-                        if (keepOpen) {
-                            if (null != onModelInserted) {
-                                boolean accessible = onModelInserted.isAccessible();
-                                if (!accessible) {
-                                    onModelInserted.setAccessible(true);
-                                }
-                                try {
-                                    onModelInserted.invoke(editorRegion, modelEvent);
-                                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                                    LOG.log(Level.SEVERE, "Error invoking onModelInserted method", ex);
-                                } finally {
-                                    if (!accessible) {
-                                        onModelInserted.setAccessible(false);
-                                    }
-                                }
-                            }
-                            onEditMode();
-                        } else {
-                            getScene().getWindow().hide();
-                        }
-                        break;
-                    case DB_UPDATE:
-                        getScene().getWindow().hide();
-                        break;
-                }
-            }
-        });
+        task.setOnSucceeded(this::onSaveDaoTaskSucceeded);
         waitBorderPane.startNow(task);
     }
 
@@ -372,15 +330,62 @@ public final class EditItem<
                 dtf.format(model.getLastModifiedDate()), model.getLastModifiedBy()));
     }
 
+    private void onSaveDaoTaskSucceeded(WorkerStateEvent event) {
+        @SuppressWarnings("unchecked")
+        ModelEvent<T, U> modelEvent = ((DataAccessObject.SaveDaoTask<T, U>) event.getSource()).getValue();
+        if (modelEvent instanceof ModelFailedEvent) {
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
+        } else {
+            switch (modelEvent.getOperation()) {
+                case DB_INSERT:
+                    if (keepOpen) {
+                        if (null != onModelInserted) {
+                            boolean accessible = onModelInserted.isAccessible();
+                            if (!accessible) {
+                                onModelInserted.setAccessible(true);
+                            }
+                            try {
+                                onModelInserted.invoke(editorRegion, modelEvent);
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                LOG.log(Level.SEVERE, "Error invoking onModelInserted method", ex);
+                            } finally {
+                                if (!accessible) {
+                                    onModelInserted.setAccessible(false);
+                                }
+                            }
+                        }
+                        onEditMode();
+                    } else {
+                        getScene().getWindow().hide();
+                    }
+                    break;
+                case DB_UPDATE:
+                    getScene().getWindow().hide();
+                    break;
+                default:
+                    throw new AssertionError(modelEvent.getOperation().name());
+            }
+        }
+    }
+
+    private void onDeleteDaoTaskSucceeded(WorkerStateEvent event) {
+        @SuppressWarnings("unchecked")
+        ModelEvent<T, U> modelEvent = ((DataAccessObject.DeleteDaoTask<T, U>) event.getSource()).getValue();
+        if (modelEvent instanceof ModelFailedEvent) {
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<T, U>) modelEvent).getMessage(), ButtonType.OK);
+        } else {
+            getScene().getWindow().hide();
+        }
+    }
+
     /**
      * Base class for editing specific {@link EntityModel} items. Derived controls are intended to be instantiated through the
      * {@link EditItem#showAndWait(Window, Class, EntityModelImpl, boolean)} method. This control will be inserted as the first child node of the parent {@code EditItem} control.
      *
      * @param <T> The type of {@link DataAccessObject} object that corresponds to the current {@link EntityModel}.
      * @param <U> The {@link EntityModel} type.
-     * @param <E> The {@link ModelEvent} type.
      */
-    public interface ModelEditorController<T extends DataAccessObject, U extends EntityModel<T>, E extends ModelEvent<T, U>> {
+    public interface ModelEditorController<T extends DataAccessObject, U extends EntityModel<T>> {
 
         /**
          * Gets the factory object for managing the current {@link EntityModel}.

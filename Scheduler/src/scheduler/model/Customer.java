@@ -26,35 +26,6 @@ public interface Customer extends PartialDataEntity {
      */
     public static final String PROP_ACTIVE = "active";
 
-    public static int compare(Customer a, Customer b) {
-        if (Objects.equals(a, b)) {
-            return 0;
-        }
-        if (null == a) {
-            return 1;
-        }
-        if (null == b) {
-            return -1;
-        }
-
-        String x = a.getName();
-        String y = b.getName();
-        int result = x.compareToIgnoreCase(y);
-        if (result == 0) {
-            return x.compareTo(y);
-        }
-        return result;
-    }
-
-    public static boolean arePropertiesEqual(Customer a, Customer b) {
-        if (null == a) {
-            return null == b;
-        }
-
-        return null != b && (a == b || (a.getName().equalsIgnoreCase(b.getName()) && a.isActive() == b.isActive()
-                && ModelHelper.areSameRecord(a.getAddress(), b.getAddress())));
-    }
-
     /**
      * Gets the name of the current customer. This corresponds to the "customerName" database column.
      *

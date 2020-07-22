@@ -1,17 +1,10 @@
 package scheduler.model.fx;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.value.ObservableValue;
-import scheduler.dao.AddressDAO;
 import scheduler.dao.PartialAddressDAO;
 import scheduler.dao.PartialCityDAO;
 import scheduler.model.Address;
-import static scheduler.util.ResourceBundleHelper.getResourceString;
-import scheduler.view.address.EditAddress;
-import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
 
 /**
  *
@@ -44,54 +37,6 @@ public interface PartialAddressModel<T extends PartialAddressDAO> extends Addres
      * The name of the 'language' property.
      */
     public static final String PROP_LANGUAGE = "language";
-
-    @SuppressWarnings("unchecked")
-    public static PartialAddressModel<? extends PartialAddressDAO> createModel(PartialAddressDAO t) {
-        if (null == t) {
-            return null;
-        }
-        if (t instanceof AddressDAO) {
-            return ((AddressDAO) t).cachedModel(true);
-        }
-
-        return new PartialAddressModelImpl((AddressDAO.Partial) t);
-    }
-
-    public static StringBinding createMultiLineAddressBinding(ObservableValue<String> address1, ObservableValue<String> address2,
-            ObservableValue<String> cityZipCountry, ObservableValue<String> phone) {
-        return Bindings.createStringBinding(() -> {
-            String a1 = address1.getValue().trim();
-            String a2 = address2.getValue().trim();
-            String c = cityZipCountry.getValue().trim();
-            String p = phone.getValue().trim();
-            if (a1.isEmpty()) {
-                if (a2.isEmpty()) {
-                    if (c.isEmpty()) {
-                        return (p.isEmpty()) ? "" : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-                    }
-                    return (p.isEmpty()) ? c : String.format("%s%n%s %s", c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-                }
-                if (c.isEmpty()) {
-                    return (p.isEmpty()) ? a2 : String.format("%s%n%s %s", a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-                }
-                return (p.isEmpty()) ? String.format("%s%n%s", a2, c)
-                        : String.format("%s%n%s%n%s %s", a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-            }
-            if (a2.isEmpty()) {
-                if (c.isEmpty()) {
-                    return (p.isEmpty()) ? a1 : String.format("%s%n%s %s", a1, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-                }
-                return (p.isEmpty()) ? String.format("%s%n%s", a1, c)
-                        : String.format("%s%n%s%n%s %s", a1, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-            }
-            if (c.isEmpty()) {
-                return (p.isEmpty()) ? String.format("%s%n%s", a1, a2)
-                        : String.format("%s%n%s%n%s %s", a1, a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-            }
-            return (p.isEmpty()) ? String.format("%s%n%s%n%s", a1, a2, c)
-                    : String.format("%s%n%s%n%s%n%s %s", a1, a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
-        }, address1, address2, cityZipCountry, phone);
-    }
 
     /**
      * Gets the property that contains the first line of the address.

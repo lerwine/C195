@@ -8,12 +8,12 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import scheduler.dao.CountryDAO;
+import scheduler.dao.PartialCountryDAO;
 import scheduler.model.Country;
-import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.dao.PartialCountryDAO;
 
 /**
  *
@@ -36,9 +36,9 @@ public class PartialCountryModelImpl extends PartialModel<PartialCountryDAO> imp
             throw new RuntimeException(ex);
         }
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> {
-            return CountryProperties.getCountryDisplayText(locale.get());
+            return CountryHelper.getCountryDisplayText(locale.get());
         }, locale);
-        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryHelper.getLanguageDisplayText(locale.get()), locale);
     }
 
     @Override

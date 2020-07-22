@@ -10,14 +10,16 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.AddressDAO;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
 import scheduler.model.Address;
 import scheduler.model.CityProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AddressHelper;
+import scheduler.model.ModelHelper.CityHelper;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.dao.PartialCityDAO;
 
 /**
  *
@@ -53,12 +55,12 @@ public class PartialAddressModelImpl extends PartialModel<PartialAddressDAO> imp
             throw new RuntimeException(ex);
         }
         addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
-                () -> AddressModel.calculateAddressLines(address1.get(), address2.get()), address1, address2);
-        city = new ReadOnlyObjectBindingProperty<>(this, PROP_CITY, () -> PartialCityModel.createModel(cityDAO.get()), cityDAO);
+                () -> AddressHelper.calculateAddressLines(address1.get(), address2.get()), address1, address2);
+        city = new ReadOnlyObjectBindingProperty<>(this, PROP_CITY, () -> CityHelper.createModel(cityDAO.get()), cityDAO);
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(city, CityProperties.PROP_NAME));
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(city, PartialCityModel.PROP_COUNTRYNAME));
         cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY,
-                () -> AddressModel.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
+                () -> AddressHelper.calculateCityZipCountry(cityName.get(), countryName.get(), postalCode.get()),
                 cityName, countryName, postalCode);
         language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, Bindings.selectString(city, PartialCityModel.PROP_LANGUAGE));
     }

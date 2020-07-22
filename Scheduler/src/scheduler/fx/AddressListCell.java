@@ -1,10 +1,10 @@
 package scheduler.fx;
 
 import javafx.scene.control.ListCell;
-import scheduler.model.City;
-import scheduler.model.CityProperties;
-import scheduler.model.CountryProperties;
 import scheduler.dao.PartialAddressDAO;
+import scheduler.model.City;
+import scheduler.model.ModelHelper.CityHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.model.fx.PartialAddressModel;
 
 /**
@@ -25,17 +25,17 @@ public class AddressListCell<T extends PartialAddressModel<? extends PartialAddr
             if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
                 if (null == (city = item.getCity())) {
                     cityZipCountry = "";
-                } else if ((cityZipCountry = CityProperties.toString(city).trim()).isEmpty()) {
-                    cityZipCountry = CountryProperties.toString(city.getCountry()).trim();
+                } else if ((cityZipCountry = CityHelper.toString(city).trim()).isEmpty()) {
+                    cityZipCountry = CountryHelper.toString(city.getCountry()).trim();
                 } else {
-                    String country = CountryProperties.toString(city.getCountry()).trim();
+                    String country = CountryHelper.toString(city.getCountry()).trim();
                     if (!country.isEmpty()) {
                         cityZipCountry = String.format("%s, %s", cityZipCountry, country);
                     }
                 }
             } else if (null != (city = item.getCity())) {
                 String cityName = city.getName();
-                String country = CountryProperties.toString(city.getCountry()).trim();
+                String country = CountryHelper.toString(city.getCountry()).trim();
                 if (null == cityName || (cityName = cityName.trim()).isEmpty()) {
                     if (!country.isEmpty()) {
                         cityZipCountry = String.format("%s, %s", cityZipCountry, cityName);

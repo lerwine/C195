@@ -27,6 +27,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import scheduler.fx.AppointmentListCellFactory;
 import scheduler.fx.CssClassName;
+import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.NodeUtil;
 import scheduler.util.ViewControllerLoader;
@@ -157,7 +158,7 @@ public class MonthGridPane extends GridPane {
             if (!(null == itemList || itemList.isEmpty())) {
                 LocalDateTime beginIncl = startDate.atStartOfDay();
                 LocalDateTime endExcl = endDateExcl.atStartOfDay();
-                itemList.stream().sorted(AppointmentModel::compareByDates).forEach((t) -> {
+                itemList.stream().sorted(AppointmentHelper::compareByDates).forEach((t) -> {
                     LocalDateTime startRange = t.getStart();
                     LocalDateTime endRange = t.getEnd();
                     if (startRange.compareTo(endExcl) < 0 && endRange.compareTo(beginIncl) > 0) {
@@ -224,6 +225,7 @@ public class MonthGridPane extends GridPane {
         private final StringProperty text;
         private final ReadOnlyListWrapper<AppointmentModel> items;
 
+        @SuppressWarnings("LeakingThisInConstructor")
         DateHBox() {
             backingList = FXCollections.observableArrayList();
             text = new SimpleStringProperty("");

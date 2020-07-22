@@ -18,6 +18,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
@@ -54,7 +55,7 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
             if (appointments.size() == 1) {
                 items.add(appointments.iterator().next());
             } else {
-                appointments.stream().sorted(AppointmentModel::compareByDates).forEach((t) -> items.add(t));
+                appointments.stream().sorted(AppointmentHelper::compareByDates).forEach((t) -> items.add(t));
             }
             LOG.info("Appointments added");
         }
@@ -76,7 +77,7 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
         assert listingTableView != null : "fx:id=\"listingTableView\" was not injected: check your FXML file 'DailyAppointments.fxml'.";
         headingLabel.setText(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date.get()));
         listingTableView.setItems(appointments);
-        listingTableView.setPrefHeight((double) appointments.size() * listingTableView.getFixedCellSize() + 24.0);
+        listingTableView.setPrefHeight(appointments.size() * listingTableView.getFixedCellSize() + 24.0);
     }
 
     public LocalDate getDate() {

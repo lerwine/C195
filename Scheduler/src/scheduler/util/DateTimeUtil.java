@@ -1,9 +1,12 @@
 package scheduler.util;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -80,4 +83,64 @@ public class DateTimeUtil {
         return String.format("%s (%s %s)", d, i, p);
     }
 
+    public static boolean areDatesEqual(Comparable<?> a, Comparable<?> b) {
+        if (null == a) {
+            return null == b;
+        }
+        if (null == b) {
+            return false;
+        }
+        
+        if (a == b) {
+            return true;
+        }
+        
+        if (a instanceof LocalDateTime) {
+            if (b instanceof LocalDateTime) {
+                return a.equals(b);
+            }
+            if (b instanceof Timestamp) {
+                return a.equals(toLocalDateTime((Timestamp) b));
+            }
+        } else if (a instanceof Timestamp) {
+            if (b instanceof Timestamp) {
+                return a.equals(b);
+            }
+            if (b instanceof LocalDateTime) {
+                return a.equals(toUtcTimestamp((LocalDateTime) b));
+            }
+        }
+        throw new UnsupportedOperationException();
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static int compareDates(Comparable<?> a, Comparable<?> b) {
+        if (null == a) {
+            return (null == b) ? 1 : 0;
+        }
+        if (null == b) {
+            return -1;
+        }
+        
+        if (a == b) {
+            return 0;
+        }
+        
+        if (a instanceof LocalDateTime) {
+            if (b instanceof LocalDateTime) {
+                return ((Comparable<ChronoLocalDateTime<?>>) a).compareTo((ChronoLocalDateTime<?>) b);
+            }
+            if (b instanceof Timestamp) {
+                return ((Comparable<ChronoLocalDateTime<?>>) a).compareTo(toLocalDateTime((Timestamp) b));
+            }
+        } else if (a instanceof Timestamp) {
+            if (b instanceof Timestamp) {
+                return ((Timestamp)a).compareTo((Timestamp)b);
+            }
+            if (b instanceof LocalDateTime) {
+                return ((Timestamp)a).compareTo(toUtcTimestamp((LocalDateTime) b));
+            }
+        }
+        throw new UnsupportedOperationException();
+    }
 }

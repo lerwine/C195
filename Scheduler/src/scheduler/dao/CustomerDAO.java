@@ -34,6 +34,7 @@ import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerEntity;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CustomerHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CustomerModel;
 import scheduler.model.fx.PartialAddressModel;

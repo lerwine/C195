@@ -48,7 +48,9 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
+import scheduler.events.ModelFailedEvent;
 import scheduler.events.UserEvent;
+import scheduler.model.ModelHelper;
 import scheduler.model.UserStatus;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.EntityModel;
@@ -58,6 +60,7 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.PwHash;
 import scheduler.util.ThrowableConsumer;
@@ -100,7 +103,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
  */
 @GlobalizationResource("scheduler/view/user/EditUser")
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
-public final class EditUser extends VBox implements EditItem.ModelEditorController<UserDAO, UserModel, UserEvent> {
+public final class EditUser extends VBox implements EditItem.ModelEditorController<UserDAO, UserModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
@@ -279,7 +282,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                         AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
                         if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
                         }
                     });
                     waitBorderPane.startNow(task);
@@ -487,7 +490,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-        if (model.getRowState() != DataRowState.NEW) {
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AppointmentModel appointment = event.getEntityModel();
             AppointmentFilterItem filter = selectedFilter.get();
             if ((null == filter) ? appointment.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().test(appointment)) {
@@ -498,11 +501,10 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
-        if (model.getRowState() != DataRowState.NEW) {
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AppointmentModel appointment = event.getEntityModel();
             AppointmentFilterItem filter = selectedFilter.get();
-            int pk = appointment.getPrimaryKey();
-            AppointmentModel m = userAppointments.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            AppointmentModel m = ModelHelper.findByPrimaryKey(appointment.getPrimaryKey(), userAppointments).orElse(null);
             if (null != m) {
                 if ((null == filter) ? appointment.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(m)) {
                     userAppointments.remove(m);
@@ -515,7 +517,9 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     private void onAppointmentDeleted(AppointmentSuccessEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
-        AppointmentModel.FACTORY.find(userAppointments, event.getEntityModel()).ifPresent(userAppointments::remove);
+        if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
+            AppointmentModel.FACTORY.find(userAppointments, event.getEntityModel()).ifPresent(userAppointments::remove);
+        }
     }
 
     private class AppointmentFilterItem {

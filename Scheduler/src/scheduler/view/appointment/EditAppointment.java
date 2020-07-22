@@ -55,7 +55,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.Scheduler;
@@ -77,6 +76,9 @@ import static scheduler.model.AppointmentType.CUSTOMER_SITE;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AppointmentHelper;
+import scheduler.model.ModelHelper.CustomerHelper;
+import scheduler.model.ModelHelper.UserHelper;
 import scheduler.model.PredefinedData;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
@@ -91,6 +93,7 @@ import scheduler.util.BinarySelective;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
+import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
 import static scheduler.util.NodeUtil.setErrorMessage;
@@ -112,7 +115,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 @GlobalizationResource("scheduler/view/appointment/EditAppointment")
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
-public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentDAO, AppointmentModel, AppointmentEvent> {
+public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentDAO, AppointmentModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
@@ -275,10 +278,12 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private final ObservableList<CustomerModel> customerModelList;
     private final ObservableList<UserModel> userModelList;
     private final TypeContextController typeContext;
+    private final WeakEventHandlingReference<CustomerSuccessEvent> customerInsertEventHandler;
+    private final WeakEventHandlingReference<CustomerSuccessEvent> customerUpdateEventHandler;
     private final WeakEventHandlingReference<CustomerSuccessEvent> customerDeleteEventHandler;
+    private final WeakEventHandlingReference<UserSuccessEvent> userInsertEventHandler;
+    private final WeakEventHandlingReference<UserSuccessEvent> userUpdateEventHandler;
     private final WeakEventHandlingReference<UserSuccessEvent> userDeleteEventHandler;
-    // FIXME: See if this needs deleted or changed
-    private WeakEventHandlingReference<WindowEvent> windowCloseEventHandler;
     private StringBinding normalizedTitleBinding;
     private StringBinding titleValidationMessage;
     private StringBinding normalizedDescriptionBinding;
@@ -419,7 +424,11 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
         showActiveUsers = Optional.of(true);
+        customerUpdateEventHandler = WeakEventHandlingReference.create(this::onCustomerUpdated);
+        customerInsertEventHandler = WeakEventHandlingReference.create(this::onCustomerInserted);
         customerDeleteEventHandler = WeakEventHandlingReference.create(this::onCustomerDeleted);
+        userUpdateEventHandler = WeakEventHandlingReference.create(this::onUserUpdated);
+        userInsertEventHandler = WeakEventHandlingReference.create(this::onUserInserted);
         userDeleteEventHandler = WeakEventHandlingReference.create(this::onUserDeleted);
     }
 
@@ -438,8 +447,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onCustomerDropDownOptionsButtonAction", event);
         editingUserOptions = false;
-        if (showActiveCustomers.isPresent()) {
-            dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsActiveRadioButton : dropdownOptionsInactiveRadioButton);
+        if (showActiveCustomers.orElse(editingUserOptions)) {
+            dropdownOptions.selectToggle((showActiveCustomers.get()) ? dropdownOptionsInactiveRadioButton : dropdownOptionsActiveRadioButton);
         } else {
             dropdownOptions.selectToggle(dropdownOptionsAllRadioButton);
         }
@@ -582,8 +591,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
         InitializationTask task = new InitializationTask();
         waitBorderPane.startNow(task);
-        CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
-        UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, userDeleteEventHandler.getWeakEventHandler());
     }
 
     @Override
@@ -653,7 +660,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private synchronized void onCustomersLoaded(List<CustomerDAO> customerDaoList) {
         LOG.info("Invoked scheduler.view.appointment.EditAppointment#customerDaoList");
-        CustomerModel selectedItem = customerComboBox.getSelectionModel().getSelectedItem();
+        CustomerModel selectedItem = typeContext.appointmentConflicts.selectedCustomer.get();
         customerModelList.clear();
         if (null != customerDaoList && !customerDaoList.isEmpty()) {
             customerDaoList.forEach((t) -> customerModelList.add(t.cachedModel(true)));
@@ -667,7 +674,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private synchronized void onUsersLoaded(List<UserDAO> userDaoList) {
         LOG.info("Invoked scheduler.view.appointment.EditAppointment#onUsersLoaded");
-        UserModel selectedItem = userComboBox.getSelectionModel().getSelectedItem();
+        UserModel selectedItem = typeContext.appointmentConflicts.selectedUser.get();
         if (null != userDaoList && !userDaoList.isEmpty()) {
             userDaoList.forEach((t) -> userModelList.add(t.cachedModel(true)));
         }
@@ -685,19 +692,102 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
     }
 
+    private void onCustomerInserted(CustomerSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerInserted", event);
+        if (isInShownWindow(this)) {
+            CustomerModel entityModel = event.getEntityModel();
+            if (entityModel.isActive() == showActiveCustomers.orElse(entityModel.isActive())) {
+                customerModelList.add(entityModel);
+                customerModelList.sort(CustomerHelper::compare);
+                customerComboBox.getSelectionModel().select(entityModel);
+            }
+        }
+    }
+
+    private void onCustomerUpdated(CustomerSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerUpdated", event);
+        if (isInShownWindow(this)) {
+            int pk = event.getEntityModel().getPrimaryKey();
+            if (customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().map((t) -> {
+                if (showActiveUsers.map((u) -> u != t.isActive()).orElse(true)) {
+                    CustomerModel selectedItem = typeContext.appointmentConflicts.selectedCustomer.get();
+                    if (null != selectedItem && selectedItem == t) {
+                        customerComboBox.getSelectionModel().clearSelection();
+                        customerModelList.remove(t);
+                    }
+                }
+                return false;
+            }).orElse(true)) {
+                CustomerModel entityModel = event.getEntityModel();
+                if (showActiveUsers.map((t) -> t == entityModel.isActive()).orElse(true)) {
+                    customerModelList.add(entityModel);
+                    customerModelList.sort(CustomerHelper::compare);
+                }
+            }
+        }
+    }
+
     private void onCustomerDeleted(CustomerSuccessEvent event) {
         LOG.entering(LOG.getName(), "onCustomerDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
+        if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent(customerModelList::remove);
+            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> {
+                CustomerModel selectedItem = typeContext.appointmentConflicts.selectedCustomer.get();
+                if (null != selectedItem && selectedItem == t) {
+                    customerComboBox.getSelectionModel().clearSelection();
+                }
+                customerModelList.remove(t);
+            });
+        }
+    }
+
+    private void onUserInserted(UserSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onUserInserted", event);
+        if (isInShownWindow(this)) {
+            UserModel entityModel = event.getEntityModel();
+            boolean isActive = entityModel.getStatus() != UserStatus.INACTIVE;
+            if (isActive == showActiveUsers.orElse(isActive)) {
+                userModelList.add(entityModel);
+                userModelList.sort(UserHelper::compare);
+                userComboBox.getSelectionModel().select(entityModel);
+            }
+        }
+    }
+
+    private void onUserUpdated(UserSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onUserUpdated", event);
+        if (isInShownWindow(this)) {
+            int pk = event.getEntityModel().getPrimaryKey();
+            if (userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().map((t) -> {
+                if (showActiveUsers.map((u) -> u != (t.getStatus() != UserStatus.INACTIVE)).orElse(true)) {
+                    UserModel selectedItem = typeContext.appointmentConflicts.selectedUser.get();
+                    if (null != selectedItem && selectedItem == t) {
+                        userComboBox.getSelectionModel().clearSelection();
+                        userModelList.remove(t);
+                    }
+                }
+                return false;
+            }).orElse(true)) {
+                UserModel entityModel = event.getEntityModel();
+                if (showActiveUsers.map((t) -> t == (entityModel.getStatus() != UserStatus.INACTIVE)).orElse(true)) {
+                    userModelList.add(entityModel);
+                    userModelList.sort(UserHelper::compare);
+                }
+            }
         }
     }
 
     private void onUserDeleted(UserSuccessEvent event) {
         LOG.entering(LOG.getName(), "onUserDeleted", event);
-        if (model.getRowState() != DataRowState.NEW) {
+        if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent(customerModelList::remove);
+            userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> {
+                UserModel selectedItem = typeContext.appointmentConflicts.selectedUser.get();
+                if (null != selectedItem && selectedItem == t) {
+                    userComboBox.getSelectionModel().clearSelection();
+                }
+                userModelList.remove(t);
+            });
         }
     }
 
@@ -1125,6 +1215,12 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 checkConflictsButton.setDisable(newValue != ConflictCheckStatus.NOT_CHECKED);
             });
             onStartMessageChanged(dateRange.startValidationMessage.get(), conflictMessage.get());
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.INSERT_SUCCESS, userInsertEventHandler.getWeakEventHandler());
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.UPDATE_SUCCESS, userUpdateEventHandler.getWeakEventHandler());
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, userDeleteEventHandler.getWeakEventHandler());
         }
 
         private void onAppointmentsLoaded(Task<List<AppointmentDAO>> task) {
@@ -1144,27 +1240,14 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 LOG.fine("Creating appointment models");
                 if (model.getRowState() != DataRowState.NEW) {
                     int pk = model.getPrimaryKey();
-                    appointments.stream().filter(t -> t.getPrimaryKey() != pk).map((t) -> t.cachedModel(true)).sorted(AppointmentModel::compareByDates)
+                    appointments.stream().filter(t -> t.getPrimaryKey() != pk).map((t) -> t.cachedModel(true)).sorted(AppointmentHelper::compareByDates)
                             .forEachOrdered((t) -> allAppointments.add(t));
                 } else {
-                    appointments.stream().map((t) -> t.cachedModel(true)).sorted(AppointmentModel::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
+                    appointments.stream().map((t) -> t.cachedModel(true)).sorted(AppointmentHelper::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
                 }
             }
             if (null != dateRange.range.get() && null != currentParticipants.get()) {
                 updateConflictingAppointments();
-            }
-        }
-
-        // XXX: The method startLoadParticipantsAppointments(WaitBorderPane) from the type EditAppointment.AppointmentConflictsController is never used locally
-        private synchronized void startLoadParticipantsAppointments(WaitBorderPane waitBorderPane) {
-            if (null != currentTask && !currentTask.isDone()) {
-                currentTask.cancel(true);
-                currentTask = null;
-            }
-            Tuple<CustomerModel, UserModel> checkParams = currentParticipants.get();
-            if (null != checkParams) {
-                currentTask = new LoadParticipantsAppointmentsTask(checkParams);
-                waitBorderPane.startNow(currentTask);
             }
         }
 

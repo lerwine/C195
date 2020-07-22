@@ -29,4 +29,5 @@ public interface PartialDataEntity {
     default DataRowState getRowState() {
         return DataRowState.UNMODIFIED;
     }
+
 }

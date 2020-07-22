@@ -10,6 +10,7 @@ import scheduler.model.fx.EntityModel;
  * @param <D> The target {@link DataAccessObject} type.
  * @param <M> The associated {@link EntityModel} type.
  */
+@SuppressWarnings("serial")
 interface IModelEvent<D extends DataAccessObject, M extends EntityModel<D>> extends Cloneable, java.io.Serializable {
 
     Object getSource();

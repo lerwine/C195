@@ -42,6 +42,7 @@ import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.User;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.CustomerModel;
@@ -386,7 +387,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         if (value instanceof Date) {
-            return s.equals((Date) value);
+            return s.equals(value);
         }
 
         Timestamp other;
@@ -438,7 +439,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         if (value instanceof Date) {
-            return e.equals((Date) value);
+            return e.equals(value);
         }
 
         Timestamp other;
@@ -554,9 +555,9 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
-        return null != obj && obj instanceof Appointment && ModelHelper.areSameRecord(this, (Appointment) obj);
+        return null != obj && obj.getClass().isAssignableFrom(AppointmentDAO.class) && ModelHelper.areSameRecord(this, (Appointment<Timestamp>) obj);
     }
 
     @Override

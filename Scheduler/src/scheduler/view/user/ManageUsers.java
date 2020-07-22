@@ -20,7 +20,7 @@ import scheduler.events.ModelFailedEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserFailedEvent;
 import scheduler.events.UserSuccessEvent;
-import scheduler.model.User;
+import scheduler.model.ModelHelper.UserHelper;
 import scheduler.model.fx.UserModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
@@ -120,7 +120,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
 
     @Override
     protected Comparator<? super UserDAO> getComparator() {
-        return User::compare;
+        return UserHelper::compare;
     }
 
     @Override

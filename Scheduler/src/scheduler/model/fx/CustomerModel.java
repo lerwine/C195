@@ -28,6 +28,7 @@ import scheduler.model.AddressProperties;
 import static scheduler.model.Customer.MAX_LENGTH_NAME;
 import scheduler.model.CustomerEntity;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
@@ -60,7 +61,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
     private CustomerModel(CustomerDAO dao) {
         super(dao);
         name = new NonNullableStringProperty(this, PROP_NAME, dao.getName());
-        address = new SimpleObjectProperty<>(this, PROP_ADDRESS, PartialAddressModel.createModel(dao.getAddress()));
+        address = new SimpleObjectProperty<>(this, PROP_ADDRESS, AddressHelper.createModel(dao.getAddress()));
         active = new SimpleBooleanProperty(this, PROP_ACTIVE, dao.isActive());
         address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));
         address2 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS2, Bindings.selectString(address, AddressProperties.PROP_ADDRESS2));
@@ -70,9 +71,9 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         phone = new ReadOnlyStringBindingProperty(this, PROP_PHONE, Bindings.selectString(address, AddressProperties.PROP_PHONE));
         cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY, Bindings.selectString(address, PartialAddressModel.PROP_CITYZIPCOUNTRY));
         addressText = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSTEXT,
-                () -> AddressModel.calculateSingleLineAddress(address1.get(), address2.get(), cityZipCountry.get(), phone.get()));
+                () -> AddressHelper.calculateSingleLineAddress(address1.get(), address2.get(), cityZipCountry.get(), phone.get()));
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
-                () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
+                () -> AddressHelper.calculateMultiLineAddress(AddressHelper.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
         modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
@@ -84,11 +85,11 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         PartialAddressModel<? extends PartialAddressDAO> currentAddress = address.get();
         PartialAddressDAO newAddress = dao.getAddress();
         if (null == currentAddress || null == newAddress) {
-            address.set(PartialAddressModel.createModel(dao.getAddress()));
+            address.set(AddressHelper.createModel(dao.getAddress()));
         } else {
             PartialAddressDAO currentDao = currentAddress.dataObject();
             if (currentDao != newAddress && !(ModelHelper.areSameRecord(currentDao, newAddress) && currentDao instanceof AddressDAO)) {
-                address.set(PartialAddressModel.createModel(dao.getAddress()));
+                address.set(AddressHelper.createModel(dao.getAddress()));
             }
         }
     }

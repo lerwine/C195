@@ -25,11 +25,12 @@ import javax.xml.bind.annotation.XmlType;
 import scheduler.AppResources;
 import scheduler.SupportedLocale;
 import scheduler.dao.CountryDAO;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.util.PropertyBindable;
 
 /**
- * Contains static methods for getting supported locale and address definitions. {@link SupportedCountryDefinition}, {@link SupportedCityDefinition}
- * and {@link CorporateAddress} objects are de-serialized from the {@code scheduler/StaticAddresses.xml} resource.
+ * Contains static methods for getting supported locale and address definitions. {@link SupportedCountryDefinition}, {@link SupportedCityDefinition} and {@link CorporateAddress}
+ * objects are de-serialized from the {@code scheduler/StaticAddresses.xml} resource.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -65,10 +66,10 @@ public class PredefinedData {
                 PredefinedData result = (PredefinedData) unmarshaller.unmarshal(stream);
                 SupportedLocale sl = AppResources.getCurrentLocale();
                 result.countries.forEach((t) -> {
-                    PredefinedCountry predefinedCountry = (PredefinedCountry) t;
+                    PredefinedCountry predefinedCountry = t;
                     predefinedCountry.locale = Locale.forLanguageTag(predefinedCountry.languageTag);
                     predefinedCountry.displayLocale = sl;
-                    predefinedCountry.name = CountryProperties.getCountryAndLanguageDisplayText(predefinedCountry.locale);
+                    predefinedCountry.name = CountryHelper.getCountryAndLanguageDisplayText(predefinedCountry.locale);
                     String countryMapKey = predefinedCountry.locale.getCountry();
                     countryMap.put(countryMapKey, t);
                     List<SupportedCityDefinition> cities = t.getCities();
@@ -76,7 +77,7 @@ public class PredefinedData {
                         predefinedCountry.cities = Collections.emptyList();
                     } else if (!cities.isEmpty()) {
                         cities.forEach((u) -> {
-                            PredefinedCity predefinedCity = (PredefinedCity) u;
+                            PredefinedCity predefinedCity = u;
                             predefinedCity.country = t;
                             predefinedCity.timeZone = TimeZone.getTimeZone(ZoneId.of(predefinedCity.zoneIdText));
                             List<CorporateAddress> addresses = u.getAddresses();
@@ -84,7 +85,8 @@ public class PredefinedData {
                                 predefinedCity.addresses = Collections.emptyList();
                             } else if (!addresses.isEmpty()) {
                                 addresses.forEach((s) -> {
-                                    ((PredefinedAddress) s).city = u;
+                                    PredefinedAddress a = s;
+                                    a.city = u;
                                     addressMap.put(s.getName(), s);
                                 });
                             }
@@ -188,7 +190,7 @@ public class PredefinedData {
         public String getName() {
             if (!AppResources.getCurrentLocale().equals(displayLocale)) {
                 String oldName = name;
-                name = CountryProperties.getCountryAndLanguageDisplayText(locale);
+                name = CountryHelper.getCountryAndLanguageDisplayText(locale);
                 firePropertyChange(CountryDAO.PROP_NAME, oldName, name);
             }
             return name;

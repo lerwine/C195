@@ -36,6 +36,7 @@ import scheduler.model.City;
 import scheduler.model.CityEntity;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CityHelper;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
 import scheduler.model.fx.PartialCountryModel;

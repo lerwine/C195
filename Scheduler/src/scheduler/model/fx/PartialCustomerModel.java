@@ -2,7 +2,6 @@ package scheduler.model.fx;
 
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ObservableBooleanValue;
-import scheduler.dao.CustomerDAO;
 import scheduler.dao.PartialAddressDAO;
 import scheduler.dao.PartialCustomerDAO;
 import scheduler.model.Customer;
@@ -58,18 +57,6 @@ public interface PartialCustomerModel<T extends PartialCustomerDAO> extends Cust
      * The name of the 'phone' property.
      */
     public static final String PROP_PHONE = "phone";
-
-    @SuppressWarnings("unchecked")
-    public static PartialCustomerModel<? extends PartialCustomerDAO> createModel(PartialCustomerDAO t) {
-        if (null == t) {
-            return null;
-        }
-        if (t instanceof CustomerDAO) {
-            return ((CustomerDAO) t).cachedModel(true);
-        }
-
-        return new PartialCustomerModelImpl((CustomerDAO.Partial) t);
-    }
 
     /**
      * Gets the property that contains the name of the customer.

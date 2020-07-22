@@ -21,9 +21,9 @@ import scheduler.events.CountrySuccessEvent;
 import scheduler.events.ModelEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryEntity;
-import scheduler.model.CountryProperties;
 import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.WeakEventHandlingReference;
@@ -45,8 +45,8 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
     public CountryModel(CountryDAO dao) {
         super(dao);
         locale = new SimpleObjectProperty<>(this, PROP_LOCALE, dao.getLocale());
-        name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryProperties.getCountryDisplayText(locale.get()), locale);
-        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryProperties.getLanguageDisplayText(locale.get()), locale);
+        name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> CountryHelper.getCountryDisplayText(locale.get()), locale);
+        language = new ReadOnlyStringBindingProperty(this, PROP_LANGUAGE, () -> CountryHelper.getLanguageDisplayText(locale.get()), locale);
         modelEventHandler = WeakEventHandlingReference.create(this::onModelEvent);
     }
 

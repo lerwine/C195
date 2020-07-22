@@ -14,12 +14,13 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.CustomerDAO;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCustomerDAO;
 import scheduler.model.AddressProperties;
+import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.dao.PartialCustomerDAO;
 
 /**
  *
@@ -53,7 +54,7 @@ public class PartialCustomerModelImpl extends PartialModel<PartialCustomerDAO> i
             LOG.log(Level.SEVERE, "Error creating property", ex);
             throw new RuntimeException(ex);
         }
-        address = new ReadOnlyObjectBindingProperty<>(this, PROP_ADDRESS, () -> PartialAddressModel.createModel(addressDAO.get()), addressDAO);
+        address = new ReadOnlyObjectBindingProperty<>(this, PROP_ADDRESS, () -> AddressHelper.createModel(addressDAO.get()), addressDAO);
         address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));
         address2 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS2, Bindings.selectString(address, AddressProperties.PROP_ADDRESS2));
         cityName = new ReadOnlyStringBindingProperty(this, PROP_CITYNAME, Bindings.selectString(address, PartialAddressModel.PROP_CITYNAME));
@@ -62,9 +63,9 @@ public class PartialCustomerModelImpl extends PartialModel<PartialCustomerDAO> i
         phone = new ReadOnlyStringBindingProperty(this, PROP_PHONE, Bindings.selectString(address, AddressProperties.PROP_PHONE));
         cityZipCountry = new ReadOnlyStringBindingProperty(this, PROP_CITYZIPCOUNTRY, Bindings.selectString(address, PartialAddressModel.PROP_CITYZIPCOUNTRY));
         addressText = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSTEXT,
-                () -> AddressModel.calculateSingleLineAddress(address1.get(), address2.get(), cityZipCountry.get(), phone.get()));
+                () -> AddressHelper.calculateSingleLineAddress(address1.get(), address2.get(), cityZipCountry.get(), phone.get()));
         multiLineAddress = new ReadOnlyStringBindingProperty(this, PROP_MULTILINEADDRESS,
-                () -> AddressModel.calculateMultiLineAddress(AddressModel.calculateAddressLines(address1.get(), address2.get()),
+                () -> AddressHelper.calculateMultiLineAddress(AddressHelper.calculateAddressLines(address1.get(), address2.get()),
                         cityZipCountry.get(), phone.get()));
     }
 

@@ -25,6 +25,7 @@ import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
+import scheduler.model.ModelHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.UserModel;
 import scheduler.util.DateTimeUtil;
@@ -154,8 +155,7 @@ public class ConsultantSchedule extends VBox {
             rangeEndDatePicker.setValue(start);
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> consultantList.add(t.cachedModel(true)));
-                int id = user.getPrimaryKey();
-                Optional<UserModel> um = consultantList.stream().filter((t) -> t.getPrimaryKey() == id).findFirst();
+                Optional<UserModel> um = ModelHelper.findByPrimaryKey(user.getPrimaryKey(), consultantList);
                 um.ifPresent((t) -> consultantsComboBox.getSelectionModel().select(t));
             }
 

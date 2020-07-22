@@ -45,8 +45,8 @@ import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.events.OperationRequestEvent;
-import scheduler.model.Appointment;
 import scheduler.model.Customer;
+import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.EntityModel;
 import scheduler.model.fx.PartialAddressModel;
@@ -480,7 +480,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @Override
     protected Comparator<? super AppointmentDAO> getComparator() {
-        return Appointment::compare;
+        return AppointmentHelper::compare;
     }
 
     @Override

@@ -16,8 +16,6 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.EventType;
-import scheduler.AppResourceKeys;
-import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
@@ -40,6 +38,9 @@ import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AddressHelper;
+import scheduler.model.ModelHelper.CustomerHelper;
+import scheduler.model.ModelHelper.UserHelper;
 import scheduler.model.PredefinedData;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
@@ -78,63 +79,6 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
     public static final String PROP_CUSTOMERADDRESS1 = "customerAddress1";
     public static final String PROP_CUSTOMERNAME = "customerName";
 
-    public static String calculateEffectiveLocation(final AppointmentType type, final String customerAddress,
-            final String url, final String location) {
-        switch (type) {
-            case CUSTOMER_SITE:
-                return (customerAddress.isEmpty())
-                        ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER)
-                        : customerAddress;
-            case VIRTUAL:
-                return (url.isEmpty())
-                        ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
-                        : url;
-            case CORPORATE_LOCATION:
-                final CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(location);
-                return AddressModel.calculateSingleLineAddress(corporateAddress.getAddress1(),
-                        corporateAddress.getAddress2(),
-                        AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(),
-                                corporateAddress.getCity().getCountry().getName(), corporateAddress.getPostalCode()),
-                        corporateAddress.getPhone());
-            case PHONE:
-                return (location.isEmpty())
-                        ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
-                        : String.format("tel: %s", location);
-            default:
-                return location;
-        }
-    }
-
-    public static int compareByDates(final AppointmentModel a, final AppointmentModel b) {
-        if (null == a) {
-            return (null == b) ? 0 : 1;
-        }
-        if (null == b) {
-            return -1;
-        }
-        LocalDateTime x = a.getStart();
-        LocalDateTime y = b.getStart();
-        if (null == x) {
-            return (null == x) ? 0 : 1;
-        }
-        if (null == y) {
-            return -1;
-        }
-        final int c = x.compareTo(y);
-        if (c != 0) {
-            return c;
-        }
-        x = a.getEnd();
-        y = b.getEnd();
-        if (null == x) {
-            return (null == x) ? 0 : 1;
-        }
-        if (null == y) {
-            return -1;
-        }
-        return x.compareTo(y);
-    }
-
     private final WeakEventHandlingReference<AppointmentSuccessEvent> modelEventHandler;
     private final SimpleObjectProperty<PartialCustomerModel<? extends PartialCustomerDAO>> customer;
     private final ReadOnlyStringBindingProperty customerName;
@@ -165,7 +109,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
     @SuppressWarnings("incomplete-switch")
     private AppointmentModel(final AppointmentDAO dao) {
         super(dao);
-        customer = new SimpleObjectProperty<>(this, PROP_CUSTOMER, PartialCustomerModel.createModel(dao.getCustomer()));
+        customer = new SimpleObjectProperty<>(this, PROP_CUSTOMER, CustomerHelper.createModel(dao.getCustomer()));
         customerName = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERNAME, Bindings.selectString(customer, Customer.PROP_NAME));
         customerAddress1 = new ReadOnlyStringBindingProperty(this, PROP_CUSTOMERADDRESS1,
                 Bindings.selectString(customer, Address.PROP_ADDRESS1));
@@ -185,7 +129,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
                 Bindings.selectString(customer, PartialCustomerModel.PROP_ADDRESSTEXT));
         customerActive = new ReadOnlyBooleanBindingProperty(this, PROP_CUSTOMERACTIVE,
                 Bindings.selectBoolean(customer, Customer.PROP_ACTIVE));
-        user = new SimpleObjectProperty<>(this, PROP_USER, PartialUserModel.createModel(dao.getUser()));
+        user = new SimpleObjectProperty<>(this, PROP_USER, UserHelper.createModel(dao.getUser()));
         userName = new ReadOnlyStringBindingProperty(this, PROP_USERNAME, Bindings.selectString(user, User.PROP_USERNAME));
         userStatus = new ReadOnlyObjectBindingProperty<>(this, PROP_USERSTATUS, Bindings.select(user, User.PROP_STATUS));
         userStatusDisplay = new ReadOnlyStringBindingProperty(this, PROP_USERSTATUSDISPLAY,
@@ -216,10 +160,10 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
                     case CORPORATE_LOCATION:
                         if (!l.isEmpty()) {
                             final CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(l);
-                            return AddressModel.calculateMultiLineAddress(
-                                    AddressModel.calculateAddressLines(corporateAddress.getAddress1(),
+                            return AddressHelper.calculateMultiLineAddress(
+                                    AddressHelper.calculateAddressLines(corporateAddress.getAddress1(),
                                             corporateAddress.getAddress2()),
-                                    AddressModel.calculateCityZipCountry(corporateAddress.getCity().getName(),
+                                    AddressHelper.calculateCityZipCountry(corporateAddress.getCity().getName(),
                                             corporateAddress.getCity().getCountry().getName(),
                                             corporateAddress.getPostalCode()),
                                     corporateAddress.getPhone());
@@ -242,21 +186,21 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         PartialCustomerModel<? extends PartialCustomerDAO> currentCustomer = customer.get();
         PartialCustomerDAO newCustomer = dao.getCustomer();
         if (null == currentCustomer || null == newCustomer) {
-            customer.set(PartialCustomerModel.createModel(dao.getCustomer()));
+            customer.set(CustomerHelper.createModel(dao.getCustomer()));
         } else {
             PartialCustomerDAO currentDao = currentCustomer.dataObject();
             if (currentDao != newCustomer && !(ModelHelper.areSameRecord(currentDao, newCustomer) && currentDao instanceof CustomerDAO)) {
-                customer.set(PartialCustomerModel.createModel(dao.getCustomer()));
+                customer.set(CustomerHelper.createModel(dao.getCustomer()));
             }
         }
         PartialUserModel<? extends PartialUserDAO> currentUser = user.get();
         PartialUserDAO newUser = dao.getUser();
         if (null == currentUser || null == newUser) {
-            user.set(PartialUserModel.createModel(dao.getUser()));
+            user.set(UserHelper.createModel(dao.getUser()));
         } else {
             PartialUserDAO currentDao = currentUser.dataObject();
             if (currentDao != newUser && !(ModelHelper.areSameRecord(currentDao, newUser) && currentDao instanceof UserDAO)) {
-                user.set(PartialUserModel.createModel(dao.getUser()));
+                user.set(UserHelper.createModel(dao.getUser()));
             }
         }
         title.set(dao.getTitle());
@@ -531,7 +475,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         if (value instanceof ChronoLocalDateTime) {
-            return s.equals((ChronoLocalDateTime<?>) value);
+            return s.equals(value);
         }
 
         if (value instanceof ZonedDateTime) {
@@ -582,7 +526,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         if (value instanceof ChronoLocalDateTime) {
-            return e.equals((ChronoLocalDateTime<?>) value);
+            return e.equals(value);
         }
 
         if (value instanceof ZonedDateTime) {

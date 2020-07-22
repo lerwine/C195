@@ -30,6 +30,7 @@ import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
+import scheduler.model.ModelHelper;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
 import scheduler.model.fx.CustomerModel;
@@ -233,8 +234,7 @@ public class CustomerPicker extends BorderPane {
             });
         }
         if (null != c) {
-            int pk = c.getPrimaryKey();
-            Optional<CustomerModel> matching = filteredCustomers.stream().filter((CustomerModel item) -> item.getPrimaryKey() == pk).findFirst();
+            Optional<CustomerModel> matching = ModelHelper.findByPrimaryKey(c.getPrimaryKey(), filteredCustomers);
             if (matching.isPresent()) {
                 customersListView.getSelectionModel().select(matching.get());
             } else {
@@ -405,7 +405,7 @@ public class CustomerPicker extends BorderPane {
         private final CountryDAO country;
         private final CustomerDAO customer;
 
-        public LoadCitiesTask(CountryDAO country, CustomerDAO customer) {
+        LoadCitiesTask(CountryDAO country, CustomerDAO customer) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCITIES));
             this.country = Objects.requireNonNull(country);
             this.customer = customer;
@@ -436,7 +436,7 @@ public class CustomerPicker extends BorderPane {
 
     class LoadCountriesTask extends Task<ArrayList<CountryDAO>> {
 
-        public LoadCountriesTask() {
+        LoadCountriesTask() {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
         }
 
@@ -468,7 +468,7 @@ public class CustomerPicker extends BorderPane {
         private final OptionalBoolean active;
         private final CustomerDAO customer;
 
-        public LoadCustomersTask(CountryDAO country, CityDAO city, OptionalBoolean active, CustomerDAO customer) {
+        LoadCustomersTask(CountryDAO country, CityDAO city, OptionalBoolean active, CustomerDAO customer) {
             updateTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCUSTOMERS));
             this.country = country;
             this.city = city;

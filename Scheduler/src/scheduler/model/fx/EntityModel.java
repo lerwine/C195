@@ -169,15 +169,15 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
 
     protected void onModelEvent(ModelEvent<T, ? extends EntityModel<T>> event) {
         LOG.fine(() -> String.format("Handling %s", event));
-        EntityModel<T> entityModel = event.getEntityModel();
-        rowState.set(entityModel.getRowState());
-        lastModifiedDate.set(entityModel.getLastModifiedDate());
-        lastModifiedBy.set(entityModel.getLastModifiedBy());
+        T dao = event.getDataAccessObject();
+        rowState.set(dao.getRowState());
+        lastModifiedDate.set(DateTimeUtil.toLocalDateTime(dao.getLastModifiedDate()));
+        lastModifiedBy.set(dao.getLastModifiedBy());
         switch (event.getOperation()) {
             case DB_INSERT:
-                primaryKey.set(entityModel.getPrimaryKey());
-                createDate.set(entityModel.getCreateDate());
-                createdBy.set(entityModel.getCreatedBy());
+                primaryKey.set(dao.getPrimaryKey());
+                createDate.set(DateTimeUtil.toLocalDateTime(dao.getCreateDate()));
+                createdBy.set(dao.getCreatedBy());
                 break;
             case DB_UPDATE:
                 break;
@@ -241,7 +241,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
                 if (model.getRowState() == DataRowState.NEW) {
                     while (source.hasNext()) {
                         M m = source.next();
-                        if (null != m && ModelHelper.areSameRecord(m.dataObject(), model)) {
+                        if (null != m && ModelHelper.areSameRecord(m.dataObject(), model.dataObject())) {
                             return Optional.of(m);
                         }
                     }

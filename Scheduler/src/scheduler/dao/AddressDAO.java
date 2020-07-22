@@ -38,6 +38,7 @@ import scheduler.model.AddressEntity;
 import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.PartialCityModel;

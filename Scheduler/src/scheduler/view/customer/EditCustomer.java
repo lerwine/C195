@@ -59,9 +59,11 @@ import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.CitySuccessEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.events.CustomerEvent;
-import scheduler.model.CityProperties;
-import scheduler.model.CountryProperties;
+import scheduler.events.ModelFailedEvent;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AppointmentHelper;
+import scheduler.model.ModelHelper.CityHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.CityModel;
@@ -121,7 +123,7 @@ import scheduler.view.task.WaitTitledPane;
  */
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
-public final class EditCustomer extends VBox implements EditItem.ModelEditorController<CustomerDAO, CustomerModel, CustomerEvent> {
+public final class EditCustomer extends VBox implements EditItem.ModelEditorController<CustomerDAO, CustomerModel> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
@@ -361,7 +363,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                         AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
                         if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
                             scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((AppointmentFailedEvent) appointmentEvent).getMessage(), ButtonType.OK);
+                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
                         }
                     });
                     waitBorderPane.startNow(task);
@@ -528,8 +530,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         cityComboBox.getSelectionModel().clearSelection();
         cityOptions.clear();
         if (null != newValue) {
-            int pk = newValue.getPrimaryKey();
-            allCities.filtered((t) -> t.getCountry().getPrimaryKey() == pk).forEach((t) -> cityOptions.add(t));
+            CityHelper.matchesCountry(newValue.getPrimaryKey(), allCities).forEach((t) -> cityOptions.add(t));
         }
         updateValidation();
     }
@@ -607,15 +608,13 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         cityOptions.clear();
         countries.forEach((t) -> allCountries.add(t.cachedModel(true)));
         addressAndCities.getValue2().forEach((t) -> allCities.add(t.cachedModel(true)));
-        allCountries.sort(CountryProperties::compare);
-        allCities.sort(CityProperties::compare);
+        allCountries.sort(CountryHelper::compare);
+        allCities.sort(CityHelper::compare);
         if (null != country && country.getRowState() != DataRowState.NEW) {
-            int pk = country.getPrimaryKey();
-            allCountries.stream().filter((t) -> pk == t.getPrimaryKey()).findFirst().ifPresent((t) -> {
+            ModelHelper.findByPrimaryKey(country.getPrimaryKey(), allCountries).ifPresent((t) -> {
                 countryComboBox.getSelectionModel().select(t);
                 if (null != city && city.getRowState() != DataRowState.NEW) {
-                    int cpk = city.getPrimaryKey();
-                    cityOptions.stream().filter((u) -> cpk == u.getPrimaryKey()).findFirst().ifPresent((u) -> {
+                    ModelHelper.findByPrimaryKey(city.getPrimaryKey(), cityOptions).ifPresent((u) -> {
                         cityComboBox.getSelectionModel().select(u);
                     });
                 }
@@ -654,7 +653,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             AppointmentFilterItem filter = selectedFilter.get();
             if ((null == filter) ? entityModel.getCustomer().getPrimaryKey() == model.getPrimaryKey() : filter.getModelFilter().test(entityModel)) {
                 customerAppointments.add(entityModel);
-                customerAppointments.sort(AppointmentModel::compareByDates);
+                customerAppointments.sort(AppointmentHelper::compareByDates);
             }
         }
     }
@@ -669,7 +668,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 if (m != entityModel) {
                     customerAppointments.remove(m);
                     customerAppointments.add(entityModel);
-                    customerAppointments.sort(AppointmentModel::compareByDates);
+                    customerAppointments.sort(AppointmentHelper::compareByDates);
                 }
                 if ((null == filter) ? entityModel.getCustomer().getPrimaryKey() != model.getPrimaryKey() : !filter.getModelFilter().test(entityModel)) {
                     customerAppointments.remove(entityModel);
@@ -677,7 +676,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             } else if ((null == filter) ? entityModel.getCustomer().getPrimaryKey() == model.getPrimaryKey()
                     : filter.getModelFilter().test(entityModel)) {
                 customerAppointments.add(entityModel);
-                customerAppointments.sort(AppointmentModel::compareByDates);
+                customerAppointments.sort(AppointmentHelper::compareByDates);
             }
         }
     }
@@ -696,7 +695,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         if (isInShownWindow(this)) {
             CountryModel entityModel = event.getEntityModel();
             allCountries.add(entityModel);
-            allCountries.sort(CountryProperties::compare);
+            allCountries.sort(CountryHelper::compare);
             countryComboBox.getSelectionModel().select(entityModel);
         }
     }
@@ -704,8 +703,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private void onCountryDeleted(CountrySuccessEvent event) {
         LOG.entering(LOG.getName(), "onCountryDeleted", event);
         if (isInShownWindow(this)) {
-            int pk = event.getEntityModel().getPrimaryKey();
-            CountryModel deletedCountry = allCountries.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            CountryModel deletedCountry = ModelHelper.findByPrimaryKey(event.getEntityModel().getPrimaryKey(), allCountries).orElse(null);
             if (null != deletedCountry) {
                 CountryModel currentCountry = selectedCountry.get();
                 if (null != currentCountry && currentCountry == deletedCountry) {
@@ -721,11 +719,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         if (isInShownWindow(this)) {
             CityModel entityModel = event.getEntityModel();
             allCities.add(entityModel);
-            allCities.sort(CityProperties::compare);
+            allCities.sort(CityHelper::compare);
             CountryModel countryModel = selectedCountry.get();
             if (null != countryModel && countryModel.getPrimaryKey() == entityModel.getCountry().getPrimaryKey()) {
                 cityOptions.add(entityModel);
-                cityOptions.sort(CityProperties::compare);
+                cityOptions.sort(CityHelper::compare);
                 cityComboBox.getSelectionModel().select(entityModel);
             }
         }
@@ -735,14 +733,14 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         LOG.entering(LOG.getName(), "onCityUpdated", event);
         if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
-            CityModel entityModel = cityOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            CityModel entityModel = ModelHelper.findByPrimaryKey(pk, cityOptions).orElse(null);
             if (null != entityModel && selectedCountry.get().getPrimaryKey() != entityModel.getCountry().getPrimaryKey()) {
                 CityModel currentCity = selectedCity.get();
                 if (null != currentCity && currentCity == entityModel) {
                     cityComboBox.getSelectionModel().clearSelection();
                 }
                 cityOptions.remove(entityModel);
-            } else if (null != (entityModel = allCities.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null))) {
+            } else if (null != (entityModel = ModelHelper.findByPrimaryKey(pk, allCities).orElse(null))) {
                 CountryModel currentCountry = selectedCountry.get();
                 if (null != currentCountry && currentCountry.getPrimaryKey() == entityModel.getCountry().getPrimaryKey()) {
                     cityOptions.add(entityModel);
@@ -755,7 +753,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         LOG.entering(LOG.getName(), "onCityDeleted", event);
         if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
-            CityModel entityModel = cityOptions.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().orElse(null);
+            CityModel entityModel = ModelHelper.findByPrimaryKey(pk, cityOptions).orElse(null);
             if (null != entityModel) {
                 CityModel currentCity = selectedCity.get();
                 if (null != currentCity && currentCity == entityModel) {
@@ -764,7 +762,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 cityOptions.remove(entityModel);
                 allCities.remove(entityModel);
             } else {
-                allCities.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().ifPresent((t) -> allCities.remove(t));
+                ModelHelper.findByPrimaryKey(pk, allCities).ifPresent((t) -> allCities.remove(t));
             }
         }
     }
@@ -849,7 +847,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             }
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
                 result.getValue1().stream().map((t) -> t.cachedModel(true)).forEach(customerAppointments::add);
-                customerAppointments.sort(AppointmentModel::compareByDates);
+                customerAppointments.sort(AppointmentHelper::compareByDates);
             }
             appointmentFilterComboBox.setOnAction(EditCustomer.this::onAppointmentFilterComboBoxAction);
             waitBorderPane.startNow(new AppointmentReloadTask());
@@ -960,7 +958,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 result.forEach((t) -> {
                     customerAppointments.add(t.cachedModel(true));
                 });
-                customerAppointments.sort(AppointmentModel::compareByDates);
+                customerAppointments.sort(AppointmentHelper::compareByDates);
             }
         }
 
@@ -971,28 +969,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
                 return af.load(dbConnector.getConnection(), filter);
-            }
-        }
-
-    }
-
-    // FIXME: The type EditCustomer.AddressCustomerLoadTask is never used locally
-    private class AddressCustomerLoadTask extends Task<Integer> {
-
-        private final PartialAddressDAO address;
-
-        private AddressCustomerLoadTask() {
-            address = model.dataObject().getAddress();
-        }
-
-        @Override
-        protected Integer call() throws Exception {
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            try (DbConnector dbConnector = new DbConnector()) {
-                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                CustomerDAO.FactoryImpl uf = CustomerDAO.FACTORY;
-                return (null == address || address.getRowState() == DataRowState.NEW) ? 0
-                        : uf.countByAddress(dbConnector.getConnection(), address.getPrimaryKey());
             }
         }
 

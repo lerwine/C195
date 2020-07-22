@@ -28,7 +28,16 @@ import scheduler.dao.AddressDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.DataRowState;
+import scheduler.dao.PartialAddressDAO;
+import scheduler.dao.PartialCityDAO;
+import scheduler.dao.PartialCountryDAO;
 import static scheduler.fx.AddressPickerResourceKeys.*;
+import scheduler.model.ModelHelper.AddressHelper;
+import scheduler.model.ModelHelper.CityHelper;
+import scheduler.model.ModelHelper.CountryHelper;
+import scheduler.model.fx.PartialAddressModel;
+import scheduler.model.fx.PartialCityModel;
+import scheduler.model.fx.PartialCountryModel;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -37,12 +46,6 @@ import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.task.WaitBorderPane;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.dao.PartialCityDAO;
-import scheduler.dao.PartialCountryDAO;
-import scheduler.model.fx.PartialCityModel;
-import scheduler.model.fx.PartialCountryModel;
-import scheduler.model.fx.PartialAddressModel;
 
 /**
  * FXML Controller class
@@ -195,36 +198,36 @@ public class AddressPicker extends BorderPane {
         PartialCityModel<? extends PartialCityDAO> selectedCity;
         if (null == addr) {
             selectedCity = null;
-            addresses.forEach((t) -> allAddresses.add(PartialAddressModel.createModel(t)));
+            addresses.forEach((t) -> allAddresses.add(AddressHelper.createModel(t)));
         } else {
             selectedCity = addr.getCity();
             if (addr.getRowState() == DataRowState.NEW) {
-                addresses.forEach((t) -> allAddresses.add(PartialAddressModel.createModel(t)));
+                addresses.forEach((t) -> allAddresses.add(AddressHelper.createModel(t)));
             } else {
                 final int pk = addr.getPrimaryKey();
-                addresses.forEach((t) -> allAddresses.add((pk == t.getPrimaryKey()) ? addr : PartialAddressModel.createModel(t)));
+                addresses.forEach((t) -> allAddresses.add((pk == t.getPrimaryKey()) ? addr : AddressHelper.createModel(t)));
             }
         }
 
         PartialCountryModel<? extends PartialCountryDAO> selectedCountry;
         if (null == selectedCity) {
             selectedCountry = null;
-            cities.forEach((t) -> allCities.add(PartialCityModel.createModel(t)));
+            cities.forEach((t) -> allCities.add(CityHelper.createModel(t)));
         } else {
             selectedCountry = selectedCity.getCountry();
             if (selectedCity.getRowState() == DataRowState.NEW) {
-                cities.forEach((t) -> allCities.add(PartialCityModel.createModel(t)));
+                cities.forEach((t) -> allCities.add(CityHelper.createModel(t)));
             } else {
                 final int pk = selectedCity.getPrimaryKey();
-                cities.forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? selectedCity : PartialCityModel.createModel(t)));
+                cities.forEach((t) -> allCities.add((pk == t.getPrimaryKey()) ? selectedCity : CityHelper.createModel(t)));
             }
         }
 
         if (null == selectedCountry || selectedCountry.getRowState() == DataRowState.NEW) {
-            countries.forEach((t) -> allCountries.add(PartialCountryModel.createModel(t)));
+            countries.forEach((t) -> allCountries.add(CountryHelper.createModel(t)));
         } else {
             final int pk = selectedCountry.getPrimaryKey();
-            countries.forEach((t) -> allCountries.add((t.getPrimaryKey() == pk) ? selectedCountry : PartialCountryModel.createModel(t)));
+            countries.forEach((t) -> allCountries.add((t.getPrimaryKey() == pk) ? selectedCountry : CountryHelper.createModel(t)));
             countryListView.getSelectionModel().select(selectedCountry);
             if (null != selectedCity && selectedCity.getRowState() != DataRowState.NEW) {
                 cityListView.getSelectionModel().select(selectedCity);

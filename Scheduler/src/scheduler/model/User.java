@@ -1,7 +1,5 @@
 package scheduler.model;
 
-import java.util.Objects;
-
 /**
  * Base interface for objects that represent a {@code user} database entity.
  *
@@ -27,34 +25,6 @@ public interface User extends PartialDataEntity {
      * The name of the 'status' property.
      */
     public static final String PROP_STATUS = "status";
-
-    public static int compare(User a, User b) {
-        if (Objects.equals(a, b)) {
-            return 0;
-        }
-        if (null == a) {
-            return 1;
-        }
-        if (null == b) {
-            return -1;
-        }
-
-        String x = a.getUserName();
-        String y = b.getUserName();
-        int result = x.compareToIgnoreCase(y);
-        if (result == 0) {
-            return x.compareTo(y);
-        }
-        return result;
-    }
-
-    public static boolean arePropertiesEqual(User a, User b) {
-        if (null == a) {
-            return null == b;
-        }
-
-        return null != b && (a == b || (a.getUserName().equalsIgnoreCase(b.getUserName()) && a.getStatus().equals(b.getStatus())));
-    }
 
     /**
      * Gets the current user's login name. This corresponds to the "userName" database column.

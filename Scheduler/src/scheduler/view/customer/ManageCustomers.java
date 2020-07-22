@@ -22,7 +22,7 @@ import scheduler.events.CustomerFailedEvent;
 import scheduler.events.CustomerOpRequestEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.ModelFailedEvent;
-import scheduler.model.Customer;
+import scheduler.model.ModelHelper.CustomerHelper;
 import scheduler.model.fx.CustomerModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
@@ -125,7 +125,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
     @Override
     protected Comparator<? super CustomerDAO> getComparator() {
-        return Customer::compare;
+        return CustomerHelper::compare;
     }
 
     @Override

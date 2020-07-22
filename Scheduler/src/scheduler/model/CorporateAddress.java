@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import scheduler.model.fx.AddressModel;
+import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.util.ToStringPropertyBuilder;
 
 /**
@@ -95,7 +95,7 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
     @Override
     public boolean equals(Object obj) {
         return null != obj && obj instanceof AddressProperties
-                && (this == obj || AddressProperties.arePropertiesEqual(this, (AddressProperties) obj));
+                && (this == obj || AddressHelper.arePropertiesEqual(this, (AddressProperties) obj));
     }
 
     @Override
@@ -109,9 +109,9 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
 
     public String toMultiLineAddress() {
         SupportedCityDefinition city = getCity();
-        return AddressModel.calculateMultiLineAddress(
-                AddressModel.calculateAddressLines(address1, address2),
-                AddressModel.calculateCityZipCountry(city.getName(), city.getCountry().getName(), postalCode),
+        return AddressHelper.calculateMultiLineAddress(
+                AddressHelper.calculateAddressLines(address1, address2),
+                AddressHelper.calculateCityZipCountry(city.getName(), city.getCountry().getName(), postalCode),
                 phone
         );
     }

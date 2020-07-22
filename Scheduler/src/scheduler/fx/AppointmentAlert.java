@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -44,8 +45,9 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentSuccessEvent;
-import scheduler.model.Appointment;
 import scheduler.model.AppointmentType;
+import scheduler.model.ModelHelper.AppointmentHelper;
+import scheduler.model.PartialDataEntity;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DateTimeUtil;
@@ -132,7 +134,7 @@ public class AppointmentAlert extends BorderPane {
             if (end.compareTo(entityModel.getStart()) >= 0) {
                 ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
                 Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
-                Stream.concat(stream, Stream.of(entityModel)).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
+                Stream.concat(stream, Stream.of(entityModel)).sorted(AppointmentHelper::compareByDates).forEach(new Consumer<AppointmentModel>() {
                     int index = -1;
 
                     @Override
@@ -171,7 +173,7 @@ public class AppointmentAlert extends BorderPane {
                 if (null != view) {
                     stream = stream.filter((t) -> t.getPrimaryKey() != key);
                 }
-                Stream.concat(stream, Stream.of(item)).sorted(AppointmentModel::compareByDates).forEach(new Consumer<AppointmentModel>() {
+                Stream.concat(stream, Stream.of(item)).sorted(AppointmentHelper::compareByDates).forEach(new Consumer<AppointmentModel>() {
                     int index = -1;
 
                     @Override
@@ -342,26 +344,27 @@ public class AppointmentAlert extends BorderPane {
         button.setPadding(new Insets(0, 0, 0, 8));
         rootChildren.add(button);
         button.setText(AppResources.getResourceString(RESOURCEKEY_DISMISS));
-        button.setOnAction((event) -> dismiss((FlowPane) ((Button) event.getSource()).getParent()));
+        button.setOnAction((event) -> dismiss((FlowPane) ((Node) event.getSource()).getParent()));
         return view;
     }
 
+    @SuppressWarnings("unchecked")
     private void reBind(FlowPane view, AppointmentModel model) {
         StringProperty stringProperty;
         ObservableMap<Object, Object> properties = view.getProperties();
         if (null == model) {
             properties.remove(NODE_PROPERTYNAME_ALERT_MODEL);
-            ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TITLE)).unbind();
+            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_TITLE)).unbind();
             properties.remove(NODE_PROPERTYNAME_ALERT_TITLE);
-            ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_START)).unbind();
+            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_START)).unbind();
             properties.remove(NODE_PROPERTYNAME_ALERT_START);
-            ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_END)).unbind();
+            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_END)).unbind();
             properties.remove(NODE_PROPERTYNAME_ALERT_END);
-            ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TYPE)).unbind();
+            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_TYPE)).unbind();
             properties.remove(NODE_PROPERTYNAME_ALERT_TYPE);
-            ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_CUSTOMER)).unbind();
+            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_CUSTOMER)).unbind();
             properties.remove(NODE_PROPERTYNAME_ALERT_CUSTOMER);
-            ((StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_LOCATION)).unbind();
+            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_LOCATION)).unbind();
             properties.remove(NODE_PROPERTYNAME_ALERT_LOCATION);
         } else {
             properties.put(NODE_PROPERTYNAME_ALERT_MODEL, model);
@@ -404,7 +407,7 @@ public class AppointmentAlert extends BorderPane {
                 FlowPane f = (FlowPane) t;
                 ObservableList<Node> children = f.getChildren();
                 ObservableMap<Object, Object> properties = f.getProperties();
-                dismissed.add(((AppointmentModel) properties.get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
+                dismissed.add(((PartialDataEntity) properties.get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
                 reBind(f, null);
                 children.clear();
             });
@@ -415,7 +418,7 @@ public class AppointmentAlert extends BorderPane {
 
     private synchronized void dismiss(FlowPane flowPane) {
         ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-        dismissed.add(((AppointmentModel) flowPane.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
+        dismissed.add(((PartialDataEntity) flowPane.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
         reBind(flowPane, null);
         itemsViewList.remove(flowPane);
         if (itemsViewList.isEmpty()) {
@@ -425,8 +428,8 @@ public class AppointmentAlert extends BorderPane {
 
     private FlowPane getViewNode(int key) {
         Optional<Node> result = appointmentAlertsVBox.getChildren().stream().filter((t)
-                -> ((AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey() == key).findFirst();
-        return (FlowPane) result.orElse((Node) null);
+                -> ((PartialDataEntity) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey() == key).findFirst();
+        return (FlowPane) result.orElse(null);
     }
 
     public void start() {
@@ -441,7 +444,7 @@ public class AppointmentAlert extends BorderPane {
             appointmentCheckTimer.purge();
         }
         appointmentCheckTimer = new Timer();
-        appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, (long) checkFrequency * 60_000L);
+        appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, checkFrequency * 60_000L);
     }
 
     private synchronized boolean stop(boolean isPermanent) {
@@ -480,7 +483,7 @@ public class AppointmentAlert extends BorderPane {
             dismissed.forEach((i) -> d.add(i));
             dismissed.clear();
 
-            appointments.stream().sorted(Appointment::compareByDates).forEach(new Consumer<AppointmentDAO>() {
+            appointments.stream().sorted(AppointmentHelper::compareByDates).forEach(new Consumer<AppointmentDAO>() {
                 int index = -1;
 
                 @Override

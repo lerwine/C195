@@ -2,7 +2,6 @@ package scheduler.model.fx;
 
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import scheduler.dao.CityDAO;
 import scheduler.dao.PartialCityDAO;
 import scheduler.dao.PartialCountryDAO;
 import scheduler.model.City;
@@ -22,18 +21,6 @@ public interface PartialCityModel<T extends PartialCityDAO> extends City, Partia
      * The name of the 'language' property.
      */
     public static final String PROP_LANGUAGE = "language";
-
-    @SuppressWarnings("unchecked")
-    public static PartialCityModel<? extends PartialCityDAO> createModel(PartialCityDAO t) {
-        if (null == t) {
-            return null;
-        }
-        if (t instanceof CityDAO) {
-            return ((CityDAO) t).cachedModel(true);
-        }
-
-        return new PartialCityModelImpl((CityDAO.Partial) t);
-    }
 
     ReadOnlyStringProperty nameProperty();
 

@@ -27,8 +27,8 @@ import scheduler.events.CountryFailedEvent;
 import scheduler.events.CountrySuccessEvent;
 import scheduler.model.Country;
 import scheduler.model.CountryEntity;
-import scheduler.model.CountryProperties;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.model.fx.CountryModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -123,7 +123,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         }
         String oldName = name;
         this.locale = locale;
-        name = Values.asNonNullAndWsNormalized(CountryProperties.getCountryAndLanguageDisplayText(this.locale));
+        name = Values.asNonNullAndWsNormalized(CountryHelper.getCountryAndLanguageDisplayText(this.locale));
         firePropertyChange(PROP_LOCALE, oldLocale, this.locale);
         firePropertyChange(PROP_NAME, oldName, name);
         setModified();
@@ -275,7 +275,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
             String s = rs.getString(DbColumn.COUNTRY_NAME.toString());
             dao.locale = Locale.forLanguageTag(s);
-            dao.name = CountryProperties.getCountryAndLanguageDisplayText(dao.locale);
+            dao.name = CountryHelper.getCountryAndLanguageDisplayText(dao.locale);
 
             return propertyChanges;
         }
@@ -493,7 +493,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         private Partial(int primaryKey, Locale locale) {
             this.primaryKey = primaryKey;
             this.locale = locale;
-            this.name = CountryProperties.getCountryAndLanguageDisplayText(this.locale);
+            this.name = CountryHelper.getCountryAndLanguageDisplayText(this.locale);
         }
 
         @Override
