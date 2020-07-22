@@ -270,7 +270,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         LOG.entering(LOG.getName(), "onCustomerDeleteMenuItemAction", event);
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onDelete(item);
+            deleteCustomer(item);
         }
     }
 
@@ -279,7 +279,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         LOG.entering(LOG.getName(), "onCustomerEditMenuItemAction", event);
         CustomerModel item = customersTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
-            onEdit(item);
+            editCustomer(item);
         }
     }
 
@@ -293,13 +293,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                 case DELETE:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onDelete(item);
+                        deleteCustomer(item);
                     }
                     break;
                 case ENTER:
                     item = customersTableView.getSelectionModel().getSelectedItem();
                     if (null != item) {
-                        onEdit(item);
+                        editCustomer(item);
                     }
                     break;
             }
@@ -312,7 +312,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         editingCity.set(true);
     }
 
-    private void onEdit(CustomerModel item) {
+    private void editCustomer(CustomerModel item) {
         try {
             EditCustomer.edit(item, getScene().getWindow());
         } catch (IOException ex) {
@@ -320,7 +320,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         }
     }
 
-    private void onDelete(CustomerModel item) {
+    private void deleteCustomer(CustomerModel item) {
         CustomerOpRequestEvent deleteRequestEvent = new CustomerOpRequestEvent(item, this, true);
         Event.fireEvent(item.dataObject(), deleteRequestEvent);
         Stage stage = (Stage) getScene().getWindow();
@@ -349,9 +349,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private void onItemActionRequest(CustomerOpRequestEvent event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
-            onEdit(event.getEntityModel());
+            editCustomer(event.getEntityModel());
         } else {
-            onDelete(event.getEntityModel());
+            deleteCustomer(event.getEntityModel());
         }
     }
 
