@@ -49,7 +49,6 @@ import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.DateTimeUtil;
-import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.appointment.AppointmentModelFilter;
@@ -605,20 +604,8 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        final ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(primaryKeyProperty());
-        }
-        return builder.addEnum(PROP_ROWSTATE, getRowState()).addDataObject(customer).addDataObject(user)
-                .addString(title).addString(description).addString(location).addString(contact).addEnum(type)
-                .addString(url).addLocalDateTime(start).addLocalDateTime(end).addLocalDateTime(createDateProperty())
-                .addString(createdByProperty()).addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty());
+        return ModelHelper.AppointmentHelper.appendModelProperties(this, new StringBuilder(AppointmentModel.class.getName()).append(" {"))
+                .append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     public final static class Factory extends EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel> {

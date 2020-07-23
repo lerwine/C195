@@ -25,7 +25,6 @@ import static scheduler.model.CountryProperties.MAX_LENGTH_NAME;
 import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
 
@@ -107,22 +106,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(primaryKeyProperty());
-        }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(name)
-                .addLocale(locale)
-                .addLocalDateTime(createDateProperty())
-                .addString(createdByProperty())
-                .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty());
+        return ModelHelper.CountryHelper.appendModelProperties(this, new StringBuilder(CountryModel.class.getName()).append(" { ")).append("}").toString();
     }
 
     public final static class Factory extends EntityModel.EntityModelFactory<CountryDAO, CountryModel> {

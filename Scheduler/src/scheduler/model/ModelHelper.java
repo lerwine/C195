@@ -1,7 +1,8 @@
 package scheduler.model;
 
 import java.io.Serializable;
-import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Objects;
@@ -13,6 +14,7 @@ import javafx.beans.value.ObservableValue;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AddressDAO;
+import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
@@ -24,6 +26,11 @@ import scheduler.dao.PartialCountryDAO;
 import scheduler.dao.PartialCustomerDAO;
 import scheduler.dao.PartialUserDAO;
 import scheduler.dao.UserDAO;
+import scheduler.model.fx.AddressModel;
+import scheduler.model.fx.AppointmentModel;
+import scheduler.model.fx.CityModel;
+import scheduler.model.fx.CountryModel;
+import scheduler.model.fx.CustomerModel;
 import scheduler.model.fx.EntityModel;
 import scheduler.model.fx.PartialAddressModel;
 import scheduler.model.fx.PartialAddressModelImpl;
@@ -35,8 +42,14 @@ import scheduler.model.fx.PartialCustomerModel;
 import scheduler.model.fx.PartialCustomerModelImpl;
 import scheduler.model.fx.PartialUserModel;
 import scheduler.model.fx.PartialUserModelImpl;
+import scheduler.model.fx.UserModel;
 import scheduler.util.DateTimeUtil;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
+import scheduler.util.Values;
+import static scheduler.util.Values.appendEnum;
+import static scheduler.util.Values.appendLocalDateTime;
+import static scheduler.util.Values.appendString;
+import static scheduler.util.Values.appendTimestamp;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.view.address.EditAddress;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY_PHONENUMBER;
@@ -237,11 +250,227 @@ public class ModelHelper {
     public static boolean matchesPrimaryKey(PartialDataEntity source, int pk) {
         return null != source && source.getRowState() != DataRowState.NEW && source.getPrimaryKey() == pk;
     }
-
+    
     private ModelHelper() {
     }
 
+    private static class StringBuilderHelper {
+
+        @SuppressWarnings("unchecked")
+        private static StringBuilder appendCountryPropertiesX(CountryProperties entity, StringBuilder builder) {
+            if (entity instanceof SupportedCountryDefinition) {
+                return CountryHelper.appendCountryProperties(entity, builder);
+            }
+            if (entity instanceof CountryDAO) {
+                return CountryHelper.appendCountryProperties(entity, appendDataEntityPropertiesT((DataEntity<Timestamp>) entity, builder));
+            }
+            if (entity instanceof CountryModel) {
+                return CountryHelper.appendCountryProperties(entity, appendDataEntityPropertiesL((DataEntity<LocalDateTime>) entity, builder));
+            }
+            if (entity instanceof Country) {
+                return CountryHelper.appendCountryProperties(entity, appendPartialDataEntityProperties((PartialDataEntity) entity, builder));
+            }
+            
+            throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
+        }
+
+        @SuppressWarnings("unchecked")
+        private static StringBuilder appendCityPropertiesX(CityProperties entity, StringBuilder builder) {
+            if (entity instanceof SupportedCityDefinition) {
+                return CityHelper.appendCityDefinitionProperties((SupportedCityDefinition) entity, builder);
+            }
+            if (entity instanceof CityDAO) {
+                return CityHelper.appendCityProperties(entity, appendDataEntityPropertiesT((DataEntity<Timestamp>) entity, builder));
+            }
+            if (entity instanceof CityModel) {
+                return CityHelper.appendCityProperties(entity, appendDataEntityPropertiesL((DataEntity<LocalDateTime>) entity, builder));
+            }
+            if (entity instanceof City) {
+                return CityHelper.appendCityProperties(entity, appendPartialDataEntityProperties((PartialDataEntity) entity, builder));
+            }
+            
+            throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
+        }
+
+        @SuppressWarnings("unchecked")
+        private static StringBuilder appendAddressPropertiesX(AddressProperties entity, StringBuilder builder) {
+            if (entity instanceof CorporateAddress) {
+                return AddressHelper.appendCorporateAddressProperties((CorporateAddress) entity, builder);
+            }
+            if (entity instanceof AddressDAO) {
+                return AddressHelper.appendAddressProperties(entity, appendDataEntityPropertiesT((DataEntity<Timestamp>) entity, builder));
+            }
+            if (entity instanceof AddressModel) {
+                return AddressHelper.appendAddressProperties(entity, appendDataEntityPropertiesL((DataEntity<LocalDateTime>) entity, builder));
+            }
+            if (entity instanceof Address) {
+                return AddressHelper.appendAddressProperties(entity, appendPartialDataEntityProperties((PartialDataEntity) entity, builder));
+            }
+            
+            throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
+        }
+
+        private static StringBuilder appendPartialDataEntityProperties(PartialDataEntity entity, StringBuilder builder) {
+            builder.append("primaryKey=").append(entity.getPrimaryKey()).append("; rowState=");
+            return appendEnum(entity.getRowState(), builder);
+        }
+
+        private static StringBuilder appendPartialDataEntityPropertiesX(PartialDataEntity entity, StringBuilder builder) {
+            if (entity instanceof DataEntity) {
+                return appendDataEntityPropertiesX((DataEntity<?>) entity, builder);
+            }
+            
+            if (entity instanceof User) {
+                return UserHelper.appendUserProperties((User) entity, appendPartialDataEntityProperties(entity, builder));
+            }
+            
+            if (entity instanceof Customer) {
+                return CustomerHelper.appendCustomerProperties((Customer) entity, appendPartialDataEntityProperties(entity, builder));
+            }
+            
+            if (entity instanceof Country) {
+                return CountryHelper.appendCountryProperties((CountryProperties) entity, appendPartialDataEntityProperties(entity, builder));
+            }
+            
+            if (entity instanceof Address) {
+                return AddressHelper.appendAddressProperties((AddressProperties) entity, appendPartialDataEntityProperties(entity, builder));
+            }
+            
+            if (entity instanceof SupportedCityDefinition) {
+                return CityHelper.appendCityDefinitionProperties((SupportedCityDefinition) entity, appendPartialDataEntityProperties(entity, builder));
+            }
+            
+            if (entity instanceof City) {
+                return CityHelper.appendCityProperties((CityProperties) entity, appendPartialDataEntityProperties(entity, builder));
+            }
+            
+            throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
+        }
+
+        private static StringBuilder appendDataEntityPropertiesT(DataEntity<Timestamp> entity, StringBuilder builder) {
+            appendPartialDataEntityProperties(entity, builder);
+            appendTimestamp(entity.getCreateDate(), builder.append("; createDate="));
+            appendString(entity.getCreatedBy(), builder.append("; createdBy="));
+            appendTimestamp(entity.getLastModifiedDate(), builder.append("; lastModifiedDate="));
+            return appendString(entity.getLastModifiedBy(), builder.append("; lastModifiedBy="));
+        }
+        
+        private static StringBuilder appendDataEntityPropertiesTX(DataEntity<Timestamp> entity, StringBuilder builder) {
+            if (entity instanceof Appointment) {
+                return AppointmentHelper.appendAppointmentPropertiesT((Appointment<Timestamp>) entity, appendDataEntityPropertiesT(entity, builder));
+            }
+            if (entity instanceof Customer) {
+                return CustomerHelper.appendCustomerProperties((Customer) entity, appendDataEntityPropertiesT(entity, builder));
+            }
+            if (entity instanceof UserEntity) {
+                return UserHelper.appendUserEntityProperties((UserEntity<?>) entity, appendDataEntityPropertiesT(entity, builder));
+            }
+            if (entity instanceof Address) {
+                return AddressHelper.appendAddressProperties((AddressProperties) entity, appendDataEntityPropertiesT(entity, builder));
+            }
+            if (entity instanceof City) {
+                return CityHelper.appendCityProperties((CityProperties) entity, appendDataEntityPropertiesT(entity, builder));
+            }
+            if (entity instanceof Country) {
+                return CountryHelper.appendCountryProperties((CountryProperties) entity, appendDataEntityPropertiesT(entity, builder));
+            }
+            
+            throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
+        }
+
+        private static StringBuilder appendDataEntityPropertiesL(DataEntity<LocalDateTime> entity, StringBuilder builder) {
+            appendPartialDataEntityProperties(entity, builder);
+            appendLocalDateTime(entity.getCreateDate(), builder.append("; createDate="));
+            appendString(entity.getCreatedBy(), builder.append("; createdBy="));
+            return appendLocalDateTime(entity.getLastModifiedDate(), builder.append("; lastModifiedDate="));
+        }
+
+        private static StringBuilder appendDataEntityPropertiesLX(DataEntity<LocalDateTime> entity, StringBuilder builder) {
+            if (entity instanceof AppointmentModel) {
+                return AppointmentHelper.appendAppointmentPropertiesL((Appointment<LocalDateTime>) entity, appendDataEntityPropertiesL(entity, builder));
+            }
+            if (entity instanceof Customer) {
+                return CustomerHelper.appendCustomerProperties((Customer) entity, appendDataEntityPropertiesL(entity, builder));
+            }
+            if (entity instanceof UserEntity) {
+                return UserHelper.appendUserEntityProperties((UserEntity<?>) entity, appendDataEntityPropertiesL(entity, builder));
+            }
+            if (entity instanceof Address) {
+                return AddressHelper.appendAddressProperties((AddressProperties) entity, appendDataEntityPropertiesL(entity, builder));
+            }
+            if (entity instanceof City) {
+                return CityHelper.appendCityProperties((CityProperties) entity, appendDataEntityPropertiesL(entity, builder));
+            }
+            if (entity instanceof Country) {
+                return CountryHelper.appendCountryProperties((CountryProperties) entity, appendDataEntityPropertiesL(entity, builder));
+            }
+            
+            throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
+        }
+        
+        @SuppressWarnings("unchecked")
+        private static StringBuilder appendDataEntityPropertiesX(DataEntity<?> entity, StringBuilder builder) {
+            if (entity instanceof DataAccessObject) {
+                appendDataEntityPropertiesTX((DataEntity<Timestamp>) entity, builder);
+            }
+            
+            if (entity instanceof EntityModel) {
+                appendDataEntityPropertiesLX((DataEntity<LocalDateTime>) entity, builder);
+            }
+            
+            throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
+        }
+
+        private StringBuilderHelper() {
+        }
+
+    }
+
     public static class AppointmentHelper {
+        private static StringBuilder appendAppointmentPropertiesT(Appointment<Timestamp> appointment, StringBuilder builder) {
+            appendTimestamp(appointment.getStart(), builder.append("; start="));
+            appendTimestamp(appointment.getEnd(), builder.append("; end="));
+            return appendAppointmentProperties(appointment, builder);
+        }
+        private static StringBuilder appendAppointmentPropertiesL(Appointment<LocalDateTime> appointment, StringBuilder builder) {
+            appendLocalDateTime(appointment.getStart(), builder.append("; start="));
+            appendLocalDateTime(appointment.getEnd(), builder.append("; end="));
+            return appendAppointmentProperties(appointment, builder);
+        }
+        private static StringBuilder appendAppointmentProperties(Appointment<?> appointment, StringBuilder builder) {
+            appendEnum(appointment.getType(), builder.append("; type="));
+            appendString(appointment.getTitle(), builder.append("; title="));
+            appendString(appointment.getContact(), builder.append("; contact="));
+            Customer customer = appointment.getCustomer();
+            User user = appointment.getUser();
+            if (null == customer) {
+                if (null == user) {
+                    builder.append("; customer=null; user=null; ");
+                } else {
+                    builder.append("; customer=null;").append(Values.LINEBREAK_STRING)
+                            .append("\tuser=").append(Values.indentText(user.toString(), 2, false));
+                }
+            } else {
+                builder.append(";").append(Values.LINEBREAK_STRING).append("\tcustomer=").append(Values.indentText(customer.toString(), 1, false)).append(";").append(Values.LINEBREAK_STRING);
+                if (null == user) {
+                    builder.append("\tuser=null; description=");
+                } else {
+                    builder.append("\tuser=").append(Values.indentText(user.toString(), 2, false)).append(";").append(Values.LINEBREAK_STRING)
+                            .append("\tdescription=");
+                }
+            }
+            appendString(appointment.getDescription(), builder);
+            appendString(appointment.getLocation(), builder.append(";").append(Values.LINEBREAK_STRING).append("\tlocation="));
+            return appendString(appointment.getUrl(), builder.append(";").append(Values.LINEBREAK_STRING).append("\turl="));
+        }
+        
+        public static StringBuilder appendModelProperties(AppointmentModel appointment, StringBuilder builder) {
+            return appendAppointmentPropertiesL(appointment, StringBuilderHelper.appendDataEntityPropertiesL(appointment, builder));
+        }
+
+        public static StringBuilder appendDaoProperties(AppointmentDAO user, StringBuilder builder) {
+            return appendAppointmentPropertiesT(user, StringBuilderHelper.appendDataEntityPropertiesT(user, builder));
+        }
 
         public static int compare(Appointment<?> a, Appointment<?> b) {
             if (Objects.equals(a, b)) {
@@ -428,6 +657,31 @@ public class ModelHelper {
             return new PartialCustomerModelImpl((CustomerDAO.Partial) t);
         }
 
+        private static StringBuilder appendCustomerProperties(Customer customer, StringBuilder builder) {
+            appendString(customer.getName(), builder.append("; name=")).append("; active=").append(customer.isActive());
+            Address address = customer.getAddress();
+            if (null == address) {
+                return builder.append("; address=null");
+            }
+            return builder.append(";").append(Values.LINEBREAK_STRING).append("\taddress=").append(Values.indentText(address.toString(), 2, false));
+        }
+
+        public static StringBuilder appendModelProperties(CustomerModel customer, StringBuilder builder) {
+            return appendCustomerProperties(customer, StringBuilderHelper.appendDataEntityPropertiesL(customer, builder));
+        }
+
+        public static StringBuilder appendDaoProperties(CustomerDAO customer, StringBuilder builder) {
+            return appendCustomerProperties(customer, StringBuilderHelper.appendDataEntityPropertiesT(customer, builder));
+        }
+
+        public static StringBuilder appendPartialDaoProperties(CustomerDAO.Partial customer, StringBuilder builder) {
+            return appendCustomerProperties(customer, StringBuilderHelper.appendPartialDataEntityProperties(customer, builder));
+        }
+
+        public static StringBuilder appendPartialModelProperties(PartialCustomerModelImpl customer, StringBuilder builder) {
+            return appendCustomerProperties(customer, StringBuilderHelper.appendPartialDataEntityProperties(customer, builder));
+        }
+
         private CustomerHelper() {
         }
 
@@ -435,7 +689,7 @@ public class ModelHelper {
 
     public static class AddressHelper {
 
-        public static String toString(AddressProperties address) throws SQLException, ClassNotFoundException {
+        public static String toString(AddressProperties address) {
             if (null == address) {
                 return "";
             }
@@ -713,6 +967,40 @@ public class ModelHelper {
                     : String.format("%s, %s, %s, %s", address1, address2, cityZipCountry, phone);
         }
 
+        private static StringBuilder appendAddressProperties(AddressProperties address, StringBuilder builder) {
+            appendString(address.getAddress1(), builder.append("; address1="));
+            appendString(address.getAddress2(), builder.append("; address2="));
+            CityProperties city = address.getCity();
+            if (null == city) {
+                builder.append("; city=null; postalCode=");
+            } else {
+                builder.append(";").append(Values.LINEBREAK_STRING).append("\tcity=").append(Values.indentText(city.toString(), 2, false)).append(";")
+                        .append(Values.LINEBREAK_STRING).append("\tpostalCode=");
+            }
+            return appendString(address.getPhone(), appendString(address.getPostalCode(), builder).append("; phone="));
+        }
+
+        public static StringBuilder appendCorporateAddressProperties(CorporateAddress address, StringBuilder builder) {
+            appendString(address.getName(), builder.append("; name=")).append("; satelliteOffice=").append(address.isSatelliteOffice());
+            return appendAddressProperties(address, builder);
+        }
+
+        public static StringBuilder appendModelProperties(AddressModel address, StringBuilder builder) {
+            return appendAddressProperties(address, StringBuilderHelper.appendDataEntityPropertiesL(address, builder));
+        }
+
+        public static StringBuilder appendDaoProperties(AddressDAO address, StringBuilder builder) {
+            return appendAddressProperties(address, StringBuilderHelper.appendDataEntityPropertiesT(address, builder));
+        }
+
+        public static StringBuilder appendPartialDaoProperties(AddressDAO.Partial address, StringBuilder builder) {
+            return appendAddressProperties(address, StringBuilderHelper.appendPartialDataEntityProperties(address, builder));
+        }
+
+        public static StringBuilder appendPartialModelProperties(PartialAddressModelImpl address, StringBuilder builder) {
+            return appendAddressProperties(address, StringBuilderHelper.appendPartialDataEntityProperties(address, builder));
+        }
+
         private AddressHelper() {
         }
 
@@ -819,12 +1107,49 @@ public class ModelHelper {
             return new PartialCityModelImpl((CityDAO.Partial) t);
         }
 
+        private static StringBuilder appendCityProperties(CityProperties city, StringBuilder builder) {
+            appendString(city.getName(), builder.append("; name="));
+            CountryProperties country = city.getCountry();
+            if (null == country) {
+                return builder.append("; country=null");
+            }
+            return builder.append(";").append(Values.LINEBREAK_STRING).append("\tcountry=").append(Values.indentText(country.toString(), 2, false));
+        }
+        
+        public static StringBuilder appendCityDefinitionProperties(SupportedCityDefinition city, StringBuilder builder) {
+            return appendCityProperties(city, builder).append(";").append(Values.LINEBREAK_STRING).append("\ttimeZone=").append(city.getTimeZone().getID());
+        }
+
+        public static StringBuilder appendModelProperties(CityModel city, StringBuilder builder) {
+            return appendCityProperties(city, StringBuilderHelper.appendDataEntityPropertiesL(city, builder));
+        }
+
+        public static StringBuilder appendDaoProperties(CityDAO city, StringBuilder builder) {
+            return appendCityProperties(city, StringBuilderHelper.appendDataEntityPropertiesT(city, builder));
+        }
+
+        public static StringBuilder appendPartialDaoProperties(CityDAO.Partial city, StringBuilder builder) {
+            return appendCityProperties(city, StringBuilderHelper.appendPartialDataEntityProperties(city, builder));
+        }
+
+        public static StringBuilder appendPartialModelProperties(PartialCityModelImpl city, StringBuilder builder) {
+            return appendCityProperties(city, StringBuilderHelper.appendPartialDataEntityProperties(city, builder));
+        }
+
         private CityHelper() {
         }
 
     }
 
     public static class CountryHelper {
+
+        public static String toString(CountryProperties country) {
+            if (null != country) {
+                String n = country.getName();
+                return (null == n) ? "" : n;
+            }
+            return "";
+        }
 
         public static String getCountryDisplayText(Locale locale) {
             if (null != locale) {
@@ -862,14 +1187,6 @@ public class ModelHelper {
                     }
                     return (s.isEmpty()) ? String.format("%s (%s)", d, v) : String.format("%s (%s, %s)", d, v, s);
                 }
-            }
-            return "";
-        }
-
-        public static String toString(CountryProperties country) {
-            if (null != country) {
-                String n = country.getName();
-                return (null == n) ? "" : n;
             }
             return "";
         }
@@ -914,12 +1231,66 @@ public class ModelHelper {
             return new PartialCountryModelImpl((CountryDAO.Partial) t);
         }
 
+        private static StringBuilder appendCountryProperties(CountryProperties country, StringBuilder builder) {
+            Locale locale = country.getLocale();
+            builder.append("; locale=");
+            if (null != locale)
+                builder.append("; locale=").append(locale.toLanguageTag()).append("; name=");
+            else
+                builder.append("; locale=; name=");
+            return appendString(country.getName(), builder);
+        }
+
+        public static StringBuilder appendCountryDefinitionProperties(SupportedCountryDefinition country, StringBuilder builder) {
+            return appendCountryProperties(country, builder);
+        }
+
+        public static StringBuilder appendModelProperties(CountryModel country, StringBuilder builder) {
+            return appendCountryProperties(country, StringBuilderHelper.appendDataEntityPropertiesL(country, builder));
+        }
+
+        public static StringBuilder appendDaoProperties(CountryDAO country, StringBuilder builder) {
+            return appendCountryProperties(country, StringBuilderHelper.appendDataEntityPropertiesT(country, builder));
+        }
+
+        public static StringBuilder appendPartialDaoProperties(CountryDAO.Partial country, StringBuilder builder) {
+            return appendCountryProperties(country, StringBuilderHelper.appendPartialDataEntityProperties(country, builder));
+        }
+
+        public static StringBuilder appendPartialModelProperties(PartialCountryModelImpl country, StringBuilder builder) {
+            return appendCountryProperties(country, StringBuilderHelper.appendPartialDataEntityProperties(country, builder));
+        }
+
         private CountryHelper() {
         }
 
     }
 
     public static class UserHelper {
+
+        private static StringBuilder appendUserProperties(User user, StringBuilder builder) {
+            return appendEnum(user.getStatus(), appendString(user.getUserName(), builder.append("; userName=")).append("; state="));
+        }
+
+        private static StringBuilder appendUserEntityProperties(UserEntity<?> user, StringBuilder builder) {
+            return appendString(user.getPassword(), appendUserProperties(user, builder).append("; password="));
+        }
+
+        public static StringBuilder appendModelProperties(UserModel user, StringBuilder builder) {
+            return appendUserEntityProperties(user, StringBuilderHelper.appendDataEntityPropertiesL(user, builder));
+        }
+
+        public static StringBuilder appendDaoProperties(UserDAO user, StringBuilder builder) {
+            return appendUserEntityProperties(user, StringBuilderHelper.appendDataEntityPropertiesT(user, builder));
+        }
+
+        public static StringBuilder appendPartialDaoProperties(UserDAO.Partial user, StringBuilder builder) {
+            return appendUserProperties(user, StringBuilderHelper.appendPartialDataEntityProperties(user, builder));
+        }
+
+        public static StringBuilder appendPartialModelProperties(PartialUserModelImpl user, StringBuilder builder) {
+            return appendUserProperties(user, StringBuilderHelper.appendPartialDataEntityProperties(user, builder));
+        }
 
         public static int compare(User a, User b) {
             if (Objects.equals(a, b)) {

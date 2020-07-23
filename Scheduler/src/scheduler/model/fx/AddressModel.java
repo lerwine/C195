@@ -38,7 +38,6 @@ import scheduler.model.ModelHelper.CityHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
-import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
@@ -252,25 +251,11 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(primaryKeyProperty());
+        StringBuilder sb = ModelHelper.AddressHelper.appendModelProperties(this, new StringBuilder(AddressModel.class.getName()).append(" { "));
+        if (null == getCity()) {
+            return sb.append("}").toString();
         }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(address1)
-                .addString(address2)
-                .addDataObject(city)
-                .addString(postalCode)
-                .addString(phone)
-                .addLocalDateTime(createDateProperty())
-                .addString(createdByProperty())
-                .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty());
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     public final static class Factory extends EntityModel.EntityModelFactory<AddressDAO, AddressModel> {

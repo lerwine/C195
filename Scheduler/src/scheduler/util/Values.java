@@ -3,8 +3,10 @@ package scheduler.util;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -20,7 +22,65 @@ import java.util.regex.Pattern;
 public final class Values {
 
     public static final Pattern REGEX_NON_NORMAL_WHITESPACES = Pattern.compile(" \\s+|(?! )\\s+");
-    public static final Pattern REGEX_LINEBREAK = Pattern.compile("[\\r\\n]+");
+    public static final Pattern REGEX_LINEBREAK = Pattern.compile("\\r\\n?|\\n");
+    public static final String LINEBREAK_STRING = String.format("%n");
+    public static final Pattern REGEX_LINEBREAKN = Pattern.compile("[\\r\\n]+");
+    private static final Pattern STRING_ENCODE = Pattern.compile("[\"\\u0000-\\u0019\\u007f-\\uffff\\\\]");
+    private static final DateTimeFormatter LOCAL_DATE_TIME_FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
+    
+    public static StringBuilder appendEnum(Enum<?> value, StringBuilder builder) {
+        return builder.append((null == value) ? "null" : value.name());
+    }
+
+    public static StringBuilder appendLocalDateTime(LocalDateTime value, StringBuilder builder) {
+        return builder.append((null == value) ? "null" : LOCAL_DATE_TIME_FMT.format(value));
+    }
+
+    public static StringBuilder appendTimestamp(Timestamp value, StringBuilder builder) {
+        return builder.append((null == value) ? "null" : LOCAL_DATE_TIME_FMT.format(DateTimeUtil.toLocalDateTime(value)));
+    }
+
+    public static StringBuilder appendString(String value, StringBuilder builder) {
+        if (null == value) {
+            return builder.append("null");
+        }
+        if (value.isEmpty()) {
+            return builder.append("\"\"");
+        }
+        StringBuffer sb = new StringBuffer();
+        Matcher matcher = STRING_ENCODE.matcher(value);
+        while (matcher.find()) {
+            String r = matcher.group(0);
+            switch (r) {
+                case "\r":
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement("\\r"));
+                    break;
+                case "\n":
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement("\\n"));
+                    break;
+                case "\t":
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement("\\t"));
+                    break;
+                case "\b":
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement("\\b"));
+                    break;
+                case "\f":
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement("\\f"));
+                    break;
+                case "\"":
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement("\\\""));
+                    break;
+                case "\\":
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement("\\\\"));
+                    break;
+                default:
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement(String.format("\\u%04x", matcher.group(0).codePointAt(0))));
+                    break;
+            }
+        }
+        matcher.appendTail(sb);
+        return builder.append("\"").append(sb).append("\"");
+    }
 
     public static int compareTimeZones(TimeZone o1, TimeZone o2) {
         if (null == o1) {
@@ -50,7 +110,7 @@ public final class Values {
         }
         return result;
     }
-    
+
     public static int compareLocalDateTimeToTimestamp(LocalDateTime a, Timestamp b) {
         if (null == a) {
             return (null == b) ? 0 : 1;
@@ -98,7 +158,53 @@ public final class Values {
         }
         return result;
     }
+    
+    private static final String LINE_BREAK_TEXT = String.format("%n");
 
+    public static String toString(char c, int count) {
+        if (count < 1) {
+            return "";
+        }
+        if (count == 1) {
+            return String.valueOf(new char[] { c });
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+    public static CharSequence indentText(CharSequence source, int count, boolean indentFirstLine) {
+        if (count < 1 || null == source || source.length() == 0) {
+            return source;
+        }
+        String[] lines;
+        if (source instanceof String) {
+            if (((String)source).trim().isEmpty() || (lines = REGEX_LINEBREAK.split(source)).length < 2 && !indentFirstLine) {
+                return source;
+            }
+        } else if (((lines = REGEX_LINEBREAK.split(source)).length < 2 && !indentFirstLine) || Arrays.stream(lines).allMatch((t) -> t.trim().isEmpty())) {
+            return source;
+        }
+        
+        StringBuilder result = new StringBuilder();
+        String indent = toString('\t', count);
+        String text = lines[0];
+        if (indentFirstLine && !text.trim().isEmpty())
+            result.append(indent);
+        result.append(text);
+        for (int i = 1; i < lines.length; i++) {
+            result.append(LINE_BREAK_TEXT);
+            if (!(text = lines[i]).isEmpty()) {
+                if (!text.trim().isEmpty()) {
+                    result.append(indent);
+                }
+                result.append(text);
+            }
+        }
+        return result;
+    }
+    
     public static ArrayList<String> splitByChar(String source, char delimiter) {
         ArrayList<String> result = new ArrayList<>();
         if (null == source) {
@@ -215,9 +321,8 @@ public final class Values {
     }
 
     /**
-     * Ensures a {@link String} value is not null and that all white space is normalized. Leading and trailing whitespace will be removed. Consecutive
-     * whitespace characters will be replaced with a single space characters. Other whitespace characters will be replaced by a normal space
-     * character.
+     * Ensures a {@link String} value is not null and that all white space is normalized. Leading and trailing whitespace will be removed. Consecutive whitespace characters will be
+     * replaced with a single space characters. Other whitespace characters will be replaced by a normal space character.
      *
      * @param value The source {@link String} value.
      * @return The {@code value} with white space normalized if not null; otherwise, an empty {@link String}.
@@ -240,9 +345,8 @@ public final class Values {
     }
 
     /**
-     * Ensures a {@link String} value is not null and that all white space is normalized. Leading and trailing whitespace will be removed. Consecutive
-     * whitespace characters will be replaced with a single space characters. Other whitespace characters will be replaced by a normal space
-     * character.
+     * Ensures a {@link String} value is not null and that all white space is normalized. Leading and trailing whitespace will be removed. Consecutive whitespace characters will be
+     * replaced with a single space characters. Other whitespace characters will be replaced by a normal space character.
      *
      * @param value The source {@link String} value.
      * @return The {@code value} with white space normalized if not null; otherwise, an empty {@link String}.
@@ -252,9 +356,10 @@ public final class Values {
             return "";
         }
 
-        String[] lines = REGEX_LINEBREAK.split(value);
-        if (lines.length < 2)
+        String[] lines = REGEX_LINEBREAKN.split(value);
+        if (lines.length < 2) {
             return asNonNullAndWsNormalized(value);
+        }
         StringBuffer sb = new StringBuffer(asNonNullAndWsNormalized(lines[0]));
         for (int i = 1; i < lines.length; i++) {
             sb.append("\n");
@@ -270,9 +375,8 @@ public final class Values {
     }
 
     /**
-     * Composes a {@link Supplier} that returns the non-null, whitespace-normalized result of the source {@link Supplier} or an empty string. Leading
-     * and trailing whitespace will be removed. Consecutive whitespace characters will be replaced with a single space characters. Other whitespace
-     * characters will be replaced by a normal space character.
+     * Composes a {@link Supplier} that returns the non-null, whitespace-normalized result of the source {@link Supplier} or an empty string. Leading and trailing whitespace will
+     * be removed. Consecutive whitespace characters will be replaced with a single space characters. Other whitespace characters will be replaced by a normal space character.
      *
      * @param valueSupplier The source {@link Supplier}.
      * @return A non-null, whitespace-normalized {@link String} value derived from the source {@code valueSupplier}.
@@ -288,8 +392,8 @@ public final class Values {
      * Tests whether a string is null, empty or contains only white space characters.
      *
      * @param value The {@link String} to test.
-     * @return {@code} true if the {@code value} is null, empty or contains only white space characters; otherwise {@code false} if it contains at
-     * least one non-whitespace character.
+     * @return {@code} true if the {@code value} is null, empty or contains only white space characters; otherwise {@code false} if it contains at least one non-whitespace
+     * character.
      */
     public static boolean isNullWhiteSpaceOrEmpty(String value) {
         return (value == null || value.isEmpty() || value.codePoints().allMatch((c) -> Character.isWhitespace(c)));
@@ -299,8 +403,8 @@ public final class Values {
      * Tests whether a string is not null and contains at least one white space character.
      *
      * @param value The {@link String} to test.
-     * @return {@code} true if the {@code value} is not null and contains at least one white space character; otherwise {@code false} is null, empty
-     * or contains only white space characters.
+     * @return {@code} true if the {@code value} is not null and contains at least one white space character; otherwise {@code false} is null, empty or contains only white space
+     * characters.
      */
     public static boolean isNotNullWhiteSpaceOrEmpty(String value) {
         return !(value == null || value.isEmpty() || value.codePoints().allMatch((c) -> Character.isWhitespace(c)));
@@ -310,10 +414,8 @@ public final class Values {
      * Ensures a string is not null and contains at least one non-whitespace character or else returns a default value.
      *
      * @param sourceValue The source {@link String} value.
-     * @param defaultValue The default {@link String} value to return if the {@code sourceValue} is null, empty or contains only whitespace
-     * characters.
-     * @return {@code sourceValue} if it is not null or empty and contains at least one non-whitespace character; otherwise the {@code defaultValue}
-     * is returned.
+     * @param defaultValue The default {@link String} value to return if the {@code sourceValue} is null, empty or contains only whitespace characters.
+     * @return {@code sourceValue} if it is not null or empty and contains at least one non-whitespace character; otherwise the {@code defaultValue} is returned.
      */
     public static String nonWhitespaceOrDefault(String sourceValue, String defaultValue) {
         return (isNullWhiteSpaceOrEmpty(sourceValue)) ? defaultValue : sourceValue;
@@ -324,8 +426,8 @@ public final class Values {
      *
      * @param sourceValue The source {@link String} value.
      * @param defaultValueSupplier The {@link Supplier} that returns the default value.
-     * @return {@code sourceValue} if it is not null or empty and contains at least one non-whitespace character; otherwise the result from the
-     * {@code defaultValueSupplier} is returned.
+     * @return {@code sourceValue} if it is not null or empty and contains at least one non-whitespace character; otherwise the result from the {@code defaultValueSupplier} is
+     * returned.
      */
     public static String nonWhitespaceOrDefault(String sourceValue, Supplier<String> defaultValueSupplier) {
         return (isNullWhiteSpaceOrEmpty(sourceValue)) ? defaultValueSupplier.get() : sourceValue;
@@ -335,10 +437,8 @@ public final class Values {
      * Composes a {@link Supplier} that returns the non-whitespace result of the source supplier or a supplied default value.
      *
      * @param sourceSupplier The source {@link Supplier}.
-     * @param defaultSupplier The {@link Supplier} to use if the {@code sourceSupplier} returns a null value or does not contain any non-whitespace
-     * characters.
-     * @return A {@link Supplier} that returns the non-whitespace result of the {@code sourceSupplier} or a value supplied by the
-     * {@code defaultSupplier}.
+     * @param defaultSupplier The {@link Supplier} to use if the {@code sourceSupplier} returns a null value or does not contain any non-whitespace characters.
+     * @return A {@link Supplier} that returns the non-whitespace result of the {@code sourceSupplier} or a value supplied by the {@code defaultSupplier}.
      */
     public static Supplier<String> nonWhitespaceOrDefault(Supplier<String> sourceSupplier, Supplier<String> defaultSupplier) {
         Objects.requireNonNull(sourceSupplier);
@@ -350,14 +450,12 @@ public final class Values {
     }
 
     /**
-     * Ensures a string is not null, has extraneous white space removed, and contains at least one non-whitespace character or else returns a default
-     * value.
+     * Ensures a string is not null, has extraneous white space removed, and contains at least one non-whitespace character or else returns a default value.
      *
      * @param sourceValue The source {@link String} value.
-     * @param defaultValue The default {@link String} value to return if the {@code sourceValue} is null, empty or contains only whitespace
-     * characters.
-     * @return {@code sourceValue} with extraneous white space removed if it is not null or empty and contains at least one non-whitespace character;
-     * otherwise the {@code defaultValue} is returned.
+     * @param defaultValue The default {@link String} value to return if the {@code sourceValue} is null, empty or contains only whitespace characters.
+     * @return {@code sourceValue} with extraneous white space removed if it is not null or empty and contains at least one non-whitespace character; otherwise the
+     * {@code defaultValue} is returned.
      */
     public static String toNonWhitespaceTrimmedOrDefault(String sourceValue, String defaultValue) {
         return (null == sourceValue || (sourceValue = sourceValue.trim()).isEmpty()) ? defaultValue : sourceValue;
@@ -367,10 +465,8 @@ public final class Values {
      * Composes a {@link Supplier} that returns the non-whitespace, trimmed result of the source supplier or a supplied default value.
      *
      * @param sourceSupplier The source {@link Supplier}.
-     * @param defaultSupplier The {@link Supplier} to use if the {@code sourceSupplier} returns a null value or does not contain any non-whitespace
-     * characters.
-     * @return A {@link Supplier} that returns the non-whitespace, trimmed result of the {@code sourceSupplier} or a value supplied by the
-     * {@code defaultSupplier}.
+     * @param defaultSupplier The {@link Supplier} to use if the {@code sourceSupplier} returns a null value or does not contain any non-whitespace characters.
+     * @return A {@link Supplier} that returns the non-whitespace, trimmed result of the {@code sourceSupplier} or a value supplied by the {@code defaultSupplier}.
      */
     public static Supplier<String> toNonWhitespaceTrimmedOrDefault(Supplier<String> sourceSupplier, Supplier<String> defaultSupplier) {
         Objects.requireNonNull(sourceSupplier);
@@ -401,8 +497,7 @@ public final class Values {
      * Checks that the specified {@link String} is not {@code null} and contains at least one non-whitespace character.
      *
      * @param value The value to check for at least one non-whitespace character.
-     * @param messageSupplier The supplier of the detail message to be used in the event that a {@code NullPointerException} or {@link AssertionError}
-     * is thrown.
+     * @param messageSupplier The supplier of the detail message to be used in the event that a {@code NullPointerException} or {@link AssertionError} is thrown.
      * @return {@code value} if not {@code null} and contains at least one non-whitespace character.
      * @throws NullPointerException if {@code value} is {@code null}.
      * @throws AssertionError if {@code value} does not contain at least one non-whitespace character.

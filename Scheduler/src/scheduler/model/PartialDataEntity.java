@@ -24,7 +24,16 @@ public interface PartialDataEntity {
      */
     int getPrimaryKey();
 
-    ToStringPropertyBuilder toStringBuilder();
+    /**
+     * 
+     * @return
+     * @deprecated Use {@link scheduler.model.ModelHelper}, instead.
+     */
+    // FIXME: Bad idea - stop using this
+    @Deprecated
+    default ToStringPropertyBuilder toStringBuilder() {
+        throw new UnsupportedOperationException();
+    }
 
     default DataRowState getRowState() {
         return DataRowState.UNMODIFIED;

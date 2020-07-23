@@ -19,7 +19,7 @@ import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.model.ModelHelper.CityHelper;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 
 /**
  *
@@ -176,18 +176,11 @@ public class PartialAddressModelImpl extends PartialModel<PartialAddressDAO> imp
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        return ToStringPropertyBuilder.create(this)
-                .addNumber(primaryKeyProperty())
-                .addString(address1)
-                .addString(address2)
-                .addDataObject(city)
-                .addString(postalCode)
-                .addString(phone);
+        StringBuilder sb = ModelHelper.AddressHelper.appendPartialModelProperties(this, new StringBuilder(PartialAddressModelImpl.class.getName()).append(" { "));
+        if (null == getCity()) {
+            return sb.append("}").toString();
+        }
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
 }

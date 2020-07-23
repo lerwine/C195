@@ -44,7 +44,6 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
-import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.city.EditCity;
 import static scheduler.view.city.EditCityResourceKeys.RESOURCEKEY_CITYNAMEINUSE;
@@ -187,22 +186,11 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
+        StringBuilder sb = ModelHelper.CityHelper.appendDaoProperties(this, new StringBuilder(CityDAO.class.getName()).append(" { "));
+        if (null == getCountry()) {
+            return sb.append("}").toString();
         }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(PROP_NAME, name)
-                .addDataObject(PROP_COUNTRY, country)
-                .addTimestamp(PROP_CREATEDATE, getCreateDate())
-                .addString(PROP_CREATEDBY, getCreatedBy())
-                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
-                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     private synchronized void onCountryUpdated(CountryModel newModel) {
@@ -673,15 +661,11 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         @Override
         public String toString() {
-            return toStringBuilder().build();
-        }
-
-        @Override
-        public ToStringPropertyBuilder toStringBuilder() {
-            return ToStringPropertyBuilder.create(this)
-                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
-                    .addString(PROP_NAME, name)
-                    .addDataObject(PROP_COUNTRY, country);
+            StringBuilder sb = ModelHelper.CityHelper.appendPartialDaoProperties(this, new StringBuilder(Partial.class.getName()).append(" { "));
+            if (null == getCountry()) {
+                return sb.append("}").toString();
+            }
+            return sb.append(Values.LINEBREAK_STRING).append("}").toString();
         }
 
         synchronized void onCountryUpdated(CountryDAO newDao) {

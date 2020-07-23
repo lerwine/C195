@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import scheduler.model.ModelHelper.AddressHelper;
-import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 
 /**
  * Represents a statically-defined address of a corporate office or satellite location. This object is instantiated by the {@link PredefinedData} utility class.
@@ -100,11 +100,8 @@ public class CorporateAddress extends PredefinedData.PredefinedAddress {
 
     @Override
     public String toString() {
-        return ToStringPropertyBuilder.create(this).addString(PROP_ADDRESS1, address1)
-                .addString(PROP_ADDRESS2, address2)
-                .addToStringPropertyBuilder(PROP_CITY, getCity().toStringBuilder())
-                .addString(PROP_POSTALCODE, postalCode)
-                .addString(PROP_PHONE, phone).build();
+        return ModelHelper.AddressHelper.appendCorporateAddressProperties(this, new StringBuilder(CorporateAddress.class.getName()).append(" { "))
+                .append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     public String toMultiLineAddress() {

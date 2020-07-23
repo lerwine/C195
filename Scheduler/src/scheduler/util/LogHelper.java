@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 public class LogHelper {
 
     private static final Pattern STRING_ENCODE = Pattern.compile("[\"\\u0000-\\u0019\\u007f-\\uffff\\\\]");
+    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance();
 
     /**
      * Ensures that the {@link Handler}s are configured to emit according to the {@link Level} of the {@link Logger}.
@@ -96,12 +97,13 @@ public class LogHelper {
         return String.format("%s.%s", value.getClass().getTypeName(), value.name());
     }
 
+
     public static String toLogText(Object obj) {
         if (null == obj) {
             return "null";
         }
         if (obj instanceof Number) {
-            return NumberFormat.getNumberInstance().format(obj);
+            return NUMBER_FORMAT.format(obj);
         }
         if (obj instanceof Enum) {
             return String.format("%s.%s", obj.getClass().getTypeName(), ((Enum<?>) obj).name());

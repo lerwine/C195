@@ -17,10 +17,11 @@ import scheduler.dao.CustomerDAO;
 import scheduler.dao.PartialAddressDAO;
 import scheduler.dao.PartialCustomerDAO;
 import scheduler.model.AddressProperties;
+import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.observables.property.ReadOnlyObjectBindingProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 
 /**
  *
@@ -191,16 +192,11 @@ public class PartialCustomerModelImpl extends PartialModel<PartialCustomerDAO> i
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        return ToStringPropertyBuilder.create(this)
-                .addNumber(primaryKeyProperty())
-                .addString(name)
-                .addDataObject(address)
-                .addBoolean(active);
+        StringBuilder sb = ModelHelper.CustomerHelper.appendPartialModelProperties(this, new StringBuilder(PartialCustomerModelImpl.class.getName()).append(" { "));
+        if (null == getAddress()) {
+            return sb.append("}").toString();
+        }
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
 }

@@ -13,7 +13,6 @@ import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.ToStringPropertyBuilder;
 
 /**
  *
@@ -83,15 +82,7 @@ public class PartialCountryModelImpl extends PartialModel<PartialCountryDAO> imp
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        return ToStringPropertyBuilder.create(this)
-                .addNumber(primaryKeyProperty())
-                .addString(name)
-                .addLocale(locale);
+        return ModelHelper.CountryHelper.appendPartialModelProperties(this, new StringBuilder(PartialCountryModelImpl.class.getName()).append(" { ")).append("}").toString();
     }
 
 }

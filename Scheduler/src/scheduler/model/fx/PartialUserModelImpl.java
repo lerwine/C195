@@ -15,6 +15,7 @@ import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.dao.PartialUserDAO;
+import scheduler.model.ModelHelper;
 
 /**
  *
@@ -100,15 +101,7 @@ public class PartialUserModelImpl extends PartialModel<PartialUserDAO> implement
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        return ToStringPropertyBuilder.create(this)
-                .addNumber(primaryKeyProperty())
-                .addString(userName)
-                .addEnum(status);
+        return ModelHelper.UserHelper.appendPartialModelProperties(this, new StringBuilder(PartialUserModelImpl.class.getName()).append(" { ")).append("}").toString();
     }
 
 }

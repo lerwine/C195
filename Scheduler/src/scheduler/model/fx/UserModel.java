@@ -16,12 +16,12 @@ import scheduler.events.ModelEvent;
 import scheduler.events.UserEvent;
 import scheduler.events.UserOpRequestEvent;
 import scheduler.events.UserSuccessEvent;
+import scheduler.model.ModelHelper.UserHelper;
 import static scheduler.model.User.MAX_LENGTH_PASSWORD;
 import static scheduler.model.User.MAX_LENGTH_USERNAME;
 import scheduler.model.UserEntity;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.user.UserModelFilter;
 
@@ -70,6 +70,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
         return userName;
     }
 
+    @Override
     public String getPassword() {
         return password.get();
     }
@@ -143,23 +144,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(primaryKeyProperty());
-        }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(userName)
-                .addString(password)
-                .addEnum(status)
-                .addLocalDateTime(createDateProperty())
-                .addString(createdByProperty())
-                .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty());
+        return UserHelper.appendModelProperties(this, new StringBuilder(UserModel.class.getName()).append(" { ")).append("}").toString();
     }
 
     public final static class Factory extends EntityModel.EntityModelFactory<UserDAO, UserModel> {

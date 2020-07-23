@@ -35,7 +35,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.CountryHelper;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
-import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
 
@@ -144,22 +144,11 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(primaryKeyProperty());
+        StringBuilder sb = ModelHelper.CityHelper.appendModelProperties(this, new StringBuilder(CityModel.class.getName()).append(" { "));
+        if (null == getCountry()) {
+            return sb.append("}").toString();
         }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(name)
-                .addDataObject(country)
-                .addLocalDateTime(createDateProperty())
-                .addString(createdByProperty())
-                .addLocalDateTime(lastModifiedDateProperty())
-                .addString(lastModifiedByProperty());
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     public final static class Factory extends EntityModel.EntityModelFactory<CityDAO, CityModel> {

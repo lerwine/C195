@@ -44,7 +44,6 @@ import scheduler.model.fx.PartialCityModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
-import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 
@@ -270,26 +269,12 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     }
 
     @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
-        }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(PROP_ADDRESS1, address1)
-                .addString(PROP_ADDRESS2, address2)
-                .addDataObject(PROP_CITY, city)
-                .addString(PROP_POSTALCODE, postalCode)
-                .addString(PROP_PHONE, phone)
-                .addTimestamp(PROP_CREATEDATE, getCreateDate())
-                .addString(PROP_CREATEDBY, getCreatedBy())
-                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
-                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
-    }
-
-    @Override
     public String toString() {
-        return toStringBuilder().build();
+        StringBuilder sb = ModelHelper.AddressHelper.appendDaoProperties(this, new StringBuilder(AddressDAO.class.getName()).append(" { "));
+        if (null == getCity()) {
+            return sb.append("}").toString();
+        }
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     private synchronized void onCityUpdated(CityModel newModel) {
@@ -828,18 +813,11 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         @Override
         public String toString() {
-            return toStringBuilder().build();
-        }
-
-        @Override
-        public ToStringPropertyBuilder toStringBuilder() {
-            return ToStringPropertyBuilder.create(this)
-                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
-                    .addString(PROP_ADDRESS1, address1)
-                    .addString(PROP_ADDRESS2, address2)
-                    .addDataObject(PROP_CITY, city)
-                    .addString(PROP_POSTALCODE, postalCode)
-                    .addString(PROP_PHONE, phone);
+            StringBuilder sb = ModelHelper.AddressHelper.appendPartialDaoProperties(this, new StringBuilder(Partial.class.getName()).append(" { "));
+            if (null == getCity()) {
+                return sb.append("}").toString();
+            }
+            return sb.append(Values.LINEBREAK_STRING).append("}").toString();
         }
 
         private void onCityUpdated(CityDAO newDao) {

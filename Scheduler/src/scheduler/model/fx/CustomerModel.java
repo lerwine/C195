@@ -33,6 +33,7 @@ import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
 import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.customer.CustomerModelFilter;
 
@@ -228,7 +229,11 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
+        StringBuilder sb = ModelHelper.CustomerHelper.appendModelProperties(this, new StringBuilder(CustomerModel.class.getName()).append(" { "));
+        if (null == getAddress()) {
+            return sb.append("}").toString();
+        }
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     @Override

@@ -51,7 +51,7 @@ import scheduler.model.fx.UserModel;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
-import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 import static scheduler.util.Values.asNonNullAndWsNormalizedMultiLine;
@@ -563,30 +563,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
-        }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addDataObject(PROP_CUSTOMER, customer)
-                .addDataObject(PROP_USER, user)
-                .addString(PROP_TITLE, title)
-                .addString(PROP_DESCRIPTION, description)
-                .addString(PROP_LOCATION, getLocation())
-                .addString(PROP_CONTACT, contact)
-                .addEnum(PROP_TYPE, type)
-                .addString(PROP_URL, url)
-                .addTimestamp(PROP_START, start)
-                .addTimestamp(PROP_END, end)
-                .addTimestamp(PROP_CREATEDATE, getCreateDate())
-                .addString(PROP_CREATEDBY, getCreatedBy())
-                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
-                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+        return ModelHelper.AppointmentHelper.appendDaoProperties(this, new StringBuilder(AppointmentDAO.class.getName()).append(" {"))
+                .append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     private void onCustomerUpdated(CustomerModel newCustomerModel) {

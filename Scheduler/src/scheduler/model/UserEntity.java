@@ -8,5 +8,5 @@ import java.io.Serializable;
  * @param <T> The type of object for date/time values
  */
 public interface UserEntity<T extends Serializable & Comparable<? super T>> extends DataEntity<T>, User {
-
+    String getPassword();
 }

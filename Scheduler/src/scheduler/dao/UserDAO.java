@@ -34,7 +34,6 @@ import scheduler.model.fx.UserModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
-import scheduler.util.ToStringPropertyBuilder;
 import static scheduler.util.Values.asNonNullAndTrimmed;
 
 /**
@@ -116,6 +115,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         firePropertyChange(PROP_USERNAME, oldValue, this.userName);
     }
 
+    @Override
     public String getPassword() {
         return password;
     }
@@ -194,23 +194,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
-        }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(PROP_USERNAME, userName)
-                .addString(PROP_PASSWORD, password)
-                .addEnum(PROP_STATUS, status)
-                .addTimestamp(PROP_CREATEDATE, getCreateDate())
-                .addString(PROP_CREATEDBY, getCreatedBy())
-                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
-                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+        return ModelHelper.UserHelper.appendDaoProperties(this, new StringBuilder(UserDAO.class.getName()).append(" { ")).append("}").toString();
     }
 
     /**
@@ -573,15 +557,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         public String toString() {
-            return toStringBuilder().build();
-        }
-
-        @Override
-        public ToStringPropertyBuilder toStringBuilder() {
-            return ToStringPropertyBuilder.create(this)
-                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
-                    .addString(PROP_USERNAME, userName)
-                    .addEnum(PROP_STATUS, status);
+            return ModelHelper.UserHelper.appendPartialDaoProperties(this, new StringBuilder(Partial.class.getName()).append(" { ")).append("}").toString();
         }
 
     }

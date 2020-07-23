@@ -6,7 +6,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import scheduler.model.ModelHelper.CountryHelper;
-import scheduler.util.ToStringPropertyBuilder;
 
 /**
  * Defines an application-supported country definition, specifying the associated {@link java.util.Locale} for that country. This object is instantiated by the
@@ -44,15 +43,9 @@ public class SupportedCountryDefinition extends PredefinedData.PredefinedCountry
         return hash;
     }
 
-    ToStringPropertyBuilder toStringBuilder() {
-        return ToStringPropertyBuilder.create(this)
-                .addString(PROP_NAME, getName())
-                .addLocale(PROP_LOCALE, getLocale());
-    }
-
     @Override
     public String toString() {
-        return toStringBuilder().build();
+        return ModelHelper.CountryHelper.appendCountryDefinitionProperties(this, new StringBuilder(SupportedCountryDefinition.class.getName()).append(" { ")).append("}").toString();
     }
 
 }

@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import scheduler.model.ModelHelper.CityHelper;
-import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 
 /**
  * Defines a application-supported city definition, specifying an associated {@link java.util.TimeZone} for that city. This object is instantiated by the {@link PredefinedData}
@@ -53,15 +53,13 @@ public class SupportedCityDefinition extends PredefinedData.PredefinedCity {
         return null != obj && obj instanceof CityProperties && (this == obj || CityHelper.arePropertiesEqual(this, (CityProperties) obj));
     }
 
-    ToStringPropertyBuilder toStringBuilder() {
-        return ToStringPropertyBuilder.create(this)
-                .addString(PROP_NAME, name)
-                .addToStringPropertyBuilder(PROP_COUNTRY, getCountry().toStringBuilder());
-    }
-
     @Override
     public String toString() {
-        return toStringBuilder().build();
+        StringBuilder sb = ModelHelper.CityHelper.appendCityDefinitionProperties(this, new StringBuilder(SupportedCityDefinition.class.getName()).append(" { "));
+        if (null == getCountry()) {
+            return sb.append("}").toString();
+        }
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
 }

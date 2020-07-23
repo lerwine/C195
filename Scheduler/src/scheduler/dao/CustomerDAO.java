@@ -40,7 +40,7 @@ import scheduler.model.fx.PartialAddressModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
-import scheduler.util.ToStringPropertyBuilder;
+import scheduler.util.Values;
 import static scheduler.util.Values.asNonNullAndWsNormalized;
 
 /**
@@ -215,23 +215,11 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
+        StringBuilder sb = ModelHelper.CustomerHelper.appendDaoProperties(this, new StringBuilder(CustomerDAO.class.getName()).append(" { "));
+        if (null == getAddress()) {
+            return sb.append("}").toString();
         }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(PROP_NAME, name)
-                .addDataObject(PROP_ADDRESS, address)
-                .addBoolean(PROP_ACTIVE, active)
-                .addTimestamp(PROP_CREATEDATE, getCreateDate())
-                .addString(PROP_CREATEDBY, getCreatedBy())
-                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
-                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+        return sb.append(Values.LINEBREAK_STRING).append("}").toString();
     }
 
     private void onAddressUpdated(AddressModel newModel) {
@@ -677,16 +665,11 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         @Override
         public String toString() {
-            return toStringBuilder().build();
-        }
-
-        @Override
-        public ToStringPropertyBuilder toStringBuilder() {
-            return ToStringPropertyBuilder.create(this)
-                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
-                    .addString(PROP_NAME, name)
-                    .addDataObject(PROP_ADDRESS, address)
-                    .addBoolean(PROP_ACTIVE, active);
+            StringBuilder sb = ModelHelper.CustomerHelper.appendPartialDaoProperties(this, new StringBuilder(Partial.class.getName()).append(" { "));
+            if (null == getAddress()) {
+                return sb.append("}").toString();
+            }
+            return sb.append(Values.LINEBREAK_STRING).append("}").toString();
         }
 
         private void onAddressUpdated(AddressDAO newDao) {

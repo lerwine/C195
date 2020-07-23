@@ -163,7 +163,7 @@
                                 </TextField>
                                 <Label text=":" />
                                 <TextField fx:id="startMinuteTextField" prefWidth="45.0" promptText="%minutes" styleClass="topLabeledControl" />
-                                <ComboBox fx:id="amPmComboBox" styleClass="topLabeledControl">
+                                <ComboBox fx:id="amPmComboBox" minWidth="58.0" styleClass="topLabeledControl">
                                     <cellFactory>
                                         <AmPmListCellFactory />
                                     </cellFactory>

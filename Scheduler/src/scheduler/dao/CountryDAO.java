@@ -34,7 +34,6 @@ import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
 import scheduler.util.ResourceBundleHelper;
-import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
 import scheduler.view.country.EditCountry;
 import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECONFLICTMESSAGE;
@@ -171,22 +170,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
     @Override
     public String toString() {
-        return toStringBuilder().build();
-    }
-
-    @Override
-    public ToStringPropertyBuilder toStringBuilder() {
-        ToStringPropertyBuilder builder = ToStringPropertyBuilder.create(this);
-        if (getRowState() != DataRowState.NEW) {
-            builder.addNumber(PROP_PRIMARYKEY, getPrimaryKey());
-        }
-        return builder.addEnum(PROP_ROWSTATE, getRowState())
-                .addString(PROP_NAME, name)
-                .addLocale(PROP_LOCALE, locale)
-                .addTimestamp(PROP_CREATEDATE, getCreateDate())
-                .addString(PROP_CREATEDBY, getCreatedBy())
-                .addTimestamp(PROP_LASTMODIFIEDDATE, getLastModifiedDate())
-                .addString(PROP_LASTMODIFIEDBY, getLastModifiedBy());
+        return ModelHelper.CountryHelper.appendDaoProperties(this, new StringBuilder(CountryDAO.class.getName()).append(" { ")).append("}").toString();
     }
 
     /**
@@ -545,15 +529,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         @Override
         public String toString() {
-            return toStringBuilder().build();
-        }
-
-        @Override
-        public ToStringPropertyBuilder toStringBuilder() {
-            return ToStringPropertyBuilder.create(this)
-                    .addNumber(PROP_PRIMARYKEY, getPrimaryKey())
-                    .addString(PROP_NAME, name)
-                    .addLocale(PROP_LOCALE, locale);
+            return ModelHelper.CountryHelper.appendPartialDaoProperties(this, new StringBuilder(Partial.class.getName()).append(" { ")).append("}").toString();
         }
 
     }
