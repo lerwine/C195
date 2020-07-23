@@ -253,9 +253,10 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         LOG.exiting(LOG.getName(), "onNewButtonAction");
     }
 
+    @SuppressWarnings("unchecked")
     private void onLoadTaskSucceeded(WorkerStateEvent event) {
         LOG.entering(LOG.getName(), "onLoadTaskSucceeded", filter);
-        setItems(((Task<List<D>>) event.getSource()).getValue());
+        setItems((List<D>) event.getSource().getValue());
         LOG.exiting(LOG.getName(), "onLoadTaskSucceeded");
     }
 

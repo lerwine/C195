@@ -55,8 +55,7 @@ public interface ManageCountriesResourceKeys {
     public static final String RESOURCEKEY_LANGUAGE = "language";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Loading countries, please wait\u2026"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading countries, please wait\u2026"}.
      */
     public static final String RESOURCEKEY_LOADINGCOUNTRIES = "loadingCountries";
 

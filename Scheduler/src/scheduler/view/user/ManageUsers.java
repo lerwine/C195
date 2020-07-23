@@ -176,7 +176,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
             }
         });
     }
-    
+
     private void onDeleteTaskSucceeded(WorkerStateEvent event) {
         LOG.entering(LOG.getName(), "onDeleteTaskSucceeded", event);
         UserEvent userEvent = (UserEvent) event.getSource().getValue();

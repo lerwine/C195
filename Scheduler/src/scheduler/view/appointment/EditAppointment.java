@@ -1037,44 +1037,44 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             endDateTimeBinding = Bindings.createObjectBinding(() -> calculateEndDateTime(startDateTimeValue.get(), parsedDurationHour.get(),
                     parsedDurationMinute.get()), startDateTimeValue, parsedDurationHour, parsedDurationMinute);
             startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "startDatePicker#value$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.startDatePicker#value", "changed", new Object[]{oldValue, newValue});
                 checkStartChange();
-                LOG.exiting(LOG.getName(), "startDatePicker#value$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.startDatePicker#value", "changed");
             });
             startHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "startHourTextField#text$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.startHourTextField#text", "changed", new Object[]{oldValue, newValue});
                 checkStartChange();
-                LOG.exiting(LOG.getName(), "startHourTextField#text$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.startHourTextField#text", "changed");
             });
             startMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "startMinuteTextField#text$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.startMinuteTextField#text", "changed", new Object[]{oldValue, newValue});
                 checkStartChange();
-                LOG.exiting(LOG.getName(), "startMinuteTextField#text$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.startMinuteTextField#text", "changed");
             });
             amPmComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "amPmComboBox#value$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.amPmComboBox#value", "changed", new Object[]{oldValue, newValue});
                 checkStartChange();
-                LOG.exiting(LOG.getName(), "amPmComboBox#value$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.amPmComboBox#value", "changed");
             });
             startDateTimeValue.addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "startDateTimeValue#value$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.startDateTimeValue#value", "changed", new Object[]{oldValue, newValue});
                 checkEndChange(Optional.of(newValue));
-                LOG.exiting(LOG.getName(), "startDateTimeValue#value$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.startDateTimeValue#value", "changed");
             });
             durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "durationHourTextField#text$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.durationHourTextField#text", "changed", new Object[]{oldValue, newValue});
                 checkEndChange(Optional.empty());
-                LOG.exiting(LOG.getName(), "durationHourTextField#text$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.durationHourTextField#text", "changed");
             });
             durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "durationMinuteTextField#text$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.durationMinuteTextField#text", "changed", new Object[]{oldValue, newValue});
                 checkEndChange(Optional.empty());
-                LOG.exiting(LOG.getName(), "durationMinuteTextField#text$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.durationMinuteTextField#text", "changed");
             });
             endDateTimeValue.addListener((observable, oldValue, newValue) -> {
-                LOG.entering(LOG.getName(), "endDateTimeValue#value$changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.endDateTimeValue#value", "changed", new Object[]{oldValue, newValue});
                 checkRangeChange(startDateTimeValue.get(), endDateTimeValue.get());
-                LOG.exiting(LOG.getName(), "endDateTimeValue#value$changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.endDateTimeValue#value", "changed");
             });
             checkStartChange();
             checkEndChange(Optional.empty());
@@ -1204,7 +1204,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
 
         private void initialize() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.DateRangeController", "initialize");
+            LOG.entering("scheduler.view.appointment.EditAppointment.AppointmentConflictsController", "initialize");
             dateRange.initialize();
 
             final SingleSelectionModel<CustomerModel> customerSelectionModel = customerComboBox.getSelectionModel();
@@ -1219,7 +1219,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 conflictCheckStatus.set(ConflictCheckStatus.NOT_CHECKED);
             }
             selectedCustomer.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.DateRangeController.selectedCustomer#value", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedCustomer#value", "changed", new Object[]{oldValue, newValue});
                 if (null == newValue) {
                     if (!customerValidationLabel.isVisible()) {
                         customerValidationLabel.setVisible(true);
@@ -1228,10 +1228,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     customerValidationLabel.setVisible(false);
                 }
                 onParticipantsChanged(newValue, selectedUser.get());
-                LOG.exiting(LOG.getName(), "scheduler.view.appointment.EditAppointment.DateRangeController.selectedCustomer#value");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedCustomer#value", "changed");
             });
             selectedUser.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.DateRangeController.selectedUser#value", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedUser#value", "changed", new Object[]{oldValue, newValue});
                 if (null == newValue) {
                     if (!userValidationLabel.isVisible()) {
                         userValidationLabel.setVisible(true);
@@ -1240,9 +1240,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     userValidationLabel.setVisible(false);
                 }
                 onParticipantsChanged(selectedCustomer.get(), newValue);
-                LOG.exiting("scheduler.view.appointment.EditAppointment.DateRangeController.selectedUser#value", "changed");
+                LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedUser#value", "changed");
             });
-            LOG.exiting("scheduler.view.appointment.EditAppointment.DateRangeController", "initialize");
+            LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController", "initialize");
         }
 
         private void initialize(Task<List<AppointmentDAO>> task) {
@@ -1488,29 +1488,33 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 }
                 filter = AppointmentFilter.of(AppointmentFilter.expressionOf(participants.getValue1(), participants.getValue2()));
                 updateMessage(filter.getLoadingMessage());
+                LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "call");
                 return AppointmentDAO.FACTORY.load(dbConnector.getConnection(), filter);
             }
         }
 
         @Override
         protected void succeeded() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "call");
+            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "succeeded");
             typeContext.appointmentConflicts.onAppointmentsLoaded(this);
             super.succeeded();
+            LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "succeeded");
         }
 
         @Override
         protected void cancelled() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "call");
+            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "cancelled");
             typeContext.appointmentConflicts.onAppointmentsLoaded(this);
             super.cancelled();
+            LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "cancelled");
         }
 
         @Override
         protected void failed() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "call");
+            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "failed");
             typeContext.appointmentConflicts.onAppointmentsLoaded(this);
             super.failed();
+            LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "failed");
         }
 
     }
@@ -1543,7 +1547,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
 
         private void initialize() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController", "call");
+            LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController", "initialize");
             appointmentConflicts.initialize();
             contactTextField.setText(model.getContact());
             StringProperty contactText = contactTextField.textProperty();
@@ -1631,58 +1635,58 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 urlValidationLabel.setVisible(true);
             });
             appointmentConflicts.selectedCustomer.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#selectedCustomer", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#selectedCustomer", "changed", new Object[]{oldValue, newValue});
                 onContextSensitiveChange();
                 LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#selectedCustomer", "changed");
             });
             contactText.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.contactTextField#text", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.contactTextField#text", "changed", new Object[]{oldValue, newValue});
                 onContextSensitiveChange();
                 LOG.exiting("scheduler.view.appointment.EditAppointment.contactTextField#text", "changed");
             });
             selectedCorporateLocation.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.corporateLocationComboBox#value", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.corporateLocationComboBox#value", "changed", new Object[]{oldValue, newValue});
                 onContextSensitiveChange();
                 LOG.exiting("scheduler.view.appointment.EditAppointment.corporateLocationComboBox#value", "changed");
             });
             locationText.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.locationTextArea#text", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.locationTextArea#text", "changed", new Object[]{oldValue, newValue});
                 onContextSensitiveChange();
                 LOG.exiting("scheduler.view.appointment.EditAppointment.locationTextArea#text", "changed");
             });
             phoneText.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.phoneTextField#text", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.phoneTextField#text", "changed", new Object[]{oldValue, newValue});
                 onContextSensitiveChange();
                 LOG.exiting("scheduler.view.appointment.EditAppointment.phoneTextField#text", "changed");
             });
             urlTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.urlTextField#text", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.urlTextField#text", "changed", new Object[]{oldValue, newValue});
                 onUrlChanged();
                 LOG.exiting("scheduler.view.appointment.EditAppointment.urlTextField#text", "changed");
             });
             appointmentConflicts.valid.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#valid", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#valid", "changed", new Object[]{oldValue, newValue});
                 onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), newValue);
                 LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#valid", "changed");
             });
             contactValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.contactValidationLabel#visible", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.contactValidationLabel#visible", "changed", new Object[]{oldValue, newValue});
                 onValidityChanged(newValue, locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), appointmentConflicts.valid.get());
                 LOG.exiting("scheduler.view.appointment.EditAppointment.contactValidationLabel#visible", "changed");
             });
             locationValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.locationValidationLabel#visible", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.locationValidationLabel#visible", "changed", new Object[]{oldValue, newValue});
                 onValidityChanged(contactValidationLabel.isVisible(), newValue, urlValidationLabel.isVisible(), appointmentConflicts.valid.get());
                 LOG.exiting("scheduler.view.appointment.EditAppointment.locationValidationLabel#visible", "changed");
             });
             urlValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.urlValidationLabel#visible", "changed", new Object[] { oldValue, newValue });
+                LOG.entering("scheduler.view.appointment.EditAppointment.urlValidationLabel#visible", "changed", new Object[]{oldValue, newValue});
                 onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), newValue, appointmentConflicts.valid.get());
                 LOG.exiting("scheduler.view.appointment.EditAppointment.urlValidationLabel#visible", "changed");
             });
             valid.set(appointmentConflicts.valid.get() && !(contactValidationLabel.isVisible() || locationValidationLabel.isVisible() || urlValidationLabel.isVisible()));
             selectedType.addListener(this::onTypeChanged);
-            LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "call");
+            LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "initialize");
         }
 
         private synchronized void onContextSensitiveChange() {
@@ -1751,6 +1755,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 case CORPORATE_LOCATION:
                     if (newValue == AppointmentType.CUSTOMER_SITE) {
                         onContextSensitiveChange();
+                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
                         return;
                     }
                     collapseNode(corporateLocationComboBox);
@@ -1760,6 +1765,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     if (newValue == AppointmentType.CORPORATE_LOCATION) {
                         restoreNode(corporateLocationComboBox);
                         onContextSensitiveChange();
+                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
                         return;
                     }
                     collapseNode(implicitLocationLabel);
@@ -1772,6 +1778,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     onUrlChanged();
                     if (newValue == AppointmentType.OTHER) {
                         onContextSensitiveChange();
+                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
                         return;
                     }
                     collapseNode(locationTextArea);
@@ -1781,6 +1788,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                         locationValidationLabel.setVisible(false);
                         contactValidationLabel.setVisible(false);
                         onContextSensitiveChange();
+                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
                         return;
                     }
                     contactValidationLabel.setVisible(false);
@@ -1812,6 +1820,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     break;
             }
             onContextSensitiveChange();
+            LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
         }
 
     }

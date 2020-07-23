@@ -454,7 +454,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.nameTextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.customer.EditCustomer.nameTextField#text", "changed", new Object[]{oldValue, newValue});
             updateValidation();
             LOG.exiting("scheduler.view.customer.EditCustomer.nameTextField#text", "changed");
         });
@@ -463,14 +463,14 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
         normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
         address1TextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.address1TextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.customer.EditCustomer.address1TextField#text", "changed", new Object[]{oldValue, newValue});
             updateValidation();
             LOG.exiting("scheduler.view.customer.EditCustomer.address1TextField#text", "changed");
         });
 
         normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());
         address2TextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.address2TextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.customer.EditCustomer.address2TextField#text", "changed", new Object[]{oldValue, newValue});
             updateValidation();
             LOG.exiting("scheduler.view.customer.EditCustomer.address2TextField#text", "changed");
         });
@@ -496,13 +496,13 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
         postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.postalCodeTextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.customer.EditCustomer.postalCodeTextField#text", "changed", new Object[]{oldValue, newValue});
             modified.set(changedBinding.get());
             LOG.exiting("scheduler.view.customer.EditCustomer.postalCodeTextField#text", "changed");
         });
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneNumberTextField.textProperty());
         phoneNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.phoneNumberTextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.customer.EditCustomer.phoneNumberTextField#text", "changed", new Object[]{oldValue, newValue});
             modified.set(changedBinding.get());
             LOG.exiting("scheduler.view.customer.EditCustomer.phoneNumberTextField#text", "changed");
         });

@@ -49,14 +49,12 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_DELETE = "delete";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "There are %d addresses that reference this city."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "There are %d addresses that reference this city."}.
      */
     public static final String RESOURCEKEY_DELETEMSGMULTIPLE = "deleteMsgMultiple";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "There is one address that references this city."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "There is one address that references this city."}.
      */
     public static final String RESOURCEKEY_DELETEMSGSINGLE = "deleteMsgSingle";
 
@@ -76,8 +74,7 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_LANGUAGE = "language";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Loading cities. Please wait...."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading cities. Please wait...."}.
      */
     public static final String RESOURCEKEY_LOADINGCITIES = "loadingCities";
 
@@ -107,8 +104,7 @@ public interface EditCountryResourceKeys {
     public static final String RESOURCEKEY_REQUIRED = "required";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "A country with that name has already been added."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "A country with that name has already been added."}.
      */
     public static final String RESOURCEKEY_SAVECONFLICTMESSAGE = "saveConflictMessage";
 

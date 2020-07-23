@@ -13,8 +13,7 @@ public interface EditItemResourceKeys {
     public static final String RESOURCEKEY_ADD = "add";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Are you sure you want to cancel adding a new item?"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Are you sure you want to cancel adding a new item?"}.
      */
     public static final String RESOURCEKEY_AREYOUSURECANCELNEW = "areYouSureCancelNew";
 
@@ -91,8 +90,7 @@ public interface EditItemResourceKeys {
     public static final String RESOURCEKEY_SAVE = "save";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Would you like to save, anyway?"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Would you like to save, anyway?"}.
      */
     public static final String RESOURCEKEY_SAVEANYWAY = "saveAnyway";
 

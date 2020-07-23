@@ -154,7 +154,7 @@ public final class WaitBorderPane extends BorderPane {
      * @param unit The time unit of the delay parameter.
      */
     public void schedule(WaitTitledPane pane, Task<?> task, long delay, TimeUnit unit) {
-        LOG.exiting(LOG.getName(), "schedule", new Object[]{pane, task, delay, unit});
+        LOG.entering(LOG.getName(), "schedule", new Object[]{pane, task, delay, unit});
         pane.addEventHandler(WaitTitledPaneEvent.RUNNING, this::onRunning);
         pane.addEventHandler(WaitTitledPaneEvent.CANCELED, this::onCanceled);
         pane.addEventHandler(WaitTitledPaneEvent.FAILED, this::onFailed);
@@ -174,7 +174,7 @@ public final class WaitBorderPane extends BorderPane {
      * @param task
      */
     public synchronized void startNow(WaitTitledPane pane, Task<?> task) {
-        LOG.exiting(LOG.getName(), "startNow", new Object[]{pane, task});
+        LOG.entering(LOG.getName(), "startNow", new Object[]{pane, task});
         pane.addEventHandler(WaitTitledPaneEvent.RUNNING, this::onRunning);
         pane.addEventHandler(WaitTitledPaneEvent.CANCELED, this::onCanceled);
         pane.addEventHandler(WaitTitledPaneEvent.FAILED, this::onFailed);

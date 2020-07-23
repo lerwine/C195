@@ -491,7 +491,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @throws SQLException if unable to read data from the database.
          */
         public final List<D> load(Connection connection, DaoFilter<D> filter) throws SQLException {
-            LOG.entering(LOG.getName(), "load", new Object[] { connection, filter });
+            LOG.entering(LOG.getName(), "load", new Object[]{connection, filter});
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build();
             if (null != filter && !filter.isEmpty()) {
@@ -859,9 +859,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         protected ModelEvent<D, M> call() throws Exception {
             LOG.entering(LOG.getName(), "call");
             DataAccessObject dao = getDataAccessObject();
-            if (originalRowState != dao.rowState) {
-                throw new IllegalStateException("Row state has changed");
-            }
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             ModelEvent<D, M> event;
             try (DbConnector dbConnector = new DbConnector()) {

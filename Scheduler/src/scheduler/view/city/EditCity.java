@@ -311,7 +311,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         nameValidationLabel.visibleProperty().bind(nameValidationMessage.isNotEmpty());
         countryValidationLabel.visibleProperty().bind(selectedCountry.isNull());
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.city.EditCity.nameTextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.city.EditCity.nameTextField#text", "changed", new Object[]{oldValue, newValue});
             onChange(newValue);
             LOG.exiting("scheduler.view.city.EditCity.nameTextField#text", "changed");
         });
@@ -542,7 +542,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 AddressDAO.FactoryImpl cf = AddressDAO.FACTORY;
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
-            LOG.exiting("scheduler.view.city.EditCity.EditDataLoadTask", "call");
+                LOG.exiting("scheduler.view.city.EditCity.EditDataLoadTask", "call");
                 return Tuple.of(
                         nf.load(dbConnector.getConnection(), nf.getAllItemsFilter()),
                         cf.load(dbConnector.getConnection(), cf.getByCityFilter(pk))
@@ -582,7 +582,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
-            LOG.exiting("scheduler.view.city.EditCity.CountriesLoadTask", "call");
+                LOG.exiting("scheduler.view.city.EditCity.CountriesLoadTask", "call");
                 return nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
             }
         }

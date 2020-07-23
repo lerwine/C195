@@ -227,7 +227,7 @@ public final class WaitTitledPane extends TitledPane {
             LOG.fine("Running later");
             Platform.runLater(() -> schedule(task, delay, unit));
         }
-        LOG.entering(LOG.getName(), "schedule");
+        LOG.exiting(LOG.getName(), "schedule");
     }
 
     public void startNow(Task<?> task) {
@@ -244,7 +244,7 @@ public final class WaitTitledPane extends TitledPane {
             LOG.fine("Running later");
             Platform.runLater(() -> startNow(task));
         }
-        LOG.entering(LOG.getName(), "startNow");
+        LOG.exiting(LOG.getName(), "startNow");
     }
 
     private void onTitleChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -254,7 +254,7 @@ public final class WaitTitledPane extends TitledPane {
         } else {
             setText(newValue);
         }
-        LOG.entering(LOG.getName(), "onTitleChanged");
+        LOG.exiting(LOG.getName(), "onTitleChanged");
     }
 
     private void onStatusChanged(String message, double totalWork, double workDone, double progress) {
@@ -292,25 +292,25 @@ public final class WaitTitledPane extends TitledPane {
     private void onMessageChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
         LOG.entering(LOG.getName(), "onMessageChanged", new Object[]{oldValue, newValue});
         onStatusChanged(newValue, currentTask.getTotalWork(), currentTask.getWorkDone(), currentTask.getProgress());
-        LOG.entering(LOG.getName(), "onMessageChanged");
+        LOG.exiting(LOG.getName(), "onMessageChanged");
     }
 
     private void onTotalWorkChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
         LOG.entering(LOG.getName(), "onTotalWorkChanged", new Object[]{oldValue, newValue});
         onStatusChanged(currentTask.getMessage(), (double) newValue, currentTask.getWorkDone(), currentTask.getProgress());
-        LOG.entering(LOG.getName(), "onTotalWorkChanged");
+        LOG.exiting(LOG.getName(), "onTotalWorkChanged");
     }
 
     private void onWorkDoneChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
         LOG.entering(LOG.getName(), "onWorkDoneChanged", new Object[]{oldValue, newValue});
         onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), (double) newValue, currentTask.getProgress());
-        LOG.entering(LOG.getName(), "onWorkDoneChanged");
+        LOG.exiting(LOG.getName(), "onWorkDoneChanged");
     }
 
     private void onProgressChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
         LOG.entering(LOG.getName(), "onProgressChanged", new Object[]{oldValue, newValue});
         onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), currentTask.getWorkDone(), (double) newValue);
-        LOG.entering(LOG.getName(), "onProgressChanged");
+        LOG.exiting(LOG.getName(), "onProgressChanged");
     }
 
     private synchronized void prepare(Task<?> task) {

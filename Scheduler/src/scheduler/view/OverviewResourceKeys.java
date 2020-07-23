@@ -13,8 +13,7 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_ADDINGAPPOINTMENTS1A = "addingAppointments1a";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "from the \"Appointments Menu\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "from the \"Appointments Menu\""}.
      */
     public static final String RESOURCEKEY_ADDINGAPPOINTMENTS1B = "addingAppointments1b";
 
@@ -24,8 +23,7 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_ADDINGAPPOINTMENTS1LINK = "addingAppointments1Link";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Use the \"Customers\" menu to open a"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Use the \"Customers\" menu to open a"}.
      */
     public static final String RESOURCEKEY_ADDINGAPPOINTMENTS2A = "addingAppointments2a";
 
@@ -57,26 +55,22 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_COMMONTASKS = "commonTasks";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Error loading country listing."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading country listing."}.
      */
     public static final String RESOURCEKEY_COUNTRYLOADERROR = "countryLoadError";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Error loading customer listing."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading customer listing."}.
      */
     public static final String RESOURCEKEY_CUSTOMERLOADERROR = "customerLoadError";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Getting appointment counts..."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Getting appointment counts..."}.
      */
     public static final String RESOURCEKEY_GETTINGAPPOINTMENTCOUNTS = "gettingAppointmentCounts";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Use the \"Customers\" menu to view a"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Use the \"Customers\" menu to view a"}.
      */
     public static final String RESOURCEKEY_MANAGECUSTOMERS1A = "manageCustomers1a";
 
@@ -91,8 +85,7 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_MANAGECUSTOMERS1LINK = "manageCustomers1Link";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Use the \"Manage Addresses\" menu to view a"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Use the \"Manage Addresses\" menu to view a"}.
      */
     public static final String RESOURCEKEY_MANAGECUSTOMERS2A = "manageCustomers2a";
 
@@ -113,8 +106,7 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_MANAGECUSTOMERSHEADING = "manageCustomersHeading";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Use the \"Users\" menu to view a"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Use the \"Users\" menu to view a"}.
      */
     public static final String RESOURCEKEY_MANAGEUSERSA = "manageUsersA";
 

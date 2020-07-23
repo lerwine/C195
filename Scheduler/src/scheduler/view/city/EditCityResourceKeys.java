@@ -28,8 +28,7 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_ADDRESSES = "addresses";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Name cannot contain semicolon character (;)."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Name cannot contain semicolon character (;)."}.
      */
     public static final String RESOURCEKEY_CANNOTCONTAINSEMICOLON = "cannotContainSemicolon";
 
@@ -40,8 +39,7 @@ public interface EditCityResourceKeys {
     public static final String RESOURCEKEY_CITYHASADDRESSES = "cityHasAddresses";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "That city name is being used by another record."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "That city name is being used by another record."}.
      */
     public static final String RESOURCEKEY_CITYNAMEINUSE = "cityNameInUse";
 

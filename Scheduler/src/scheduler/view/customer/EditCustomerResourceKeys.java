@@ -83,8 +83,7 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_COUNTRYMUSTBESELECTED = "countryMustBeSelected";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Country must be selected, first."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Country must be selected, first."}.
      */
     public static final String RESOURCEKEY_COUNTRYNOTSELECTED = "countryNotSelected";
 

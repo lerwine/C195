@@ -124,7 +124,8 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
             return true;
         }
         if (null != obj && obj instanceof PartialUserModel) {
-            final PartialUserModel<? extends UserDAO> other = (UserModel) obj;
+            @SuppressWarnings("unchecked")
+            final PartialUserModel<? extends UserDAO> other = (PartialUserModel<? extends UserDAO>) obj;
             if (isNewRow()) {
                 if (other.getRowState() == DataRowState.NEW && userName.isEqualTo(other.userNameProperty()).get()
                         && status.isEqualTo(other.statusProperty()).get()) {

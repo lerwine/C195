@@ -38,7 +38,6 @@ import scheduler.model.AddressEntity;
 import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
-import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.PartialCityModel;
@@ -643,17 +642,20 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                         if (null != event && event instanceof CityFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
                                 resultEvent = AddressEvent.createInsertInvalidEvent(targetModel, this, (CityFailedEvent) event);
-                            } else
-                            resultEvent = AddressEvent.createUpdateInvalidEvent(targetModel, this, (CityFailedEvent) event);
-                        } else
+                            } else {
+                                resultEvent = AddressEvent.createUpdateInvalidEvent(targetModel, this, (CityFailedEvent) event);
+                            }
+                        } else {
                             resultEvent = null;
+                        }
                         break;
                     default:
                         resultEvent = null;
                         break;
                 }
-            } else
+            } else {
                 resultEvent = null;
+            }
             LOG.exiting(LOG.getName(), "validate", resultEvent);
             return resultEvent;
         }

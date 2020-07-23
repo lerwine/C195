@@ -31,23 +31,17 @@ import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS1;
 import static scheduler.model.AddressProperties.MAX_LENGTH_ADDRESS2;
 import static scheduler.model.AddressProperties.MAX_LENGTH_PHONE;
 import static scheduler.model.AddressProperties.MAX_LENGTH_POSTALCODE;
-import scheduler.model.City;
 import scheduler.model.CityProperties;
-import scheduler.model.Country;
 import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.AddressHelper;
 import scheduler.model.ModelHelper.CityHelper;
 import scheduler.observables.NonNullableStringProperty;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
 import scheduler.util.LogHelper;
-import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.util.ToStringPropertyBuilder;
 import scheduler.util.Values;
-import static scheduler.util.Values.asNonNullAndWsNormalized;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.ModelFilter;
-import scheduler.view.address.EditAddress;
-import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 
 /**
  *

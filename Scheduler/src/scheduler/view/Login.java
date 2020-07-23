@@ -55,7 +55,7 @@ public final class Login extends Scheduler.LoginBorderPane {
 
     private final ParentWindowChangeListener.StageListener stageChangeHandler;
     private ObjectBinding<SupportedLocale> selectedLanguage;
-    
+
     // Currently selected resource bundle
     private ObjectBinding<ResourceBundle> resourceBundle;
 

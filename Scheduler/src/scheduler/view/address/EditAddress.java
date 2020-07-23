@@ -118,7 +118,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private static final Object TARGET_CITY_KEY = new Object();
 
     public static void editNew(PartialCityModel<? extends PartialCityDAO> city, Window parentWindow, boolean keepOpen, Consumer<AddressModel> beforeShow) throws IOException {
-        LOG.entering(LOG.getName(), "editNew", new Object[] { city, parentWindow, keepOpen, beforeShow });
+        LOG.entering(LOG.getName(), "editNew", new Object[]{city, parentWindow, keepOpen, beforeShow});
         AddressModel model = AddressDAO.FACTORY.createNew().cachedModel(true);
         EditAddress control = new EditAddress();
         if (null != city) {
@@ -444,13 +444,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         );
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
         postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.address.EditAddress.postalCodeTextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.address.EditAddress.postalCodeTextField#text", "changed", new Object[]{oldValue, newValue});
             modified.set(changedBinding.get());
             LOG.exiting("scheduler.view.address.EditAddress.postalCodeTextField#text", "changed");
         });
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
         phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.address.EditAddress.phoneTextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.address.EditAddress.phoneTextField#text", "changed", new Object[]{oldValue, newValue});
             modified.set(changedBinding.get());
             LOG.exiting("scheduler.view.address.EditAddress.phoneTextField#text", "changed");
         });
@@ -491,7 +491,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-        LOG.entering(LOG.getName(), "onShowEditCityControlsChanged", new Object[] { oldValue, newValue });
+        LOG.entering(LOG.getName(), "onShowEditCityControlsChanged", new Object[]{oldValue, newValue});
         if (newValue) {
             collapseNode(countryCityValueLabel);
             collapseNode(editCityButton);
@@ -554,7 +554,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     private void onSelectedCountryChanged(ObservableValue<? extends CountryModel> observable, CountryModel oldValue, CountryModel newValue) {
-        LOG.entering(LOG.getName(), "onSelectedCountryChanged", new Object[] { oldValue, newValue });
+        LOG.entering(LOG.getName(), "onSelectedCountryChanged", new Object[]{oldValue, newValue});
         cityListView.getSelectionModel().clearSelection();
         cityOptions.clear();
         if (null != newValue) {
@@ -565,7 +565,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     private void onSelectedCityChanged(ObservableValue<? extends CityModel> observable, CityModel oldValue, CityModel newValue) {
-        LOG.entering(LOG.getName(), "onSelectedCityChanged", new Object[] { oldValue, newValue });
+        LOG.entering(LOG.getName(), "onSelectedCityChanged", new Object[]{oldValue, newValue});
         LOG.fine(() -> String.format("selectedCity changed from %s to %s", oldValue, newValue));
         updateValidation();
         LOG.exiting(LOG.getName(), "onSelectedCityChanged");
