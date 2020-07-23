@@ -500,6 +500,27 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             return dao.rowState;
         }
 
+        abstract void onBeforeSave(M model);
+        
+        protected abstract boolean verifyModified(D dataAccessObject);
+        
+        final synchronized DataRowState verifyRowState(D dataAccessObject) {
+            DataAccessObject dao = dataAccessObject;
+            DataRowState oldRowState = dao.rowState;
+            if (oldRowState == DataRowState.MODIFIED && !verifyModified(dataAccessObject)) {
+                String oldLastModifiedBy = dao.lastModifiedBy;
+                dao.lastModifiedBy = dao.originalValues.lastModifiedBy;
+                Timestamp oldLastModifiedDate = dao.lastModifiedDate;
+                dao.lastModifiedDate = dao.originalValues.lastModifiedDate;
+                dao.rowState = DataRowState.UNMODIFIED;
+                dao.firePropertyChange(PROP_ROWSTATE, oldLastModifiedDate, dao.lastModifiedDate);
+                dao.firePropertyChange(PROP_ROWSTATE, oldLastModifiedBy, dao.lastModifiedBy);
+                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
+            }
+            
+            return dao.rowState;
+        }
+        
         public DaoCache<D> getCache() {
             return cache;
         }
