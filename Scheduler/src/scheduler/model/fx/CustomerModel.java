@@ -275,7 +275,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CustomerDAO> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CustomerDAO, CustomerModel> getDaoFactory() {
             return CustomerDAO.FACTORY;
         }
 

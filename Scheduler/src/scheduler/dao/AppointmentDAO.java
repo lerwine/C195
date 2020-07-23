@@ -612,13 +612,63 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     /**
      * Factory implementation for {@link AppointmentDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO, AppointmentModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        protected boolean verifyModified(AppointmentDAO dataAccessObject) {
+            if (dataAccessObject.originalValues.type == dataAccessObject.type && dataAccessObject.title.equals(dataAccessObject.originalValues.title) &&
+                    dataAccessObject.contact.equals(dataAccessObject.originalValues.contact) &&
+                    ModelHelper.areSameRecord(dataAccessObject.customer, dataAccessObject.originalValues.customer) &&
+                    ModelHelper.areSameRecord(dataAccessObject.user, dataAccessObject.originalValues.user) &&
+                    dataAccessObject.description.equals(dataAccessObject.originalValues.description) && dataAccessObject.url.equals(dataAccessObject.originalValues.url) &&
+                    Objects.equals(dataAccessObject.start, dataAccessObject.originalValues.start) && Objects.equals(dataAccessObject.end, dataAccessObject.originalValues.end)) {
+                switch (dataAccessObject.type) {
+                    case CORPORATE_LOCATION:
+                    case PHONE:
+                        return !dataAccessObject.locationSl.equals(dataAccessObject.originalValues.locationSl);
+                    default:
+                        return !dataAccessObject.location.equals(dataAccessObject.originalValues.location);
+                }                
+            }
+            return true;
+        }
+
+        @Override
+        void onBeforeSave(AppointmentModel model) {
+            AppointmentDAO dao = model.dataObject();
+            dao.setType(model.getType());
+            dao.setTitle(model.getTitle());
+            PartialCustomerModel<? extends PartialCustomerDAO> c = model.getCustomer();
+            if (null != c) {
+                if (c instanceof CustomerModel) {
+                    CustomerDAO.FACTORY.onBeforeSave((CustomerModel) c);
+                }
+                dao.setCustomer(c.dataObject());
+            } else {
+                dao.setCustomer(null);
+            }
+            PartialUserModel<? extends PartialUserDAO> u = model.getUser();
+            if (null != u) {
+                if (u instanceof UserModel) {
+                    UserDAO.FACTORY.onBeforeSave((UserModel) u);
+                }
+                dao.setUser(u.dataObject());
+            } else {
+                dao.setUser(null);
+            }
+            dao.setContact(model.getContact());
+            dao.setLocation(model.getLocation());
+            dao.setUrl(model.getUrl());
+            dao.setStart(DateTimeUtil.toUtcTimestamp(model.getStart()));
+            dao.setEnd(DateTimeUtil.toUtcTimestamp(model.getEnd()));
+            dao.setDescription(model.getDescription());
         }
 
         @Override
@@ -1029,17 +1079,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         public SaveTask(AppointmentModel model, boolean alreadyValidated) {
             super(model, AppointmentModel.FACTORY, alreadyValidated);
-            AppointmentDAO dao = model.dataObject();
-            dao.setType(model.getType());
-            dao.setTitle(model.getTitle());
-            dao.setCustomer(model.getCustomer().dataObject());
-            dao.setUser(model.getUser().dataObject());
-            dao.setContact(model.getContact());
-            dao.setLocation(model.getLocation());
-            dao.setUrl(model.getUrl());
-            dao.setStart(DateTimeUtil.toUtcTimestamp(model.getStart()));
-            dao.setEnd(DateTimeUtil.toUtcTimestamp(model.getEnd()));
-            dao.setDescription(model.getDescription());
         }
 
         @Override

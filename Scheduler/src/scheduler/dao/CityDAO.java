@@ -217,13 +217,34 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
     /**
      * Factory implementation for {@link CityDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO, CityModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        protected boolean verifyModified(CityDAO dataAccessObject) {
+            return !(dataAccessObject.name.equals(dataAccessObject.originalValues.name) &&
+                    ModelHelper.areSameRecord(dataAccessObject.country, dataAccessObject.originalValues.country));
+        }
+
+        @Override
+        void onBeforeSave(CityModel model) {
+            CityDAO dao = model.dataObject();
+            dao.setName(model.getName());
+            PartialCountryModel<? extends PartialCountryDAO> c = model.getCountry();
+            if (null != c) {
+                if (c instanceof CountryModel) {
+                    CountryDAO.FACTORY.onBeforeSave((CountryModel) c);
+                }
+                dao.setCountry(c.dataObject());
+            } else {
+                dao.setCountry(null);
+            }
         }
 
         @Override
@@ -429,9 +450,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         public SaveTask(CityModel model, boolean alreadyValidated) {
             super(model, CityModel.FACTORY, alreadyValidated);
-            CityDAO dao = model.dataObject();
-            dao.setName(model.getName());
-            dao.setCountry(model.getCountry().dataObject());
         }
 
         @Override

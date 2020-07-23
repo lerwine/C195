@@ -208,7 +208,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
             eventHandlerManager = new EventHandlerManager(this);
         }
 
-        public abstract DataAccessObject.DaoFactory<D> getDaoFactory();
+        public abstract DataAccessObject.DaoFactory<D, M> getDaoFactory();
 
         public abstract M createNew(D dao);
 

@@ -158,7 +158,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
         }
 
         @Override
-        public DataAccessObject.DaoFactory<UserDAO> getDaoFactory() {
+        public DataAccessObject.DaoFactory<UserDAO, UserModel> getDaoFactory() {
             return UserDAO.FACTORY;
         }
 

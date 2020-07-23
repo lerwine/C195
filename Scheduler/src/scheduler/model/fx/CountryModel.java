@@ -120,7 +120,7 @@ public final class CountryModel extends EntityModel<CountryDAO> implements Parti
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CountryDAO> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CountryDAO, CountryModel> getDaoFactory() {
             return CountryDAO.FACTORY;
         }
 

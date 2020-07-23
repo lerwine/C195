@@ -272,7 +272,7 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
         }
 
         @Override
-        public DataAccessObject.DaoFactory<AddressDAO> getDaoFactory() {
+        public DataAccessObject.DaoFactory<AddressDAO, AddressModel> getDaoFactory() {
             return AddressDAO.FACTORY;
         }
 

@@ -292,12 +292,12 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
     private static class LoadTask<T extends DataAccessObject> extends Task<List<T>> {
 
-        private final DaoFactory<T> factory;
+        private final DaoFactory<T, ? extends EntityModel<T>> factory;
         private final DaoFilter<T> filter;
         private final Consumer<List<T>> onSuccess;
         private final Consumer<Throwable> onFail;
 
-        LoadTask(DaoFactory<T> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess,
+        LoadTask(DaoFactory<T, ? extends EntityModel<T>> factory, DaoFilter<T> filter, Consumer<List<T>> onSuccess,
                 Consumer<Throwable> onFail) {
             updateTitle(filter.getLoadingTitle());
             this.factory = Objects.requireNonNull(factory);
@@ -464,8 +464,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      * will only ever be one instance of a {@link DataAccessObject} for each record in the database.
      *
      * @param <D> The type of {@link DataAccessObject} object supported.
+     * @param <M>
      */
-    public static abstract class DaoFactory<D extends DataAccessObject>
+    public static abstract class DaoFactory<D extends DataAccessObject, M extends EntityModel<D>>
             implements EventTarget {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
@@ -478,6 +479,27 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             eventHandlerManager = new EventHandlerManager(this);
         }
 
+        abstract void onBeforeSave(M model);
+        
+        protected abstract boolean verifyModified(D dataAccessObject);
+        
+        final synchronized DataRowState verifyRowState(D dataAccessObject) {
+            DataAccessObject dao = dataAccessObject;
+            DataRowState oldRowState = dao.rowState;
+            if (oldRowState == DataRowState.MODIFIED && !verifyModified(dataAccessObject)) {
+                String oldLastModifiedBy = dao.lastModifiedBy;
+                dao.lastModifiedBy = dao.originalValues.lastModifiedBy;
+                Timestamp oldLastModifiedDate = dao.lastModifiedDate;
+                dao.lastModifiedDate = dao.originalValues.lastModifiedDate;
+                dao.rowState = DataRowState.UNMODIFIED;
+                dao.firePropertyChange(PROP_ROWSTATE, oldLastModifiedDate, dao.lastModifiedDate);
+                dao.firePropertyChange(PROP_ROWSTATE, oldLastModifiedBy, dao.lastModifiedBy);
+                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
+            }
+            
+            return dao.rowState;
+        }
+        
         public DaoCache<D> getCache() {
             return cache;
         }
@@ -948,7 +970,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
-        private final ReadOnlyObjectWrapper<DaoFactory<D>> daoFactory;
+        private final ReadOnlyObjectWrapper<DaoFactory<D, M>> daoFactory;
         private final ReadOnlyObjectWrapper<EntityModel.EntityModelFactory<D, M>> modelFactory;
         private boolean validationSuccessful;
         private final ReadOnlyBooleanWrapper validationFailed;
@@ -987,11 +1009,11 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          *
          * @return The {@link DaoFactory} associated with the target {@link DataAccessObject} type.
          */
-        public DaoFactory<D> getDaoFactory() {
+        public DaoFactory<D, M> getDaoFactory() {
             return daoFactory.get();
         }
 
-        public ReadOnlyObjectProperty<DaoFactory<D>> daoFactoryProperty() {
+        public ReadOnlyObjectProperty<DaoFactory<D, M>> daoFactoryProperty() {
             return daoFactory.getReadOnlyProperty();
         }
 
@@ -1077,13 +1099,14 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             if (getOriginalRowState() == DataRowState.DELETED) {
                 throw new IllegalArgumentException("Record was already deleted");
             }
+            modelFactory.getDaoFactory().onBeforeSave(target);
         }
 
         @Override
         protected final ModelEvent<D, M> onValidated(Connection connection) throws Exception {
             LOG.entering(LOG.getName(), "onValidated", connection);
             D dao = getDataAccessObject();
-            DaoFactory<D> factory = getDaoFactory();
+            DaoFactory<D, M> factory = getDaoFactory();
             DataAccessObject dataObj = dao;
             Timestamp timeStamp = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
             StringBuilder sb = new StringBuilder();
@@ -1284,7 +1307,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         protected ModelEvent<D, M> onValidated(Connection connection) throws Exception {
             LOG.entering(LOG.getName(), "onValidated", connection);
             D dao = getDataAccessObject();
-            DaoFactory<D> factory = getDaoFactory();
+            DaoFactory<D, M> factory = getDaoFactory();
             StringBuilder sb = new StringBuilder("DELETE FROM ");
             sb.append(factory.getDbTable().getDbName()).append(" WHERE ").append(factory.getPrimaryKeyColumn().getDbName()).append("=?");
             String sql = sb.toString();

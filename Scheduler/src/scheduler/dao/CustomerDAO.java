@@ -246,13 +246,35 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
     /**
      * Factory implementation for {@link CustomerDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO, CustomerModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        protected boolean verifyModified(CustomerDAO dataAccessObject) {
+            return !(dataAccessObject.active == dataAccessObject.originalValues.active && dataAccessObject.name.equals(dataAccessObject.originalValues.name) &&
+                    ModelHelper.areSameRecord(dataAccessObject.address, dataAccessObject.originalValues.address));
+        }
+
+        @Override
+        void onBeforeSave(CustomerModel model) {
+            CustomerDAO dao = model.dataObject();
+            dao.setName(model.getName());
+            dao.setActive(model.isActive());
+            PartialAddressModel<? extends PartialAddressDAO> a = model.getAddress();
+            if (null != a) {
+                dao.setAddress(a.dataObject());
+                if (a instanceof AddressModel) {
+                    AddressDAO.FACTORY.onBeforeSave((AddressModel) a);
+                }
+            } else {
+                dao.setAddress(null);
+            }
         }
 
         @Override
@@ -433,10 +455,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         public SaveTask(CustomerModel model, boolean alreadyValidated) {
             super(model, CustomerModel.FACTORY, alreadyValidated);
-            CustomerDAO dao = model.dataObject();
-            dao.setName(model.getName());
-            dao.setActive(model.isActive());
-            dao.setAddress(model.getAddress().dataObject());
         }
 
         @Override

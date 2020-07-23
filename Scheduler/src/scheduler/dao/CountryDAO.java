@@ -176,13 +176,25 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
     /**
      * Factory implementation for {@link CountryDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO, CountryModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        protected boolean verifyModified(CountryDAO dataAccessObject) {
+            Locale a = dataAccessObject.locale;
+            Locale b = dataAccessObject.originalValues.locale;
+            return (null == a) ? null != b : null == b || !a.toLanguageTag().equals(b.toLanguageTag());
+        }
+
+        @Override
+        void onBeforeSave(CountryModel model) {
+            model.dataObject().setLocale(model.getLocale());
         }
 
         @Override
@@ -331,7 +343,6 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         public SaveTask(CountryModel model, boolean alreadyValidated) {
             super(model, CountryModel.FACTORY, alreadyValidated);
-            model.dataObject().setLocale(model.getLocale());
         }
 
         @Override

@@ -618,7 +618,7 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
         }
 
         @Override
-        public DataAccessObject.DaoFactory<AppointmentDAO> getDaoFactory() {
+        public DataAccessObject.DaoFactory<AppointmentDAO, AppointmentModel> getDaoFactory() {
             return AppointmentDAO.FACTORY;
         }
 
