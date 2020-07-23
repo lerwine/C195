@@ -250,7 +250,7 @@ public class ModelHelper {
     public static boolean matchesPrimaryKey(PartialDataEntity source, int pk) {
         return null != source && source.getRowState() != DataRowState.NEW && source.getPrimaryKey() == pk;
     }
-    
+
     private ModelHelper() {
     }
 
@@ -270,7 +270,7 @@ public class ModelHelper {
             if (entity instanceof Country) {
                 return CountryHelper.appendCountryProperties(entity, appendPartialDataEntityProperties((PartialDataEntity) entity, builder));
             }
-            
+
             throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
         }
 
@@ -288,7 +288,7 @@ public class ModelHelper {
             if (entity instanceof City) {
                 return CityHelper.appendCityProperties(entity, appendPartialDataEntityProperties((PartialDataEntity) entity, builder));
             }
-            
+
             throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
         }
 
@@ -306,7 +306,7 @@ public class ModelHelper {
             if (entity instanceof Address) {
                 return AddressHelper.appendAddressProperties(entity, appendPartialDataEntityProperties((PartialDataEntity) entity, builder));
             }
-            
+
             throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
         }
 
@@ -319,31 +319,31 @@ public class ModelHelper {
             if (entity instanceof DataEntity) {
                 return appendDataEntityPropertiesX((DataEntity<?>) entity, builder);
             }
-            
+
             if (entity instanceof User) {
                 return UserHelper.appendUserProperties((User) entity, appendPartialDataEntityProperties(entity, builder));
             }
-            
+
             if (entity instanceof Customer) {
                 return CustomerHelper.appendCustomerProperties((Customer) entity, appendPartialDataEntityProperties(entity, builder));
             }
-            
+
             if (entity instanceof Country) {
                 return CountryHelper.appendCountryProperties((CountryProperties) entity, appendPartialDataEntityProperties(entity, builder));
             }
-            
+
             if (entity instanceof Address) {
                 return AddressHelper.appendAddressProperties((AddressProperties) entity, appendPartialDataEntityProperties(entity, builder));
             }
-            
+
             if (entity instanceof SupportedCityDefinition) {
                 return CityHelper.appendCityDefinitionProperties((SupportedCityDefinition) entity, appendPartialDataEntityProperties(entity, builder));
             }
-            
+
             if (entity instanceof City) {
                 return CityHelper.appendCityProperties((CityProperties) entity, appendPartialDataEntityProperties(entity, builder));
             }
-            
+
             throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
         }
 
@@ -354,7 +354,7 @@ public class ModelHelper {
             appendTimestamp(entity.getLastModifiedDate(), builder.append("; lastModifiedDate="));
             return appendString(entity.getLastModifiedBy(), builder.append("; lastModifiedBy="));
         }
-        
+
         private static StringBuilder appendDataEntityPropertiesTX(DataEntity<Timestamp> entity, StringBuilder builder) {
             if (entity instanceof Appointment) {
                 return AppointmentHelper.appendAppointmentPropertiesT((Appointment<Timestamp>) entity, appendDataEntityPropertiesT(entity, builder));
@@ -374,7 +374,7 @@ public class ModelHelper {
             if (entity instanceof Country) {
                 return CountryHelper.appendCountryProperties((CountryProperties) entity, appendDataEntityPropertiesT(entity, builder));
             }
-            
+
             throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
         }
 
@@ -404,20 +404,20 @@ public class ModelHelper {
             if (entity instanceof Country) {
                 return CountryHelper.appendCountryProperties((CountryProperties) entity, appendDataEntityPropertiesL(entity, builder));
             }
-            
+
             throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
         }
-        
+
         @SuppressWarnings("unchecked")
         private static StringBuilder appendDataEntityPropertiesX(DataEntity<?> entity, StringBuilder builder) {
             if (entity instanceof DataAccessObject) {
                 appendDataEntityPropertiesTX((DataEntity<Timestamp>) entity, builder);
             }
-            
+
             if (entity instanceof EntityModel) {
                 appendDataEntityPropertiesLX((DataEntity<LocalDateTime>) entity, builder);
             }
-            
+
             throw new UnsupportedOperationException(String.format("Type %s  not supported", entity.getClass().getName()));
         }
 
@@ -427,16 +427,19 @@ public class ModelHelper {
     }
 
     public static class AppointmentHelper {
+
         private static StringBuilder appendAppointmentPropertiesT(Appointment<Timestamp> appointment, StringBuilder builder) {
             appendTimestamp(appointment.getStart(), builder.append("; start="));
             appendTimestamp(appointment.getEnd(), builder.append("; end="));
             return appendAppointmentProperties(appointment, builder);
         }
+
         private static StringBuilder appendAppointmentPropertiesL(Appointment<LocalDateTime> appointment, StringBuilder builder) {
             appendLocalDateTime(appointment.getStart(), builder.append("; start="));
             appendLocalDateTime(appointment.getEnd(), builder.append("; end="));
             return appendAppointmentProperties(appointment, builder);
         }
+
         private static StringBuilder appendAppointmentProperties(Appointment<?> appointment, StringBuilder builder) {
             appendEnum(appointment.getType(), builder.append("; type="));
             appendString(appointment.getTitle(), builder.append("; title="));
@@ -463,7 +466,7 @@ public class ModelHelper {
             appendString(appointment.getLocation(), builder.append(";").append(Values.LINEBREAK_STRING).append("\tlocation="));
             return appendString(appointment.getUrl(), builder.append(";").append(Values.LINEBREAK_STRING).append("\turl="));
         }
-        
+
         public static StringBuilder appendModelProperties(AppointmentModel appointment, StringBuilder builder) {
             return appendAppointmentPropertiesL(appointment, StringBuilderHelper.appendDataEntityPropertiesL(appointment, builder));
         }
@@ -1115,7 +1118,7 @@ public class ModelHelper {
             }
             return builder.append(";").append(Values.LINEBREAK_STRING).append("\tcountry=").append(Values.indentText(country.toString(), 2, false));
         }
-        
+
         public static StringBuilder appendCityDefinitionProperties(SupportedCityDefinition city, StringBuilder builder) {
             return appendCityProperties(city, builder).append(";").append(Values.LINEBREAK_STRING).append("\ttimeZone=").append(city.getTimeZone().getID());
         }
@@ -1234,10 +1237,11 @@ public class ModelHelper {
         private static StringBuilder appendCountryProperties(CountryProperties country, StringBuilder builder) {
             Locale locale = country.getLocale();
             builder.append("; locale=");
-            if (null != locale)
+            if (null != locale) {
                 builder.append("; locale=").append(locale.toLanguageTag()).append("; name=");
-            else
+            } else {
                 builder.append("; locale=; name=");
+            }
             return appendString(country.getName(), builder);
         }
 

@@ -10,12 +10,11 @@ import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringProperty;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanStringPropertyBuilder;
 import scheduler.dao.DataRowState;
+import scheduler.dao.PartialUserDAO;
 import scheduler.dao.UserDAO;
+import scheduler.model.ModelHelper;
 import scheduler.model.UserStatus;
 import scheduler.observables.property.ReadOnlyStringBindingProperty;
-import scheduler.util.ToStringPropertyBuilder;
-import scheduler.dao.PartialUserDAO;
-import scheduler.model.ModelHelper;
 
 /**
  *
