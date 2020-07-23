@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
@@ -123,7 +124,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private static final String INVALID_NUMBER = "Invalid number";
     public static final NumberFormat INTN_FORMAT;
     public static final NumberFormat INT2_FORMAT;
-    public static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL);
+    public static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withZone(ZoneId.systemDefault());
 
     static {
         INT2_FORMAT = NumberFormat.getIntegerInstance();
