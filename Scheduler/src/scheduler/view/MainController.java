@@ -139,36 +139,42 @@ public final class MainController {
     private void onAllAppointmentsMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onAllAppointmentsMenuItemAction", event);
         ManageAppointments.loadIntoMainContent(AppointmentModel.FACTORY.getAllItemsFilter());
+        LOG.exiting(LOG.getName(), "onAllAppointmentsMenuItemAction");
     }
 
     @FXML
     private void onByRegionMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onByRegionMenuItemAction", event);
         replaceContent(new AppointmentsByRegion());
+        LOG.exiting(LOG.getName(), "onByRegionMenuItemAction");
     }
 
     @FXML
     private void onConsultantScheduleMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onConsultantScheduleMenuItemAction", event);
         replaceContent(new ConsultantSchedule());
+        LOG.exiting(LOG.getName(), "onConsultantScheduleMenuItemAction");
     }
 
     @FXML
     private void onTypesByMonthMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onTypesByMonthMenuItemAction", event);
         replaceContent(new AppointmentTypesByMonth());
+        LOG.exiting(LOG.getName(), "onTypesByMonthMenuItemAction");
     }
 
     @FXML
     private void onManageCustomersMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onManageCustomersMenuItemAction", event);
         ManageCustomers.loadIntoMainContent(CustomerModel.FACTORY.getDefaultFilter());
+        LOG.exiting(LOG.getName(), "onManageCustomersMenuItemAction");
     }
 
     @FXML
     private void onManageUsersMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onManageUsersMenuItemAction", event);
         ManageUsers.loadIntoMainContent(UserModel.FACTORY.getDefaultFilter());
+        LOG.exiting(LOG.getName(), "onManageUsersMenuItemAction");
     }
 
     @FXML
@@ -179,6 +185,7 @@ public final class MainController {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+        LOG.exiting(LOG.getName(), "getName");
     }
 
     @FXML
@@ -189,6 +196,7 @@ public final class MainController {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+        LOG.exiting(LOG.getName(), "onNewAppointmentMenuItemAction");
     }
 
     @FXML
@@ -199,6 +207,7 @@ public final class MainController {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+        LOG.exiting(LOG.getName(), "onNewCustomerMenuItemAction");
     }
 
     @FXML
@@ -209,40 +218,47 @@ public final class MainController {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+        LOG.exiting(LOG.getName(), "onNewUserMenuItemAction");
     }
 
     @FXML
     private void onManageAddressesMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onManageAddressesMenuItemAction", event);
         ManageCountries.loadIntoMainContent();
+        LOG.exiting(LOG.getName(), "onManageAddressesMenuItemAction");
     }
 
     @FXML
     private void onMyCurrentAndFutureAppointmentsMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onMyCurrentAndFutureAppointmentsMenuItemAction", event);
         ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
+        LOG.exiting(LOG.getName(), "onMyCurrentAndFutureAppointmentsMenuItemAction");
     }
 
     @FXML
     private void onOverviewMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onOverviewMenuItemAction", event);
         replaceContent(new Overview());
+        LOG.exiting(LOG.getName(), "onOverviewMenuItemAction");
     }
 
     @FXML
     private void onWeeklyCalendarMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onWeeklyCalendarMenuItemAction", event);
         ByWeek.loadIntoMainContent(LocalDate.now());
+        LOG.exiting(LOG.getName(), "onWeeklyCalendarMenuItemAction");
     }
 
     @FXML
     private void onMonthlyCalendarMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onMonthlyCalendarMenuItemAction", event);
         ByMonth.loadIntoMainContent(LocalDate.now());
+        LOG.exiting(LOG.getName(), "onMonthlyCalendarMenuItemAction");
     }
 
     @FXML
     private void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert rootStackPane != null : "fx:id=\"rootStackPane\" was not injected: check your FXML file 'MainView.fxml'.";
         assert contentVBox != null : "fx:id=\"contentVBox\" was not injected: check your FXML file 'MainView.fxml'.";
         assert weeklyCalendarMenuItem != null : "fx:id=\"weeklyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
@@ -263,6 +279,7 @@ public final class MainController {
         bindExtents(helpContent, rootStackPane);
         bindExtents(waitBorderPane, rootStackPane);
         bindExtents(appointmentAlert, rootStackPane);
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     public synchronized void replaceContent(Node newContent) {

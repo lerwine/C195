@@ -199,6 +199,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, addressUpdateEventHandler.getWeakEventHandler());
         AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, addressDeleteEventHandler.getWeakEventHandler());
         initializeEditMode();
+        LOG.exiting(LOG.getName(), "onModelInserted");
     }
 
     @FXML
@@ -209,6 +210,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+        LOG.exiting(LOG.getName(), "onAddAddressButtonAction");
     }
 
     @FXML
@@ -218,6 +220,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         if (null != item) {
             deleteItem(item);
         }
+        LOG.exiting(LOG.getName(), "onAddressDeleteMenuItemAction");
     }
 
     @FXML
@@ -227,6 +230,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         if (null != item) {
             editItem(item);
         }
+        LOG.exiting(LOG.getName(), "onAddressEditMenuItemAction");
     }
 
     @FXML
@@ -250,12 +254,14 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                     break;
             }
         }
+        LOG.exiting(LOG.getName(), "onAddressesTableViewKeyReleased");
     }
 
     @FXML
     void onCountryComboBoxAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onCountryComboBoxAction", event);
         onChange(nameTextField.getText());
+        LOG.exiting(LOG.getName(), "onCountryComboBoxAction");
     }
 
     @FXML
@@ -266,6 +272,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         } else {
             deleteItem(event.getEntityModel());
         }
+        LOG.exiting(LOG.getName(), "onItemActionRequest");
     }
 
     @FXML
@@ -276,10 +283,12 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading country edit window", ex);
         }
+        LOG.exiting(LOG.getName(), "onNewCountryButtonAction");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCity.fxml'.";
         assert countryComboBox != null : "fx:id=\"countryComboBox\" was not injected: check your FXML file 'EditCity.fxml'.";
@@ -301,7 +310,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         nameValidationLabel.textProperty().bind(nameValidationMessage);
         nameValidationLabel.visibleProperty().bind(nameValidationMessage.isNotEmpty());
         countryValidationLabel.visibleProperty().bind(selectedCountry.isNull());
-        nameTextField.textProperty().addListener((observable, oldValue, newValue) -> onChange(newValue));
+        nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.city.EditCity.nameTextField#text", "changed", new Object[] { oldValue, newValue });
+            onChange(newValue);
+            LOG.exiting("scheduler.view.city.EditCity.nameTextField#text", "changed");
+        });
         nameTextField.setText(model.getName());
 
         WaitTitledPane pane = new WaitTitledPane();
@@ -317,6 +330,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             waitBorderPane.startNow(pane, new EditDataLoadTask());
             initializeEditMode();
         }
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     private void editItem(AddressModel item) {
@@ -444,6 +458,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                 addressItemList.add(entityModel);
             }
         }
+        LOG.exiting(LOG.getName(), "onAddressInserted");
     }
 
     private void onAddressUpdated(AddressSuccessEvent event) {
@@ -459,6 +474,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                 addressItemList.add(entityModel);
             }
         }
+        LOG.exiting(LOG.getName(), "onAddressUpdated");
     }
 
     private void onAddressDeleted(AddressSuccessEvent event) {
@@ -466,6 +482,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AddressModel.FACTORY.find(addressItemList, event.getEntityModel()).ifPresent(addressItemList::remove);
         }
+        LOG.exiting(LOG.getName(), "onAddressDeleted");
     }
 
     private void onCountryInserted(CountrySuccessEvent event) {
@@ -476,6 +493,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             countryOptionList.sort(CountryHelper::compare);
             countryComboBox.getSelectionModel().select(countryModel);
         }
+        LOG.exiting(LOG.getName(), "onCountryInserted");
     }
 
     private void onCountryDeleted(CountrySuccessEvent event) {
@@ -489,6 +507,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                 }
             });
         }
+        LOG.exiting(LOG.getName(), "onCountryDeleted");
     }
 
     private class EditDataLoadTask extends Task<Tuple<List<CountryDAO>, List<AddressDAO>>> {
@@ -502,6 +521,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
         @Override
         protected void succeeded() {
+            LOG.entering("scheduler.view.city.EditCity.EditDataLoadTask", "succeeded");
             super.succeeded();
             Tuple<List<CountryDAO>, List<AddressDAO>> result = getValue();
             loadCountries(result.getValue1(), model.getCountry());
@@ -511,15 +531,18 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.INSERT_SUCCESS, addressInsertEventHandler.getWeakEventHandler());
             AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.UPDATE_SUCCESS, addressUpdateEventHandler.getWeakEventHandler());
             AddressModel.FACTORY.addEventHandler(AddressSuccessEvent.DELETE_SUCCESS, addressDeleteEventHandler.getWeakEventHandler());
+            LOG.exiting("scheduler.view.city.EditCity.EditDataLoadTask", "succeeded");
         }
 
         @Override
         protected Tuple<List<CountryDAO>, List<AddressDAO>> call() throws Exception {
+            LOG.entering("scheduler.view.city.EditCity.EditDataLoadTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 AddressDAO.FactoryImpl cf = AddressDAO.FACTORY;
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
+            LOG.exiting("scheduler.view.city.EditCity.EditDataLoadTask", "call");
                 return Tuple.of(
                         nf.load(dbConnector.getConnection(), nf.getAllItemsFilter()),
                         cf.load(dbConnector.getConnection(), cf.getByCityFilter(pk))
@@ -537,6 +560,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
         @Override
         protected void succeeded() {
+            LOG.entering("scheduler.view.city.EditCity.CountriesLoadTask", "succeeded");
             super.succeeded();
             List<CountryDAO> result = getValue();
             PartialCountryModel<? extends PartialCountryDAO> targetCountry = model.getCountry();
@@ -548,14 +572,17 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                 }
             }
             loadCountries(result, targetCountry);
+            LOG.exiting("scheduler.view.city.EditCity.CountriesLoadTask", "succeeded");
         }
 
         @Override
         protected List<CountryDAO> call() throws Exception {
+            LOG.entering("scheduler.view.city.EditCity.CountriesLoadTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
+            LOG.exiting("scheduler.view.city.EditCity.CountriesLoadTask", "call");
                 return nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
             }
         }

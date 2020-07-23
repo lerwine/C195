@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
@@ -73,24 +74,28 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
     private void filterButtonClick(ActionEvent event) {
         LOG.entering(LOG.getName(), "filterButtonClick", event);
         restoreNode(userFilterBorderPane);
+        LOG.exiting(LOG.getName(), "filterButtonClick");
     }
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpButtonAction");
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpOKButtonAction");
     }
 
     @FXML
     private void onUserFilterCancelButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onUserFilterCancelButtonAction", event);
         userFilterBorderPane.setVisible(false);
+        LOG.exiting(LOG.getName(), "onUserFilterCancelButtonAction");
     }
 
     @FXML
@@ -104,10 +109,12 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
             setFilter(UserModelFilter.active());
         }
         collapseNode(userFilterBorderPane);
+        LOG.exiting(LOG.getName(), "onUserFilterOKButtonAction");
     }
 
     @Override
     protected void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         super.initialize();
         assert userFilterBorderPane != null : "fx:id=\"userFilterBorderPane\" was not injected: check your FXML file 'ManageUsers.fxml'.";
         assert activeUsersRadioButton != null : "fx:id=\"activeUsersRadioButton\" was not injected: check your FXML file 'ManageUsers.fxml'.";
@@ -115,7 +122,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
         assert inactiveUsersRadioButton != null : "fx:id=\"inactiveUsersRadioButton\" was not injected: check your FXML file 'ManageUsers.fxml'.";
         assert allUsersRadioButton != null : "fx:id=\"allUsersRadioButton\" was not injected: check your FXML file 'ManageUsers.fxml'.";
         assert helpBorderPane != null : "fx:id=\"helpBorderPane\" was not injected: check your FXML file 'ManageUsers.fxml'.";
-
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     @Override
@@ -164,16 +171,20 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
                 AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((response) -> {
             if (response == ButtonType.YES) {
                 UserDAO.DeleteTask task = new UserDAO.DeleteTask(item, false);
-                task.setOnSucceeded((event) -> {
-                    UserEvent userEvent = (UserEvent) task.getValue();
-                    if (userEvent instanceof UserFailedEvent) {
-                        scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                ((ModelFailedEvent<UserDAO, UserModel>) userEvent).getMessage(), ButtonType.OK);
-                    }
-                });
+                task.setOnSucceeded(this::onDeleteTaskSucceeded);
                 MainController.startBusyTaskNow(task);
             }
         });
+    }
+    
+    private void onDeleteTaskSucceeded(WorkerStateEvent event) {
+        LOG.entering(LOG.getName(), "onDeleteTaskSucceeded", event);
+        UserEvent userEvent = (UserEvent) event.getSource().getValue();
+        if (userEvent instanceof UserFailedEvent) {
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                    ((ModelFailedEvent<UserDAO, UserModel>) userEvent).getMessage(), ButtonType.OK);
+        }
+        LOG.exiting(LOG.getName(), "onDeleteTaskSucceeded");
     }
 
     @Override

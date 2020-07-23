@@ -97,7 +97,7 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
      */
     public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorRegion, model, keepOpen, beforeShow });
+        LOG.entering(LOG.getName(), "showAndWait", new Object[]{parentWindow, editorRegion, model, keepOpen, beforeShow});
         EditItem<U, S> root = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(root);
         Class<ModelEditor> annotationClass = ModelEditor.class;
@@ -110,7 +110,7 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
 
     public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
-        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorRegion, model, keepOpen });
+        LOG.entering(LOG.getName(), "showAndWait", new Object[]{parentWindow, editorRegion, model, keepOpen});
         EditItem<U, S> result = new EditItem<>(editorRegion, model, keepOpen);
         ViewControllerLoader.initializeCustomControl(result);
         Class<ModelEditor> annotationClass = ModelEditor.class;
@@ -137,7 +137,7 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
      */
     public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
-        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorType, model, keepOpen, beforeShow });
+        LOG.entering(LOG.getName(), "showAndWait", new Object[]{parentWindow, editorType, model, keepOpen, beforeShow});
         S editorRegion;
         try {
             editorRegion = editorType.newInstance();
@@ -163,7 +163,7 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
      */
     public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, Class<? extends S> editorType, U model, boolean keepOpen) throws IOException {
-        LOG.entering(LOG.getName(), "showAndWait", new Object[] { parentWindow, editorType, model, keepOpen });
+        LOG.entering(LOG.getName(), "showAndWait", new Object[]{parentWindow, editorType, model, keepOpen});
         S editorRegion;
         try {
             editorRegion = editorType.newInstance();
@@ -250,11 +250,13 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
                         .orElse(ButtonType.NO);
             }
             if (response != ButtonType.YES) {
+                LOG.exiting(LOG.getName(), "onCancelButtonAction");
                 return;
             }
         }
 
         getScene().getWindow().hide();
+        LOG.exiting(LOG.getName(), "onCancelButtonAction");
     }
 
     @FXML
@@ -273,13 +275,12 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
                     .ifPresent((t) -> {
                         if (t == ButtonType.YES) {
                             DataAccessObject.DeleteDaoTask<?, U> task = editorRegion.modelFactory().createDeleteTask(model);
-                            task.setOnSucceeded((e) -> {
-                                onDeleteDaoTaskSucceeded(e);
-                            });
+                            task.setOnSucceeded(this::onDeleteDaoTaskSucceeded);
                             waitBorderPane.startNow(task);
                         }
                     });
         }
+        LOG.exiting(LOG.getName(), "onDeleteButtonAction");
     }
 
     @FXML
@@ -289,10 +290,12 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
         DataAccessObject.SaveDaoTask<?, U> task = editorRegion.modelFactory().createSaveTask(model);
         task.setOnSucceeded(this::onSaveDaoTaskSucceeded);
         waitBorderPane.startNow(task);
+        LOG.exiting(LOG.getName(), "onSaveButtonAction");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert parentVBox != null : "fx:id=\"parentVBox\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert contentGridPane != null : "fx:id=\"contentGridPane\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert createdLabel != null : "fx:id=\"createdLabel\" was not injected: check your FXML file 'EditItem.fxml'.";
@@ -318,6 +321,7 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
         } else {
             onEditMode();
         }
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     private void onEditMode() {
@@ -338,6 +342,7 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
     }
 
     private void onSaveDaoTaskSucceeded(WorkerStateEvent event) {
+        LOG.entering(LOG.getName(), "onSaveDaoTaskSucceeded", event);
         @SuppressWarnings("unchecked")
         ModelEvent<?, U> modelEvent = ((DataAccessObject.SaveDaoTask<?, U>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
@@ -373,9 +378,11 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
                     throw new AssertionError(modelEvent.getOperation().name());
             }
         }
+        LOG.exiting(LOG.getName(), "onSaveDaoTaskSucceeded");
     }
 
     private void onDeleteDaoTaskSucceeded(WorkerStateEvent event) {
+        LOG.entering(LOG.getName(), "onDeleteDaoTaskSucceeded", event);
         @SuppressWarnings("unchecked")
         ModelEvent<?, U> modelEvent = ((DataAccessObject.DeleteDaoTask<?, U>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
@@ -383,6 +390,7 @@ public final class EditItem<U extends EntityModel<?>, S extends Region & EditIte
         } else {
             getScene().getWindow().hide();
         }
+        LOG.exiting(LOG.getName(), "onDeleteDaoTaskSucceeded");
     }
 
     /**

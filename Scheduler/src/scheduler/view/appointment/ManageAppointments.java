@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventType;
@@ -168,6 +169,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 //            AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
 //        }
         // PENDING: (TODO) Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
+        LOG.exiting(LOG.getName(), "filterButtonClick");
     }
 
     @FXML
@@ -192,18 +194,18 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         if (null != file) {
             FileChooser.ExtensionFilter ef = fc.getSelectedExtensionFilter();
             if (null != ef) {
-                List<DbColumn> columns;
+                TabularDataReader<DbColumn, AppointmentModel> dataReader;
                 if (ef == csvAll || ef == tsvAll || ef == htmAll) {
-                    columns = Arrays.asList(new DbColumn[]{
+                    dataReader = new AppointmentsTabularDataReader(Arrays.asList(new DbColumn[]{
                         DbColumn.APPOINTMENT_CUSTOMER, DbColumn.CUSTOMER_NAME, DbColumn.CUSTOMER_ADDRESS, DbColumn.ADDRESS1, DbColumn.ADDRESS2,
                         DbColumn.ADDRESS_CITY, DbColumn.CITY_NAME, DbColumn.CITY_COUNTRY, DbColumn.COUNTRY_NAME, DbColumn.POSTAL_CODE,
                         DbColumn.PHONE, DbColumn.ACTIVE, DbColumn.APPOINTMENT_USER, DbColumn.USER_NAME, DbColumn.STATUS, DbColumn.TITLE,
                         DbColumn.DESCRIPTION, DbColumn.LOCATION, DbColumn.CONTACT, DbColumn.TYPE, DbColumn.URL, DbColumn.START, DbColumn.END,
                         DbColumn.APPOINTMENT_ID, DbColumn.APPOINTMENT_CREATE_DATE, DbColumn.APPOINTMENT_CREATED_BY,
                         DbColumn.APPOINTMENT_LAST_UPDATE, DbColumn.APPOINTMENT_LAST_UPDATE_BY
-                    });
+                    }));
                 } else {
-                    columns = new ArrayList<>();
+                    List<DbColumn> columns = new ArrayList<>();
                     getListingTableView().getColumns().forEach((c) -> {
                         if (c.isVisible()) {
                             if (c == titleTableColumn) {
@@ -237,183 +239,8 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                             }
                         }
                     });
+                    dataReader = new AppointmentsTabularDataReader(columns);
                 }
-                TabularDataReader<DbColumn, AppointmentModel> dataReader = new TabularDataReader<DbColumn, AppointmentModel>() {
-                    private final NumberFormat numberFormat = NumberFormat.getIntegerInstance();
-                    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-
-                    @Override
-                    public Collection<DbColumn> getColumns() {
-                        return columns;
-                    }
-
-                    @Override
-                    public String getHeaderText(DbColumn column) {
-                        switch (column) {
-                            case APPOINTMENT_CUSTOMER:
-                                return getResources().getString(RESOURCEKEY_CUSTOMERID);
-                            case CUSTOMER_NAME:
-                                return getResources().getString(RESOURCEKEY_CUSTOMER);
-                            case CUSTOMER_ADDRESS:
-                                return getResources().getString(RESOURCEKEY_ADDRESSID);
-                            case ADDRESS1:
-                                return getResources().getString(RESOURCEKEY_ADDRESS);
-                            case ADDRESS2:
-                                return getResources().getString(RESOURCEKEY_ADDRESS2);
-                            case ADDRESS_CITY:
-                                return getResources().getString(RESOURCEKEY_CITYID);
-                            case CITY_NAME:
-                                return getResources().getString(RESOURCEKEY_CITY);
-                            case CITY_COUNTRY:
-                                return getResources().getString(RESOURCEKEY_COUNTRYID);
-                            case COUNTRY_NAME:
-                                return getResources().getString(RESOURCEKEY_COUNTRY);
-                            case POSTAL_CODE:
-                                return getResources().getString(RESOURCEKEY_POSTALCODE);
-                            case PHONE:
-                                return getResources().getString(RESOURCEKEY_PHONENUMBER);
-                            case ACTIVE:
-                                return getResources().getString(RESOURCEKEY_ACTIVE);
-                            case APPOINTMENT_USER:
-                                return getResources().getString(RESOURCEKEY_USERID);
-                            case USER_NAME:
-                                return getResources().getString(RESOURCEKEY_USER);
-                            case STATUS:
-                                return getResources().getString(RESOURCEKEY_STATUS);
-                            case TITLE:
-                                return getResources().getString(RESOURCEKEY_TITLE);
-                            case DESCRIPTION:
-                                return getResources().getString(RESOURCEKEY_DESCRIPTION);
-                            case LOCATION:
-                                return getResources().getString(RESOURCEKEY_LOCATION);
-                            case CONTACT:
-                                return getResources().getString(RESOURCEKEY_POINTOFCONTACT);
-                            case TYPE:
-                                return getResources().getString(RESOURCEKEY_TYPE);
-                            case URL:
-                                return getResources().getString(RESOURCEKEY_MEETINGURL);
-                            case START:
-                                return getResources().getString(RESOURCEKEY_START);
-                            case END:
-                                return getResources().getString(RESOURCEKEY_END);
-                            case APPOINTMENT_ID:
-                                return getResources().getString(RESOURCEKEY_APPOINTMENTID);
-                            case APPOINTMENT_CREATE_DATE:
-                                return getResources().getString(RESOURCEKEY_CREATEDON);
-                            case APPOINTMENT_CREATED_BY:
-                                return getResources().getString(RESOURCEKEY_CREATEDBY);
-                            case APPOINTMENT_LAST_UPDATE:
-                                return getResources().getString(RESOURCEKEY_UPDATEDON);
-                            case APPOINTMENT_LAST_UPDATE_BY:
-                                return getResources().getString(RESOURCEKEY_UPDATEDBY);
-                            default:
-                                return column.getDbName().toString();
-                        }
-                    }
-
-                    @Override
-                    public String getColumnText(AppointmentModel item, DbColumn column) {
-                        PartialCustomerModel<? extends Customer> customer;
-                        PartialAddressModel<? extends PartialAddressDAO> address;
-                        PartialCityModel<? extends PartialCityDAO> city;
-                        switch (column) {
-                            case APPOINTMENT_CUSTOMER:
-                                customer = item.getCustomer();
-                                return (null == customer) ? "" : numberFormat.format(customer.getPrimaryKey());
-                            case CUSTOMER_NAME:
-                                return item.getCustomerName();
-                            case CUSTOMER_ADDRESS:
-                                customer = item.getCustomer();
-                                if (null != customer) {
-                                    address = customer.getAddress();
-                                    if (null != address) {
-                                        return numberFormat.format(address.getPrimaryKey());
-                                    }
-                                }
-                                return "";
-                            case ADDRESS1:
-                                return item.getCustomerAddress1();
-                            case ADDRESS2:
-                                return item.getCustomerAddress2();
-                            case ADDRESS_CITY:
-                                customer = item.getCustomer();
-                                if (null != customer) {
-                                    address = customer.getAddress();
-                                    if (null != address) {
-                                        city = address.getCity();
-                                        if (null != city) {
-                                            return numberFormat.format(city.getPrimaryKey());
-                                        }
-                                    }
-                                }
-                                return "";
-                            case CITY_NAME:
-                                return item.getCustomerCityName();
-                            case CITY_COUNTRY:
-                                customer = item.getCustomer();
-                                if (null != customer) {
-                                    address = customer.getAddress();
-                                    if (null != address) {
-                                        city = address.getCity();
-                                        if (null != city) {
-                                            PartialCountryModel<? extends PartialCountryDAO> country = city.getCountry();
-                                            if (null != country) {
-                                                return numberFormat.format(country.getPrimaryKey());
-                                            }
-                                        }
-                                    }
-                                }
-                                return "";
-                            case COUNTRY_NAME:
-                                return item.getCustomerCountryName();
-                            case POSTAL_CODE:
-                                return item.getCustomerPostalCode();
-                            case PHONE:
-                                return item.getCustomerPhone();
-                            case ACTIVE:
-                                customer = item.getCustomer();
-                                if (null != customer) {
-                                    return (customer.isActive()) ? "TRUE" : "FALSE";
-                                }
-                                return "";
-                            case APPOINTMENT_USER:
-                                PartialUserModel<? extends PartialUserDAO> user = item.getUser();
-                                return (null == user) ? "" : numberFormat.format(user.getPrimaryKey());
-                            case USER_NAME:
-                                return item.getUserName();
-                            case STATUS:
-                                return item.getUserStatusDisplay();
-                            case TITLE:
-                                return item.getTitle();
-                            case DESCRIPTION:
-                                return item.getDescription();
-                            case LOCATION:
-                                return item.getEffectiveLocation();
-                            case CONTACT:
-                                return item.getContact();
-                            case TYPE:
-                                return item.getTypeDisplay();
-                            case URL:
-                                return item.getUrl();
-                            case START:
-                                return dateTimeFormatter.format(item.getStart());
-                            case END:
-                                return dateTimeFormatter.format(item.getEnd());
-                            case APPOINTMENT_ID:
-                                return numberFormat.format(item.getPrimaryKey());
-                            case APPOINTMENT_CREATE_DATE:
-                                return dateTimeFormatter.format(item.getCreateDate());
-                            case APPOINTMENT_CREATED_BY:
-                                return item.getCreatedBy();
-                            case APPOINTMENT_LAST_UPDATE:
-                                return dateTimeFormatter.format(item.getLastModifiedDate());
-                            case APPOINTMENT_LAST_UPDATE_BY:
-                                return item.getLastModifiedBy();
-                            default:
-                                return "?";
-                        }
-                    }
-                };
                 try {
                     if (ef == csvAll || ef == csvDisp) {
                         try (FileWriter fileWriter = new FileWriter(file)) {
@@ -442,23 +269,27 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                 }
             }
         }
+        LOG.exiting(LOG.getName(), "onExportButtonAction");
     }
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpButtonAction");
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpOKButtonAction");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     @Override
     protected void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         super.initialize();
 
         assert titleTableColumn != null : "fx:id=\"titleTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
@@ -475,7 +306,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
         assert createdByTableColumn != null : "fx:id=\"createdByTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert lastUpdateTableColumn != null : "fx:id=\"lastUpdateTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
         assert lastUpdateByTableColumn != null : "fx:id=\"lastUpdateByTableColumn\" was not injected: check your FXML file 'ManageAppointments.fxml'.";
-
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     @Override
@@ -530,18 +361,22 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
                     AppointmentDAO.DeleteTask task = new AppointmentDAO.DeleteTask(item, false);
-                    task.setOnSucceeded((e) -> {
-                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
-                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
-                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
-                        }
-                    });
+                    task.setOnSucceeded(this::onDeleteTaskSucceeded);
                     MainController.startBusyTaskNow(task);
                 }
             });
         }
 
+    }
+
+    private void onDeleteTaskSucceeded(WorkerStateEvent event) {
+        LOG.entering(LOG.getName(), "onDeleteTaskSucceeded", event);
+        AppointmentEvent appointmentEvent = (AppointmentEvent) event.getSource().getValue();
+        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
+        }
+        LOG.exiting(LOG.getName(), "onDeleteTaskSucceeded");
     }
 
     @Override
@@ -557,6 +392,189 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @Override
     protected EventType<AppointmentSuccessEvent> getDeletedEventType() {
         return AppointmentSuccessEvent.DELETE_SUCCESS;
+    }
+
+    private class AppointmentsTabularDataReader implements TabularDataReader<DbColumn, AppointmentModel> {
+
+        private final NumberFormat numberFormat = NumberFormat.getIntegerInstance();
+        private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+        private final List<DbColumn> columns;
+
+        AppointmentsTabularDataReader(List<DbColumn> columns) {
+            this.columns = columns;
+        }
+
+        @Override
+        public Collection<DbColumn> getColumns() {
+            return columns;
+        }
+
+        @Override
+        public String getHeaderText(DbColumn column) {
+            switch (column) {
+                case APPOINTMENT_CUSTOMER:
+                    return getResources().getString(RESOURCEKEY_CUSTOMERID);
+                case CUSTOMER_NAME:
+                    return getResources().getString(RESOURCEKEY_CUSTOMER);
+                case CUSTOMER_ADDRESS:
+                    return getResources().getString(RESOURCEKEY_ADDRESSID);
+                case ADDRESS1:
+                    return getResources().getString(RESOURCEKEY_ADDRESS);
+                case ADDRESS2:
+                    return getResources().getString(RESOURCEKEY_ADDRESS2);
+                case ADDRESS_CITY:
+                    return getResources().getString(RESOURCEKEY_CITYID);
+                case CITY_NAME:
+                    return getResources().getString(RESOURCEKEY_CITY);
+                case CITY_COUNTRY:
+                    return getResources().getString(RESOURCEKEY_COUNTRYID);
+                case COUNTRY_NAME:
+                    return getResources().getString(RESOURCEKEY_COUNTRY);
+                case POSTAL_CODE:
+                    return getResources().getString(RESOURCEKEY_POSTALCODE);
+                case PHONE:
+                    return getResources().getString(RESOURCEKEY_PHONENUMBER);
+                case ACTIVE:
+                    return getResources().getString(RESOURCEKEY_ACTIVE);
+                case APPOINTMENT_USER:
+                    return getResources().getString(RESOURCEKEY_USERID);
+                case USER_NAME:
+                    return getResources().getString(RESOURCEKEY_USER);
+                case STATUS:
+                    return getResources().getString(RESOURCEKEY_STATUS);
+                case TITLE:
+                    return getResources().getString(RESOURCEKEY_TITLE);
+                case DESCRIPTION:
+                    return getResources().getString(RESOURCEKEY_DESCRIPTION);
+                case LOCATION:
+                    return getResources().getString(RESOURCEKEY_LOCATION);
+                case CONTACT:
+                    return getResources().getString(RESOURCEKEY_POINTOFCONTACT);
+                case TYPE:
+                    return getResources().getString(RESOURCEKEY_TYPE);
+                case URL:
+                    return getResources().getString(RESOURCEKEY_MEETINGURL);
+                case START:
+                    return getResources().getString(RESOURCEKEY_START);
+                case END:
+                    return getResources().getString(RESOURCEKEY_END);
+                case APPOINTMENT_ID:
+                    return getResources().getString(RESOURCEKEY_APPOINTMENTID);
+                case APPOINTMENT_CREATE_DATE:
+                    return getResources().getString(RESOURCEKEY_CREATEDON);
+                case APPOINTMENT_CREATED_BY:
+                    return getResources().getString(RESOURCEKEY_CREATEDBY);
+                case APPOINTMENT_LAST_UPDATE:
+                    return getResources().getString(RESOURCEKEY_UPDATEDON);
+                case APPOINTMENT_LAST_UPDATE_BY:
+                    return getResources().getString(RESOURCEKEY_UPDATEDBY);
+                default:
+                    return column.getDbName().toString();
+            }
+        }
+
+        @Override
+        public String getColumnText(AppointmentModel item, DbColumn column) {
+            PartialCustomerModel<? extends Customer> customer;
+            PartialAddressModel<? extends PartialAddressDAO> address;
+            PartialCityModel<? extends PartialCityDAO> city;
+            switch (column) {
+                case APPOINTMENT_CUSTOMER:
+                    customer = item.getCustomer();
+                    return (null == customer) ? "" : numberFormat.format(customer.getPrimaryKey());
+                case CUSTOMER_NAME:
+                    return item.getCustomerName();
+                case CUSTOMER_ADDRESS:
+                    customer = item.getCustomer();
+                    if (null != customer) {
+                        address = customer.getAddress();
+                        if (null != address) {
+                            return numberFormat.format(address.getPrimaryKey());
+                        }
+                    }
+                    return "";
+                case ADDRESS1:
+                    return item.getCustomerAddress1();
+                case ADDRESS2:
+                    return item.getCustomerAddress2();
+                case ADDRESS_CITY:
+                    customer = item.getCustomer();
+                    if (null != customer) {
+                        address = customer.getAddress();
+                        if (null != address) {
+                            city = address.getCity();
+                            if (null != city) {
+                                return numberFormat.format(city.getPrimaryKey());
+                            }
+                        }
+                    }
+                    return "";
+                case CITY_NAME:
+                    return item.getCustomerCityName();
+                case CITY_COUNTRY:
+                    customer = item.getCustomer();
+                    if (null != customer) {
+                        address = customer.getAddress();
+                        if (null != address) {
+                            city = address.getCity();
+                            if (null != city) {
+                                PartialCountryModel<? extends PartialCountryDAO> country = city.getCountry();
+                                if (null != country) {
+                                    return numberFormat.format(country.getPrimaryKey());
+                                }
+                            }
+                        }
+                    }
+                    return "";
+                case COUNTRY_NAME:
+                    return item.getCustomerCountryName();
+                case POSTAL_CODE:
+                    return item.getCustomerPostalCode();
+                case PHONE:
+                    return item.getCustomerPhone();
+                case ACTIVE:
+                    customer = item.getCustomer();
+                    if (null != customer) {
+                        return (customer.isActive()) ? "TRUE" : "FALSE";
+                    }
+                    return "";
+                case APPOINTMENT_USER:
+                    PartialUserModel<? extends PartialUserDAO> user = item.getUser();
+                    return (null == user) ? "" : numberFormat.format(user.getPrimaryKey());
+                case USER_NAME:
+                    return item.getUserName();
+                case STATUS:
+                    return item.getUserStatusDisplay();
+                case TITLE:
+                    return item.getTitle();
+                case DESCRIPTION:
+                    return item.getDescription();
+                case LOCATION:
+                    return item.getEffectiveLocation();
+                case CONTACT:
+                    return item.getContact();
+                case TYPE:
+                    return item.getTypeDisplay();
+                case URL:
+                    return item.getUrl();
+                case START:
+                    return dateTimeFormatter.format(item.getStart());
+                case END:
+                    return dateTimeFormatter.format(item.getEnd());
+                case APPOINTMENT_ID:
+                    return numberFormat.format(item.getPrimaryKey());
+                case APPOINTMENT_CREATE_DATE:
+                    return dateTimeFormatter.format(item.getCreateDate());
+                case APPOINTMENT_CREATED_BY:
+                    return item.getCreatedBy();
+                case APPOINTMENT_LAST_UPDATE:
+                    return dateTimeFormatter.format(item.getLastModifiedDate());
+                case APPOINTMENT_LAST_UPDATE_BY:
+                    return item.getLastModifiedBy();
+                default:
+                    return "?";
+            }
+        }
     }
 
 }

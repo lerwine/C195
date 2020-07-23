@@ -155,6 +155,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         if (null != item) {
             onDeleteItem(item);
         }
+        LOG.exiting(LOG.getName(), "onDeleteMenuItemAction");
     }
 
     @FXML
@@ -164,6 +165,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         if (null != item) {
             onEditItem(item);
         }
+        LOG.exiting(LOG.getName(), "onEditMenuItemAction");
     }
 
     @FXML
@@ -174,6 +176,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         } else {
             onDeleteItem(event.getEntityModel());
         }
+        LOG.exiting(LOG.getName(), "onItemActionRequest");
     }
 
     @FXML
@@ -197,12 +200,14 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
                     break;
             }
         }
+        LOG.exiting(LOG.getName(), "onListingTableViewKeyReleased");
     }
 
     @FXML
     private void onNewButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewButtonAction", event);
         onNewItem();
+        LOG.exiting(LOG.getName(), "onNewButtonAction");
     }
 
     protected final ResourceBundle getResources() {
@@ -229,21 +234,29 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         return filter;
     }
 
-    private void onFilterChanged(ModelFilter<D, M, ? extends DaoFilter<D>> f) {
-        if (null == f) {
+    private void onFilterChanged(ModelFilter<D, M, ? extends DaoFilter<D>> filter) {
+        LOG.entering(LOG.getName(), "onFilterChanged", filter);
+        if (null == filter) {
             listingTableView.setItems(null);
         } else {
-            headingLabel.setText(f.getHeadingText());
-            String s = f.getSubHeadingText();
+            headingLabel.setText(filter.getHeadingText());
+            String s = filter.getSubHeadingText();
             if (null == s || s.trim().isEmpty()) {
                 collapseNode(subHeadingLabel);
             } else {
                 restoreLabeled(subHeadingLabel, s);
             }
-            Task<List<D>> task = createLoadTask(f);
-            task.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, (event) -> setItems(task.getValue()));
+            Task<List<D>> task = createLoadTask(filter);
+            task.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, this::onLoadTaskSucceeded);
             MainController.startBusyTaskNow(task);
         }
+        LOG.exiting(LOG.getName(), "onNewButtonAction");
+    }
+
+    private void onLoadTaskSucceeded(WorkerStateEvent event) {
+        LOG.entering(LOG.getName(), "onLoadTaskSucceeded", filter);
+        setItems(((Task<List<D>>) event.getSource()).getValue());
+        LOG.exiting(LOG.getName(), "onLoadTaskSucceeded");
     }
 
     @SuppressWarnings("unchecked")
@@ -287,6 +300,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
                 items.add(entityModel);
             }
         }
+        LOG.exiting(LOG.getName(), "onItemInserted");
     }
 
     private void onItemUpdated(ModelEvent<D, M> event) {
@@ -319,6 +333,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
                 }
             }
         }
+        LOG.exiting(LOG.getName(), "onItemUpdated");
     }
 
     private void onItemDeleted(ModelEvent<D, M> event) {
@@ -326,6 +341,7 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         if (!items.isEmpty()) {
             getModelFactory().find(items, event.getEntityModel()).ifPresent((t) -> items.remove(t));
         }
+        LOG.exiting(LOG.getName(), "onItemDeleted");
     }
 
     protected class LoadItemsTask extends Task<List<D>> {
@@ -345,8 +361,10 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         @Override
         protected void failed() {
+            LOG.entering(LOG.getName(), "failed");
             updateMessage(getFailMessage());
             super.failed();
+            LOG.exiting(LOG.getName(), "failed");
         }
 
         protected String getConnectingMessage() {
@@ -359,8 +377,10 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         @Override
         protected List<D> call() throws Exception {
+            LOG.entering(LOG.getName(), "call");
             updateMessage(getConnectingMessage());
             try (DbConnector dbConnector = new DbConnector()) {
+                LOG.exiting(LOG.getName(), "call");
                 return onConnected(dbConnector.getConnection());
             }
         }

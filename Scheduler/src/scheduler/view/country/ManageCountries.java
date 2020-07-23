@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventType;
@@ -65,19 +66,22 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     private void onHelpButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpButtonAction");
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpOKButtonAction");
     }
 
     @Override
     protected void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         super.initialize();
         assert helpBorderPane != null : "fx:id=\"helpBorderPane\" was not injected: check your FXML file 'ManageCountries.fxml'.";
-
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     @Override
@@ -132,17 +136,21 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
                     CountryDAO.DeleteTask task = new CountryDAO.DeleteTask(item, false);
-                    task.setOnSucceeded((e) -> {
-                        CountryEvent countryEvent = (CountryEvent) task.getValue();
-                        if (null != countryEvent && countryEvent instanceof CountryFailedEvent) {
-                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((ModelFailedEvent<CountryDAO, CountryModel>) countryEvent).getMessage(), ButtonType.OK);
-                        }
-                    });
+                    task.setOnSucceeded(this::onDeleteTaskSucceeded);
                     MainController.startBusyTaskNow(task);
                 }
             });
         }
+    }
+
+    private void onDeleteTaskSucceeded(WorkerStateEvent event) {
+        LOG.entering(LOG.getName(), "onDeleteTaskSucceeded", event);
+        CountryEvent countryEvent = (CountryEvent) event.getSource().getValue();
+        if (null != countryEvent && countryEvent instanceof CountryFailedEvent) {
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                    ((ModelFailedEvent<CountryDAO, CountryModel>) countryEvent).getMessage(), ButtonType.OK);
+        }
+        LOG.exiting(LOG.getName(), "onDeleteTaskSucceeded");
     }
 
     @Override

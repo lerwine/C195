@@ -10,9 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javafx.beans.Observable;
-import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
@@ -75,6 +73,7 @@ public final class WaitTitledPane extends TitledPane {
         LOG.entering(LOG.getName(), "onCancelButtonAction", event);
         cancelButton.setDisable(true);
         if (null == currentTask) {
+            LOG.exiting(LOG.getName(), "onRunning");
             return;
         }
         if (!currentTask.isDone()) {
@@ -82,6 +81,7 @@ public final class WaitTitledPane extends TitledPane {
             cancelButton.setText(resources.getString(RESOURCEKEY_CLOSE));
             currentTask.cancel(true);
         }
+        LOG.exiting(LOG.getName(), "onRunning");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -99,6 +99,7 @@ public final class WaitTitledPane extends TitledPane {
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.RUNNING);
         LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
+        LOG.exiting(LOG.getName(), "onRunning");
     }
 
     private void onFailed(WorkerStateEvent event) {
@@ -109,6 +110,7 @@ public final class WaitTitledPane extends TitledPane {
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, (Task<?>) event.getSource(), WaitTitledPaneEvent.FAILED);
         LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
+        LOG.exiting(LOG.getName(), "onFailed");
     }
 
     private void onSucceeded(WorkerStateEvent event) {
@@ -119,6 +121,7 @@ public final class WaitTitledPane extends TitledPane {
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.SUCCEEDED);
         LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
+        LOG.exiting(LOG.getName(), "onSucceeded");
     }
 
     private void onCanceled(WorkerStateEvent event) {
@@ -129,6 +132,7 @@ public final class WaitTitledPane extends TitledPane {
         WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), this, task, WaitTitledPaneEvent.CANCELED);
         LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, getClass().getName()));
         fireEvent(ev);
+        LOG.exiting(LOG.getName(), "onCanceled");
     }
 
     public WaitTitledPane addOnDone(EventHandler<WaitTitledPaneEvent> eventHandler) {
@@ -209,6 +213,7 @@ public final class WaitTitledPane extends TitledPane {
      * @param unit The time unit of the delay parameter.
      */
     public void schedule(Task<?> task, long delay, TimeUnit unit) {
+        LOG.entering(LOG.getName(), "schedule", new Object[]{task, delay, unit});
         Objects.requireNonNull(task);
         if (Platform.isFxApplicationThread()) {
             prepare(task);
@@ -219,11 +224,14 @@ public final class WaitTitledPane extends TitledPane {
                 svc.shutdown();
             }
         } else {
+            LOG.fine("Running later");
             Platform.runLater(() -> schedule(task, delay, unit));
         }
+        LOG.entering(LOG.getName(), "schedule");
     }
 
     public void startNow(Task<?> task) {
+        LOG.entering(LOG.getName(), "startNow", task);
         if (Platform.isFxApplicationThread()) {
             prepare(task);
             ExecutorService svc = Executors.newSingleThreadExecutor();
@@ -233,17 +241,20 @@ public final class WaitTitledPane extends TitledPane {
                 svc.shutdown();
             }
         } else {
+            LOG.fine("Running later");
             Platform.runLater(() -> startNow(task));
         }
+        LOG.entering(LOG.getName(), "startNow");
     }
 
-    private void onTitleChanged(Observable observable) {
-        String s = ((ReadOnlyStringProperty) observable).get();
-        if (null == s || s.trim().isEmpty()) {
+    private void onTitleChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        LOG.entering(LOG.getName(), "onTitleChanged", new Object[]{oldValue, newValue});
+        if (null == newValue || newValue.trim().isEmpty()) {
             setText(resources.getString(RESOURCEKEY_PLEASEWAIT));
         } else {
-            setText(s);
+            setText(newValue);
         }
+        LOG.entering(LOG.getName(), "onTitleChanged");
     }
 
     private void onStatusChanged(String message, double totalWork, double workDone, double progress) {
@@ -278,20 +289,28 @@ public final class WaitTitledPane extends TitledPane {
         }
     }
 
-    private void onMessageChanged(Observable observable) {
-        onStatusChanged(((ReadOnlyStringProperty) observable).get(), currentTask.getTotalWork(), currentTask.getWorkDone(), currentTask.getProgress());
+    private void onMessageChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        LOG.entering(LOG.getName(), "onMessageChanged", new Object[]{oldValue, newValue});
+        onStatusChanged(newValue, currentTask.getTotalWork(), currentTask.getWorkDone(), currentTask.getProgress());
+        LOG.entering(LOG.getName(), "onMessageChanged");
     }
 
-    private void onTotalWorkChanged(Observable observable) {
-        onStatusChanged(currentTask.getMessage(), ((ReadOnlyDoubleProperty) observable).get(), currentTask.getWorkDone(), currentTask.getProgress());
+    private void onTotalWorkChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        LOG.entering(LOG.getName(), "onTotalWorkChanged", new Object[]{oldValue, newValue});
+        onStatusChanged(currentTask.getMessage(), (double) newValue, currentTask.getWorkDone(), currentTask.getProgress());
+        LOG.entering(LOG.getName(), "onTotalWorkChanged");
     }
 
-    private void onWorkDoneChanged(Observable observable) {
-        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), ((ReadOnlyDoubleProperty) observable).get(), currentTask.getProgress());
+    private void onWorkDoneChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        LOG.entering(LOG.getName(), "onWorkDoneChanged", new Object[]{oldValue, newValue});
+        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), (double) newValue, currentTask.getProgress());
+        LOG.entering(LOG.getName(), "onWorkDoneChanged");
     }
 
-    private void onProgressChanged(Observable observable) {
-        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), currentTask.getWorkDone(), ((ReadOnlyDoubleProperty) observable).get());
+    private void onProgressChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        LOG.entering(LOG.getName(), "onProgressChanged", new Object[]{oldValue, newValue});
+        onStatusChanged(currentTask.getMessage(), currentTask.getTotalWork(), currentTask.getWorkDone(), (double) newValue);
+        LOG.entering(LOG.getName(), "onProgressChanged");
     }
 
     private synchronized void prepare(Task<?> task) {
@@ -308,7 +327,7 @@ public final class WaitTitledPane extends TitledPane {
         task.totalWorkProperty().addListener(this::onTotalWorkChanged);
         task.workDoneProperty().addListener(this::onWorkDoneChanged);
         task.progressProperty().addListener(this::onProgressChanged);
-        onTitleChanged(task.titleProperty());
+        onTitleChanged(task.titleProperty(), null, task.getTitle());
         onStatusChanged(task.getMessage(), task.getTotalWork(), task.getWorkDone(), task.getProgress());
     }
 

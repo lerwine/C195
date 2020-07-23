@@ -42,7 +42,6 @@ import scheduler.model.AppointmentEntity;
 import scheduler.model.AppointmentType;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.User;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.CustomerModel;
@@ -532,7 +531,9 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return AppointmentAlertManager.INSTANCE.buildEventDispatchChain(FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail)));
+        EventDispatchChain result = AppointmentAlertManager.INSTANCE.buildEventDispatchChain(FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail)));
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        return result;
     }
 
     @Override
@@ -1025,17 +1026,23 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            EventDispatchChain result = AppointmentModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            return result;
         }
 
         private void onCustomerSaved(CustomerSuccessEvent event) {
+            LOG.entering(LOG.getName(), "onCustomerSaved", event);
             CustomerModel newModel = event.getEntityModel();
             streamCached().forEach((t) -> t.onCustomerUpdated(newModel));
+            LOG.exiting(LOG.getName(), "onCustomerSaved");
         }
 
         private void onUserSaved(UserSuccessEvent event) {
+            LOG.entering(LOG.getName(), "onUserSaved", event);
             UserModel newModel = event.getEntityModel();
             streamCached().forEach((t) -> t.onUserUpdated(newModel));
+            LOG.exiting(LOG.getName(), "onUserSaved");
         }
 
     }
@@ -1059,6 +1066,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected AppointmentEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             AppointmentModel targetModel = getEntityModel();
             AppointmentEvent event = AppointmentModel.FACTORY.validateForSave(targetModel);
             if (null != event && event instanceof AppointmentFailedEvent) {
@@ -1085,6 +1093,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 }
             }
             PartialUserModel<? extends PartialUserDAO> u = targetModel.getUser();
+            AppointmentEvent resultEvent;
             if (u instanceof UserModel) {
                 switch (u.getRowState()) {
                     case NEW:
@@ -1094,17 +1103,23 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                         UserEvent userEvent = (UserEvent) saveTask.get();
                         if (null != userEvent && userEvent instanceof UserFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
-                                return AppointmentEvent.createInsertInvalidEvent(targetModel, this, (UserFailedEvent) userEvent);
+                                resultEvent = AppointmentEvent.createInsertInvalidEvent(targetModel, this, (UserFailedEvent) userEvent);
+                            } else {
+                                resultEvent = AppointmentEvent.createUpdateInvalidEvent(targetModel, this, (UserFailedEvent) userEvent);
                             }
-                            return AppointmentEvent.createUpdateInvalidEvent(targetModel, this, (UserFailedEvent) userEvent);
+                        } else {
+                            resultEvent = null;
                         }
                         break;
                     default:
+                        resultEvent = null;
                         break;
                 }
+            } else {
+                resultEvent = null;
             }
-
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -1133,11 +1148,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             AppointmentEvent event = (AppointmentEvent) getValue();
             if (null != event && event instanceof AppointmentSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
@@ -1170,11 +1187,13 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             AppointmentEvent event = (AppointmentEvent) getValue();
             if (null != event && event instanceof AppointmentSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }

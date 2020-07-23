@@ -159,7 +159,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         Arrays.stream(Locale.getAvailableLocales()).filter((t)
                 -> Values.isNotNullWhiteSpaceOrEmpty(t.getLanguage()) && Values.isNotNullWhiteSpaceOrEmpty(t.getCountry()))
                 .sorted(Values::compareLocaleCountryFirst).forEach((t) -> localeList.add(t));
-        cityInsertEventHandler = WeakEventHandlingReference.create(this::onCityAdded);
+        cityInsertEventHandler = WeakEventHandlingReference.create(this::onCityInserted);
         cityUpdateEventHandler = WeakEventHandlingReference.create(this::onCityUpdated);
         cityDeleteEventHandler = WeakEventHandlingReference.create(this::onCityDeleted);
     }
@@ -175,6 +175,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         restoreNode(newButtonBar);
         initializeEditMode();
         modified.set(false);
+        LOG.exiting(LOG.getName(), "onModelInserted");
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -198,6 +199,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
                     break;
             }
         }
+        LOG.exiting(LOG.getName(), "onCitiesTableViewKeyReleased");
     }
 
     @FXML
@@ -207,6 +209,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         if (null != item) {
             deleteItem(item);
         }
+        LOG.exiting(LOG.getName(), "onCityDeleteMenuItemAction");
     }
 
     @FXML
@@ -216,6 +219,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         if (null != item) {
             editItem(item);
         }
+        LOG.exiting(LOG.getName(), "onCityEditMenuItemAction");
     }
 
     @FXML
@@ -230,6 +234,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         } else {
             deleteItem(event.getEntityModel());
         }
+        LOG.exiting(LOG.getName(), "onItemActionRequest");
     }
 
     @FXML
@@ -240,6 +245,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
             boolean m = modificationBinding.get();
             modified.set(m);
         }
+        LOG.exiting(LOG.getName(), "onLocaleComboBoxAction");
     }
 
     @FXML
@@ -250,10 +256,12 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+        LOG.exiting(LOG.getName(), "onNewButtonAction");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert localeComboBox != null : "fx:id=\"localeComboBox\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert languageValidationLabel != null : "fx:id=\"languageValidationLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
         assert citiesLabel != null : "fx:id=\"citiesLabel\" was not injected: check your FXML file 'EditCountry.fxml'.";
@@ -282,6 +290,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
                     .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
             waitBorderPane.startNow(pane, new ItemsLoadTask());
         }
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     private void editItem(CityModel item) {
@@ -372,14 +381,15 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         model.setLocale(localeComboBox.getSelectionModel().getSelectedItem());
     }
 
-    private void onCityAdded(CitySuccessEvent event) {
-        LOG.entering(LOG.getName(), "onCityAdded", event);
+    private void onCityInserted(CitySuccessEvent event) {
+        LOG.entering(LOG.getName(), "onCityInserted", event);
         if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             CityModel m = event.getEntityModel();
             if (m.getCountry().getPrimaryKey() == model.getPrimaryKey()) {
                 itemList.add(m);
             }
         }
+        LOG.exiting(LOG.getName(), "onCityInserted");
     }
 
     private void onCityUpdated(CitySuccessEvent event) {
@@ -397,6 +407,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
                 }
             }
         }
+        LOG.exiting(LOG.getName(), "onCityUpdated");
     }
 
     private void onCityDeleted(CitySuccessEvent event) {
@@ -404,6 +415,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
         if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             CityModel.FACTORY.find(itemList, event.getEntityModel()).ifPresent(itemList::remove);
         }
+        LOG.exiting(LOG.getName(), "onCityDeleted");
     }
 
     private class ItemsLoadTask extends Task<List<CityDAO>> {
@@ -417,6 +429,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
 
         @Override
         protected void succeeded() {
+            LOG.entering("scheduler.view.country.EditCountry.ItemsLoadTask", "succeeded");
             super.succeeded();
             List<CityDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
@@ -425,14 +438,17 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
             CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
             CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, cityUpdateEventHandler.getWeakEventHandler());
             CityModel.FACTORY.addEventHandler(CitySuccessEvent.DELETE_SUCCESS, cityDeleteEventHandler.getWeakEventHandler());
+            LOG.exiting("scheduler.view.country.EditCountry.ItemsLoadTask", "succeeded");
         }
 
         @Override
         protected List<CityDAO> call() throws Exception {
+            LOG.entering("scheduler.view.country.EditCountry.ItemsLoadTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CityDAO.FactoryImpl cf = CityDAO.FACTORY;
+                LOG.exiting("scheduler.view.country.EditCountry.ItemsLoadTask", "call");
                 return cf.load(dbConnector.getConnection(), cf.getByCountryFilter(pk));
             }
         }

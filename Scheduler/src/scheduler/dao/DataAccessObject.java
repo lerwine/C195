@@ -273,7 +273,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return tail.append(eventHandlerManager);
+        EventDispatchChain result = tail.append(eventHandlerManager);
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        return result;
     }
 
     /**
@@ -306,23 +308,29 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected void succeeded() {
+            LOG.entering("scheduler.dao.DataAccessObject.LoadTask", "succeeded");
             onSuccess.accept(getValue());
             super.succeeded();
+            LOG.exiting("scheduler.dao.DataAccessObject.LoadTask", "succeeded");
         }
 
         @Override
         protected void failed() {
+            LOG.entering("scheduler.dao.DataAccessObject.LoadTask", "failed");
             if (null != onFail) {
                 onFail.accept(getException());
             }
             super.failed();
+            LOG.exiting("scheduler.dao.DataAccessObject.LoadTask", "failed");
         }
 
         @Override
         protected List<T> call() throws Exception {
+            LOG.entering("scheduler.dao.DataAccessObject.LoadTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(filter.getLoadingMessage());
+                LOG.exiting("scheduler.dao.DataAccessObject.LoadTask", "call");
                 return factory.load(dbConnector.getConnection(), filter);
             }
         }
@@ -483,6 +491,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @throws SQLException if unable to read data from the database.
          */
         public final List<D> load(Connection connection, DaoFilter<D> filter) throws SQLException {
+            LOG.entering(LOG.getName(), "load", new Object[] { connection, filter });
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build();
             if (null != filter && !filter.isEmpty()) {
@@ -509,6 +518,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                     LogHelper.logWarnings(connection, LOG);
                 }
             }
+            LOG.exiting(LOG.getName(), "load", result);
             return result;
         }
 
@@ -559,14 +569,16 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          */
         @SuppressWarnings("try")
         protected final D fromResultSet(ResultSet rs) throws SQLException {
+            LOG.entering(LOG.getName(), "loadByPrimaryKey");
             int key = rs.getInt(getPrimaryKeyColumn().toString());
             D dao = cache.get(key, () -> {
                 D t = createNew();
-                ((DataAccessObject) t).primaryKey = key;
+                DataAccessObject d = t;
+                d.primaryKey = key;
                 return t;
             });
 
-            DataAccessObject dataAccessObject = (DataAccessObject) dao;
+            DataAccessObject dataAccessObject = dao;
             DataRowState oldRowState = dataAccessObject.rowState;
             try (ChangeEventDeferral eventDeferral = dataAccessObject.deferChangeEvents()) {
                 Consumer<PropertyChangeSupport> consumer;
@@ -587,6 +599,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             } finally {
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataAccessObject.rowState);
             }
+            LOG.exiting(LOG.getName(), "loadByPrimaryKey", dao);
             return dao;
         }
 
@@ -674,6 +687,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @throws SQLException If unable to perform the database operation.
          */
         public final Optional<D> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
+            LOG.entering(LOG.getName(), "loadByPrimaryKey", new Object[]{connection, pk});
             Objects.requireNonNull(connection, "Connection cannot be null");
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build().append(" WHERE ");
@@ -688,19 +702,23 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             }
             sb.append(n).append("=?");
             String sql = sb.toString();
+            Optional<D> result;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, pk);
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        Optional<D> result = Optional.of(fromResultSet(rs));
+                        result = Optional.of(fromResultSet(rs));
                         LogHelper.logWarnings(connection, LOG);
+                        LOG.exiting(LOG.getName(), "loadByPrimaryKey", result);
                         return result;
                     }
                     LogHelper.logWarnings(connection, LOG);
                 }
             }
-            return Optional.empty();
+            result = Optional.empty();
+            LOG.exiting(LOG.getName(), "loadByPrimaryKey", result);
+            return result;
         }
 
         /**
@@ -779,7 +797,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         private final ReadOnlyObjectWrapper<D> dataAccessObject;
         private final ReadOnlyObjectWrapper<M> fxRecordModel;
-//        private final ReadOnlyObjectWrapper<E> finalEvent;
         private final DataRowState originalRowState;
 
         /**
@@ -791,7 +808,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             dataAccessObject = new ReadOnlyObjectWrapper<>(this, "dataAccessObject", target.dataObject());
             fxRecordModel = new ReadOnlyObjectWrapper<>(this, "fxRecordModel", target);
             originalRowState = dataAccessObject.get().getRowState();
-//            finalEvent = new ReadOnlyObjectWrapper<>(this, "finalEvent", null);
         }
 
         /**
@@ -829,19 +845,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             return originalRowState;
         }
 
-//        /**
-//         * Gets the final {@link ModelEvent} after the {@code DaoTask} is finished.
-//         *
-//         * @return If successful, this will be the value from {@link #getValue()}; If failed, this will be set to the value obtained from {@link #createFaultedEvent()}; otherwise,
-//         * this will be set to the value obtained from {@link #createCanceledEvent()}.
-//         */
-//        public E getFinalEvent() {
-//            return finalEvent.get();
-//        }
-//
-//        public ReadOnlyObjectProperty<E> finalEventProperty() {
-//            return finalEvent.getReadOnlyProperty();
-//        }
         /**
          * Invoked when the database {@link Connection} is opened and {@link java.beans.PropertyChangeEvent} firing is being deferred.
          *
@@ -854,25 +857,30 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         @Override
         @SuppressWarnings("try")
         protected ModelEvent<D, M> call() throws Exception {
-            if (originalRowState != ((DataAccessObject) getDataAccessObject()).rowState) {
+            LOG.entering(LOG.getName(), "call");
+            DataAccessObject dao = getDataAccessObject();
+            if (originalRowState != dao.rowState) {
                 throw new IllegalStateException("Row state has changed");
             }
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            ModelEvent<D, M> event;
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 if (isCancelled()) {
-                    return null;
-                }
-                try (ChangeEventDeferral eventDeferral = ((DataAccessObject) dataAccessObject.get()).deferChangeEvents()) {
-                    synchronized (dataAccessObject) {
-                        ModelEvent<D, M> event = call(dbConnector.getConnection());
-                        if (null == event && !isCancelled()) {
-                            throw new NullPointerException("No result event was produced");
+                    event = null;
+                } else {
+                    try (ChangeEventDeferral eventDeferral = dao.deferChangeEvents()) {
+                        synchronized (dataAccessObject) {
+                            event = call(dbConnector.getConnection());
+                            if (null == event && !isCancelled()) {
+                                throw new NullPointerException("No result event was produced");
+                            }
                         }
-                        return event;
                     }
                 }
             }
+            LOG.exiting(LOG.getName(), "call", event);
+            return event;
         }
 
         /**
@@ -891,45 +899,39 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected void cancelled() {
+            LOG.entering(LOG.getName(), "cancelled");
             super.cancelled();
             ModelEvent<D, M> event = createCanceledEvent();
             if (null != event) {
-//                try {
-//                    finalEvent.set(event);
-//                } finally {
                 LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
-//                }
             }
+            LOG.exiting(LOG.getName(), "cancelled");
         }
 
         @Override
         protected void failed() {
+            LOG.entering(LOG.getName(), "failed");
             super.failed();
             ModelEvent<D, M> event = createFaultedEvent();
             if (null != event) {
-//                try {
-//                    finalEvent.set(event);
-//                } finally {
                 LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
-//                }
             }
+            LOG.exiting(LOG.getName(), "failed");
         }
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             super.succeeded();
             ModelEvent<D, M> event = getValue();
             if (null != event) {
                 LOG.fine(() -> String.format("Succeeded with %s", event));
-//                try {
-//                    finalEvent.set(event);
-//                } finally {
                 LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
-//                }
             }
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
@@ -1018,12 +1020,15 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 ModelEvent<D, M> event = validate(connection);
                 if (null != event && event instanceof ModelFailedEvent) {
                     LOG.fine(() -> String.format("Validation failed: %s", event));
+                    LOG.exiting(LOG.getName(), "call", event);
                     return event;
                 }
                 validationSuccessful = true;
             }
-            LOG.fine("Validated");
-            return (isCancelled()) ? null : onValidated(connection);
+            LOG.exiting(LOG.getName(), "call");
+            ModelEvent<D, M> resultEvent = (isCancelled()) ? null : onValidated(connection);
+            LOG.exiting(LOG.getName(), "call", resultEvent);
+            return resultEvent;
         }
 
         /**
@@ -1079,9 +1084,10 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected final ModelEvent<D, M> onValidated(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "onValidated", connection);
             D dao = getDataAccessObject();
             DaoFactory<D> factory = getDaoFactory();
-            DataAccessObject dataObj = (DataAccessObject) dao;
+            DataAccessObject dataObj = dao;
             Timestamp timeStamp = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
             StringBuilder sb = new StringBuilder();
             DbColumn[] columns;
@@ -1195,12 +1201,15 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
                 throw new Exception("Error executing DML statement", ex);
             }
-            return createSuccessEvent();
+            ModelEvent<D, M> resultEvent = createSuccessEvent();
+            LOG.exiting(LOG.getName(), "onValidated", resultEvent);
+            return resultEvent;
         }
 
         @Override
         protected void succeeded() {
-            DataAccessObject obj = (DataAccessObject) getDataAccessObject();
+            LOG.entering(LOG.getName(), "succeeded");
+            DataAccessObject obj = getDataAccessObject();
             ModelEvent<D, M> event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
             if (event instanceof ModelFailedEvent) {
@@ -1211,6 +1220,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
         /**
@@ -1222,14 +1232,18 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected void cancelled() {
+            LOG.entering(LOG.getName(), "cancelled");
             getDataAccessObject().rejectChanges();
             super.cancelled();
+            LOG.exiting(LOG.getName(), "cancelled");
         }
 
         @Override
         protected void failed() {
+            LOG.entering(LOG.getName(), "failed");
             getDataAccessObject().rejectChanges();
             super.failed();
+            LOG.exiting(LOG.getName(), "failed");
         }
 
     }
@@ -1271,13 +1285,15 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected ModelEvent<D, M> onValidated(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "onValidated", connection);
             D dao = getDataAccessObject();
             DaoFactory<D> factory = getDaoFactory();
             StringBuilder sb = new StringBuilder("DELETE FROM ");
             sb.append(factory.getDbTable().getDbName()).append(" WHERE ").append(factory.getPrimaryKeyColumn().getDbName()).append("=?");
             String sql = sb.toString();
+            DataAccessObject obj = dao;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                ps.setInt(1, ((DataAccessObject) dao).primaryKey);
+                ps.setInt(1, obj.primaryKey);
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 if (ps.executeUpdate() < 1) {
                     LogHelper.logWarnings(connection, LOG);
@@ -1285,9 +1301,11 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 }
                 LogHelper.logWarnings(connection, LOG);
             }
-            DataAccessObject obj = (DataAccessObject) dao;
             obj.acceptChanges();
-            return createSuccessEvent();
+            LOG.exiting(LOG.getName(), "onValidated");
+            ModelEvent<D, M> resultEvent = createSuccessEvent();
+            LOG.exiting(LOG.getName(), "onValidated", resultEvent);
+            return resultEvent;
         }
 
         /**
@@ -1299,7 +1317,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected void succeeded() {
-            DataAccessObject obj = (DataAccessObject) getDataAccessObject();
+            LOG.entering(LOG.getName(), "succeeded");
+            DataAccessObject obj = getDataAccessObject();
             ModelEvent<D, M> event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
             if (event instanceof ModelFailedEvent) {
@@ -1310,18 +1329,23 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
         @Override
         protected void cancelled() {
+            LOG.entering(LOG.getName(), "cancelled");
             getDataAccessObject().rejectChanges();
             super.cancelled();
+            LOG.exiting(LOG.getName(), "cancelled");
         }
 
         @Override
         protected void failed() {
+            LOG.entering(LOG.getName(), "failed");
             getDataAccessObject().rejectChanges();
             super.failed();
+            LOG.exiting(LOG.getName(), "failed");
         }
 
     }

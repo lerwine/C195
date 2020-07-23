@@ -215,6 +215,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         restoreNode(changePasswordCheckBox);
         changePasswordCheckBox.setSelected(false);
         initEditMode();
+        LOG.exiting(LOG.getName(), "onModelInserted");
     }
 
     @FXML
@@ -238,6 +239,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                     break;
             }
         }
+        LOG.exiting(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased");
     }
 
     @FXML
@@ -247,6 +249,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         if (null != item) {
             deleteAppointment(item);
         }
+        LOG.exiting(LOG.getName(), "onDeleteAppointmentMenuItemAction");
     }
 
     @FXML
@@ -256,6 +259,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         if (null != item) {
             editAppointment(item);
         }
+        LOG.exiting(LOG.getName(), "onEditAppointmentMenuItemAction");
     }
 
     private void editAppointment(AppointmentModel item) {
@@ -303,10 +307,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         } else {
             deleteAppointment(event.getEntityModel());
         }
+        LOG.exiting(LOG.getName(), "onItemActionRequest");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameErrorMessageLabel != null : "fx:id=\"userNameErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert changePasswordCheckBox != null : "fx:id=\"changePasswordCheckBox\" was not injected: check your FXML file 'EditUser.fxml'.";
@@ -355,9 +361,21 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 .otherwise("");
 
         passwordInvalid = passwordErrorMessage.isNotEmpty();
-        userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
-        passwordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
-        confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
+        userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.user.EditUser.userNameTextField#text", "changed", new Object[] { oldValue, newValue });
+            updateValidation();
+            LOG.exiting("scheduler.view.user.EditUser.userNameTextField#text", "changed");
+        });
+        passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.user.EditUser.passwordField#text", "changed", new Object[] { oldValue, newValue });
+            updateValidation();
+            LOG.exiting("scheduler.view.user.EditUser.passwordField#text", "changed");
+        });
+        confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.user.EditUser.confirmPasswordField#text", "changed", new Object[] { oldValue, newValue });
+            updateValidation();
+            LOG.exiting("scheduler.view.user.EditUser.confirmPasswordField#text", "changed");
+        });
         selectedStatus = Bindings.select(activeComboBox.selectionModelProperty(), "selectedItem");
         validationBinding = userNameInvalid.or(passwordInvalid).not();
         modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
@@ -381,6 +399,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             waitBorderPane.startNow(pane, new InitialLoadTask());
             initEditMode();
         }
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     private void updateValidation() {
@@ -389,6 +408,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     }
 
     private void changePasswordCheckBoxChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+        LOG.entering(LOG.getName(), "changePasswordCheckBoxChanged", new Object[]{oldValue, newValue});
         if (newValue) {
             restoreNode(passwordField);
             restoreNode(confirmLabel);
@@ -405,6 +425,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             collapseNode(passwordErrorMessageLabel);
         }
         updateValidation();
+        LOG.exiting(LOG.getName(), "changePasswordCheckBoxChanged");
     }
 
     private void initEditMode() {
@@ -497,6 +518,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 userAppointments.add(appointment);
             }
         }
+        LOG.exiting(LOG.getName(), "onAppointmentInserted");
     }
 
     private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
@@ -513,6 +535,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 userAppointments.add(appointment);
             }
         }
+        LOG.exiting(LOG.getName(), "onAppointmentUpdated");
     }
 
     private void onAppointmentDeleted(AppointmentSuccessEvent event) {
@@ -520,6 +543,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AppointmentModel.FACTORY.find(userAppointments, event.getEntityModel()).ifPresent(userAppointments::remove);
         }
+        LOG.exiting(LOG.getName(), "onAppointmentDeleted");
     }
 
     private class AppointmentFilterItem {
@@ -578,6 +602,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
         @Override
         protected void succeeded() {
+            LOG.entering("scheduler.view.user.EditUser.InitialLoadTask", "succeeded");
             super.succeeded();
             List<AppointmentDAO> result = getValue();
             if (null != result && !result.isEmpty()) {
@@ -589,10 +614,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, appointmentInsertEventHandler.getWeakEventHandler());
             AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, appointmentUpdateEventHandler.getWeakEventHandler());
             AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, appointmentDeleteEventHandler.getWeakEventHandler());
+            LOG.exiting("scheduler.view.user.EditUser.InitialLoadTask", "succeeded");
         }
 
         @Override
         protected List<AppointmentDAO> call() throws Exception {
+            LOG.entering("scheduler.view.user.EditUser.InitialLoadTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
@@ -601,9 +628,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 if (!filterOptions.isEmpty()) {
                     updateMessage(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
                     AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
+                    LOG.exiting("scheduler.view.user.EditUser.InitialLoadTask", "call");
                     return af.load(dbConnector.getConnection(), filterOptions.get(0).getModelFilter().getDaoFilter());
                 }
             }
+            LOG.exiting("scheduler.view.user.EditUser.InitialLoadTask", "call");
             return null;
         }
 
@@ -617,16 +646,20 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
         @Override
         protected void succeeded() {
+            LOG.entering("scheduler.view.user.EditUser.LoadExistingUsersTask", "succeeded");
             super.succeeded();
             loadUsers(getValue());
+            LOG.exiting("scheduler.view.user.EditUser.LoadExistingUsersTask", "succeeded");
         }
 
         @Override
         protected List<UserDAO> call() throws Exception {
+            LOG.entering("scheduler.view.user.EditUser.LoadExistingUsersTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(RESOURCEKEY_CONNECTEDTODB));
                 UserDAO.FactoryImpl uf = UserDAO.FACTORY;
+                LOG.exiting("scheduler.view.user.EditUser.LoadExistingUsersTask", "call");
                 return uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
             }
         }

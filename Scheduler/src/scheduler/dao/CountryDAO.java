@@ -153,7 +153,9 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        EventDispatchChain result = FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        return result;
     }
 
     @Override
@@ -329,7 +331,9 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            EventDispatchChain result = CountryModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            return result;
         }
 
     }
@@ -348,6 +352,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         @Override
         protected CountryEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             CountryModel targetModel = getEntityModel();
             CountryEvent saveEvent = CountryModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CountryFailedEvent) {
@@ -382,13 +387,18 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
 
+            CountryEvent resultEvent;
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return CountryEvent.createInsertInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                    resultEvent = CountryEvent.createInsertInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+                } else {
+                    resultEvent = CountryEvent.createUpdateInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
                 }
-                return CountryEvent.createUpdateInvalidEvent(targetModel, this, ResourceBundleHelper.getResourceString(EditCountry.class, RESOURCEKEY_SAVECONFLICTMESSAGE));
+            } else {
+                resultEvent = null;
             }
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -417,11 +427,13 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             CountryEvent event = (CountryEvent) getValue();
             if (null != event && event instanceof CountrySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
@@ -439,6 +451,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         @Override
         protected CountryEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             CountryDAO dao = getDataAccessObject();
             int count;
             try {
@@ -447,15 +460,22 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
                 LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
+            CountryEvent resultEvent;
             switch (count) {
                 case 0:
+                    resultEvent = null;
                     break;
                 case 1:
-                    return CountryEvent.createDeleteInvalidEvent(getEntityModel(), this, ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                    resultEvent = CountryEvent.createDeleteInvalidEvent(getEntityModel(), this,
+                            ResourceBundleHelper.getResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGSINGLECOUNTRY));
+                    break;
                 default:
-                    return CountryEvent.createDeleteInvalidEvent(getEntityModel(), this, ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+                    resultEvent = CountryEvent.createDeleteInvalidEvent(getEntityModel(), this,
+                            ResourceBundleHelper.formatResourceString(AppResources.class, AppResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLECOUNTRY, count));
+                    break;
             }
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -475,11 +495,13 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             CountryEvent event = (CountryEvent) getValue();
             if (null != event && event instanceof CountrySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }

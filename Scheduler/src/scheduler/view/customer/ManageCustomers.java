@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventType;
@@ -76,24 +77,28 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     private void filterButtonClick(ActionEvent event) {
         LOG.entering(LOG.getName(), "filterButtonClick", event);
         restoreNode(customerFilterBorderPane);
+        LOG.exiting(LOG.getName(), "filterButtonClick");
     }
 
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpButtonAction", event);
         restoreNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpButtonAction");
     }
 
     @FXML
     private void onHelpOKButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpOKButtonAction", event);
         collapseNode(helpBorderPane);
+        LOG.exiting(LOG.getName(), "onHelpOKButtonAction");
     }
 
     @FXML
     private void onCustomerFilterCancelButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onCustomerFilterCancelButtonAction", event);
         customerFilterBorderPane.setVisible(false);
+        LOG.exiting(LOG.getName(), "onCustomerFilterCancelButtonAction");
     }
 
     @FXML
@@ -107,10 +112,12 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
             setFilter(CustomerModelFilter.active());
         }
         collapseNode(customerFilterBorderPane);
+        LOG.exiting(LOG.getName(), "onCustomerFilterOKButtonAction");
     }
 
     @Override
     protected void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         super.initialize();
         assert customerFilterBorderPane != null : "fx:id=\"customerFilterBorderPane\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
         assert activeCustomersRadioButton != null : "fx:id=\"activeCustomersRadioButton\" was not injected: check your FXML file 'ManageCustomers.fxml'.";
@@ -121,6 +128,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 
         bindExtents(customerFilterBorderPane, this);
         bindExtents(helpBorderPane, this);
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     @Override
@@ -175,17 +183,21 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
                     AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
                 if (t == ButtonType.YES) {
                     CustomerDAO.DeleteTask task = new CustomerDAO.DeleteTask(item, false);
-                    task.setOnSucceeded((e) -> {
-                        CustomerEvent customerEvent = (CustomerEvent) task.getValue();
-                        if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
-                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((ModelFailedEvent<CustomerDAO, CustomerModel>) customerEvent).getMessage(), ButtonType.OK);
-                        }
-                    });
+                    task.setOnSucceeded(this::onDeleteTaskSucceeded);
                     MainController.startBusyTaskNow(task);
                 }
             });
         }
+    }
+
+    private void onDeleteTaskSucceeded(WorkerStateEvent event) {
+        LOG.entering(LOG.getName(), "onDeleteTaskSucceeded", event);
+        CustomerEvent customerEvent = (CustomerEvent) event.getSource().getValue();
+        if (null != customerEvent && customerEvent instanceof CustomerFailedEvent) {
+            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                    ((ModelFailedEvent<CustomerDAO, CustomerModel>) customerEvent).getMessage(), ButtonType.OK);
+        }
+        LOG.exiting(LOG.getName(), "onDeleteTaskSucceeded");
     }
 
     @Override

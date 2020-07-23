@@ -246,7 +246,9 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        EventDispatchChain result = FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        return result;
     }
 
     @Override
@@ -513,10 +515,13 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            EventDispatchChain result = AddressModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            return result;
         }
 
         private void onCitySaved(CitySuccessEvent event) {
+            LOG.entering(LOG.getName(), "onCitySaved", event);
             CityModel newModel = event.getEntityModel();
             streamCached().forEach((t) -> t.onCityUpdated(newModel));
             CityDAO newDao = newModel.dataObject();
@@ -527,6 +532,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
             };
             CustomerDAO.FACTORY.streamCached().map((t) -> t.getAddress()).forEach(addressConsumer);
             AppointmentDAO.FACTORY.streamCached().map((t) -> t.getCustomer()).filter(Objects::nonNull).map((t) -> t.getAddress()).forEach(addressConsumer);
+            LOG.exiting(LOG.getName(), "onCitySaved");
         }
 
     }
@@ -551,6 +557,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         @Override
         protected AddressEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             AddressModel targetModel = getEntityModel();
             AddressEvent saveEvent = AddressModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof AddressFailedEvent) {
@@ -625,6 +632,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
             PartialCityModel<? extends PartialCityDAO> cityModel = targetModel.getCity();
 
+            AddressEvent resultEvent;
             if (cityModel instanceof CityModel) {
                 switch (cityModel.getRowState()) {
                     case NEW:
@@ -634,17 +642,20 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                         CityEvent event = (CityEvent) saveTask.get();
                         if (null != event && event instanceof CityFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
-                                return AddressEvent.createInsertInvalidEvent(targetModel, this, (CityFailedEvent) event);
-                            }
-                            return AddressEvent.createUpdateInvalidEvent(targetModel, this, (CityFailedEvent) event);
-                        }
+                                resultEvent = AddressEvent.createInsertInvalidEvent(targetModel, this, (CityFailedEvent) event);
+                            } else
+                            resultEvent = AddressEvent.createUpdateInvalidEvent(targetModel, this, (CityFailedEvent) event);
+                        } else
+                            resultEvent = null;
                         break;
                     default:
+                        resultEvent = null;
                         break;
                 }
-            }
-
-            return null;
+            } else
+                resultEvent = null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -673,11 +684,13 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             AddressEvent event = (AddressEvent) getValue();
             if (null != event && event instanceof AddressSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
@@ -697,6 +710,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         @Override
         protected AddressEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             AddressDAO dao = getDataAccessObject();
             int count;
             try {
@@ -705,16 +719,20 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                 LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
+            AddressEvent resultEvent;
             switch (count) {
                 case 0:
+                    resultEvent = null;
                     break;
                 case 1:
-                    return AddressEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
+                    resultEvent = AddressEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
+                    break;
                 default:
-                    return AddressEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
+                    resultEvent = AddressEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
+                    break;
             }
-
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -734,11 +752,13 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             AddressEvent event = (AddressEvent) getValue();
             if (null != event && event instanceof AddressSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }

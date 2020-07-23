@@ -36,7 +36,6 @@ import scheduler.model.City;
 import scheduler.model.CityEntity;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
-import scheduler.model.ModelHelper.CityHelper;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
 import scheduler.model.fx.PartialCountryModel;
@@ -165,7 +164,9 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        EventDispatchChain result = FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        return result;
     }
 
     @Override
@@ -407,10 +408,13 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            EventDispatchChain result = CityModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            return result;
         }
 
         private void onCountrySaved(CountrySuccessEvent event) {
+            LOG.entering(LOG.getName(), "onCountrySaved", event);
             CountryModel newModel = event.getEntityModel();
             streamCached().forEach((t) -> t.onCountryUpdated(newModel));
             CountryDAO dao = newModel.dataObject();
@@ -423,6 +427,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             CustomerDAO.FACTORY.streamCached().map((t) -> t.getAddress()).filter(Objects::nonNull).map((t) -> t.getCity()).forEach(cityConsumer);
             AppointmentDAO.FACTORY.streamCached().map((t) -> t.getCustomer()).filter(Objects::nonNull)
                     .map((t) -> t.getAddress()).filter(Objects::nonNull).map((t) -> t.getCity()).forEach(cityConsumer);
+            LOG.exiting(LOG.getName(), "onCountrySaved");
         }
 
     }
@@ -443,6 +448,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         @Override
         protected CityEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             CityModel targetModel = getEntityModel();
             CityEvent saveEvent = CityModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CityFailedEvent) {
@@ -493,6 +499,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             }
 
             PartialCountryModel<? extends PartialCountryDAO> c = targetModel.getCountry();
+            CityEvent resultEvent;
             if (c instanceof CountryModel) {
                 switch (c.getRowState()) {
                     case NEW:
@@ -502,17 +509,23 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                         CountryEvent event = (CountryEvent) saveTask.get();
                         if (null != event && event instanceof CountryFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
-                                return CityEvent.createInsertInvalidEvent(targetModel, this, (CountryFailedEvent) event);
+                                resultEvent = CityEvent.createInsertInvalidEvent(targetModel, this, (CountryFailedEvent) event);
+                            } else {
+                                resultEvent = CityEvent.createUpdateInvalidEvent(targetModel, this, (CountryFailedEvent) event);
                             }
-                            return CityEvent.createUpdateInvalidEvent(targetModel, this, (CountryFailedEvent) event);
+                        } else {
+                            resultEvent = null;
                         }
                         break;
                     default:
+                        resultEvent = null;
                         break;
                 }
+            } else {
+                resultEvent = null;
             }
-
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -541,11 +554,13 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             CityEvent event = (CityEvent) getValue();
             if (null != event && event instanceof CitySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
@@ -561,6 +576,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         @Override
         protected CityEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             CityDAO dao = getDataAccessObject();
             int count;
             try {
@@ -569,18 +585,22 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                 LOG.log(Level.SEVERE, "Error checking dependencies", ex);
                 throw new OperationFailureException("Error checking dependencies", ex);
             }
+            CityEvent resultEvent;
             switch (count) {
                 case 0:
+                    resultEvent = null;
                     break;
                 case 1:
-                    return CityEvent.createDeleteInvalidEvent(getEntityModel(), this,
+                    resultEvent = CityEvent.createDeleteInvalidEvent(getEntityModel(), this,
                             ResourceBundleHelper.getResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGSINGLE));
+                    break;
                 default:
-                    return CityEvent.createDeleteInvalidEvent(getEntityModel(), this,
+                    resultEvent = CityEvent.createDeleteInvalidEvent(getEntityModel(), this,
                             ResourceBundleHelper.formatResourceString(EditCountry.class, EditCountryResourceKeys.RESOURCEKEY_DELETEMSGMULTIPLE, count));
+                    break;
             }
-
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -600,11 +620,13 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             CityEvent event = (CityEvent) getValue();
             if (null != event && event instanceof CitySuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }

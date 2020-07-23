@@ -170,7 +170,9 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        EventDispatchChain result = FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        return result;
     }
 
     @Override
@@ -351,7 +353,9 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            EventDispatchChain result = UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            return result;
         }
     }
 
@@ -373,6 +377,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             UserModel targetModel = getEntityModel();
             UserEvent saveEvent = UserModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
@@ -405,13 +410,18 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
                 LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
+            UserEvent resultEvent;
             if (count > 0) {
                 if (getOriginalRowState() == DataRowState.NEW) {
-                    return UserEvent.createInsertInvalidEvent(targetModel, this, ANOTHER_USER_HAS_SAME_NAME);
+                    resultEvent = UserEvent.createInsertInvalidEvent(targetModel, this, ANOTHER_USER_HAS_SAME_NAME);
+                } else {
+                    resultEvent = UserEvent.createUpdateInvalidEvent(targetModel, this, ANOTHER_USER_HAS_SAME_NAME);
                 }
-                return UserEvent.createUpdateInvalidEvent(targetModel, this, ANOTHER_USER_HAS_SAME_NAME);
+            } else {
+                resultEvent = null;
             }
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -440,11 +450,13 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             UserEvent event = (UserEvent) getValue();
             if (null != event && event instanceof UserSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
@@ -465,6 +477,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             UserDAO dao = getDataAccessObject();
             if (dao == Scheduler.getCurrentUser()) {
                 return UserEvent.createDeleteInvalidEvent(getEntityModel(), this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
@@ -477,15 +490,20 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
                 LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
+            UserEvent resultEvent;
             switch (count) {
                 case 0:
+                    resultEvent = null;
                     break;
                 case 1:
-                    return UserEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
+                    resultEvent = UserEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
+                    break;
                 default:
-                    return UserEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
+                    resultEvent = UserEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
+                    break;
             }
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -505,11 +523,13 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             UserEvent event = (UserEvent) getValue();
             if (null != event && event instanceof UserSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }

@@ -168,7 +168,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
     }
 
     protected void onModelEvent(ModelEvent<T, ? extends EntityModel<T>> event) {
-        LOG.fine(() -> String.format("Handling %s", event));
+        LOG.entering(LOG.getName(), "onModelEvent", event);
         T dao = event.getDataAccessObject();
         rowState.set(dao.getRowState());
         lastModifiedDate.set(DateTimeUtil.toLocalDateTime(dao.getLastModifiedDate()));
@@ -182,9 +182,11 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
             case DB_UPDATE:
                 break;
             default:
+                LOG.exiting(LOG.getName(), "onModelEvent");
                 return;
         }
         onDaoChanged(event);
+        LOG.exiting(LOG.getName(), "onModelEvent");
     }
 
     protected abstract void onDaoChanged(ModelEvent<T, ? extends EntityModel<T>> event);
@@ -300,7 +302,9 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return tail.append(eventHandlerManager);
+            EventDispatchChain result = tail.append(eventHandlerManager);
+            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            return result;
         }
 
         /**

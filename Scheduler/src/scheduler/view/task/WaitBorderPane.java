@@ -47,8 +47,10 @@ public final class WaitBorderPane extends BorderPane {
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert waitAccordion != null : "fx:id=\"waitAccordion\" was not injected: check your FXML file 'WaitMessage.fxml'.";
         collapseNode(this);
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     private void onRunning(WaitTitledPaneEvent event) {
@@ -57,6 +59,7 @@ public final class WaitBorderPane extends BorderPane {
         waitAccordion.getPanes().add(pane);
         restoreNode(this);
         pane.setExpanded(true);
+        LOG.exiting(LOG.getName(), "onRunning");
     }
 
     private void removeEventHandlers(WaitTitledPane pane) {
@@ -84,6 +87,7 @@ public final class WaitBorderPane extends BorderPane {
         WaitTitledPane pane = event.getTarget();
         removeEventHandlers(pane);
         removePane(pane);
+        LOG.exiting(LOG.getName(), "onSucceeded");
     }
 
     private void onCanceled(WaitTitledPaneEvent event) {
@@ -95,13 +99,19 @@ public final class WaitBorderPane extends BorderPane {
         newPane.setText(oldPane.getText());
         newPane.setContent(NodeUtil.createCompactVBox(NodeUtil.createLabel("Operation canceled."),
                 NodeUtil.createButtonBar(NodeUtil.createButton("OK", (e) -> {
-                    removePane(newPane);
-                    WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.CANCEL_ACK);
-                    LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, oldPane.getClass().getName()));
-                    oldPane.fireEvent(ev);
+                    LOG.entering(LOG.getName(), "onOkButtonAction", new Object[]{event, oldPane, newPane, e});
+                    onOkButtonAction(event, oldPane, newPane);
                 }))));
         panes.set(panes.indexOf(oldPane), newPane);
         newPane.setExpanded(true);
+    }
+
+    private void onOkButtonAction(WaitTitledPaneEvent event, WaitTitledPane oldPane, TitledPane newPane) {
+        removePane(newPane);
+        WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.CANCEL_ACK);
+        LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, oldPane.getClass().getName()));
+        oldPane.fireEvent(ev);
+        LOG.exiting(LOG.getName(), "onOkButtonAction");
     }
 
     private void onFailed(WaitTitledPaneEvent event) {
@@ -120,14 +130,19 @@ public final class WaitBorderPane extends BorderPane {
             oldPane.fireEvent(ev);
             return;
         }
-        newPane.setOnAction((e) -> {
-            removePane(newPane);
-            WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK);
-            LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, oldPane.getClass().getName()));
-            oldPane.fireEvent(ev);
-        });
+        newPane.setOnAction((e) -> onErrorDetailTitledPaneAction(event, oldPane, newPane));
         panes.set(panes.indexOf(oldPane), newPane);
         newPane.setExpanded(true);
+        LOG.exiting(LOG.getName(), "onFailed");
+    }
+
+    private void onErrorDetailTitledPaneAction(WaitTitledPaneEvent event, WaitTitledPane oldPane, ErrorDetailTitledPane newPane) {
+        LOG.entering(LOG.getName(), "onErrorDetailTitledPaneAction", new Object[]{event, oldPane, newPane});
+        removePane(newPane);
+        WaitTitledPaneEvent ev = new WaitTitledPaneEvent(event.getSource(), oldPane, event.getTask(), WaitTitledPaneEvent.FAIL_ACK);
+        LOG.fine(() -> String.format("Firing %s%n\ton %s", ev, oldPane.getClass().getName()));
+        oldPane.fireEvent(ev);
+        LOG.exiting(LOG.getName(), "onErrorDetailTitledPaneAction");
     }
 
     /**
@@ -139,11 +154,13 @@ public final class WaitBorderPane extends BorderPane {
      * @param unit The time unit of the delay parameter.
      */
     public void schedule(WaitTitledPane pane, Task<?> task, long delay, TimeUnit unit) {
+        LOG.exiting(LOG.getName(), "schedule", new Object[]{pane, task, delay, unit});
         pane.addEventHandler(WaitTitledPaneEvent.RUNNING, this::onRunning);
         pane.addEventHandler(WaitTitledPaneEvent.CANCELED, this::onCanceled);
         pane.addEventHandler(WaitTitledPaneEvent.FAILED, this::onFailed);
         pane.addEventHandler(WaitTitledPaneEvent.SUCCEEDED, this::onSucceeded);
         pane.schedule(task, delay, unit);
+        LOG.exiting(LOG.getName(), "schedule");
     }
 
     public void schedule(Task<?> task, long delay, TimeUnit unit) {
@@ -157,11 +174,13 @@ public final class WaitBorderPane extends BorderPane {
      * @param task
      */
     public synchronized void startNow(WaitTitledPane pane, Task<?> task) {
+        LOG.exiting(LOG.getName(), "startNow", new Object[]{pane, task});
         pane.addEventHandler(WaitTitledPaneEvent.RUNNING, this::onRunning);
         pane.addEventHandler(WaitTitledPaneEvent.CANCELED, this::onCanceled);
         pane.addEventHandler(WaitTitledPaneEvent.FAILED, this::onFailed);
         pane.addEventHandler(WaitTitledPaneEvent.SUCCEEDED, this::onSucceeded);
         pane.startNow(task);
+        LOG.exiting(LOG.getName(), "startNow");
     }
 
     public void startNow(Task<?> task) {

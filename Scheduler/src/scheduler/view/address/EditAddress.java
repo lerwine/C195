@@ -443,9 +443,17 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                         Bindings.selectString(selectedCountry, Country.PROP_NAME)))
         );
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
-        postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
+        postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.address.EditAddress.postalCodeTextField#text", "changed", new Object[] { oldValue, newValue });
+            modified.set(changedBinding.get());
+            LOG.exiting("scheduler.view.address.EditAddress.postalCodeTextField#text", "changed");
+        });
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
-        phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> modified.set(changedBinding.get()));
+        phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.address.EditAddress.phoneTextField#text", "changed", new Object[] { oldValue, newValue });
+            modified.set(changedBinding.get());
+            LOG.exiting("scheduler.view.address.EditAddress.phoneTextField#text", "changed");
+        });
 
         changedBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
                 .or(normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property())))
@@ -727,6 +735,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                 }
             }
         }
+        LOG.exiting(LOG.getName(), "onCityUpdated");
     }
 
     private void onCityDeleted(CitySuccessEvent event) {
@@ -743,6 +752,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                 allCities.remove(t);
             });
         }
+        LOG.exiting(LOG.getName(), "onCityDeleted");
     }
 
     private void onCountryInserted(CountrySuccessEvent event) {
@@ -755,6 +765,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             cityListView.getSelectionModel().clearSelection();
             countryListView.getSelectionModel().select(newCountry);
         }
+        LOG.exiting(LOG.getName(), "onCountryInserted");
     }
 
     private void onCountryDeleted(CountrySuccessEvent event) {
@@ -770,6 +781,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                 countryOptions.remove(oldCountry);
             }
         }
+        LOG.exiting(LOG.getName(), "onCountryDeleted");
     }
 
     private class GetCountryModelTask extends Task<CountryDAO> {
@@ -784,20 +796,20 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering("scheduler.view.address.EditAddress.GetCountryModelTask", "succeeded");
             CountryDAO value = getValue();
             addCountryOption(value.cachedModel(true), city);
             super.succeeded();
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting("scheduler.view.address.EditAddress.GetCountryModelTask", "succeeded");
         }
 
         @Override
         protected CountryDAO call() throws Exception {
-            LOG.entering(LOG.getName(), "call");
+            LOG.entering("scheduler.view.address.EditAddress.GetCountryModelTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
-                LOG.exiting(LOG.getName(), "call");
+                LOG.exiting("scheduler.view.address.EditAddress.GetCountryModelTask", "call");
                 return CountryDAO.FACTORY.loadByPrimaryKey(dbConnector.getConnection(), countryPk).orElse(null);
             }
         }
@@ -814,7 +826,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering("scheduler.view.address.EditAddress.EditDataLoadTask", "succeeded");
             Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>> result = getValue();
             initializeCountriesAndCities(result.getValue2(), result.getValue3(), model.getCity());
             List<CustomerDAO> customerDaoList = result.getValue1();
@@ -827,19 +839,19 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
             CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
             super.succeeded();
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting("scheduler.view.address.EditAddress.EditDataLoadTask", "succeeded");
         }
 
         @Override
         protected Triplet<List<CustomerDAO>, List<CountryDAO>, List<CityDAO>> call() throws Exception {
-            LOG.entering(LOG.getName(), "call");
+            LOG.entering("scheduler.view.address.EditAddress.EditDataLoadTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
                 CityDAO.FactoryImpl tf = CityDAO.FACTORY;
                 CustomerDAO.FactoryImpl cf = CustomerDAO.FACTORY;
-                LOG.exiting(LOG.getName(), "call");
+                LOG.exiting("scheduler.view.address.EditAddress.EditDataLoadTask", "call");
                 return Triplet.of(cf.load(dbConnector.getConnection(), cf.getByAddressFilter(dao)),
                         nf.getAllCountries(dbConnector.getConnection()),
                         tf.load(dbConnector.getConnection(), tf.getAllItemsFilter()));
@@ -856,7 +868,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering("scheduler.view.address.EditAddress.NewDataLoadTask", "succeeded");
             Tuple<List<CountryDAO>, List<CityDAO>> result = getValue();
             ObservableMap<Object, Object> properties = EditAddress.this.getProperties();
             PartialCityModel<? extends PartialCityDAO> targetCity;
@@ -869,18 +881,18 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
             initializeCountriesAndCities(result.getValue1(), result.getValue2(), targetCity);
             super.succeeded();
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting("scheduler.view.address.EditAddress.NewDataLoadTask", "succeeded");
         }
 
         @Override
         protected Tuple<List<CountryDAO>, List<CityDAO>> call() throws Exception {
-            LOG.entering(LOG.getName(), "call");
+            LOG.entering("scheduler.view.address.EditAddress.NewDataLoadTask", "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
                 CityDAO.FactoryImpl cf = CityDAO.FACTORY;
-                LOG.exiting(LOG.getName(), "call");
+                LOG.exiting("scheduler.view.address.EditAddress.NewDataLoadTask", "call");
                 return Tuple.of(nf.getAllCountries(dbConnector.getConnection()),
                         cf.load(dbConnector.getConnection(), cf.getAllItemsFilter()));
             }

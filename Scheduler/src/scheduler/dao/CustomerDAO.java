@@ -34,7 +34,6 @@ import scheduler.model.Address;
 import scheduler.model.Customer;
 import scheduler.model.CustomerEntity;
 import scheduler.model.ModelHelper;
-import scheduler.model.ModelHelper.CustomerHelper;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CustomerModel;
 import scheduler.model.fx.PartialAddressModel;
@@ -192,7 +191,9 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        EventDispatchChain result = FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        return result;
     }
 
     @Override
@@ -414,10 +415,13 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
             LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-            return CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            EventDispatchChain result = CustomerModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
+            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            return result;
         }
 
         private void onAddressSaved(AddressSuccessEvent event) {
+            LOG.entering(LOG.getName(), "onAddressSaved", event);
             AddressModel newModel = event.getEntityModel();
             streamCached().forEach((t) -> t.onAddressUpdated(newModel));
             AddressDAO dao = newModel.dataObject();
@@ -426,6 +430,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                     ((Partial) t).onAddressUpdated(dao);
                 }
             });
+            LOG.exiting(LOG.getName(), "onAddressSaved");
         }
 
     }
@@ -448,6 +453,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         @Override
         public CustomerEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             CustomerModel targetModel = getEntityModel();
             CustomerEvent saveEvent = CustomerModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof CustomerFailedEvent) {
@@ -488,6 +494,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
             }
 
             PartialAddressModel<? extends PartialAddressDAO> addressModel = targetModel.getAddress();
+            CustomerEvent resultEvent;
             if (addressModel instanceof AddressModel) {
                 switch (addressModel.getRowState()) {
                     case NEW:
@@ -497,16 +504,23 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                         AddressEvent event = (AddressEvent) saveTask.get();
                         if (null != event && event instanceof AddressFailedEvent) {
                             if (getOriginalRowState() == DataRowState.NEW) {
-                                return CustomerEvent.createInsertInvalidEvent(targetModel, this, (AddressFailedEvent) event);
+                                resultEvent = CustomerEvent.createInsertInvalidEvent(targetModel, this, (AddressFailedEvent) event);
+                            } else {
+                                resultEvent = CustomerEvent.createUpdateInvalidEvent(targetModel, this, (AddressFailedEvent) event);
                             }
-                            return CustomerEvent.createUpdateInvalidEvent(targetModel, this, (AddressFailedEvent) event);
+                        } else {
+                            resultEvent = null;
                         }
                         break;
                     default:
+                        resultEvent = null;
                         break;
                 }
+            } else {
+                resultEvent = null;
             }
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -535,11 +549,13 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             CustomerEvent event = (CustomerEvent) getValue();
             if (null != event && event instanceof CustomerSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
@@ -559,6 +575,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         @Override
         protected CustomerEvent validate(Connection connection) throws Exception {
+            LOG.entering(LOG.getName(), "validate", connection);
             CustomerDAO dao = getDataAccessObject();
             int count;
             try {
@@ -567,15 +584,20 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                 LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
+            CustomerEvent resultEvent;
             switch (count) {
                 case 0:
+                    resultEvent = null;
                     break;
                 case 1:
-                    return CustomerEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
+                    resultEvent = CustomerEvent.createDeleteInvalidEvent(getEntityModel(), this, REFERENCED_BY_ONE);
+                    break;
                 default:
-                    return CustomerEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
+                    resultEvent = CustomerEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
+                    break;
             }
-            return null;
+            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            return resultEvent;
         }
 
         @Override
@@ -595,11 +617,13 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         @Override
         protected void succeeded() {
+            LOG.entering(LOG.getName(), "succeeded");
             CustomerEvent event = (CustomerEvent) getValue();
             if (null != event && event instanceof CustomerSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
+            LOG.exiting(LOG.getName(), "succeeded");
         }
 
     }
