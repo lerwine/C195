@@ -301,13 +301,38 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     /**
      * Factory implementation for {@link AddressDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO, AddressModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        protected boolean verifyModified(AddressDAO dataAccessObject) {
+            return !(dataAccessObject.address1.equals(dataAccessObject.originalValues.address1) && dataAccessObject.address2.equals(dataAccessObject.originalValues.address2)
+                    && ModelHelper.areSameRecord(dataAccessObject.city, dataAccessObject.originalValues.city)
+                    && dataAccessObject.postalCode.equals(dataAccessObject.originalValues.postalCode) && dataAccessObject.phone.equals(dataAccessObject.originalValues.phone));
+        }
+
+        @Override
+        void onBeforeSave(AddressModel model) {
+            AddressDAO dao = model.dataObject();
+            dao.setAddress1(model.getAddress1());
+            dao.setAddress2(model.getAddress2());
+            PartialCityModel<? extends PartialCityDAO> c = model.getCity();
+            if (null != c) {
+                if (c instanceof CityModel) {
+                    CityDAO.FACTORY.onBeforeSave((CityModel) c);
+                }
+                dao.setCity(c.dataObject());
+            } else {
+                dao.setCity(null);
+            }
+            dao.setPostalCode(model.getPostalCode());
+            dao.setPhone(model.getPhone());
         }
 
         @Override
@@ -531,12 +556,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         public SaveTask(AddressModel model, boolean alreadyValidated) {
             super(model, AddressModel.FACTORY, alreadyValidated);
-            AddressDAO dao = model.dataObject();
-            dao.setAddress1(model.getAddress1());
-            dao.setAddress2(model.getAddress2());
-            dao.setCity(model.getCity().dataObject());
-            dao.setPostalCode(model.getPostalCode());
-            dao.setPhone(model.getPhone());
         }
 
         @Override

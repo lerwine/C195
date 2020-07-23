@@ -165,7 +165,7 @@ public final class CityModel extends EntityModel<CityDAO> implements PartialCity
         }
 
         @Override
-        public DataAccessObject.DaoFactory<CityDAO> getDaoFactory() {
+        public DataAccessObject.DaoFactory<CityDAO, CityModel> getDaoFactory() {
             return CityDAO.FACTORY;
         }
 

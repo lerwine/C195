@@ -200,13 +200,27 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
     /**
      * Factory implementation for {@link UserDAO} objects.
      */
-    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO> {
+    public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO, UserModel> {
 
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
+        }
+
+        @Override
+        protected boolean verifyModified(UserDAO dataAccessObject) {
+            return !(dataAccessObject.status == dataAccessObject.originalValues.status && dataAccessObject.userName.equals(dataAccessObject.originalValues.userName)
+                    && dataAccessObject.password.equals(dataAccessObject.originalValues.password));
+        }
+
+        @Override
+        void onBeforeSave(UserModel model) {
+            UserDAO dao = model.dataObject();
+            dao.setUserName(model.getUserName());
+            dao.setStatus(model.getStatus());
+            dao.setPassword(model.getPassword());
         }
 
         @Override
@@ -353,10 +367,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         public SaveTask(UserModel model, boolean alreadyValidated) {
             super(model, UserModel.FACTORY, alreadyValidated);
-            UserDAO dao = model.dataObject();
-            dao.setUserName(model.getUserName());
-            dao.setStatus(model.getStatus());
-            dao.setPassword(model.getPassword());
         }
 
         @Override
