@@ -492,8 +492,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 Timestamp oldLastModifiedDate = dao.lastModifiedDate;
                 dao.lastModifiedDate = dao.originalValues.lastModifiedDate;
                 dao.rowState = DataRowState.UNMODIFIED;
-                dao.firePropertyChange(PROP_ROWSTATE, oldLastModifiedDate, dao.lastModifiedDate);
-                dao.firePropertyChange(PROP_ROWSTATE, oldLastModifiedBy, dao.lastModifiedBy);
+                dao.firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, dao.lastModifiedDate);
+                dao.firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, dao.lastModifiedBy);
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
             }
 
