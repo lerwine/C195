@@ -55,8 +55,8 @@ import scheduler.view.SymbolText;
  */
 public class NodeUtil {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(NodeUtil.class.getName()), Level.FINER);
-//    private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(NodeUtil.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
 
     private static void addCssClass(ObservableList<String> styleClass, String name) {
         LOG.entering(LOG.getName(), "addCssClass", new Object[] { styleClass, name });
