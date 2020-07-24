@@ -145,6 +145,11 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
     }
 
     @Override
+    protected boolean verifyModified() {
+        return !(name.equals(originalValues.name) && ModelHelper.areSameRecord(country, originalValues.country));
+    }
+
+    @Override
     protected void onAcceptChanges() {
         originalValues.name = name;
         originalValues.country = country;
@@ -224,12 +229,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        protected boolean verifyModified(CityDAO dataAccessObject) {
-            return !(dataAccessObject.name.equals(dataAccessObject.originalValues.name)
-                    && ModelHelper.areSameRecord(dataAccessObject.country, dataAccessObject.originalValues.country));
         }
 
         @Override

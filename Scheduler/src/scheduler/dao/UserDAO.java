@@ -148,6 +148,11 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
     }
 
     @Override
+    protected boolean verifyModified() {
+        return !(status == originalValues.status && userName.equals(originalValues.userName) && password.equals(originalValues.password));
+    }
+
+    @Override
     protected void onAcceptChanges() {
         originalValues.userName = userName;
         originalValues.password = password;
@@ -207,12 +212,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        protected boolean verifyModified(UserDAO dataAccessObject) {
-            return !(dataAccessObject.status == dataAccessObject.originalValues.status && dataAccessObject.userName.equals(dataAccessObject.originalValues.userName)
-                    && dataAccessObject.password.equals(dataAccessObject.originalValues.password));
         }
 
         @Override

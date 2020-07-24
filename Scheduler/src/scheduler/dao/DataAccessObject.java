@@ -96,6 +96,24 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
     public abstract EntityModel<? extends DataAccessObject> cachedModel(boolean create);
 
+    protected abstract boolean verifyModified();
+
+    final synchronized DataRowState verifyRowState() {
+        DataRowState oldRowState = rowState;
+        if (oldRowState == DataRowState.MODIFIED && !verifyModified()) {
+            String oldLastModifiedBy = lastModifiedBy;
+            lastModifiedBy = originalValues.lastModifiedBy;
+            Timestamp oldLastModifiedDate = lastModifiedDate;
+            lastModifiedDate = originalValues.lastModifiedDate;
+            rowState = DataRowState.UNMODIFIED;
+            firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, lastModifiedDate);
+            firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, lastModifiedBy);
+            firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
+        }
+
+        return rowState;
+    }
+
     /**
      * This gets called after the associated record in the database as been successfully inserted, updated or deleted. {@link PropertyChangeEvent}s will be deferred while this is
      * invoked.
@@ -212,6 +230,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 firePropertyChange(PROP_ROWSTATE, oldRowState, rowState);
                 return;
             case MODIFIED:
+                if (verifyRowState() == DataRowState.UNMODIFIED) {
+                    return;
+                }
                 lastModifiedBy = (null == currentUser) ? DEFAULT_USER_NAME : currentUser.getUserName();
                 lastModifiedDate = DateTimeUtil.toUtcTimestamp(LocalDateTime.now());
                 break;
@@ -480,25 +501,6 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         }
 
         abstract void onBeforeSave(M model);
-
-        protected abstract boolean verifyModified(D dataAccessObject);
-
-        final synchronized DataRowState verifyRowState(D dataAccessObject) {
-            DataAccessObject dao = dataAccessObject;
-            DataRowState oldRowState = dao.rowState;
-            if (oldRowState == DataRowState.MODIFIED && !verifyModified(dataAccessObject)) {
-                String oldLastModifiedBy = dao.lastModifiedBy;
-                dao.lastModifiedBy = dao.originalValues.lastModifiedBy;
-                Timestamp oldLastModifiedDate = dao.lastModifiedDate;
-                dao.lastModifiedDate = dao.originalValues.lastModifiedDate;
-                dao.rowState = DataRowState.UNMODIFIED;
-                dao.firePropertyChange(PROP_LASTMODIFIEDDATE, oldLastModifiedDate, dao.lastModifiedDate);
-                dao.firePropertyChange(PROP_LASTMODIFIEDBY, oldLastModifiedBy, dao.lastModifiedBy);
-                dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dao.rowState);
-            }
-
-            return dao.rowState;
-        }
 
         public DaoCache<D> getCache() {
             return cache;
@@ -1100,6 +1102,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 throw new IllegalArgumentException("Record was already deleted");
             }
             modelFactory.getDaoFactory().onBeforeSave(target);
+            target.dataObject().verifyRowState();
         }
 
         @Override

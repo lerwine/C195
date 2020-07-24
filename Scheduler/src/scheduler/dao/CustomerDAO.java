@@ -169,6 +169,11 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
     }
 
     @Override
+    protected boolean verifyModified() {
+        return !(active == originalValues.active && name.equals(originalValues.name) && ModelHelper.areSameRecord(address, originalValues.address));
+    }
+
+    @Override
     protected void onAcceptChanges() {
         originalValues.name = name;
         originalValues.address = address;
@@ -253,12 +258,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        protected boolean verifyModified(CustomerDAO dataAccessObject) {
-            return !(dataAccessObject.active == dataAccessObject.originalValues.active && dataAccessObject.name.equals(dataAccessObject.originalValues.name)
-                    && ModelHelper.areSameRecord(dataAccessObject.address, dataAccessObject.originalValues.address));
         }
 
         @Override

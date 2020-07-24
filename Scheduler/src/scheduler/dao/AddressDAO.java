@@ -214,6 +214,12 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
     }
 
     @Override
+    protected boolean verifyModified() {
+        return !(address1.equals(originalValues.address1) && address2.equals(originalValues.address2) && ModelHelper.areSameRecord(city, originalValues.city)
+                && postalCode.equals(originalValues.postalCode) && phone.equals(originalValues.phone));
+    }
+
+    @Override
     protected void onAcceptChanges() {
         originalValues.address1 = address1;
         originalValues.address2 = address2;
@@ -308,13 +314,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        protected boolean verifyModified(AddressDAO dataAccessObject) {
-            return !(dataAccessObject.address1.equals(dataAccessObject.originalValues.address1) && dataAccessObject.address2.equals(dataAccessObject.originalValues.address2)
-                    && ModelHelper.areSameRecord(dataAccessObject.city, dataAccessObject.originalValues.city)
-                    && dataAccessObject.postalCode.equals(dataAccessObject.originalValues.postalCode) && dataAccessObject.phone.equals(dataAccessObject.originalValues.phone));
         }
 
         @Override

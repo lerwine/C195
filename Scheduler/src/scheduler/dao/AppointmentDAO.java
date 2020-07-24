@@ -479,6 +479,23 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     }
 
     @Override
+    protected boolean verifyModified() {
+        if (originalValues.type == type && title.equals(originalValues.title) && contact.equals(originalValues.contact)
+                && ModelHelper.areSameRecord(customer, originalValues.customer) && ModelHelper.areSameRecord(user, originalValues.user)
+                && description.equals(originalValues.description) && url.equals(originalValues.url) && Objects.equals(start, originalValues.start) &&
+                Objects.equals(end, originalValues.end)) {
+            switch (type) {
+                case CORPORATE_LOCATION:
+                case PHONE:
+                    return !locationSl.equals(originalValues.locationSl);
+                default:
+                    return !location.equals(originalValues.location);
+            }
+        }
+        return true;
+    }
+
+    @Override
     protected void onAcceptChanges() {
         originalValues.customer = customer;
         originalValues.user = user;
@@ -619,25 +636,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        protected boolean verifyModified(AppointmentDAO dataAccessObject) {
-            if (dataAccessObject.originalValues.type == dataAccessObject.type && dataAccessObject.title.equals(dataAccessObject.originalValues.title)
-                    && dataAccessObject.contact.equals(dataAccessObject.originalValues.contact)
-                    && ModelHelper.areSameRecord(dataAccessObject.customer, dataAccessObject.originalValues.customer)
-                    && ModelHelper.areSameRecord(dataAccessObject.user, dataAccessObject.originalValues.user)
-                    && dataAccessObject.description.equals(dataAccessObject.originalValues.description) && dataAccessObject.url.equals(dataAccessObject.originalValues.url)
-                    && Objects.equals(dataAccessObject.start, dataAccessObject.originalValues.start) && Objects.equals(dataAccessObject.end, dataAccessObject.originalValues.end)) {
-                switch (dataAccessObject.type) {
-                    case CORPORATE_LOCATION:
-                    case PHONE:
-                        return !dataAccessObject.locationSl.equals(dataAccessObject.originalValues.locationSl);
-                    default:
-                        return !dataAccessObject.location.equals(dataAccessObject.originalValues.location);
-                }
-            }
-            return true;
         }
 
         @Override

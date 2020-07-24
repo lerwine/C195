@@ -129,6 +129,13 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
     }
 
     @Override
+    protected boolean verifyModified() {
+        Locale a = locale;
+        Locale b = originalValues.locale;
+        return (null == a) ? null != b : null == b || !a.toLanguageTag().equals(b.toLanguageTag());
+    }
+
+    @Override
     protected void onAcceptChanges() {
         originalValues.name = name;
         originalValues.locale = locale;
@@ -183,13 +190,6 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
         // This is a singleton instance
         private FactoryImpl() {
-        }
-
-        @Override
-        protected boolean verifyModified(CountryDAO dataAccessObject) {
-            Locale a = dataAccessObject.locale;
-            Locale b = dataAccessObject.originalValues.locale;
-            return (null == a) ? null != b : null == b || !a.toLanguageTag().equals(b.toLanguageTag());
         }
 
         @Override
