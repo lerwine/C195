@@ -482,8 +482,8 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     protected boolean verifyModified() {
         if (originalValues.type == type && title.equals(originalValues.title) && contact.equals(originalValues.contact)
                 && ModelHelper.areSameRecord(customer, originalValues.customer) && ModelHelper.areSameRecord(user, originalValues.user)
-                && description.equals(originalValues.description) && url.equals(originalValues.url) && Objects.equals(start, originalValues.start) &&
-                Objects.equals(end, originalValues.end)) {
+                && description.equals(originalValues.description) && url.equals(originalValues.url) && Objects.equals(start, originalValues.start)
+                && Objects.equals(end, originalValues.end)) {
             switch (type) {
                 case CORPORATE_LOCATION:
                 case PHONE:

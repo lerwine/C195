@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -36,6 +38,7 @@ import scheduler.model.City;
 import scheduler.model.CityEntity;
 import scheduler.model.Country;
 import scheduler.model.ModelHelper;
+import scheduler.model.PredefinedData;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
 import scheduler.model.fx.PartialCountryModel;
@@ -78,9 +81,14 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
      * Initializes a {@link DataRowState#NEW} city object.
      */
     public CityDAO() {
-        super();
         name = "";
         country = null;
+        originalValues = new OriginalValues();
+    }
+
+    public CityDAO(PredefinedData.PredefinedCity city) {
+        name = city.getName();
+        country = city.getCountry().getDataAccessObject();
         originalValues = new OriginalValues();
     }
 
@@ -374,18 +382,20 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             }).orElse(null);
         }
 
-        public CityDAO getByName(Connection connection, String name) throws SQLException {
+        public CityDAO getByName(Connection connection, String name, int countryId) throws SQLException {
             String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
+                    .append(DbColumn.CITY_COUNTRY.getDbName()).append("=? AND ")
                     .append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?").toString();
-            LOG.fine(() -> String.format("getByResourceKey", "Executing DML statement: %s", sql));
+            LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 name = Values.asNonNullAndWsNormalized(name);
-                ps.setString(1, DB.escapeWC(name));
+                ps.setInt(1, countryId);
+                ps.setString(2, DB.escapeWC(name));
                 try (ResultSet rs = ps.getResultSet()) {
                     while (rs.next()) {
                         CityDAO result = fromResultSet(rs);
                         LogHelper.logWarnings(connection, LOG);
-                        if (result.name.equals(name)) {
+                        if (result.name.equalsIgnoreCase(name)) {
                             return result;
                         }
                     }
@@ -393,6 +403,42 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                 }
             }
             return null;
+        }
+
+        public ArrayList<CityDAO> getByNames(Connection connection, Collection<String> names, int countryId) throws SQLException {
+            StringBuffer buffer = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
+                    .append(DbColumn.CITY_COUNTRY.getDbName()).append("=? AND (")
+                    .append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?");
+            int c = names.size();
+            for (int i = 1; i < c; i++) {
+                buffer.append(" OR ").append(DbColumn.COUNTRY_NAME).append(" LIKE ?");
+            }
+            String sql = buffer.append(")").toString();
+            LOG.fine(() -> String.format("getByResourceKey", "Executing DML statement: %s", sql));
+            ArrayList<CityDAO> result = new ArrayList<>();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, countryId);
+                Iterator<String> iterator = names.iterator();
+                int idx = 1;
+                do {
+                    ps.setString(++idx, DB.escapeWC(iterator.next()));
+                } while (iterator.hasNext());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (null != rs && rs.next()) {
+                        do {
+                            result.add(fromResultSet(rs));
+                        } while (rs.next());
+                        LogHelper.logWarnings(connection, LOG);
+                        return result;
+                    }
+                    if (LogHelper.logWarnings(connection, LOG)) {
+                        LOG.log(Level.WARNING, "No results.");
+                    } else {
+                        LOG.log(Level.WARNING, "No results, no warnings.");
+                    }
+                }
+            }
+            return result;
         }
 
         int countByCountry(int primaryKey, Connection connection) throws SQLException {

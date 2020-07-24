@@ -38,9 +38,11 @@ import scheduler.model.AddressEntity;
 import scheduler.model.AddressLookup;
 import scheduler.model.City;
 import scheduler.model.ModelHelper;
+import scheduler.model.PredefinedData;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.PartialCityModel;
+import scheduler.util.DB;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
 import scheduler.util.PropertyBindable;
@@ -83,6 +85,15 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         city = null;
         postalCode = "";
         phone = "";
+        originalValues = new OriginalPropertyValues();
+    }
+
+    public AddressDAO(PredefinedData.PredefinedAddress address) {
+        address1 = address.getAddress1();
+        address2 = address.getAddress2();
+        city = address.getCity().getDataAccessObject();
+        postalCode = address.getPostalCode();
+        phone = address.getPhone();
         originalValues = new OriginalPropertyValues();
     }
 
@@ -500,6 +511,35 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
         @Override
         public Class<? extends AddressDAO> getDaoClass() {
             return AddressDAO.class;
+        }
+
+        public AddressDAO getByValues(Connection connection, AddressLookup values, final int cityPk) throws SQLException {
+            String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
+                    .append(DbColumn.ADDRESS_CITY.getDbName()).append("=? AND ")
+                    .append(DbColumn.ADDRESS1.getDbName()).append(" LIKE ? AND ")
+                    .append(DbColumn.ADDRESS2.getDbName()).append(" LIKE ? AND ")
+                    .append(DbColumn.POSTAL_CODE.getDbName()).append(" LIKE ? AND ")
+                    .append(DbColumn.PHONE.getDbName()).append(" LIKE ?").toString();
+            LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, cityPk);
+                ps.setString(2, DB.escapeWC(values.getAddress1()));
+                ps.setString(3, DB.escapeWC(values.getAddress2()));
+                ps.setString(4, DB.escapeWC(values.getPostalCode()));
+                ps.setString(5, DB.escapeWC(values.getPhone()));
+                try (ResultSet rs = ps.getResultSet()) {
+                    while (rs.next()) {
+                        AddressDAO result = fromResultSet(rs);
+                        LogHelper.logWarnings(connection, LOG);
+                        if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode())
+                                && result.phone.equalsIgnoreCase(values.getPhone())) {
+                            return result;
+                        }
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+            }
+            return null;
         }
 
         int countByCity(int primaryKey, Connection connection) throws SQLException {

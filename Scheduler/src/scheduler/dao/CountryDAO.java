@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -29,6 +31,7 @@ import scheduler.model.Country;
 import scheduler.model.CountryEntity;
 import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.CountryHelper;
+import scheduler.model.PredefinedData;
 import scheduler.model.fx.CountryModel;
 import scheduler.util.InternalException;
 import scheduler.util.LogHelper;
@@ -60,8 +63,13 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
      * Initializes a {@link DataRowState#NEW} country data access object.
      */
     public CountryDAO() {
-        super();
         name = "";
+        originalValues = new OriginalValues();
+    }
+
+    public CountryDAO(PredefinedData.PredefinedCountry country) {
+        name = country.getName();
+        locale = country.getLocale();
         originalValues = new OriginalValues();
     }
 
@@ -309,7 +317,8 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
         public CountryDAO getByRegionCode(Connection connection, String regionCode) throws SQLException {
             String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
                     .append(DbColumn.COUNTRY_NAME).append("=?").toString();
-            LOG.fine(() -> String.format("getByRegionCode", "Executing DML statement: %s", sql));
+
+            LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, regionCode);
                 try (ResultSet rs = ps.getResultSet()) {
@@ -322,6 +331,40 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
                 }
             }
             return null;
+        }
+
+        public ArrayList<CountryDAO> getByRegionCodes(Connection connection, Collection<String> regionCodes) throws SQLException {
+            StringBuffer buffer = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
+                    .append(DbColumn.COUNTRY_NAME).append("=?");
+            int c = regionCodes.size();
+            for (int i = 1; i < c; i++) {
+                buffer.append(" OR ").append(DbColumn.COUNTRY_NAME).append("=?");
+            }
+            String sql = buffer.toString();
+            LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+            ArrayList<CountryDAO> result = new ArrayList<>();
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                Iterator<String> iterator = regionCodes.iterator();
+                int idx = 0;
+                do {
+                    ps.setString(++idx, iterator.next());
+                } while (iterator.hasNext());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (null != rs && rs.next()) {
+                        do {
+                            result.add(fromResultSet(rs));
+                        } while (rs.next());
+                        LogHelper.logWarnings(connection, LOG);
+                        return result;
+                    }
+                    if (LogHelper.logWarnings(connection, LOG)) {
+                        LOG.log(Level.WARNING, "No results.");
+                    } else {
+                        LOG.log(Level.WARNING, "No results, no warnings.");
+                    }
+                }
+            }
+            return result;
         }
 
         @Override

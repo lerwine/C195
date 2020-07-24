@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOGGINGIN;
 import scheduler.dao.UserDAO;
+import scheduler.model.PredefinedData;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.bindExtents;
@@ -39,11 +40,11 @@ import scheduler.view.ViewAndController;
 /**
  * Main Application class for the Scheduler application.
  * <p>
- * Upon startup, {@link MainController} is loaded as the root node a the {@link Scene} of the primary {@link Stage}. It will not be completely
- * initialized until the user is successfully logged in. The {@link Login} custom control is appended as the last child node of the view for the main
- * controller, which masks the entire window until the login is successful. To validate credentials, the {@link Login} control invokes
- * {@link LoginBorderPane#tryLoginUser(scheduler.Scheduler.LoginBorderPane, java.lang.String, java.lang.String)}. After successful authentication, the current user data object is stored in
- * {@link Scheduler#currentUser}, the {@link Login} control is removed, and the {@link MainController} is completed.</p>
+ * Upon startup, {@link MainController} is loaded as the root node a the {@link Scene} of the primary {@link Stage}. It will not be completely initialized until the user is
+ * successfully logged in. The {@link Login} custom control is appended as the last child node of the view for the main controller, which masks the entire window until the login is
+ * successful. To validate credentials, the {@link Login} control invokes
+ * {@link LoginBorderPane#tryLoginUser(scheduler.Scheduler.LoginBorderPane, java.lang.String, java.lang.String)}. After successful authentication, the current user data object is
+ * stored in {@link Scheduler#currentUser}, the {@link Login} control is removed, and the {@link MainController} is completed.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -201,7 +202,7 @@ public final class Scheduler extends Application {
                 unbindExtents(loginView);
                 Pane pane = (Pane) loginView.getParent();
                 pane.getChildren().remove(loginView);
-                ((Stage)pane.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
+                ((Stage) pane.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
                 getMainController().replaceContent(new Overview());
             }
         }
@@ -222,6 +223,8 @@ public final class Scheduler extends Application {
                     if (hash.test(password)) {
                         LOG.fine("Password matched");
                         currentUser = result.get();
+                        Platform.runLater(() -> updateMessage(AppResources.getResourceString(RESOURCEKEY_LOGGINGIN)));
+                        PredefinedData.ensureDatabaseEntries(dbConnector.getConnection());
                         return result.get();
                     }
                     LOG.log(Level.WARNING, "Password mismatch");
