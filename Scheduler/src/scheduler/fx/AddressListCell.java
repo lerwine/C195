@@ -1,18 +1,17 @@
 package scheduler.fx;
 
 import javafx.scene.control.ListCell;
-import scheduler.dao.PartialAddressDAO;
-import scheduler.model.City;
+import scheduler.model.AddressProperties;
+import scheduler.model.CityProperties;
 import scheduler.model.ModelHelper.CityHelper;
 import scheduler.model.ModelHelper.CountryHelper;
-import scheduler.model.fx.PartialAddressModel;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T>
  */
-public class AddressListCell<T extends PartialAddressModel<? extends PartialAddressDAO>> extends ListCell<T> {
+public class AddressListCell<T extends AddressProperties> extends ListCell<T> {
 
     @Override
     protected void updateItem(T item, boolean empty) {
@@ -21,7 +20,7 @@ public class AddressListCell<T extends PartialAddressModel<? extends PartialAddr
             setText("");
         } else {
             String cityZipCountry = item.getPostalCode();
-            City city;
+            CityProperties city;
             if (null == cityZipCountry || (cityZipCountry = cityZipCountry.trim()).isEmpty()) {
                 if (null == (city = item.getCity())) {
                     cityZipCountry = "";
