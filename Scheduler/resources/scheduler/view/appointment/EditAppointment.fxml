@@ -27,8 +27,8 @@
 <?import scheduler.fx.AddressListCellFactory?>
 <?import scheduler.fx.AmPmListCell?>
 <?import scheduler.fx.AmPmListCellFactory?>
-<?import scheduler.fx.AppointmentTypeListCell?>
-<?import scheduler.fx.AppointmentTypeListCellFactory?>
+<?import scheduler.fx.CorporateAddressListCell?>
+<?import scheduler.fx.CorporateAddressListCellFactory?>
 <?import scheduler.fx.CustomerListCell?>
 <?import scheduler.fx.CustomerListCellFactory?>
 <?import scheduler.fx.DateTimeTableCellFactory?>
@@ -241,10 +241,10 @@
                                         <String fx:value="collapsed" />
                                     </styleClass>
                                     <cellFactory>
-                                        <AddressListCellFactory />
+                                        <CorporateAddressListCellFactory />
                                     </cellFactory>
                                     <buttonCell>
-                                        <AddressListCell />
+                                        <CorporateAddressListCell />
                                     </buttonCell>
                                 </ComboBox>
                                 <StackPane>
