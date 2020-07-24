@@ -138,12 +138,16 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("")));
         }
         return hour.map(
-                (u) -> minute.map(
-                        (v) -> BinarySelective.ofPrimary(
-                                (u > 0)
-                                        ? ((v > 0) ? start.plusMinutes(v) : start).plusHours(u)
-                                        : ((v > 0) ? start.plusMinutes(v) : start)
-                        ),
+                (hv) -> minute.map((mv) -> {
+                    if (hv > 0) {
+                        if (mv > 0)
+                            return BinarySelective.ofPrimary(start.plusHours(hv).plusMinutes(mv));
+                        return BinarySelective.ofPrimary(start.plusHours(hv));
+                    }
+                    if (mv > 0)
+                        return BinarySelective.ofPrimary(start.plusMinutes(mv));
+                    return BinarySelective.ofPrimary(start);
+                },
                         (v) -> BinarySelective.ofSecondary(v)
                 ),
                 (u) -> BinarySelective.ofSecondary(u)
@@ -156,11 +160,14 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("* Required")));
         }
 
-        return hour.map(
-                (hv) -> minute.map(
-                        (mv) -> BinarySelective.ofPrimary(date.atTime((isPm) ? ((hv > 12) ? hv + 12 : 12) : ((hv == 12) ? 0 : hv), mv)),
-                        (mm) -> BinarySelective.ofSecondary(mm)
-                ),
+        return hour.map((hv) -> {
+            return minute.map((mv) -> {
+                int h = (isPm) ? ((hv < 12) ? hv + 12 : 12) : ((hv == 12) ? 0 : hv);
+                return BinarySelective.ofPrimary(date.atTime(h, mv));
+            },
+                    (mm) -> BinarySelective.ofSecondary(mm)
+            );
+        },
                 (hm) -> BinarySelective.ofSecondary(hm)
         );
     }
@@ -1022,7 +1029,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 if (null != rangeEnd) {
                     long h = Duration.between(rangeStart, rangeEnd).toMinutes();
                     long m = h % 60;
-                    durationHourTextField.setText(INTN_FORMAT.format(h - m));
+                    durationHourTextField.setText(INTN_FORMAT.format((h - m) / 60));
                     durationMinuteTextField.setText(INT2_FORMAT.format(m));
                 }
             }
