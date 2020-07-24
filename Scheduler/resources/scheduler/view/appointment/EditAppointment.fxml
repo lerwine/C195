@@ -23,10 +23,10 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import scheduler.fx.AddressListCell?>
-<?import scheduler.fx.AddressListCellFactory?>
 <?import scheduler.fx.AmPmListCell?>
 <?import scheduler.fx.AmPmListCellFactory?>
+<?import scheduler.fx.AppointmentTypeListCell?>
+<?import scheduler.fx.AppointmentTypeListCellFactory?>
 <?import scheduler.fx.CorporateAddressListCell?>
 <?import scheduler.fx.CorporateAddressListCellFactory?>
 <?import scheduler.fx.CustomerListCell?>
