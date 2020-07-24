@@ -173,12 +173,12 @@
                                 </ComboBox>
                                 <ButtonBar buttonMinWidth="46.0" HBox.hgrow="ALWAYS">
                                     <buttons>
-                                        <Button fx:id="showConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%show">
+                                        <Button fx:id="showConflictsButton" mnemonicParsing="false" onAction="#onShowConflictsButtonAction" styleClass="small-control" text="%show">
                                             <font>
                                                 <Font size="10.0" />
                                             </font>
                                         </Button>
-                                        <Button fx:id="checkConflictsButton" mnemonicParsing="false" styleClass="small-control" text="%check">
+                                        <Button fx:id="checkConflictsButton" mnemonicParsing="false" onAction="#onCheckConflictsButtonAction" styleClass="small-control" text="%check">
                                             <font>
                                                 <Font size="10.0" />
                                             </font>

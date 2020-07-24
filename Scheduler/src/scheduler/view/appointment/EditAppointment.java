@@ -448,6 +448,11 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML
+    void onCheckConflictsButtonAction(ActionEvent event) {
+        // FIXME: Implement scheduler.view.appointment.EditAppointment.onCheckConflictsButtonAction(ActionEvent)
+    }
+
+    @FXML
     void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onCloseConflictsBorderPaneButtonAction", event);
         collapseNode(appointmentConflictsBorderPane);
@@ -514,6 +519,11 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML
+    void onShowConflictsButtonAction(ActionEvent event) {
+        // FIXME: Implement scheduler.view.appointment.EditAppointment.onShowConflictsButtonAction(ActionEvent)
+    }
+
+    @FXML
     void onUserDropDownOptionsButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onUserDropDownOptionsButtonAction", event);
         editingUserOptions = true;
@@ -533,7 +543,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        LOG.entering(LOG.getName(), "initialize");
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
