@@ -1,8 +1,11 @@
 package scheduler.util;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -52,10 +55,16 @@ import scheduler.view.SymbolText;
  */
 public class NodeUtil {
 
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(NodeUtil.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
+
     private static void addCssClass(ObservableList<String> styleClass, String name) {
+        LOG.entering(LOG.getName(), "addCssClass", new Object[] { styleClass, name });
         if (!styleClass.contains(name)) {
+            LOG.fine(() -> String.format("Adding class %s", name));
             styleClass.add(name);
         }
+        LOG.exiting(LOG.getName(), "addCssClass");
     }
     
     public static boolean isVisibleInWindow(Node node) {
@@ -97,7 +106,10 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
      */
     public static <T extends Styleable> T addCssClass(T stylable, CssClassName... classNames) {
-        return CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
+        LOG.entering(LOG.getName(), "addCssClass", new Object[] { stylable, classNames });
+        T result = CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
+        LOG.exiting(LOG.getName(), "addCssClass", result);
+        return result;
     }
 
     /**
@@ -109,7 +121,10 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
      */
     public static <T extends Styleable> T addCssClass(T stylable, Collection<CssClassName> classNames) {
-        return CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
+        LOG.entering(LOG.getName(), "addCssClass", new Object[] { stylable, classNames });
+        T result = CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
+        LOG.exiting(LOG.getName(), "addCssClass", result);
+        return result;
     }
 
     /**
@@ -121,9 +136,13 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the specified CSS {@code classNames} removed.
      */
     public static <T extends Styleable> T removeCssClass(T stylable, CssClassName... classNames) {
+        LOG.entering(LOG.getName(), "removeCssClass", new Object[] { stylable, classNames });
         if (null != classNames && classNames.length > 0) {
+            LOG.fine(() -> String.format("Before remove: %s", String.join("; ", stylable.getStyleClass())));
             stylable.getStyleClass().removeAll(CssClassName.toStringArray(classNames));
+            LOG.fine(() -> String.format("After remove: %s", String.join("; ", stylable.getStyleClass())));
         }
+        LOG.exiting(LOG.getName(), "removeCssClass", stylable);
         return stylable;
     }
 
@@ -136,10 +155,13 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the new CSS {@code classNames} applied.
      */
     public static <T extends Styleable> T setCssClass(T stylable, CssClassName... classNames) {
+        LOG.entering(LOG.getName(), "setCssClass", new Object[] { stylable, classNames });
         if (null != classNames && classNames.length > 0) {
+            LOG.fine(() -> String.format("Before setAll: %s", String.join("; ", stylable.getStyleClass())));
             stylable.getStyleClass().setAll(CssClassName.toStringArray(classNames));
+            LOG.fine(() -> String.format("After setAll: %s", String.join("; ", stylable.getStyleClass())));
         }
-        javafx.collections.FXCollections.observableArrayList();
+        LOG.exiting(LOG.getName(), "setCssClass", stylable);
         return stylable;
     }
 
@@ -321,7 +343,7 @@ public class NodeUtil {
      * @return The {@code child} {@link Node} constrained within the {@link GridPane}.
      */
     public static <T extends Node> T setGridPanePosition(T child, GridPane gridPane, int columnIndex, int rowIndex, int columnspan, int rowspan) {
-        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, columnspan, rowspan, (HPos) null, (VPos) null);
+        return setGridPanePosition(child, gridPane, columnIndex, rowIndex, columnspan, rowspan, null, (VPos) null);
     }
 
     /**
@@ -505,16 +527,14 @@ public class NodeUtil {
     }
 
     public static Button createButton(String text, CssClassName... className) {
-        return createButton(text, (EventHandler<ActionEvent>) null, className);
+        return createButton(text, null, className);
     }
 
     public static ButtonBar createButtonBar(Button... buttons) {
         ButtonBar result = new ButtonBar();
         if (null != buttons && buttons.length > 0) {
             ObservableList<Node> btnList = result.getButtons();
-            for (Button b : buttons) {
-                btnList.add(b);
-            }
+            btnList.addAll(Arrays.asList(buttons));
         }
         return result;
     }
@@ -643,7 +663,10 @@ public class NodeUtil {
      * @return The collapsed {@link Node}.
      */
     public static <T extends Node> T collapseNode(T node) {
-        return addCssClass(node, CssClassName.COLLAPSED);
+        LOG.entering(LOG.getName(), "collapseNode", node);
+        T result = addCssClass(node, CssClassName.COLLAPSED);
+        LOG.exiting(LOG.getName(), "collapseNode", result);
+        return result;
     }
 
     public static void bindCssCollapse(Styleable target, BooleanBinding predicate) {
@@ -742,10 +765,12 @@ public class NodeUtil {
      * @return The restored {@link Node}.
      */
     public static <T extends Node> T restoreNode(T node) {
+        LOG.entering(LOG.getName(), "collapseNode", node);
         removeCssClass(node, CssClassName.COLLAPSED);
         if (!node.isVisible()) {
             node.setVisible(true);
         }
+        LOG.exiting(LOG.getName(), "collapseNode", node);
         return node;
     }
 
@@ -758,10 +783,12 @@ public class NodeUtil {
      * @return The restored {@link Node}.
      */
     public static <T extends Node> T restoreNodeAsNotVisible(T node) {
+        LOG.entering(LOG.getName(), "restoreNodeAsNotVisible", node);
         removeCssClass(node, CssClassName.COLLAPSED);
         if (node.isVisible()) {
             node.setVisible(false);
         }
+        LOG.exiting(LOG.getName(), "restoreNodeAsNotVisible", node);
         return node;
     }
 
@@ -775,15 +802,18 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreLabeled(T control, String text) {
+        LOG.entering(LOG.getName(), "restoreLabeled", new Object[] { control, text });
         removeCssClass(control, CssClassName.COLLAPSED);
         if (!control.isVisible()) {
             control.setVisible(true);
         }
         control.setText(text);
+        LOG.exiting(LOG.getName(), "restoreLabeled", control);
         return control;
     }
 
     public static <T extends Labeled> T setErrorMessage(T control, String text) {
+        LOG.entering(LOG.getName(), "setErrorMessage", new Object[] { control, text });
         CssClassName n = CssClassName.ERROR;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -794,10 +824,12 @@ public class NodeUtil {
         }
         addCssClass(control, n);
         control.setText(text);
+        LOG.exiting(LOG.getName(), "setErrorMessage", control);
         return control;
     }
 
     public static <T extends Labeled> T setWarningMessage(T control, String text) {
+        LOG.entering(LOG.getName(), "setWarningMessage", new Object[] { control, text });
         CssClassName n = CssClassName.WARNING;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -808,10 +840,12 @@ public class NodeUtil {
         }
         addCssClass(control, n);
         control.setText(text);
+        LOG.exiting(LOG.getName(), "setWarningMessage", control);
         return control;
     }
 
     public static <T extends Labeled> T setInfoMessage(T control, String text) {
+        LOG.entering(LOG.getName(), "setInfoMessage", new Object[] { control, text });
         CssClassName n = CssClassName.INFO;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -822,6 +856,7 @@ public class NodeUtil {
         }
         addCssClass(control, n);
         control.setText(text);
+        LOG.exiting(LOG.getName(), "setInfoMessage", control);
         return control;
     }
 
@@ -835,6 +870,7 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreErrorLabeled(T control, String text) {
+        LOG.entering(LOG.getName(), "restoreErrorLabeled", new Object[] { control, text });
         CssClassName n = CssClassName.ERROR;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -849,6 +885,7 @@ public class NodeUtil {
             control.setVisible(true);
         }
         control.setText(text);
+        LOG.exiting(LOG.getName(), "restoreErrorLabeled", control);
         return control;
     }
 
@@ -862,6 +899,7 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreWarningLabeled(T control, String text) {
+        LOG.entering(LOG.getName(), "restoreWarningLabeled", new Object[] { control, text });
         CssClassName n = CssClassName.WARNING;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -876,6 +914,7 @@ public class NodeUtil {
             control.setVisible(true);
         }
         control.setText(text);
+        LOG.exiting(LOG.getName(), "restoreWarningLabeled", control);
         return control;
     }
 
@@ -889,6 +928,7 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreInfoLabeled(T control, String text) {
+        LOG.entering(LOG.getName(), "restoreInfoLabeled", new Object[] { control, text });
         CssClassName n = CssClassName.INFO;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -903,6 +943,7 @@ public class NodeUtil {
             control.setVisible(true);
         }
         control.setText(text);
+        LOG.exiting(LOG.getName(), "restoreInfoLabeled", control);
         return control;
     }
 
@@ -920,15 +961,7 @@ public class NodeUtil {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
-    public static void collapseWhenTrue(Node node, ObservableValue<Boolean> observable) {
-        observable.addListener((o) -> {
-            if (((ObservableValue<Boolean>) o).getValue()) {
-                collapseNode(node);
-            } else {
-                restoreNode(node);
-            }
-        });
+    private NodeUtil() {
     }
 
 }
