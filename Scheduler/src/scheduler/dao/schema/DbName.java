@@ -3,8 +3,7 @@ package scheduler.dao.schema;
 /**
  * Names used by the database schema for tables and columns.
  * <p>
- * These are constant values that can be used to programmatically refer to {@link DbColumn#dbName}, {@link DbTable#dbName} and
- * {@link DbTable#pkColName}
+ * These are constant values that can be used to programmatically refer to {@link DbColumn#dbName}, {@link DbTable#dbName} and {@link DbTable#pkColName}
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -119,26 +118,22 @@ public enum DbName {
     APPOINTMENT_ID("appointmentId"),
     /**
      * The database schema name for the {@link DbColumn#APPOINTMENT_CREATE_DATE}, {@link DbColumn#CUSTOMER_CREATE_DATE},
-     * {@link DbColumn#ADDRESS_CREATE_DATE}, {@link DbColumn#CITY_CREATE_DATE}, {@link DbColumn#COUNTRY_CREATE_DATE} and
-     * {@link DbColumn#USER_CREATE_DATE} columns.
+     * {@link DbColumn#ADDRESS_CREATE_DATE}, {@link DbColumn#CITY_CREATE_DATE}, {@link DbColumn#COUNTRY_CREATE_DATE} and {@link DbColumn#USER_CREATE_DATE} columns.
      */
     CREATE_DATE("createDate"),
     /**
      * The database schema name for the {@link DbColumn#APPOINTMENT_CREATED_BY}, {@link DbColumn#CUSTOMER_CREATED_BY},
-     * {@link DbColumn#ADDRESS_CREATED_BY}, {@link DbColumn#CITY_CREATED_BY}, {@link DbColumn#COUNTRY_CREATED_BY} and {@link DbColumn#USER_CREATED_BY}
-     * columns.
+     * {@link DbColumn#ADDRESS_CREATED_BY}, {@link DbColumn#CITY_CREATED_BY}, {@link DbColumn#COUNTRY_CREATED_BY} and {@link DbColumn#USER_CREATED_BY} columns.
      */
     CREATED_BY("createdBy"),
     /**
      * The database schema name for the {@link DbColumn#APPOINTMENT_LAST_UPDATE}, {@link DbColumn#CUSTOMER_LAST_UPDATE},
-     * {@link DbColumn#ADDRESS_LAST_UPDATE}, {@link DbColumn#CITY_LAST_UPDATE}, {@link DbColumn#COUNTRY_LAST_UPDATE} and
-     * {@link DbColumn#USER_LAST_UPDATE} columns.
+     * {@link DbColumn#ADDRESS_LAST_UPDATE}, {@link DbColumn#CITY_LAST_UPDATE}, {@link DbColumn#COUNTRY_LAST_UPDATE} and {@link DbColumn#USER_LAST_UPDATE} columns.
      */
     LAST_UPDATE("lastUpdate"),
     /**
      * The database schema name for the {@link DbColumn#APPOINTMENT_LAST_UPDATE_BY}, {@link DbColumn#CUSTOMER_LAST_UPDATE}_BY,
-     * {@link DbColumn#ADDRESS_LAST_UPDATE_BY}, {@link DbColumn#CITY_LAST_UPDATE_BY}, {@link DbColumn#COUNTRY_LAST_UPDATE_BY} and
-     * {@link DbColumn#USER_LAST_UPDATE_BY} columns.
+     * {@link DbColumn#ADDRESS_LAST_UPDATE_BY}, {@link DbColumn#CITY_LAST_UPDATE_BY}, {@link DbColumn#COUNTRY_LAST_UPDATE_BY} and {@link DbColumn#USER_LAST_UPDATE_BY} columns.
      */
     LAST_UPDATE_BY("lastUpdateBy");
 

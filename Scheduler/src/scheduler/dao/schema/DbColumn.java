@@ -34,7 +34,7 @@ public enum DbColumn {
      */
     ADDRESS1(DbName.ADDRESS, ColumnType.VARCHAR, 50, DbTable.ADDRESS, ColumnCategory.DATA),
     /**
-     * The {@code "address1"} column in the {@link DbTable#ADDRESS} data table.
+     * The {@code "address2"} column in the {@link DbTable#ADDRESS} data table.
      */
     ADDRESS2(DbName.ADDRESS2, ColumnType.VARCHAR, 50, DbTable.ADDRESS, ColumnCategory.DATA),
     /**
