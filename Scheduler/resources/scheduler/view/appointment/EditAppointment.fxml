@@ -163,12 +163,12 @@
                                 </TextField>
                                 <Label text=":" />
                                 <TextField fx:id="startMinuteTextField" prefWidth="45.0" promptText="%minutes" styleClass="topLabeledControl" />
-                                <ComboBox fx:id="amPmComboBox" minWidth="58.0" styleClass="topLabeledControl">
+                                <ComboBox fx:id="amPmComboBox" minWidth="64.0" styleClass="topLabeledControl">
                                     <cellFactory>
                                         <AmPmListCellFactory />
                                     </cellFactory>
                                     <buttonCell>
-                                        <AmPmListCell />
+                                        <AmPmListCell editable="false" />
                                     </buttonCell>
                                 </ComboBox>
                                 <ButtonBar buttonMinWidth="46.0" HBox.hgrow="ALWAYS">
@@ -193,39 +193,40 @@
                                 <String fx:value="error" />
                             </styleClass>
                         </Label>
-                  <GridPane hgap="16.0">
-                    <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints vgrow="SOMETIMES" />
-                      <RowConstraints vgrow="SOMETIMES" />
-                    </rowConstraints>
-                     <children>
-                              <Label styleClass="topControlLabel" text="%duration" />
-                              <HBox GridPane.rowIndex="1">
-                                  <children>
-                                      <TextField fx:id="durationHourTextField" minWidth="75.0" prefWidth="75.0" promptText="%hours" styleClass="topLabeledControl" />
-                                      <Label text=":" />
-                                      <TextField fx:id="durationMinuteTextField" minWidth="75.0" prefWidth="75.0" promptText="%minutes" styleClass="topLabeledControl" />
-                                  </children>
-                              </HBox>
-                        <Label styleClass="topControlLabel" text="End" GridPane.columnIndex="1" />
-                        <Label fx:id="endDateTimeLabel" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                           <styleClass>
-                              <String fx:value="topLabeledControl" />
-                              <String fx:value="information" />
-                           </styleClass>
-                        </Label>
-                     </children>
-                  </GridPane>
-                        <Label fx:id="durationValidationLabel" text="%required">
-                            <styleClass>
-                                <String fx:value="validationMessage" />
-                                <String fx:value="error" />
-                            </styleClass>
-                        </Label>
+                        <GridPane hgap="16.0">
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints vgrow="SOMETIMES" />
+                                <RowConstraints vgrow="SOMETIMES" />
+                                <RowConstraints vgrow="SOMETIMES" />
+                            </rowConstraints>
+                            <children>
+                                <Label styleClass="topControlLabel" text="%duration" />
+                                <HBox GridPane.rowIndex="1">
+                                    <children>
+                                        <TextField fx:id="durationHourTextField" minWidth="75.0" prefWidth="75.0" promptText="%hours" styleClass="topLabeledControl" />
+                                        <Label text=":" />
+                                        <TextField fx:id="durationMinuteTextField" minWidth="75.0" prefWidth="75.0" promptText="%minutes" styleClass="topLabeledControl" />
+                                    </children>
+                                </HBox>
+                                <Label styleClass="topControlLabel" text="End" GridPane.columnIndex="1" />
+                                <Label fx:id="endDateTimeLabel" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.rowSpan="2">
+                                    <styleClass>
+                                        <String fx:value="topLabeledControl" />
+                                        <String fx:value="information" />
+                                    </styleClass>
+                                </Label>
+                                <Label fx:id="durationValidationLabel" text="%required" GridPane.rowIndex="2">
+                                    <styleClass>
+                                        <String fx:value="validationMessage" />
+                                        <String fx:value="error" />
+                                    </styleClass>
+                                </Label>
+                            </children>
+                        </GridPane>
                         <HBox>
                             <children>
                                 <Label fx:id="locationLabel" maxWidth="1.7976931348623157E308" styleClass="topControlLabel" text="%locationLabelText" HBox.hgrow="ALWAYS" />
@@ -255,11 +256,12 @@
                                                 <String fx:value="collapsed" />
                                             </styleClass>
                                         </TextField>
-                                        <Label fx:id="implicitLocationLabel">
-                                 <styleClass>
-                                    <String fx:value="topLabeledControl" />
-                                    <String fx:value="collapsed" />
-                                 </styleClass></Label>
+                                        <Label fx:id="implicitLocationLabel" wrapText="true">
+                                            <styleClass>
+                                                <String fx:value="topLabeledControl" />
+                                                <String fx:value="collapsed" />
+                                            </styleClass>
+                                        </Label>
                                     </children>
                                 </StackPane>
                             </children>
