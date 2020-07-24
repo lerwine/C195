@@ -321,7 +321,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
             LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, regionCode);
-                try (ResultSet rs = ps.getResultSet()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         CountryDAO result = fromResultSet(rs);
                         LogHelper.logWarnings(connection, LOG);

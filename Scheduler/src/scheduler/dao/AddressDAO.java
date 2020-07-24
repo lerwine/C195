@@ -527,12 +527,12 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                 ps.setString(3, DB.escapeWC(values.getAddress2()));
                 ps.setString(4, DB.escapeWC(values.getPostalCode()));
                 ps.setString(5, DB.escapeWC(values.getPhone()));
-                try (ResultSet rs = ps.getResultSet()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         AddressDAO result = fromResultSet(rs);
-                        LogHelper.logWarnings(connection, LOG);
                         if (result.address1.equals(values.getAddress1()) && result.address2.equals(values.getAddress2()) && result.postalCode.equals(values.getPostalCode())
                                 && result.phone.equalsIgnoreCase(values.getPhone())) {
+                            LogHelper.logWarnings(connection, LOG);
                             return result;
                         }
                     }

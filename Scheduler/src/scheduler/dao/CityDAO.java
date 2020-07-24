@@ -345,7 +345,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             LOG.fine(() -> String.format("getByCountry", "Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, countryId);
-                try (ResultSet rs = ps.getResultSet()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         result.add(fromResultSet(rs));
                     }
@@ -391,15 +391,15 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                 name = Values.asNonNullAndWsNormalized(name);
                 ps.setInt(1, countryId);
                 ps.setString(2, DB.escapeWC(name));
-                try (ResultSet rs = ps.getResultSet()) {
+                try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         CityDAO result = fromResultSet(rs);
-                        LogHelper.logWarnings(connection, LOG);
                         if (result.name.equalsIgnoreCase(name)) {
+                            LogHelper.logWarnings(connection, LOG);
                             return result;
                         }
                     }
-                    LogHelper.logWarnings(connection, LOG);
+                LogHelper.logWarnings(connection, LOG);
                 }
             }
             return null;
