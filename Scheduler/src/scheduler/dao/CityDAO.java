@@ -384,7 +384,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         public CityDAO getByName(Connection connection, String name, int countryId) throws SQLException {
             String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
-                    .append(DbColumn.CITY_COUNTRY.getDbName()).append("=? AND ")
+                    .append(DbTable.CITY).append(".").append(DbColumn.CITY_COUNTRY).append("=? AND ")
                     .append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?").toString();
             LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -407,14 +407,19 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
         public ArrayList<CityDAO> getByNames(Connection connection, Collection<String> names, int countryId) throws SQLException {
             StringBuffer buffer = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
-                    .append(DbColumn.CITY_COUNTRY.getDbName()).append("=? AND (")
-                    .append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?");
+                    .append(DbTable.CITY).append(".").append(DbColumn.CITY_COUNTRY);
             int c = names.size();
-            for (int i = 1; i < c; i++) {
-                buffer.append(" OR ").append(DbColumn.COUNTRY_NAME).append(" LIKE ?");
+            if (c > 1) {
+                buffer.append("=? AND (").append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?");
+                for (int i = 1; i < c; i++) {
+                    buffer.append(" OR ").append(DbColumn.COUNTRY_NAME).append(" LIKE ?");
+                }
+                buffer.append(")");
+            } else {
+                buffer.append("=? AND ").append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?");
             }
-            String sql = buffer.append(")").toString();
-            LOG.fine(() -> String.format("getByResourceKey", "Executing DML statement: %s", sql));
+            String sql = buffer.toString();
+            LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             ArrayList<CityDAO> result = new ArrayList<>();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, countryId);

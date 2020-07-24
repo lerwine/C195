@@ -515,7 +515,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
         public AddressDAO getByValues(Connection connection, AddressLookup values, final int cityPk) throws SQLException {
             String sql = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
-                    .append(DbColumn.ADDRESS_CITY.getDbName()).append("=? AND ")
+                    .append(DbTable.ADDRESS).append(".").append(DbColumn.ADDRESS_CITY).append("=? AND ")
                     .append(DbColumn.ADDRESS1.getDbName()).append(" LIKE ? AND ")
                     .append(DbColumn.ADDRESS2.getDbName()).append(" LIKE ? AND ")
                     .append(DbColumn.POSTAL_CODE.getDbName()).append(" LIKE ? AND ")

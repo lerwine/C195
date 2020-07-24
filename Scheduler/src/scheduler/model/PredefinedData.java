@@ -164,7 +164,8 @@ public class PredefinedData {
     }
 
     public static void ensureDatabaseEntries(Connection connection) throws SQLException {
-        Map<String, SupportedCountryDefinition> map = getSupportedCountryDefinitionMap();
+        Map<String, SupportedCountryDefinition> map = new HashMap<>();
+        getSupportedCountryDefinitionMap().values().forEach((t) -> map.put(t.getLocale().toLanguageTag(), t));
         CountryDAO.FACTORY.getByRegionCodes(connection, map.keySet()).stream().forEach((t) -> {
             String key = t.getLocale().toLanguageTag();
             if (map.containsKey(key)) {
@@ -207,7 +208,7 @@ public class PredefinedData {
             country.dataAccessObject = c;
         }
         HashMap<String, PredefinedCity> map = new HashMap<>();
-        country.cities.stream().map((t) -> map.put(t.getName(), t));
+        country.cities.forEach((t) -> map.put(t.getName(), t));
         CityDAO.FACTORY.getByNames(connection, map.keySet(), c.getPrimaryKey()).stream().forEach((t) -> {
             String key = t.getName();
             if (map.containsKey(key)) {
