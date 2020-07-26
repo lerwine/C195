@@ -636,23 +636,24 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
             int count;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, ModelHelper.getPrimaryKey(dao.getCity()));
-                int index = 2;
+                int index = 1;
                 if (!dao.address1.isEmpty()) {
-                    ps.setString(index++, dao.address1.toLowerCase());
+                    ps.setString(++index, dao.address1.toLowerCase());
                 }
                 if (!dao.address2.isEmpty()) {
-                    ps.setString(index++, dao.address2.toLowerCase());
+                    ps.setString(++index, dao.address2.toLowerCase());
                 }
                 if (!dao.postalCode.isEmpty()) {
-                    ps.setString(index++, dao.postalCode.toLowerCase());
+                    ps.setString(++index, dao.postalCode.toLowerCase());
                 }
                 if (!dao.phone.isEmpty()) {
-                    ps.setString(index, dao.phone.toLowerCase());
+                    ps.setString(++index, dao.phone.toLowerCase());
                 }
                 if (getOriginalRowState() != DataRowState.NEW) {
-                    ps.setInt(index, dao.getPrimaryKey());
+                    ps.setInt(++index, dao.getPrimaryKey());
                 }
                 LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         count = rs.getInt(1);
