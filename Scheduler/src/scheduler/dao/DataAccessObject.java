@@ -1150,6 +1150,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 sb.append(" WHERE ").append(dbName).append("=?");
             }
             String sql = sb.toString();
+            LOG.fine(() -> String.format("Executing SQL statement %s", sql));
             try (PreparedStatement ps = (getOriginalRowState() == DataRowState.NEW)
                     ? connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
                     : connection.prepareStatement(sb.toString())) {

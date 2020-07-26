@@ -118,7 +118,7 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
 public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINEST);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     private static final String INVALID_NUMBER = "Invalid number";
@@ -134,50 +134,63 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     private static BinarySelective<LocalDateTime, String> calculateEndDateTime(LocalDateTime start, BinarySelective<Integer, String> hour, BinarySelective<Integer, String> minute) {
+        BinarySelective<LocalDateTime, String> result;
+        LOG.entering(LOG.getName(), "calculateEndDateTime", new Object[]{start, hour, minute});
         if (null == start) {
-            return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("")));
-        }
-        return hour.map(
-                (hv) -> minute.map((mv) -> {
-                    if (hv > 0) {
-                        if (mv > 0) {
-                            return BinarySelective.ofPrimary(start.plusHours(hv).plusMinutes(mv));
+            result = BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("")));
+        } else {
+            result = hour.map(
+                    (hv) -> minute.map((mv) -> {
+                        if (hv > 0) {
+                            if (mv > 0) {
+                                return BinarySelective.ofPrimary(start.plusHours(hv).plusMinutes(mv));
+                            }
+                            return BinarySelective.ofPrimary(start.plusHours(hv));
                         }
-                        return BinarySelective.ofPrimary(start.plusHours(hv));
-                    }
-                    if (mv > 0) {
-                        return BinarySelective.ofPrimary(start.plusMinutes(mv));
-                    }
-                    return BinarySelective.ofPrimary(start);
-                },
-                        (v) -> BinarySelective.ofSecondary(v)
-                ),
-                (u) -> BinarySelective.ofSecondary(u)
-        );
+                        if (mv > 0) {
+                            return BinarySelective.ofPrimary(start.plusMinutes(mv));
+                        }
+                        return BinarySelective.ofPrimary(start);
+                    },
+                            (v) -> BinarySelective.ofSecondary(v)
+                    ),
+                    (u) -> BinarySelective.ofSecondary(u)
+            );
+        }
+        LOG.exiting(LOG.getName(), "calculateEndDateTime", result);
+        return result;
     }
 
-    private static BinarySelective<LocalDateTime, String> calculateDateTime(LocalDate date, BinarySelective<Integer, String> hour,
+    private static BinarySelective<LocalDateTime, String> calculateStartDateTime(LocalDate date, BinarySelective<Integer, String> hour,
             BinarySelective<Integer, String> minute, boolean isPm) {
+        LOG.entering(LOG.getName(), "calculateStartDateTime", new Object[]{date, hour, minute, isPm});
+        BinarySelective<LocalDateTime, String> result;
         if (null == date) {
-            return BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("* Required")));
-        }
-
-        return hour.map((hv) -> {
-            return minute.map((mv) -> {
-                int h = (isPm) ? ((hv < 12) ? hv + 12 : 12) : ((hv == 12) ? 0 : hv);
-                return BinarySelective.ofPrimary(date.atTime(h, mv));
+            result = BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("* Required")));
+        } else {
+            result = hour.map((hv) -> {
+                return minute.map((mv) -> {
+                    int h = (isPm) ? ((hv < 12) ? hv + 12 : 12) : ((hv == 12) ? 0 : hv);
+                    return BinarySelective.ofPrimary(date.atTime(h, mv));
+                },
+                        (mm) -> BinarySelective.ofSecondary(mm)
+                );
             },
-                    (mm) -> BinarySelective.ofSecondary(mm)
+                    (hm) -> BinarySelective.ofSecondary(hm)
             );
-        },
-                (hm) -> BinarySelective.ofSecondary(hm)
-        );
+        }
+        LOG.exiting(LOG.getName(), "calculateStartDateTime", result);
+        return result;
     }
 
     private static BinarySelective<Integer, String> calculateHour(String text, int minValue, int maxValue) {
+        LOG.entering(LOG.getName(), "calculateHour", new Object[]{text, minValue, maxValue});
+        BinarySelective<Integer, String> result;
         String trimmed;
         if (null == text || (trimmed = text.trim()).isEmpty()) {
-            return BinarySelective.ofSecondary("");
+            result = BinarySelective.ofSecondary("");
+            LOG.exiting(LOG.getName(), "calculateHour", result);
+            return result;
         }
         try {
             Matcher m = INT_PATTERN.matcher(trimmed);
@@ -189,47 +202,62 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             Number parse = INTN_FORMAT.parse(trimmed);
             int i = parse.intValue();
             if (i < minValue || i > maxValue) {
-                return BinarySelective.ofSecondary("Hour out of range");
+                result = BinarySelective.ofSecondary("Hour out of range");
+            } else {
+                result = BinarySelective.ofPrimary(i);
             }
-            return BinarySelective.ofPrimary(i);
         } catch (ParseException ex) {
             int i = ex.getErrorOffset();
-            return BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid hour format at position %d", i)
+            result = BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid hour format at position %d", i)
                     : "Invalid hour number");
         }
+        LOG.exiting(LOG.getName(), "calculateHour", result);
+        return result;
     }
 
     private static BinarySelective<Integer, String> calculateMinute(String text) {
+        LOG.entering(LOG.getName(), "calculateMinute", text);
+        BinarySelective<Integer, String> result;
         String trimmed;
         if (null == text || (trimmed = text.trim()).isEmpty()) {
-            return BinarySelective.ofSecondary("");
+            result = BinarySelective.ofSecondary("");
+            LOG.exiting(LOG.getName(), "calculateMinute", result);
+            return result;
         }
         try {
             Matcher m = INT_PATTERN.matcher(trimmed);
             if (!m.find()) {
-                throw new ParseException("Invalid minute fnumber", text.length() - trimmed.length());
+                throw new ParseException("Invalid minute number", text.length() - trimmed.length());
             } else if (m.end() < trimmed.length()) {
-                throw new ParseException("Invalid nminute fumber", m.end() + (text.length() - trimmed.length()));
+                throw new ParseException("Invalid minute number", m.end() + (text.length() - trimmed.length()));
             }
             Number parse = INTN_FORMAT.parse(trimmed);
             int i = parse.intValue();
             if (i < 0 || i > 59) {
-                return BinarySelective.ofSecondary("Minute out of range");
+                result = BinarySelective.ofSecondary("Minute out of range");
+            } else {
+                result = BinarySelective.ofPrimary(i);
             }
-            return BinarySelective.ofPrimary(i);
         } catch (ParseException ex) {
             int i = ex.getErrorOffset();
-            return BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid minute format at position %d", i)
+            result = BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid minute format at position %d", i)
                     : "Invalid minute number");
         }
+        LOG.exiting(LOG.getName(), "calculateMinute", result);
+        return result;
     }
 
     private static BinarySelective<String, String> calculateURL(AppointmentType type, String text) {
+        LOG.entering(LOG.getName(), "calculateURL", new Object[]{type, text});
+        BinarySelective<String, String> result;
         if (null == text || (text = text.trim()).isEmpty()) {
             if (type == AppointmentType.VIRTUAL) {
-                return BinarySelective.ofSecondary("* Required");
+                result = BinarySelective.ofSecondary("* Required");
+            } else {
+                result = BinarySelective.ofPrimaryNullable(null);
             }
-            return BinarySelective.ofPrimaryNullable(null);
+            LOG.exiting(LOG.getName(), "calculateURL", result);
+            return result;
         }
         URI uri;
         try {
@@ -237,7 +265,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         } catch (URISyntaxException ex) {
             LOG.log(Level.WARNING, String.format("Error parsing url %s", text), ex);
             text = ex.getMessage();
-            return BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? "Invalid URL" : text);
+            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? "Invalid URL" : text);
+            LOG.exiting(LOG.getName(), "calculateURL", result);
+            return result;
         }
         URL url;
         try {
@@ -245,12 +275,17 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         } catch (MalformedURLException | IllegalArgumentException ex) {
             LOG.log(Level.WARNING, String.format("Error converting uri %s", text), ex);
             text = ex.getMessage();
-            return BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? "Invalid URL" : text);
+            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? "Invalid URL" : text);
+            LOG.exiting(LOG.getName(), "calculateURL", result);
+            return result;
         }
         if ((text = url.toString()).length() > MAX_LENGTH_URL) {
-            return BinarySelective.ofSecondary("URL too long");
+            result = BinarySelective.ofSecondary("URL too long");
+        } else {
+            result = BinarySelective.ofPrimary(text);
         }
-        return BinarySelective.ofPrimary(text);
+        LOG.exiting(LOG.getName(), "calculateURL", result);
+        return result;
     }
 
     public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
@@ -571,7 +606,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert hideConflictsButton != null : "fx:id=\"hideConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
-
         typeContext.initialize();
 
         titleTextField.setText(model.getTitle());
@@ -595,7 +629,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             onValidityChanged(titleValidationMessage.get().isEmpty(), newValue);
         });
         titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            onValidityChanged(titleValidationMessage.get().isEmpty(), typeContext.valid.get());
+            onValidityChanged(newValue.isEmpty(), typeContext.valid.get());
         });
         onValidityChanged(titleValidationMessage.get().isEmpty(), typeContext.valid.get());
         if (model.isNewRow()) {
@@ -691,10 +725,12 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     private synchronized void onValidityChanged(boolean titleValid, boolean contextValid) {
+        LOG.entering(LOG.getName(), "onValidityChanged", new Object[]{titleValid, contextValid});
         boolean v = titleValid && contextValid;
         if (v != valid.get()) {
             valid.set(v);
         }
+        LOG.exiting(LOG.getName(), "onValidityChanged");
     }
 
     private void onCustomerInserted(CustomerSuccessEvent event) {
@@ -1026,7 +1062,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             }
             parsedStartHour = Bindings.createObjectBinding(() -> calculateHour(startHourTextField.getText(), 1, 12), startHourTextField.textProperty());
             parsedStartMinute = Bindings.createObjectBinding(() -> calculateMinute(startMinuteTextField.getText()), startMinuteTextField.textProperty());
-            startDateTimeBinding = Bindings.createObjectBinding(() -> calculateDateTime(startDatePicker.getValue(), parsedStartHour.get(),
+            startDateTimeBinding = Bindings.createObjectBinding(() -> calculateStartDateTime(startDatePicker.getValue(), parsedStartHour.get(),
                     parsedStartMinute.get(), amPmComboBox.getSelectionModel().getSelectedItem()), startDatePicker.valueProperty(), parsedStartHour,
                     parsedStartMinute, amPmComboBox.getSelectionModel().selectedItemProperty());
             parsedDurationHour = Bindings.createObjectBinding(() -> calculateHour(durationHourTextField.getText(), 0, 256),
@@ -1568,7 +1604,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         private ObjectBinding<BinarySelective<String, String>> parsedUrl;
 
         private TypeContextController() {
-            this.valid = new ReadOnlyBooleanWrapper(this, "valid", false);
+            valid = new ReadOnlyBooleanWrapper(this, "valid", false);
             corporateLocationList = FXCollections.observableArrayList();
             remoteLocationList = FXCollections.observableArrayList();
             PredefinedData.getCorporateAddressMap().values().forEach((t) -> {
@@ -1719,7 +1755,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), newValue, appointmentConflicts.valid.get());
                 LOG.exiting("scheduler.view.appointment.EditAppointment.urlValidationLabel#visible", "changed");
             });
-            valid.set(appointmentConflicts.valid.get() && !(contactValidationLabel.isVisible() || locationValidationLabel.isVisible() || urlValidationLabel.isVisible()));
+            onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), appointmentConflicts.valid.get());
             selectedType.addListener(this::onTypeChanged);
             LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "initialize");
         }
@@ -1764,7 +1800,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             }
         }
 
-        private synchronized void onValidityChanged(boolean rangesAreValid, boolean contactIsInvalid, boolean locationIsInvalid, boolean urlIsInvalid) {
+        private synchronized void onValidityChanged(boolean contactIsInvalid, boolean locationIsInvalid, boolean urlIsInvalid, boolean rangesAreValid) {
+            LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.onValidityChanged(boolean, boolean, boolean, boolean)", "onValidityChanged",
+                    new Object[]{contactIsInvalid, locationIsInvalid, urlIsInvalid, rangesAreValid});
             boolean v = rangesAreValid && !(contactIsInvalid || locationIsInvalid || urlIsInvalid);
             if (v != valid.get()) {
                 valid.set(v);
