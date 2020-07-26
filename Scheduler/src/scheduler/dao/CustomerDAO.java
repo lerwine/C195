@@ -503,7 +503,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
             if (addressModel instanceof AddressModel) {
                 switch (addressModel.getRowState()) {
                     case NEW:
-                    case UNMODIFIED:
+                    case MODIFIED:
                         AddressDAO.SaveTask saveTask = new AddressDAO.SaveTask((AddressModel) addressModel, false);
                         saveTask.run();
                         AddressEvent event = (AddressEvent) saveTask.get();
