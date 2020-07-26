@@ -265,8 +265,7 @@ public class ViewModalControl extends Control {
         ObservableList<Node> children = source.getChildren();
         children.add(t);
         while (iterator.hasNext()) {
-            // FIXME: Need to assign iterator.next() to t.
-            if (null != t) {
+            if (null != (t = iterator.next())) {
                 children.add(t);
             }
         }
