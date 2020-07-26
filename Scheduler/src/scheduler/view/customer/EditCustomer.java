@@ -77,6 +77,8 @@ import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelect;
+import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -644,16 +646,8 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         addressAndCities.getValue2().forEach((t) -> allCities.add(t.cachedModel(true)));
         allCountries.sort(CountryHelper::compare);
         allCities.sort(CityHelper::compare);
-        if (null != country && country.getRowState() != DataRowState.NEW) {
-            ModelHelper.findByPrimaryKey(country.getPrimaryKey(), allCountries).ifPresent((t) -> {
-                countryComboBox.getSelectionModel().select(t);
-                if (null != city && city.getRowState() != DataRowState.NEW) {
-                    ModelHelper.findByPrimaryKey(city.getPrimaryKey(), cityOptions).ifPresent((u) -> {
-                        cityComboBox.getSelectionModel().select(u);
-                    });
-                }
-            });
-        }
+        clearAndSelectEntity(countryComboBox, country);
+        clearAndSelectEntity(cityComboBox, city);
 
         cityComboBox.setOnAction((event) -> updateValidation());
         countryComboBox.setOnAction((event) -> updateValidation());
@@ -733,7 +727,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             CountryModel entityModel = event.getEntityModel();
             allCountries.add(entityModel);
             allCountries.sort(CountryHelper::compare);
-            countryComboBox.getSelectionModel().select(entityModel);
+            clearAndSelect(countryComboBox, entityModel);
         }
         LOG.exiting(LOG.getName(), "onCountryInserted");
     }
@@ -763,7 +757,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             if (null != countryModel && countryModel.getPrimaryKey() == entityModel.getCountry().getPrimaryKey()) {
                 cityOptions.add(entityModel);
                 cityOptions.sort(CityHelper::compare);
-                cityComboBox.getSelectionModel().select(entityModel);
+                clearAndSelect(cityComboBox, entityModel);
             }
         }
         LOG.exiting(LOG.getName(), "onCityInserted");

@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
@@ -26,7 +25,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionModel;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -44,8 +45,10 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import javafx.util.Callback;
+import scheduler.dao.DataRowState;
 import scheduler.fx.CssClassName;
 import scheduler.fx.ValidationStatus;
+import scheduler.model.PartialDataEntity;
 import scheduler.view.SymbolText;
 
 /**
@@ -59,14 +62,14 @@ public class NodeUtil {
     private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
 
     private static void addCssClass(ObservableList<String> styleClass, String name) {
-        LOG.entering(LOG.getName(), "addCssClass", new Object[] { styleClass, name });
+        LOG.entering(LOG.getName(), "addCssClass", new Object[]{styleClass, name});
         if (!styleClass.contains(name)) {
             LOG.fine(() -> String.format("Adding class %s", name));
             styleClass.add(name);
         }
         LOG.exiting(LOG.getName(), "addCssClass");
     }
-    
+
     public static boolean isVisibleInWindow(Node node) {
         if (node != null && node.isVisible()) {
             Scene scene = node.getScene();
@@ -106,7 +109,7 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
      */
     public static <T extends Styleable> T addCssClass(T stylable, CssClassName... classNames) {
-        LOG.entering(LOG.getName(), "addCssClass", new Object[] { stylable, classNames });
+        LOG.entering(LOG.getName(), "addCssClass", new Object[]{stylable, classNames});
         T result = CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
         LOG.exiting(LOG.getName(), "addCssClass", result);
         return result;
@@ -121,7 +124,7 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the specified CSS {@code classNames} added.
      */
     public static <T extends Styleable> T addCssClass(T stylable, Collection<CssClassName> classNames) {
-        LOG.entering(LOG.getName(), "addCssClass", new Object[] { stylable, classNames });
+        LOG.entering(LOG.getName(), "addCssClass", new Object[]{stylable, classNames});
         T result = CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
         LOG.exiting(LOG.getName(), "addCssClass", result);
         return result;
@@ -136,7 +139,7 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the specified CSS {@code classNames} removed.
      */
     public static <T extends Styleable> T removeCssClass(T stylable, CssClassName... classNames) {
-        LOG.entering(LOG.getName(), "removeCssClass", new Object[] { stylable, classNames });
+        LOG.entering(LOG.getName(), "removeCssClass", new Object[]{stylable, classNames});
         if (null != classNames && classNames.length > 0) {
             LOG.fine(() -> String.format("Before remove: %s", String.join("; ", stylable.getStyleClass())));
             stylable.getStyleClass().removeAll(CssClassName.toStringArray(classNames));
@@ -155,7 +158,7 @@ public class NodeUtil {
      * @return The target {@link Styleable} with the new CSS {@code classNames} applied.
      */
     public static <T extends Styleable> T setCssClass(T stylable, CssClassName... classNames) {
-        LOG.entering(LOG.getName(), "setCssClass", new Object[] { stylable, classNames });
+        LOG.entering(LOG.getName(), "setCssClass", new Object[]{stylable, classNames});
         if (null != classNames && classNames.length > 0) {
             LOG.fine(() -> String.format("Before setAll: %s", String.join("; ", stylable.getStyleClass())));
             stylable.getStyleClass().setAll(CssClassName.toStringArray(classNames));
@@ -802,7 +805,7 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreLabeled(T control, String text) {
-        LOG.entering(LOG.getName(), "restoreLabeled", new Object[] { control, text });
+        LOG.entering(LOG.getName(), "restoreLabeled", new Object[]{control, text});
         removeCssClass(control, CssClassName.COLLAPSED);
         if (!control.isVisible()) {
             control.setVisible(true);
@@ -813,7 +816,7 @@ public class NodeUtil {
     }
 
     public static <T extends Labeled> T setErrorMessage(T control, String text) {
-        LOG.entering(LOG.getName(), "setErrorMessage", new Object[] { control, text });
+        LOG.entering(LOG.getName(), "setErrorMessage", new Object[]{control, text});
         CssClassName n = CssClassName.ERROR;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -829,7 +832,7 @@ public class NodeUtil {
     }
 
     public static <T extends Labeled> T setWarningMessage(T control, String text) {
-        LOG.entering(LOG.getName(), "setWarningMessage", new Object[] { control, text });
+        LOG.entering(LOG.getName(), "setWarningMessage", new Object[]{control, text});
         CssClassName n = CssClassName.WARNING;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -845,7 +848,7 @@ public class NodeUtil {
     }
 
     public static <T extends Labeled> T setInfoMessage(T control, String text) {
-        LOG.entering(LOG.getName(), "setInfoMessage", new Object[] { control, text });
+        LOG.entering(LOG.getName(), "setInfoMessage", new Object[]{control, text});
         CssClassName n = CssClassName.INFO;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -870,7 +873,7 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreErrorLabeled(T control, String text) {
-        LOG.entering(LOG.getName(), "restoreErrorLabeled", new Object[] { control, text });
+        LOG.entering(LOG.getName(), "restoreErrorLabeled", new Object[]{control, text});
         CssClassName n = CssClassName.ERROR;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -899,7 +902,7 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreWarningLabeled(T control, String text) {
-        LOG.entering(LOG.getName(), "restoreWarningLabeled", new Object[] { control, text });
+        LOG.entering(LOG.getName(), "restoreWarningLabeled", new Object[]{control, text});
         CssClassName n = CssClassName.WARNING;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -928,7 +931,7 @@ public class NodeUtil {
      * @return The restored {@link Labeled} control.
      */
     public static <T extends Labeled> T restoreInfoLabeled(T control, String text) {
-        LOG.entering(LOG.getName(), "restoreInfoLabeled", new Object[] { control, text });
+        LOG.entering(LOG.getName(), "restoreInfoLabeled", new Object[]{control, text});
         CssClassName n = CssClassName.INFO;
         for (ValidationStatus s : ValidationStatus.values()) {
             s.getCssClass().ifPresent((t) -> {
@@ -947,16 +950,187 @@ public class NodeUtil {
         return control;
     }
 
+    public static <T> boolean clearAndSelect(ListView<T> listView, Predicate<T> predicate) {
+        ObservableList<T> items = listView.getItems();
+        if (!(null == items || items.isEmpty())) {
+            MultipleSelectionModel<T> selectionModel = listView.getSelectionModel();
+            for (int i = 0; i < items.size(); i++) {
+                if (predicate.test(items.get(i))) {
+                    selectionModel.clearAndSelect(i);
+                    for (int n = i + i; n < items.size(); i++) {
+                        if (predicate.test(items.get(n))) {
+                            selectionModel.select(n);
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static <T> boolean clearAndSelect(ComboBox<T> comboBox, Predicate<T> predicate) {
         ObservableList<T> items = comboBox.getItems();
         if (!(null == items || items.isEmpty())) {
-            SelectionModel<T> selectionModel = comboBox.getSelectionModel();
+            SingleSelectionModel<T> selectionModel = comboBox.getSelectionModel();
             for (int i = 0; i < items.size(); i++) {
                 if (predicate.test(items.get(i))) {
                     selectionModel.clearAndSelect(i);
                     return true;
                 }
             }
+        }
+        return false;
+    }
+
+    public static <T> boolean clearAndSelectFirst(ListView<T> listView, Predicate<T> predicate) {
+        ObservableList<T> items = listView.getItems();
+        if (!(null == items || items.isEmpty())) {
+            MultipleSelectionModel<T> selectionModel = listView.getSelectionModel();
+            for (int i = 0; i < items.size(); i++) {
+                if (predicate.test(items.get(i))) {
+                    selectionModel.clearAndSelect(i);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static <T> boolean clearAndSelect(TableView<? extends T> tableView, T item) {
+        MultipleSelectionModel<? extends T> selectionModel = tableView.getSelectionModel();
+        if (null == item) {
+            if (selectionModel.getSelectedIndex() >= 0) {
+                selectionModel.clearSelection();
+                return true;
+            }
+        } else {
+            ObservableList<? extends T> items = tableView.getItems();
+            if (!(null == items || items.isEmpty())) {
+                for (int i = 0; i < items.size(); i++) {
+                    if (item.equals(items.get(i))) {
+                        selectionModel.clearAndSelect(i);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static <T> boolean clearAndSelect(ListView<? extends T> listView, T item) {
+        MultipleSelectionModel<? extends T> selectionModel = listView.getSelectionModel();
+        if (null == item) {
+            if (selectionModel.getSelectedIndex() >= 0) {
+                selectionModel.clearSelection();
+                return true;
+            }
+        } else {
+            ObservableList<? extends T> items = listView.getItems();
+            if (!(null == items || items.isEmpty())) {
+                for (int i = 0; i < items.size(); i++) {
+                    if (item.equals(items.get(i))) {
+                        selectionModel.clearAndSelect(i);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static <T> boolean clearAndSelect(ComboBox<? extends T> comboBox, T item) {
+        SelectionModel<? extends T> selectionModel = comboBox.getSelectionModel();
+        if (null == item) {
+            if (selectionModel.getSelectedIndex() >= 0) {
+                selectionModel.clearSelection();
+                return true;
+            }
+        } else {
+            ObservableList<? extends T> items = comboBox.getItems();
+            if (!(null == items || items.isEmpty())) {
+                for (int i = 0; i < items.size(); i++) {
+                    if (item.equals(items.get(i))) {
+                        selectionModel.clearAndSelect(i);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static <T extends PartialDataEntity> boolean clearAndSelectEntity(TableView<? extends T> tableView, T item) {
+        MultipleSelectionModel<? extends T> selectionModel = tableView.getSelectionModel();
+        if (null == item) {
+            if (selectionModel.getSelectedIndex() >= 0) {
+                selectionModel.clearSelection();
+                return true;
+            }
+        } else if (item.getRowState() != DataRowState.NEW) {
+            ObservableList<? extends T> items = tableView.getItems();
+            if (!(null == items || items.isEmpty())) {
+                int pk = item.getPrimaryKey();
+                for (int i = 0; i < items.size(); i++) {
+                    T t = items.get(i);
+                    if (null != t && t.getPrimaryKey() == pk) {
+                        selectionModel.clearAndSelect(i);
+                        return true;
+                    }
+                }
+            }
+        } else {
+            return clearAndSelect(tableView, item);
+        }
+        return false;
+    }
+
+    public static <T extends PartialDataEntity> boolean clearAndSelectEntity(ListView<? extends T> listView, T item) {
+        MultipleSelectionModel<? extends T> selectionModel = listView.getSelectionModel();
+        if (null == item) {
+            if (selectionModel.getSelectedIndex() >= 0) {
+                selectionModel.clearSelection();
+                return true;
+            }
+        } else if (item.getRowState() != DataRowState.NEW) {
+            ObservableList<? extends T> items = listView.getItems();
+            if (!(null == items || items.isEmpty())) {
+                int pk = item.getPrimaryKey();
+                for (int i = 0; i < items.size(); i++) {
+                    T t = items.get(i);
+                    if (null != t && t.getPrimaryKey() == pk) {
+                        selectionModel.clearAndSelect(i);
+                        return true;
+                    }
+                }
+            }
+        } else {
+            return clearAndSelect(listView, item);
+        }
+        return false;
+    }
+
+    public static <T extends PartialDataEntity> boolean clearAndSelectEntity(ComboBox<? extends T> comboBox, T item) {
+        SelectionModel<? extends T> selectionModel = comboBox.getSelectionModel();
+        if (null == item) {
+            if (selectionModel.getSelectedIndex() >= 0) {
+                selectionModel.clearSelection();
+                return true;
+            }
+        } else if (item.getRowState() != DataRowState.NEW) {
+            ObservableList<? extends T> items = comboBox.getItems();
+            if (!(null == items || items.isEmpty())) {
+                int pk = item.getPrimaryKey();
+                for (int i = 0; i < items.size(); i++) {
+                    T t = items.get(i);
+                    if (null != t && t.getPrimaryKey() == pk) {
+                        selectionModel.clearAndSelect(i);
+                        return true;
+                    }
+                }
+            }
+        } else {
+            return clearAndSelect(comboBox, item);
         }
         return false;
     }

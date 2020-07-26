@@ -58,7 +58,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
-import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataRowState;
@@ -93,6 +92,7 @@ import scheduler.observables.BindingHelper;
 import scheduler.util.BinarySelective;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreLabeled;
@@ -689,11 +689,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (null != customerDaoList && !customerDaoList.isEmpty()) {
             customerDaoList.forEach((t) -> customerModelList.add(t.cachedModel(true)));
         }
-        if (null != selectedItem) {
-            int cpk = selectedItem.getPrimaryKey();
-            customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
-                    -> customerComboBox.getSelectionModel().select(t));
-        }
+        clearAndSelectEntity(customerComboBox, selectedItem);
     }
 
     private synchronized void onUsersLoaded(List<UserDAO> userDaoList) {
@@ -701,11 +697,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (null != userDaoList && !userDaoList.isEmpty()) {
             userDaoList.forEach((t) -> userModelList.add(t.cachedModel(true)));
         }
-        if (null != selectedItem) {
-            int cpk = selectedItem.getPrimaryKey();
-            userModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
-                    -> userComboBox.getSelectionModel().select(t));
-        }
+        clearAndSelectEntity(userComboBox, selectedItem);
     }
 
     private synchronized void onValidityChanged(boolean titleValid, boolean contextValid) {
@@ -722,7 +714,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             if (entityModel.isActive() == showActiveCustomers.orElse(entityModel.isActive())) {
                 customerModelList.add(entityModel);
                 customerModelList.sort(CustomerHelper::compare);
-                customerComboBox.getSelectionModel().select(entityModel);
+                clearAndSelectEntity(customerComboBox, entityModel);
             }
         }
         LOG.exiting(LOG.getName(), "onCustomerInserted");
@@ -775,7 +767,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             if (isActive == showActiveUsers.orElse(isActive)) {
                 userModelList.add(entityModel);
                 userModelList.sort(UserHelper::compare);
-                userComboBox.getSelectionModel().select(entityModel);
+                clearAndSelectEntity(userComboBox, entityModel);
             }
         }
         LOG.exiting(LOG.getName(), "onUserInserted");
@@ -1263,16 +1255,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
 
         private void initialize(Task<List<AppointmentDAO>> task) {
-            PartialCustomerModel<? extends Customer> customer = model.getCustomer();
-            if (null != customer) {
-                int cpk = customer.getPrimaryKey();
-                customerModelList.stream().filter((t) -> t.getPrimaryKey() == cpk).findFirst().ifPresent((t)
-                        -> customerComboBox.getSelectionModel().select(t));
-            }
-            PartialUserModel<? extends User> user = model.getUser();
-            int upk = (null == user) ? Scheduler.getCurrentUser().getPrimaryKey() : user.getPrimaryKey();
-            userModelList.stream().filter((t) -> t.getPrimaryKey() == upk).findFirst().ifPresent((t)
-                    -> userComboBox.getSelectionModel().select(t));
+            clearAndSelectEntity(customerComboBox, model.getCustomer());
+            clearAndSelectEntity(userComboBox, model.getUser());
             onAppointmentsLoaded(task);
             checkConflictsButton.setDisable(conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED);
             showConflictsButton.setDisable(conflictingAppointments.isEmpty());

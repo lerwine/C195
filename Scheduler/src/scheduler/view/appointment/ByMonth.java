@@ -20,6 +20,7 @@ import javafx.scene.layout.StackPane;
 import scheduler.Scheduler;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelect;
 import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -98,9 +99,8 @@ public class ByMonth extends StackPane {
         yearSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(LocalDate.MIN.getYear(),
                 LocalDate.MAX.getYear(), d.getYear()));
         monthComboBox.setItems(monthNames);
-        monthComboBox.getSelectionModel().select(d.getMonthValue() - 1);
+        clearAndSelect(monthComboBox, d.getMonthValue() - 1);
         monthNameLabel.setText(monthComboBox.getValue());
-
         loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1);
     }
 

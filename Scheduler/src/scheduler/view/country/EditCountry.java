@@ -49,6 +49,7 @@ import scheduler.model.fx.EntityModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -276,7 +277,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
             if (!localeList.contains(locale)) {
                 localeList.add(locale);
             }
-            localeComboBox.getSelectionModel().select(locale);
+            clearAndSelect(localeComboBox, locale);
         }
         if (model.isNewRow()) {
             collapseNode(citiesLabel);

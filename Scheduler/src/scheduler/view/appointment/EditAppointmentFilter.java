@@ -24,6 +24,7 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -260,7 +261,7 @@ public final class EditAppointmentFilter extends BorderPane {
     @FXML
     private void cancelButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "cancelButtonAction", event);
-        ((Button) event.getSource()).getScene().getWindow().hide();
+        ((Node) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
@@ -413,7 +414,7 @@ public final class EditAppointmentFilter extends BorderPane {
     @FXML
     private void okButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "okButtonAction", event);
-        ((Button) event.getSource()).getScene().getWindow().hide();
+        ((Node) event.getSource()).getScene().getWindow().hide();
     }
 
     @FXML
@@ -842,7 +843,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
         private final boolean includeInactiveCustomers;
 
-        public ReloadCustomersTask(boolean includeInactiveCustomers) {
+        ReloadCustomersTask(boolean includeInactiveCustomers) {
             updateTitle(resources.getString(RESOURCEKEY_LOADINGDATA));
             this.includeInactiveCustomers = includeInactiveCustomers;
         }
@@ -868,7 +869,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
         private final boolean includeInactiveUsers;
 
-        public ReloadUsersTask(boolean includeInactiveUsers) {
+        ReloadUsersTask(boolean includeInactiveUsers) {
             updateTitle(resources.getString(RESOURCEKEY_LOADINGDATA));
             this.includeInactiveUsers = includeInactiveUsers;
         }
@@ -895,7 +896,7 @@ public final class EditAppointmentFilter extends BorderPane {
         private final boolean includeInactiveCustomers;
         private final boolean includeInactiveUsers;
 
-        public ReloadCustomersAndUsersTask(boolean includeInactiveCustomers, boolean includeInactiveUsers) {
+        ReloadCustomersAndUsersTask(boolean includeInactiveCustomers, boolean includeInactiveUsers) {
             updateTitle(resources.getString(RESOURCEKEY_LOADINGDATA));
             this.includeInactiveCustomers = includeInactiveCustomers;
             this.includeInactiveUsers = includeInactiveUsers;
@@ -1138,23 +1139,7 @@ public final class EditAppointmentFilter extends BorderPane {
         private final ReadOnlyStringWrapper text;
         private final ReadOnlyObjectWrapper<RangeOptionValue> value;
 
-        public RangeOptionValue getValue() {
-            return value.get();
-        }
-
-        public ReadOnlyObjectProperty<RangeOptionValue> valueProperty() {
-            return value.getReadOnlyProperty();
-        }
-
-        public String getText() {
-            return text.get();
-        }
-
-        public ReadOnlyStringProperty textProperty() {
-            return text.getReadOnlyProperty();
-        }
-
-        public RangeSelectionItem(RangeOptionValue value) {
+        RangeSelectionItem(RangeOptionValue value) {
             this.value = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(value));
 
             switch (value) {
@@ -1179,6 +1164,22 @@ public final class EditAppointmentFilter extends BorderPane {
             }
         }
 
+        public RangeOptionValue getValue() {
+            return value.get();
+        }
+
+        public ReadOnlyObjectProperty<RangeOptionValue> valueProperty() {
+            return value.getReadOnlyProperty();
+        }
+
+        public String getText() {
+            return text.get();
+        }
+
+        public ReadOnlyStringProperty textProperty() {
+            return text.getReadOnlyProperty();
+        }
+
         @Override
         public int hashCode() {
             return value.get().hashCode();
@@ -1201,23 +1202,7 @@ public final class EditAppointmentFilter extends BorderPane {
         private final ReadOnlyStringWrapper text;
         private final ReadOnlyObjectWrapper<DateFilterType> value;
 
-        public DateFilterType getValue() {
-            return value.get();
-        }
-
-        public ReadOnlyObjectProperty<DateFilterType> valueProperty() {
-            return value.getReadOnlyProperty();
-        }
-
-        public String getText() {
-            return text.get();
-        }
-
-        public ReadOnlyStringProperty textProperty() {
-            return text.getReadOnlyProperty();
-        }
-
-        public DateTypeSelectionItem(DateFilterType value, boolean isStartDate) {
+        DateTypeSelectionItem(DateFilterType value, boolean isStartDate) {
             this.value = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(value));
 
             switch (value) {
@@ -1234,6 +1219,22 @@ public final class EditAppointmentFilter extends BorderPane {
                     text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_NONE));
                     break;
             }
+        }
+
+        public DateFilterType getValue() {
+            return value.get();
+        }
+
+        public ReadOnlyObjectProperty<DateFilterType> valueProperty() {
+            return value.getReadOnlyProperty();
+        }
+
+        public String getText() {
+            return text.get();
+        }
+
+        public ReadOnlyStringProperty textProperty() {
+            return text.getReadOnlyProperty();
         }
 
         @Override
@@ -1257,17 +1258,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
         private final ReadOnlyStringWrapper text;
 
-        @Override
-        public String getText() {
-            return text.get();
-        }
-
-        @Override
-        public ReadOnlyStringProperty textProperty() {
-            return text.getReadOnlyProperty();
-        }
-
-        public TitleTextSelectionItem(TextFilterType value) {
+        TitleTextSelectionItem(TextFilterType value) {
             super(value);
             switch (value) {
                 case EQUALS:
@@ -1288,12 +1279,6 @@ public final class EditAppointmentFilter extends BorderPane {
             }
         }
 
-    }
-
-    private final class LocationTextSelectionItem extends TextOption {
-
-        private final ReadOnlyStringWrapper text;
-
         @Override
         public String getText() {
             return text.get();
@@ -1304,7 +1289,13 @@ public final class EditAppointmentFilter extends BorderPane {
             return text.getReadOnlyProperty();
         }
 
-        public LocationTextSelectionItem(TextFilterType value) {
+    }
+
+    private final class LocationTextSelectionItem extends TextOption {
+
+        private final ReadOnlyStringWrapper text;
+
+        LocationTextSelectionItem(TextFilterType value) {
             super(value);
             switch (value) {
                 case EQUALS:
@@ -1323,6 +1314,16 @@ public final class EditAppointmentFilter extends BorderPane {
                     text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_ANYLOCATIONOPTION));
                     break;
             }
+        }
+
+        @Override
+        public String getText() {
+            return text.get();
+        }
+
+        @Override
+        public ReadOnlyStringProperty textProperty() {
+            return text.getReadOnlyProperty();
         }
 
     }
@@ -1350,7 +1351,7 @@ public final class EditAppointmentFilter extends BorderPane {
         private final ReadOnlyIntegerWrapper cityId;
         private final ReadOnlyIntegerWrapper countryId;
 
-        public CustomerSelectionItem(CustomerDAO customer) {
+        CustomerSelectionItem(CustomerDAO customer) {
             super(customer);
             if (null == customer) {
                 text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_ANY));
@@ -1397,7 +1398,7 @@ public final class EditAppointmentFilter extends BorderPane {
         private final ReadOnlyStringWrapper text;
         private final ReadOnlyIntegerWrapper countryId;
 
-        public CitySelectionItem(CityDAO city) {
+        CitySelectionItem(CityDAO city) {
             super(city);
             if (null == city) {
                 text = new ReadOnlyStringWrapper(resources.getString(RESOURCEKEY_ANY));
@@ -1432,7 +1433,7 @@ public final class EditAppointmentFilter extends BorderPane {
 
         private final ReadOnlyStringWrapper text;
 
-        public CountrySelectionItem(CountryDAO country) {
+        CountrySelectionItem(CountryDAO country) {
             super(country);
             text = new ReadOnlyStringWrapper((null == country) ? resources.getString(RESOURCEKEY_ANY) : country.getName());
         }
@@ -1453,6 +1454,11 @@ public final class EditAppointmentFilter extends BorderPane {
 
         private final ReadOnlyStringWrapper text;
 
+        UserSelectionItem(UserDAO user) {
+            super(user);
+            text = new ReadOnlyStringWrapper((null == user) ? resources.getString(RESOURCEKEY_ANY) : user.getUserName());
+        }
+
         @Override
         public String getText() {
             return text.get();
@@ -1461,11 +1467,6 @@ public final class EditAppointmentFilter extends BorderPane {
         @Override
         public ReadOnlyStringProperty textProperty() {
             return text.getReadOnlyProperty();
-        }
-
-        public UserSelectionItem(UserDAO user) {
-            super(user);
-            text = new ReadOnlyStringWrapper((null == user) ? resources.getString(RESOURCEKEY_ANY) : user.getUserName());
         }
 
     }
@@ -1499,6 +1500,10 @@ public final class EditAppointmentFilter extends BorderPane {
 
         private final ReadOnlyObjectWrapper<T> value;
 
+        protected SelectionItem(T value) {
+            this.value = new ReadOnlyObjectWrapper<>(value);
+        }
+
         public T getValue() {
             return value.get();
         }
@@ -1510,10 +1515,6 @@ public final class EditAppointmentFilter extends BorderPane {
         public abstract String getText();
 
         public abstract ReadOnlyStringProperty textProperty();
-
-        protected SelectionItem(T value) {
-            this.value = new ReadOnlyObjectWrapper<>(value);
-        }
 
         @Override
         public String toString() {

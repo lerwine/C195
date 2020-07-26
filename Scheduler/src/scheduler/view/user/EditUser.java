@@ -59,6 +59,7 @@ import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -327,7 +328,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
         userNameTextField.setText(model.getUserName());
         activeComboBox.setItems(userActiveStateOptions);
-        activeComboBox.getSelectionModel().select(model.getStatus());
+        clearAndSelect(activeComboBox, model.getStatus());
         appointmentsTableView.setItems(userAppointments);
 
         selectedFilter = Bindings.select(appointmentsFilterComboBox.selectionModelProperty(), "selectedItem");
@@ -362,17 +363,17 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
         passwordInvalid = passwordErrorMessage.isNotEmpty();
         userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.user.EditUser.userNameTextField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.user.EditUser.userNameTextField#text", "changed", new Object[]{oldValue, newValue});
             updateValidation();
             LOG.exiting("scheduler.view.user.EditUser.userNameTextField#text", "changed");
         });
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.user.EditUser.passwordField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.user.EditUser.passwordField#text", "changed", new Object[]{oldValue, newValue});
             updateValidation();
             LOG.exiting("scheduler.view.user.EditUser.passwordField#text", "changed");
         });
         confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.user.EditUser.confirmPasswordField#text", "changed", new Object[] { oldValue, newValue });
+            LOG.entering("scheduler.view.user.EditUser.confirmPasswordField#text", "changed", new Object[]{oldValue, newValue});
             updateValidation();
             LOG.exiting("scheduler.view.user.EditUser.confirmPasswordField#text", "changed");
         });

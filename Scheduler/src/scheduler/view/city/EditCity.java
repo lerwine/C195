@@ -58,6 +58,7 @@ import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -429,13 +430,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
                 if (null != locale) {
                     String t = locale.toLanguageTag();
                     if (map.containsKey(t)) {
-                        countryComboBox.getSelectionModel().select(map.get(t));
+                        clearAndSelectEntity(countryComboBox, map.get(t));
                     } else {
                         String c = locale.getCountry();
                         CountryModel cm = map.values().stream().filter((u) -> u.getLocale().getCountry().equals(c)).findFirst().orElse(null);
-                        if (null != cm) {
-                            countryComboBox.getSelectionModel().select(cm);
-                        }
+                        clearAndSelectEntity(countryComboBox, cm);
                     }
                 }
             }
@@ -491,7 +490,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
             CountryModel countryModel = event.getEntityModel();
             countryOptionList.add(countryModel);
             countryOptionList.sort(CountryHelper::compare);
-            countryComboBox.getSelectionModel().select(countryModel);
+            clearAndSelectEntity(countryComboBox, countryModel);
         }
         LOG.exiting(LOG.getName(), "onCountryInserted");
     }

@@ -39,6 +39,7 @@ import scheduler.model.fx.PartialAddressModel;
 import scheduler.model.fx.PartialCityModel;
 import scheduler.model.fx.PartialCountryModel;
 import scheduler.util.DbConnector;
+import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
 import scheduler.util.Triplet;
@@ -228,13 +229,9 @@ public class AddressPicker extends BorderPane {
         } else {
             final int pk = selectedCountry.getPrimaryKey();
             countries.forEach((t) -> allCountries.add((t.getPrimaryKey() == pk) ? selectedCountry : CountryHelper.createModel(t)));
-            countryListView.getSelectionModel().select(selectedCountry);
-            if (null != selectedCity && selectedCity.getRowState() != DataRowState.NEW) {
-                cityListView.getSelectionModel().select(selectedCity);
-                if (null != addr && addr.getRowState() != DataRowState.NEW) {
-                    addressesTableView.getSelectionModel().select(addr);
-                }
-            }
+            clearAndSelectEntity(countryListView, selectedCountry);
+            clearAndSelectEntity(cityListView, selectedCity);
+            clearAndSelectEntity(addressesTableView, addr);
         }
     }
 

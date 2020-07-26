@@ -30,12 +30,12 @@ import scheduler.AppResources;
 import scheduler.dao.CityDAO;
 import scheduler.dao.CountryDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.model.ModelHelper;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CountryModel;
 import scheduler.model.fx.CustomerModel;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreLabeled;
 import scheduler.util.ResourceBundleHelper;
@@ -234,12 +234,7 @@ public class CustomerPicker extends BorderPane {
             });
         }
         if (null != c) {
-            Optional<CustomerModel> matching = ModelHelper.findByPrimaryKey(c.getPrimaryKey(), filteredCustomers);
-            if (matching.isPresent()) {
-                customersListView.getSelectionModel().select(matching.get());
-            } else {
-                customersListView.getSelectionModel().clearSelection();
-            }
+            clearAndSelectEntity(customersListView, c);
         }
     }
 

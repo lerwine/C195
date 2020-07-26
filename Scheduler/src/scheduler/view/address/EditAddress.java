@@ -68,6 +68,7 @@ import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
+import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import static scheduler.util.NodeUtil.restoreNode;
@@ -509,8 +510,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private void addCountryOption(CountryModel country, CityModel city) {
         countryOptions.add(country);
         countryOptions.sort(CountryHelper::compare);
-        countryListView.getSelectionModel().select(country);
-        cityListView.getSelectionModel().select(city);
+        clearAndSelectEntity(countryListView, country);
+        clearAndSelectEntity(cityListView, city);
     }
 
     @Override
@@ -604,20 +605,8 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             }
         }
         if (null != countryItem) {
-            if (countryItem.getRowState() != DataRowState.NEW) {
-                CountryModel nm = ModelHelper.findByPrimaryKey(countryItem.getPrimaryKey(), countryOptions).orElse(null);
-                if (null != nm) {
-                    LOG.fine(() -> String.format("Selecting country %s", nm));
-                    countryListView.getSelectionModel().select(nm);
-                    if (null != targetCity && targetCity.getRowState() != DataRowState.NEW) {
-                        CityModel cm = ModelHelper.findByPrimaryKey(targetCity.getPrimaryKey(), cityOptions).orElse(null);
-                        if (null != cm) {
-                            LOG.fine(() -> String.format("Selecting city %s", cm));
-                            cityListView.getSelectionModel().select(cm);
-                        }
-                    }
-                }
-            }
+            clearAndSelectEntity(countryListView, countryItem);
+            clearAndSelectEntity(cityListView, targetCity);
         }
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
         CityModel.FACTORY.addEventHandler(CitySuccessEvent.UPDATE_SUCCESS, cityUpdateEventHandler.getWeakEventHandler());
@@ -689,10 +678,9 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                     LOG.exiting(LOG.getName(), "onCityInserted");
                     return;
                 }
-                countryListView.getSelectionModel().clearSelection();
-                countryListView.getSelectionModel().select(newCountry);
+                clearAndSelectEntity(countryListView, newCountry);
             }
-            cityListView.getSelectionModel().select(newCity);
+            clearAndSelectEntity(cityListView, newCity);
             LOG.exiting(LOG.getName(), "onCityInserted");
         }
     }
@@ -763,7 +751,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             countryOptions.add(newCountry);
             countryOptions.sort(CountryHelper::compare);
             cityListView.getSelectionModel().clearSelection();
-            countryListView.getSelectionModel().select(newCountry);
+            clearAndSelectEntity(countryListView, newCountry);
         }
         LOG.exiting(LOG.getName(), "onCountryInserted");
     }

@@ -22,6 +22,7 @@ import scheduler.SupportedLocale;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
 import scheduler.util.NodeUtil;
+import static scheduler.util.NodeUtil.clearAndSelect;
 import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.ResourceBundleHelper;
 import scheduler.view.annotations.FXMLResource;
@@ -176,7 +177,7 @@ public final class Login extends Scheduler.LoginBorderPane {
 
         ObservableList<SupportedLocale> languages = FXCollections.observableArrayList(SupportedLocale.values());
         languageComboBox.setItems(languages);
-        languageComboBox.getSelectionModel().select(AppResources.getCurrentLocale());
+        clearAndSelect(languageComboBox, AppResources.getCurrentLocale());
 
         selectedLanguage = initializeLanguageBindings();
 

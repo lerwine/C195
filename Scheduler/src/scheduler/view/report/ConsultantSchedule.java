@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -25,11 +24,11 @@ import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
-import scheduler.model.ModelHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.UserModel;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
+import static scheduler.util.NodeUtil.clearAndSelect;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -155,8 +154,7 @@ public class ConsultantSchedule extends VBox {
             rangeEndDatePicker.setValue(start);
             if (null != result && !result.isEmpty()) {
                 result.forEach((t) -> consultantList.add(t.cachedModel(true)));
-                Optional<UserModel> um = ModelHelper.findByPrimaryKey(user.getPrimaryKey(), consultantList);
-                um.ifPresent((t) -> consultantsComboBox.getSelectionModel().select(t));
+                clearAndSelect(consultantsComboBox, user);
             }
 
             accept(appointments);
