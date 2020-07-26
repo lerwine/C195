@@ -406,13 +406,14 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
         }
 
         public ArrayList<CityDAO> getByNames(Connection connection, Collection<String> names, int countryId) throws SQLException {
+            LOG.entering(LOG.getName(), "getByNames");
             StringBuffer buffer = new StringBuffer(createDmlSelectQueryBuilder().build().toString()).append(" WHERE ")
                     .append(DbTable.CITY).append(".").append(DbColumn.CITY_COUNTRY);
             int c = names.size();
             if (c > 1) {
                 buffer.append("=? AND (").append(DbColumn.CITY_NAME.getDbName()).append(" LIKE ?");
                 for (int i = 1; i < c; i++) {
-                    buffer.append(" OR ").append(DbColumn.COUNTRY_NAME).append(" LIKE ?");
+                    buffer.append(" OR ").append(DbColumn.CITY_NAME).append(" LIKE ?");
                 }
                 buffer.append(")");
             } else {
@@ -426,7 +427,9 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                 Iterator<String> iterator = names.iterator();
                 int idx = 1;
                 do {
-                    ps.setString(++idx, DB.escapeWC(iterator.next()));
+                    String value = DB.escapeWC(iterator.next());
+                    LOG.finest(() -> String.format("Setting value %s", LogHelper.toLogText(value)));
+                    ps.setString(++idx, value);
                 } while (iterator.hasNext());
                 try (ResultSet rs = ps.executeQuery()) {
                     if (null != rs && rs.next()) {
@@ -434,6 +437,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                             result.add(fromResultSet(rs));
                         } while (rs.next());
                         LogHelper.logWarnings(connection, LOG);
+                        LOG.exiting(LOG.getName(), "getByNames", result);
                         return result;
                     }
                     if (LogHelper.logWarnings(connection, LOG)) {
@@ -443,6 +447,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                     }
                 }
             }
+            LOG.exiting(LOG.getName(), "getByNames", result);
             return result;
         }
 
