@@ -58,7 +58,7 @@ public class SchemaHelper_DbColumn_DbNameTest {
     }
 
     @Parameterized.Parameters(name = "column: {0}, foreignKeyColName: {1}")
-    public static Collection getTestParameterSets() {
+    public static Collection<?> getTestParameterSets() {
         ArrayList<Object[]> result = new ArrayList<>();
         for (DbColumn t : DbColumn.values()) {
             for (DbName n: DbName.values()) {

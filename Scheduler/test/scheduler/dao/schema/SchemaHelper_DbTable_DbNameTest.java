@@ -51,7 +51,7 @@ public class SchemaHelper_DbTable_DbNameTest {
     }
 
     @Parameterized.Parameters(name = "table: {0}, name: {1}")
-    public static Collection getTestParameterSets() {
+    public static Collection<Object[]> getTestParameterSets() {
         ArrayList<Object[]> result = new ArrayList<>();
         for (DbTable t : DbTable.values()) {
             for (DbName n: DbName.values()) {

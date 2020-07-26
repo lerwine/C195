@@ -50,7 +50,7 @@ public class SchemaHelper_PredicateTest {
     }
 
     @Parameterized.Parameters
-    public static Collection getTestParameterSets() {
+    public static Collection<Object[]> getTestParameterSets() {
         ArrayList<Object[]> result = new ArrayList<>();
         result.add(new Object[] { (Predicate<DbColumn>)(u) -> u.getType() == ColumnType.VARCHAR, "getType() == ColumnType.VARCHAR" });
         result.add(new Object[] { (Predicate<DbColumn>)(u) -> u.getDbName() == DbName.CREATED_BY, "getDbName() == DbName.CREATED_BY" });

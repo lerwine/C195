@@ -48,7 +48,7 @@ public class SchemaHelper_DbNameTest {
     }
 
     @Parameterized.Parameters(name = "name={0}")
-    public static Collection getDbNames() {
+    public static Collection<?> getDbNames() {
         return Arrays.asList(Arrays.stream(DbName.values()).map((t) -> new DbName[] { t }).toArray());
     }
     

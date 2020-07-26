@@ -54,7 +54,7 @@ public class SchemaHelper_DbTableTest {
     }
 
     @Parameterized.Parameters(name = "table={0}")
-    public static Collection getDbTables() {
+    public static Collection<?> getDbTables() {
         return Arrays.asList(
                 new Object[] {
                     DbTable.ADDRESS.name(), DbTable.ADDRESS, DbColumn.ADDRESS_ID,

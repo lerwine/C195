@@ -7,6 +7,7 @@ package scheduler.dao.schema;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,7 +47,7 @@ public class SchemaHelper_DbColumnTest {
     }
 
     @Parameterized.Parameters(name = "column: {0}")
-    public static Collection getTestParameterSets() {
+    public static Collection<?> getTestParameterSets() {
         return Arrays.asList(Arrays.stream(DbColumn.values()).map((t) -> new DbColumn[] { t }).toArray());
     }
     

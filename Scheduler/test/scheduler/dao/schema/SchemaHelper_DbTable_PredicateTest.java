@@ -52,7 +52,7 @@ public class SchemaHelper_DbTable_PredicateTest {
     }
 
     @Parameterized.Parameters(name = "table: {0}, predicate: {2}")
-    public static Collection getTestParameterSets() {
+    public static Collection<Object[]> getTestParameterSets() {
         ArrayList<Object[]> result = new ArrayList<>();
         for (DbTable t : DbTable.values()) {
             result.add(new Object[] { t, (Predicate<DbColumn>)(u) -> u.getType() == ColumnType.VARCHAR, "getType() == ColumnType.VARCHAR" });
