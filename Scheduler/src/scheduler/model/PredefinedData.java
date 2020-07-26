@@ -208,9 +208,9 @@ public class PredefinedData {
             country.dataAccessObject = c;
         }
         HashMap<String, PredefinedCity> map = new HashMap<>();
-        country.cities.forEach((t) -> map.put(t.getName(), t));
+        country.cities.forEach((t) -> map.put(t.getName().toLowerCase(), t));
         CityDAO.FACTORY.getByNames(connection, map.keySet(), c.getPrimaryKey()).stream().forEach((t) -> {
-            String key = t.getName();
+            String key = t.getName().toLowerCase();
             if (map.containsKey(key)) {
                 PredefinedCity p = map.get(key);
                 p.dataAccessObject = t;
