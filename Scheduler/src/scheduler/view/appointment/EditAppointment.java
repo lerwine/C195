@@ -424,6 +424,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     @FXML // fx:id="conflictingAppointmentsTableView"
     private TableView<AppointmentModel> conflictingAppointmentsTableView; // Value injected by FXMLLoader
 
+    @FXML // fx:id="hideConflictsButton"
+    private Button hideConflictsButton; // Value injected by FXMLLoader
+
     //</editor-fold>
     public EditAppointment() {
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
@@ -450,19 +453,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML
-    void onCheckConflictsButtonAction(ActionEvent event) {
-        // FIXME: Implement scheduler.view.appointment.EditAppointment.onCheckConflictsButtonAction(ActionEvent)
-    }
-
-    @FXML
-    void onCloseConflictsBorderPaneButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onCloseConflictsBorderPaneButtonAction", event);
-        collapseNode(appointmentConflictsBorderPane);
-        LOG.exiting(LOG.getName(), "onCloseConflictsBorderPaneButtonAction");
-    }
-
-    @FXML
-    void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
+    private void onCustomerDropDownOptionsButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onCustomerDropDownOptionsButtonAction", event);
         editingUserOptions = false;
         if (showActiveCustomers.orElse(editingUserOptions)) {
@@ -480,7 +471,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML
-    void onDropdownOptionsCancelButtonAction(ActionEvent event) {
+    private void onDropdownOptionsCancelButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onDropdownOptionsCancelButtonAction", event);
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
@@ -491,7 +482,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML
-    void onDropdownOptionsOkButtonAction(ActionEvent event) {
+    private void onDropdownOptionsOkButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onDropdownOptionsOkButtonAction", event);
         dropdownOptionsBorderPane.minWidthProperty().unbind();
         dropdownOptionsBorderPane.prefWidthProperty().unbind();
@@ -521,12 +512,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML
-    void onShowConflictsButtonAction(ActionEvent event) {
-        // FIXME: Implement scheduler.view.appointment.EditAppointment.onShowConflictsButtonAction(ActionEvent)
-    }
-
-    @FXML
-    void onUserDropDownOptionsButtonAction(ActionEvent event) {
+    private void onUserDropDownOptionsButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onUserDropDownOptionsButtonAction", event);
         editingUserOptions = true;
         if (showActiveUsers.isPresent()) {
@@ -544,7 +530,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
-    void initialize() {
+    private void initialize() {
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -583,6 +569,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         assert dropdownOptionsAllRadioButton != null : "fx:id=\"dropdownOptionsAllRadioButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert appointmentConflictsBorderPane != null : "fx:id=\"appointmentConflictsBorderPane\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert conflictingAppointmentsTableView != null : "fx:id=\"conflictingAppointmentsTableView\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+        assert hideConflictsButton != null : "fx:id=\"hideConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
+
 
         typeContext.initialize();
 
@@ -1253,6 +1241,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 onParticipantsChanged(selectedCustomer.get(), newValue);
                 LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedUser#value", "changed");
             });
+            checkConflictsButton.setOnAction(this::onCheckConflictsButtonAction);
+            showConflictsButton.setOnAction(this::onShowConflictsButtonAction);
+            hideConflictsButton.setOnAction(this::onHideConflictsButtonAction);
             LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController", "initialize");
         }
 
@@ -1261,7 +1252,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             clearAndSelectEntity(userComboBox, model.getUser());
             onAppointmentsLoaded(task);
             checkConflictsButton.setDisable(conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED);
-            showConflictsButton.setDisable(conflictingAppointments.isEmpty());
             dateRange.range.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue));
             conflictCheckStatus.addListener((observable, oldValue, newValue) -> {
                 checkConflictsButton.setDisable(newValue != ConflictCheckStatus.NOT_CHECKED);
@@ -1275,7 +1265,35 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, userDeleteEventHandler.getWeakEventHandler());
         }
 
-        private void onAppointmentsLoaded(Task<List<AppointmentDAO>> task) {
+        private synchronized void onCheckConflictsButtonAction(ActionEvent event) {
+            LOG.entering(LOG.getName(), "onCheckConflictsButtonAction", event);
+            Tuple<CustomerModel, UserModel> p = currentParticipants.get();
+            if (null != p) {
+                if (null != currentTask && !currentTask.isDone()) {
+                    currentTask.cancel(true);
+                }
+                checkConflictsButton.setDisable(true);
+                currentTask = new LoadParticipantsAppointmentsTask(p);
+                waitBorderPane.startNow(currentTask);
+            }
+            LOG.exiting(LOG.getName(), "onCheckConflictsButtonAction");
+        }
+
+        private synchronized void onShowConflictsButtonAction(ActionEvent event) {
+            LOG.entering(LOG.getName(), "onShowConflictsButtonAction", event);
+            if (!conflictingAppointments.isEmpty()) {
+                restoreNode(appointmentConflictsBorderPane);
+            }
+            LOG.exiting(LOG.getName(), "onShowConflictsButtonAction");
+        }
+
+        private synchronized void onHideConflictsButtonAction(ActionEvent event) {
+            LOG.entering(LOG.getName(), "onHideConflictsButtonAction", event);
+            collapseNode(appointmentConflictsBorderPane);
+            LOG.exiting(LOG.getName(), "onHideConflictsButtonAction");
+        }
+
+        private synchronized void onAppointmentsLoaded(Task<List<AppointmentDAO>> task) {
             if (checkCurrentTask(task)) {
                 return;
             }
@@ -1284,6 +1302,12 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 appointments = task.get();
             } catch (InterruptedException | ExecutionException ex) {
                 LOG.log(Level.SEVERE, "Error getting task result", ex);
+                allAppointments.clear();
+                conflictingAppointments.clear();
+                if (conflictCheckStatus.get() == ConflictCheckStatus.NO_CONFLICT) {
+                    conflictCheckStatus.set(ConflictCheckStatus.NOT_CHECKED);
+                }
+                showConflictsButton.setDisable(true);
                 return;
             }
             allAppointments.clear();
@@ -1300,6 +1324,11 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             }
             if (null != dateRange.range.get() && null != currentParticipants.get()) {
                 updateConflictingAppointments();
+            } else {
+                showConflictsButton.setDisable(true);
+                if (conflictCheckStatus.get() != ConflictCheckStatus.NO_CONFLICT) {
+                    conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
+                }
             }
         }
 
@@ -1334,6 +1363,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 checkStatus = ConflictCheckStatus.NOT_CHECKED;
                 message = (null == dateRange.range.get()) ? "" : resources.getString(RESOURCEKEY_CONFLICTDATASTALE);
             }
+            showConflictsButton.setDisable(true);
             if (!conflictMessage.get().equals(message)) {
                 conflictMessage.set(message);
             }
@@ -1393,6 +1423,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 message = "";
                 checkStatus = ConflictCheckStatus.NO_CONFLICT;
                 conflictMessage.set("");
+                showConflictsButton.setDisable(true);
             } else {
                 LOG.fine(() -> String.format("%d conflicting appointments", conflictingAppointments.size()));
                 checkStatus = ConflictCheckStatus.HAS_CONFLICT;
@@ -1441,6 +1472,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                         }
                         break;
                 }
+                showConflictsButton.setDisable(false);
             }
             if (!message.equals(conflictMessage.get())) {
                 conflictMessage.set(message);

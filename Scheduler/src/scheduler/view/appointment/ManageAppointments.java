@@ -264,7 +264,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
                         alert.showAndWait();
                     }
                 } catch (IOException ex) {
-                    // FIXME: Alert user
+                    AlertHelper.showErrorAlert(stage, "Save Error", "Error saving file. See logs for details", ButtonType.OK);
                     LOG.log(Level.SEVERE, "Error saving file", ex);
                 }
             }
