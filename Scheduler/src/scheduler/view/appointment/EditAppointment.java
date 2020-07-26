@@ -1,43 +1,20 @@
 package scheduler.view.appointment;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -49,7 +26,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -62,7 +38,6 @@ import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
-import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
 import scheduler.dao.filter.AppointmentFilter;
 import scheduler.dao.filter.ComparisonOperator;
@@ -71,17 +46,12 @@ import scheduler.events.AppointmentEvent;
 import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserSuccessEvent;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
-import static scheduler.model.Appointment.MAX_LENGTH_URL;
 import scheduler.model.AppointmentType;
 import static scheduler.model.AppointmentType.CORPORATE_LOCATION;
 import static scheduler.model.AppointmentType.CUSTOMER_SITE;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
-import scheduler.model.ModelHelper.AppointmentHelper;
-import scheduler.model.ModelHelper.CustomerHelper;
-import scheduler.model.ModelHelper.UserHelper;
-import scheduler.model.PredefinedData;
 import scheduler.model.User;
 import scheduler.model.UserStatus;
 import scheduler.model.fx.AppointmentModel;
@@ -91,18 +61,13 @@ import scheduler.model.fx.PartialCustomerModel;
 import scheduler.model.fx.PartialUserModel;
 import scheduler.model.fx.UserModel;
 import scheduler.observables.BindingHelper;
-import scheduler.util.BinarySelective;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
-import static scheduler.util.NodeUtil.restoreLabeled;
 import static scheduler.util.NodeUtil.restoreNode;
-import static scheduler.util.NodeUtil.setErrorMessage;
-import static scheduler.util.NodeUtil.setWarningMessage;
 import scheduler.util.ThrowableConsumer;
-import scheduler.util.Tuple;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.EditItem;
 import scheduler.view.annotations.FXMLResource;
@@ -122,175 +87,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINEST);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
-    private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
-    private static final String INVALID_HOUR_NUMBER = "Invalid hour number";
-    private static final String INVALID_MINUTE_NUMBER = "Invalid minute number";
-    private static final String INVALID_URL = "Invalid URL";
-    private static final NumberFormat INTN_FORMAT;
-    private static final NumberFormat INT2_FORMAT;
-    private static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withZone(ZoneId.systemDefault());
-
-    static {
-        INT2_FORMAT = NumberFormat.getIntegerInstance();
-        INT2_FORMAT.setMinimumIntegerDigits(2);
-        INT2_FORMAT.setMaximumIntegerDigits(2);
-        INTN_FORMAT = NumberFormat.getIntegerInstance();
-    }
-
-    private static BinarySelective<LocalDateTime, String> calculateEndDateTime(LocalDateTime start, BinarySelective<Integer, String> hour, BinarySelective<Integer, String> minute) {
-        BinarySelective<LocalDateTime, String> result;
-        LOG.entering(LOG.getName(), "calculateEndDateTime", new Object[]{start, hour, minute});
-        if (null == start) {
-            result = BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("")));
-        } else {
-            result = hour.map(
-                    (hv) -> minute.map((mv) -> {
-                        if (hv > 0) {
-                            if (mv > 0) {
-                                return BinarySelective.ofPrimary(start.plusHours(hv).plusMinutes(mv));
-                            }
-                            return BinarySelective.ofPrimary(start.plusHours(hv));
-                        }
-                        if (mv > 0) {
-                            return BinarySelective.ofPrimary(start.plusMinutes(mv));
-                        }
-                        return BinarySelective.ofPrimary(start);
-                    },
-                            (v) -> BinarySelective.ofSecondary(v)
-                    ),
-                    (u) -> BinarySelective.ofSecondary(u)
-            );
-        }
-        LOG.exiting(LOG.getName(), "calculateEndDateTime", result);
-        return result;
-    }
-
-    private static BinarySelective<LocalDateTime, String> calculateStartDateTime(LocalDate date, BinarySelective<Integer, String> hour,
-            BinarySelective<Integer, String> minute, boolean isPm) {
-        LOG.entering(LOG.getName(), "calculateStartDateTime", new Object[]{date, hour, minute, isPm});
-        BinarySelective<LocalDateTime, String> result;
-        if (null == date) {
-            result = BinarySelective.ofSecondary(hour.toSecondary(minute.toSecondary("* Required")));
-        } else {
-            result = hour.map((hv) -> {
-                return minute.map((mv) -> {
-                    int h = (isPm) ? ((hv < 12) ? hv + 12 : 12) : ((hv == 12) ? 0 : hv);
-                    return BinarySelective.ofPrimary(date.atTime(h, mv));
-                },
-                        (mm) -> BinarySelective.ofSecondary(mm)
-                );
-            },
-                    (hm) -> BinarySelective.ofSecondary(hm)
-            );
-        }
-        LOG.exiting(LOG.getName(), "calculateStartDateTime", result);
-        return result;
-    }
-
-    private static BinarySelective<Integer, String> calculateHour(String text, int minValue, int maxValue) {
-        LOG.entering(LOG.getName(), "calculateHour", new Object[]{text, minValue, maxValue});
-        BinarySelective<Integer, String> result;
-        String trimmed;
-        if (null == text || (trimmed = text.trim()).isEmpty()) {
-            result = BinarySelective.ofSecondary("");
-            LOG.exiting(LOG.getName(), "calculateHour", result);
-            return result;
-        }
-        try {
-            Matcher m = INT_PATTERN.matcher(trimmed);
-            if (!m.find()) {
-                throw new ParseException(INVALID_HOUR_NUMBER, text.length() - trimmed.length());
-            } else if (m.end() < trimmed.length()) {
-                throw new ParseException(INVALID_HOUR_NUMBER, m.end() + (text.length() - trimmed.length()));
-            }
-            Number parse = INTN_FORMAT.parse(trimmed);
-            int i = parse.intValue();
-            if (i < minValue || i > maxValue) {
-                result = BinarySelective.ofSecondary("Hour out of range");
-            } else {
-                result = BinarySelective.ofPrimary(i);
-            }
-        } catch (ParseException ex) {
-            int i = ex.getErrorOffset();
-            result = BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid hour format at position %d", i)
-                    : INVALID_HOUR_NUMBER);
-        }
-        LOG.exiting(LOG.getName(), "calculateHour", result);
-        return result;
-    }
-
-    private static BinarySelective<Integer, String> calculateMinute(String text) {
-        LOG.entering(LOG.getName(), "calculateMinute", text);
-        BinarySelective<Integer, String> result;
-        String trimmed;
-        if (null == text || (trimmed = text.trim()).isEmpty()) {
-            result = BinarySelective.ofSecondary("");
-            LOG.exiting(LOG.getName(), "calculateMinute", result);
-            return result;
-        }
-        try {
-            Matcher m = INT_PATTERN.matcher(trimmed);
-            if (!m.find()) {
-                throw new ParseException(INVALID_MINUTE_NUMBER, text.length() - trimmed.length());
-            } else if (m.end() < trimmed.length()) {
-                throw new ParseException(INVALID_MINUTE_NUMBER, m.end() + (text.length() - trimmed.length()));
-            }
-            Number parse = INTN_FORMAT.parse(trimmed);
-            int i = parse.intValue();
-            if (i < 0 || i > 59) {
-                result = BinarySelective.ofSecondary("Minute out of range");
-            } else {
-                result = BinarySelective.ofPrimary(i);
-            }
-        } catch (ParseException ex) {
-            int i = ex.getErrorOffset();
-            result = BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid minute format at position %d", i)
-                    : INVALID_MINUTE_NUMBER);
-        }
-        LOG.exiting(LOG.getName(), "calculateMinute", result);
-        return result;
-    }
-
-    private static BinarySelective<String, String> calculateURL(AppointmentType type, String text) {
-        LOG.entering(LOG.getName(), "calculateURL", new Object[]{type, text});
-        BinarySelective<String, String> result;
-        if (null == text || (text = text.trim()).isEmpty()) {
-            if (type == AppointmentType.VIRTUAL) {
-                result = BinarySelective.ofSecondary("* Required");
-            } else {
-                result = BinarySelective.ofPrimaryNullable(null);
-            }
-            LOG.exiting(LOG.getName(), "calculateURL", result);
-            return result;
-        }
-        URI uri;
-        try {
-            uri = new URI(text);
-        } catch (URISyntaxException ex) {
-            LOG.log(Level.WARNING, String.format("Error parsing url %s", text), ex);
-            text = ex.getMessage();
-            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? INVALID_URL : text);
-            LOG.exiting(LOG.getName(), "calculateURL", result);
-            return result;
-        }
-        URL url;
-        try {
-            url = uri.toURL();
-        } catch (MalformedURLException | IllegalArgumentException ex) {
-            LOG.log(Level.WARNING, String.format("Error converting uri %s", text), ex);
-            text = ex.getMessage();
-            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? INVALID_URL : text);
-            LOG.exiting(LOG.getName(), "calculateURL", result);
-            return result;
-        }
-        if ((text = url.toString()).length() > MAX_LENGTH_URL) {
-            result = BinarySelective.ofSecondary("URL too long");
-        } else {
-            result = BinarySelective.ofPrimary(text);
-        }
-        LOG.exiting(LOG.getName(), "calculateURL", result);
-        return result;
-    }
 
     public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
             Window parentWindow, boolean keepOpen, Consumer<AppointmentModel> beforeShow) throws IOException {
@@ -471,7 +267,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         windowTitle = new ReadOnlyStringWrapper(this, "windowTitle", "");
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         modified = new ReadOnlyBooleanWrapper(this, "modified", true);
-        typeContext = new TypeContextController();
+        typeContext = new TypeContextController(this);
         customerModelList = FXCollections.observableArrayList();
         userModelList = FXCollections.observableArrayList();
         showActiveCustomers = Optional.of(true);
@@ -630,13 +426,13 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         descriptionTextArea.setText(model.getDescription());
         normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
 
-        typeContext.valid.addListener((observable, oldValue, newValue) -> {
+        typeContext.validProperty().addListener((observable, oldValue, newValue) -> {
             onValidityChanged(titleValidationMessage.get().isEmpty(), newValue);
         });
         titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            onValidityChanged(newValue.isEmpty(), typeContext.valid.get());
+            onValidityChanged(newValue.isEmpty(), typeContext.isValid());
         });
-        onValidityChanged(titleValidationMessage.get().isEmpty(), typeContext.valid.get());
+        onValidityChanged(titleValidationMessage.get().isEmpty(), typeContext.isValid());
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
         } else {
@@ -646,6 +442,150 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         InitializationTask task = new InitializationTask();
         waitBorderPane.startNow(task);
         LOG.exiting(LOG.getName(), "initialize");
+    }
+
+    public AppointmentModel getModel() {
+        return model;
+    }
+
+    public ResourceBundle getResources() {
+        return resources;
+    }
+
+    public ComboBox<CustomerModel> getCustomerComboBox() {
+        return customerComboBox;
+    }
+
+    public Label getCustomerValidationLabel() {
+        return customerValidationLabel;
+    }
+
+    public ComboBox<UserModel> getUserComboBox() {
+        return userComboBox;
+    }
+
+    public Button getCheckConflictsButton() {
+        return checkConflictsButton;
+    }
+
+    public Label getUserValidationLabel() {
+        return userValidationLabel;
+    }
+
+    public TextField getContactTextField() {
+        return contactTextField;
+    }
+
+    public Label getContactValidationLabel() {
+        return contactValidationLabel;
+    }
+
+    public ComboBox<AppointmentType> getTypeComboBox() {
+        return typeComboBox;
+    }
+
+    public ComboBox<CorporateAddress> getCorporateLocationComboBox() {
+        return corporateLocationComboBox;
+    }
+
+    public TextArea getLocationTextArea() {
+        return locationTextArea;
+    }
+
+    public TextField getPhoneTextField() {
+        return phoneTextField;
+    }
+
+    public TextField getUrlTextField() {
+        return urlTextField;
+    }
+
+    public Label getUrlValidationLabel() {
+        return urlValidationLabel;
+    }
+
+    public CheckBox getIncludeRemoteCheckBox() {
+        return includeRemoteCheckBox;
+    }
+
+    public Label getLocationLabel() {
+        return locationLabel;
+    }
+
+    public Label getLocationValidationLabel() {
+        return locationValidationLabel;
+    }
+
+    public Label getImplicitLocationLabel() {
+        return implicitLocationLabel;
+    }
+
+    public Button getShowConflictsButton() {
+        return showConflictsButton;
+    }
+
+    public Button getHideConflictsButton() {
+        return hideConflictsButton;
+    }
+
+    public Optional<Boolean> getShowActiveCustomers() {
+        return showActiveCustomers;
+    }
+
+    public Optional<Boolean> getShowActiveUsers() {
+        return showActiveUsers;
+    }
+
+    public DatePicker getStartDatePicker() {
+        return startDatePicker;
+    }
+
+    public TextField getStartHourTextField() {
+        return startHourTextField;
+    }
+
+    public TextField getStartMinuteTextField() {
+        return startMinuteTextField;
+    }
+
+    public ComboBox<Boolean> getAmPmComboBox() {
+        return amPmComboBox;
+    }
+
+    public Label getStartValidationLabel() {
+        return startValidationLabel;
+    }
+
+    public TextField getDurationHourTextField() {
+        return durationHourTextField;
+    }
+
+    public TextField getDurationMinuteTextField() {
+        return durationMinuteTextField;
+    }
+
+    public Label getDurationValidationLabel() {
+        return durationValidationLabel;
+    }
+
+    public Label getEndDateTimeLabel() {
+        return endDateTimeLabel;
+    }
+
+    public ObservableList<CustomerModel> getCustomerModelList() {
+        return customerModelList;
+    }
+
+    public ObservableList<UserModel> getUserModelList() {
+        return userModelList;
+    }
+
+    public WaitBorderPane getWaitBorderPane() {
+        return waitBorderPane;
+    }
+
+    public BorderPane getAppointmentConflictsBorderPane() {
+        return appointmentConflictsBorderPane;
     }
 
     @Override
@@ -688,32 +628,32 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     @Override
     public void applyChanges() {
         model.setTitle(normalizedTitleBinding.get());
-        model.setContact(typeContext.normalizedContact.get());
-        model.setUrl(typeContext.parsedUrl.get().toPrimary(""));
+        model.setContact(typeContext.getNormalizedContact());
+        model.setUrl(typeContext.getParsedUrl().toPrimary(""));
         model.setDescription(normalizedDescriptionBinding.get());
-        model.setCustomer(typeContext.appointmentConflicts.selectedCustomer.get());
-        model.setUser(typeContext.appointmentConflicts.selectedUser.get());
-        model.setType(typeContext.selectedType.get());
-        model.setStart(typeContext.appointmentConflicts.dateRange.startDateTimeValue.get());
-        model.setEnd(typeContext.appointmentConflicts.dateRange.endDateTimeValue.get());
-        switch (typeContext.selectedType.get()) {
+        model.setCustomer(typeContext.getSelectedCustomer());
+        model.setUser(typeContext.getSelectedUser());
+        model.setType(typeContext.getSelectedType());
+        model.setStart(typeContext.getStartDateTimeValue());
+        model.setEnd(typeContext.getEndDateTimeValue());
+        switch (typeContext.getSelectedType()) {
             case CORPORATE_LOCATION:
-                model.setLocation(typeContext.selectedCorporateLocation.get().getName());
+                model.setLocation(typeContext.getSelectedCorporateLocation().getName());
                 break;
             case CUSTOMER_SITE:
-                model.setLocation(typeContext.appointmentConflicts.selectedCustomer.get().getMultiLineAddress());
+                model.setLocation(typeContext.getSelectedCustomer().getMultiLineAddress());
                 break;
             case PHONE:
-                model.setLocation(typeContext.normalizedPhone.get());
+                model.setLocation(typeContext.getNormalizedPhone());
                 break;
             default:
-                model.setLocation(typeContext.normalizedLocation.get());
+                model.setLocation(typeContext.getNormalizedLocation());
                 break;
         }
     }
 
     private synchronized void onCustomersLoaded(List<CustomerDAO> customerDaoList) {
-        CustomerModel selectedItem = typeContext.appointmentConflicts.selectedCustomer.get();
+        CustomerModel selectedItem = typeContext.getSelectedCustomer();
         customerModelList.clear();
         if (null != customerDaoList && !customerDaoList.isEmpty()) {
             customerDaoList.forEach((t) -> customerModelList.add(t.cachedModel(true)));
@@ -722,7 +662,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     private synchronized void onUsersLoaded(List<UserDAO> userDaoList) {
-        UserModel selectedItem = typeContext.appointmentConflicts.selectedUser.get();
+        UserModel selectedItem = typeContext.getSelectedUser();
         if (null != userDaoList && !userDaoList.isEmpty()) {
             userDaoList.forEach((t) -> userModelList.add(t.cachedModel(true)));
         }
@@ -744,7 +684,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             CustomerModel entityModel = event.getEntityModel();
             if (entityModel.isActive() == showActiveCustomers.orElse(entityModel.isActive())) {
                 customerModelList.add(entityModel);
-                customerModelList.sort(CustomerHelper::compare);
+                customerModelList.sort(ModelHelper.CustomerHelper::compare);
                 clearAndSelectEntity(customerComboBox, entityModel);
             }
         }
@@ -757,7 +697,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             int pk = event.getEntityModel().getPrimaryKey();
             if (customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().map((t) -> {
                 if (showActiveUsers.map((u) -> u != t.isActive()).orElse(true)) {
-                    CustomerModel selectedItem = typeContext.appointmentConflicts.selectedCustomer.get();
+                    CustomerModel selectedItem = typeContext.getSelectedCustomer();
                     if (null != selectedItem && selectedItem == t) {
                         customerComboBox.getSelectionModel().clearSelection();
                         customerModelList.remove(t);
@@ -768,7 +708,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 CustomerModel entityModel = event.getEntityModel();
                 if (showActiveUsers.map((t) -> t == entityModel.isActive()).orElse(true)) {
                     customerModelList.add(entityModel);
-                    customerModelList.sort(CustomerHelper::compare);
+                    customerModelList.sort(ModelHelper.CustomerHelper::compare);
                 }
             }
         }
@@ -780,7 +720,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
             customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> {
-                CustomerModel selectedItem = typeContext.appointmentConflicts.selectedCustomer.get();
+                CustomerModel selectedItem = typeContext.getSelectedCustomer();
                 if (null != selectedItem && selectedItem == t) {
                     customerComboBox.getSelectionModel().clearSelection();
                 }
@@ -797,7 +737,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             boolean isActive = entityModel.getStatus() != UserStatus.INACTIVE;
             if (isActive == showActiveUsers.orElse(isActive)) {
                 userModelList.add(entityModel);
-                userModelList.sort(UserHelper::compare);
+                userModelList.sort(ModelHelper.UserHelper::compare);
                 clearAndSelectEntity(userComboBox, entityModel);
             }
         }
@@ -810,7 +750,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             int pk = event.getEntityModel().getPrimaryKey();
             if (userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().map((t) -> {
                 if (showActiveUsers.map((u) -> u != (t.getStatus() != UserStatus.INACTIVE)).orElse(true)) {
-                    UserModel selectedItem = typeContext.appointmentConflicts.selectedUser.get();
+                    UserModel selectedItem = typeContext.getSelectedUser();
                     if (null != selectedItem && selectedItem == t) {
                         userComboBox.getSelectionModel().clearSelection();
                         userModelList.remove(t);
@@ -821,7 +761,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 UserModel entityModel = event.getEntityModel();
                 if (showActiveUsers.map((t) -> t == (entityModel.getStatus() != UserStatus.INACTIVE)).orElse(true)) {
                     userModelList.add(entityModel);
-                    userModelList.sort(UserHelper::compare);
+                    userModelList.sort(ModelHelper.UserHelper::compare);
                 }
             }
         }
@@ -833,7 +773,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> {
-                UserModel selectedItem = typeContext.appointmentConflicts.selectedUser.get();
+                UserModel selectedItem = typeContext.getSelectedUser();
                 if (null != selectedItem && selectedItem == t) {
                     userComboBox.getSelectionModel().clearSelection();
                 }
@@ -994,10 +934,20 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             return result;
         }
 
+        private void initialize(Task<List<AppointmentDAO>> task) {
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
+            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.INSERT_SUCCESS, userInsertEventHandler.getWeakEventHandler());
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.UPDATE_SUCCESS, userUpdateEventHandler.getWeakEventHandler());
+            UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, userDeleteEventHandler.getWeakEventHandler());
+            typeContext.initialize(task);
+        }
+
         @Override
         protected void succeeded() {
             LOG.entering("scheduler.view.appointment.EditAppointment.InitializationTask", "succeeded");
-            typeContext.appointmentConflicts.initialize(this);
+            initialize(this);
             super.succeeded();
             LOG.exiting("scheduler.view.appointment.EditAppointment.InitializationTask", "succeeded");
         }
@@ -1005,7 +955,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         @Override
         protected void cancelled() {
             LOG.entering("scheduler.view.appointment.EditAppointment.InitializationTask", "cancelled");
-            typeContext.appointmentConflicts.initialize(this);
+            initialize(this);
             super.cancelled();
             LOG.exiting("scheduler.view.appointment.EditAppointment.InitializationTask", "cancelled");
         }
@@ -1013,914 +963,11 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         @Override
         protected void failed() {
             LOG.entering("scheduler.view.appointment.EditAppointment.InitializationTask", "failed");
-            typeContext.appointmentConflicts.initialize(this);
+            initialize(this);
             super.failed();
             LOG.exiting("scheduler.view.appointment.EditAppointment.InitializationTask", "failed");
         }
 
     }
 
-    private class DateRangeController {
-
-        private final LocalTime businessHoursStart;
-        private final LocalTime businessHoursEnd;
-        private final ReadOnlyObjectWrapper<LocalDateTime> startDateTimeValue;
-        private final ReadOnlyStringWrapper startValidationMessage;
-        private final ReadOnlyObjectWrapper<LocalDateTime> endDateTimeValue;
-        private final ReadOnlyObjectWrapper<Tuple<LocalDateTime, LocalDateTime>> range;
-        private final BooleanBinding withinBusinessHours;
-        private final ReadOnlyBooleanWrapper valid;
-        private ObjectBinding<BinarySelective<Integer, String>> parsedStartHour;
-        private ObjectBinding<BinarySelective<Integer, String>> parsedStartMinute;
-        private ObjectBinding<BinarySelective<LocalDateTime, String>> startDateTimeBinding;
-        private ObjectBinding<BinarySelective<Integer, String>> parsedDurationHour;
-        private ObjectBinding<BinarySelective<Integer, String>> parsedDurationMinute;
-        private ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeBinding;
-
-        DateRangeController() {
-            try {
-                businessHoursStart = AppResources.getBusinessHoursStart();
-                businessHoursEnd = businessHoursStart.plusMinutes(AppResources.getBusinessHoursDuration());
-            } catch (ParseException ex) {
-                Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, "Error parsing start business hours", ex);
-                throw new RuntimeException(ex);
-            }
-            startValidationMessage = new ReadOnlyStringWrapper(this, "startValidationMessage", "");
-            startDateTimeValue = new ReadOnlyObjectWrapper<>(this, "startDateTimeValue", null);
-            endDateTimeValue = new ReadOnlyObjectWrapper<>(this, "endDateTimeValue", null);
-            range = new ReadOnlyObjectWrapper<>(this, "range", null);
-            withinBusinessHours = Bindings.createBooleanBinding(() -> {
-                Tuple<LocalDateTime, LocalDateTime> value = range.get();
-                return null == value || (value.getValue1().toLocalTime().compareTo(businessHoursStart) >= 0 && value.getValue2().toLocalTime().compareTo(businessHoursEnd) < 0);
-            }, range);
-            valid = new ReadOnlyBooleanWrapper(this, "valid", false);
-        }
-
-        private void initialize() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.DateRangeController", "initialize");
-            LocalDateTime rangeStart = model.getStart();
-            if (null != rangeStart) {
-                startDatePicker.setValue(rangeStart.toLocalDate());
-                amPmComboBox.setItems(FXCollections.observableArrayList(Boolean.FALSE, Boolean.TRUE));
-                int hv = rangeStart.getHour();
-                if (hv < 12) {
-                    amPmComboBox.getSelectionModel().select(false);
-                    startHourTextField.setText(INTN_FORMAT.format((hv > 0) ? hv : 12));
-                } else {
-                    amPmComboBox.getSelectionModel().select(true);
-                    startHourTextField.setText(INTN_FORMAT.format((hv > 12) ? 12 : hv - 12));
-                }
-                startMinuteTextField.setText(INT2_FORMAT.format(rangeStart.getMinute()));
-                LocalDateTime rangeEnd = model.getEnd();
-                if (null != rangeEnd) {
-                    long h = Duration.between(rangeStart, rangeEnd).toMinutes();
-                    long m = h % 60;
-                    durationHourTextField.setText(INTN_FORMAT.format((h - m) / 60));
-                    durationMinuteTextField.setText(INT2_FORMAT.format(m));
-                }
-            }
-            parsedStartHour = Bindings.createObjectBinding(() -> calculateHour(startHourTextField.getText(), 1, 12), startHourTextField.textProperty());
-            parsedStartMinute = Bindings.createObjectBinding(() -> calculateMinute(startMinuteTextField.getText()), startMinuteTextField.textProperty());
-            startDateTimeBinding = Bindings.createObjectBinding(() -> calculateStartDateTime(startDatePicker.getValue(), parsedStartHour.get(),
-                    parsedStartMinute.get(), amPmComboBox.getSelectionModel().getSelectedItem()), startDatePicker.valueProperty(), parsedStartHour,
-                    parsedStartMinute, amPmComboBox.getSelectionModel().selectedItemProperty());
-            parsedDurationHour = Bindings.createObjectBinding(() -> calculateHour(durationHourTextField.getText(), 0, 256),
-                    durationHourTextField.textProperty());
-            parsedDurationMinute = Bindings.createObjectBinding(() -> calculateMinute(durationMinuteTextField.getText()),
-                    durationMinuteTextField.textProperty());
-            endDateTimeBinding = Bindings.createObjectBinding(() -> calculateEndDateTime(startDateTimeValue.get(), parsedDurationHour.get(),
-                    parsedDurationMinute.get()), startDateTimeValue, parsedDurationHour, parsedDurationMinute);
-            startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.startDatePicker#value", "changed", new Object[]{oldValue, newValue});
-                checkStartChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.startDatePicker#value", "changed");
-            });
-            startHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.startHourTextField#text", "changed", new Object[]{oldValue, newValue});
-                checkStartChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.startHourTextField#text", "changed");
-            });
-            startMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.startMinuteTextField#text", "changed", new Object[]{oldValue, newValue});
-                checkStartChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.startMinuteTextField#text", "changed");
-            });
-            amPmComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.amPmComboBox#value", "changed", new Object[]{oldValue, newValue});
-                checkStartChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.amPmComboBox#value", "changed");
-            });
-            startDateTimeValue.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.startDateTimeValue#value", "changed", new Object[]{oldValue, newValue});
-                checkEndChange(Optional.of(newValue));
-                LOG.exiting("scheduler.view.appointment.EditAppointment.startDateTimeValue#value", "changed");
-            });
-            durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.durationHourTextField#text", "changed", new Object[]{oldValue, newValue});
-                checkEndChange(Optional.empty());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.durationHourTextField#text", "changed");
-            });
-            durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.durationMinuteTextField#text", "changed", new Object[]{oldValue, newValue});
-                checkEndChange(Optional.empty());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.durationMinuteTextField#text", "changed");
-            });
-            endDateTimeValue.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.endDateTimeValue#value", "changed", new Object[]{oldValue, newValue});
-                checkRangeChange(startDateTimeValue.get(), endDateTimeValue.get());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.endDateTimeValue#value", "changed");
-            });
-            checkStartChange();
-            checkEndChange(Optional.empty());
-            LOG.exiting("scheduler.view.appointment.EditAppointment.DateRangeController", "initialize");
-        }
-
-        private synchronized void checkStartChange() {
-            startDateTimeBinding.get().accept(
-                    (t) -> {
-                        if (!t.equals(startDateTimeValue.get())) {
-                            startDateTimeValue.set(t);
-                        }
-                        if (!startValidationMessage.get().isEmpty()) {
-                            startValidationMessage.set("");
-                        }
-                    },
-                    (t) -> {
-                        if (null != startDateTimeValue.getValue()) {
-                            startDateTimeValue.setValue(null);
-                        }
-                        if (!t.equals(startValidationMessage.get())) {
-                            startValidationMessage.set(t);
-                        }
-                    }
-            );
-        }
-
-        private synchronized void checkEndChange(Optional<LocalDateTime> startChange) {
-            endDateTimeBinding.get().accept(
-                    (t) -> {
-                        boolean c = !t.equals(endDateTimeValue.get());
-                        if (c) {
-                            endDateTimeValue.set(t);
-                            String s = DATETIME_FORMAT.format(t);
-                            if (!endDateTimeLabel.getText().equals(s)) {
-                                endDateTimeLabel.setText(s);
-                            }
-                        }
-                        if (!durationValidationLabel.getText().isEmpty()) {
-                            durationValidationLabel.setText("");
-                        }
-                        if (durationValidationLabel.isVisible()) {
-                            durationValidationLabel.setVisible(false);
-                        }
-                        if (!c) {
-                            startChange.ifPresent((u) -> checkRangeChange(u, t));
-                        }
-                    },
-                    (t) -> {
-                        if (!endDateTimeLabel.getText().isEmpty()) {
-                            endDateTimeLabel.setText("");
-                        }
-                        boolean c = !t.isEmpty();
-                        if (durationValidationLabel.isVisible() != c) {
-                            durationValidationLabel.setVisible(c);
-                        }
-                        c = null != endDateTimeValue.get();
-                        if (c) {
-                            endDateTimeValue.set(null);
-                        }
-                        if (!t.equals(durationValidationLabel.getText())) {
-                            durationValidationLabel.setText(t);
-                        }
-                        if (!c) {
-                            startChange.ifPresent((u) -> checkRangeChange(u, null));
-                        }
-                    }
-            );
-        }
-
-        private synchronized void checkRangeChange(LocalDateTime start, LocalDateTime end) {
-            Tuple<LocalDateTime, LocalDateTime> oldValue = range.get();
-            if (null == start || null == end) {
-                if (null != oldValue) {
-                    range.set(null);
-                    valid.set(false);
-                }
-            } else if (null == oldValue) {
-                range.set(Tuple.of(start, end));
-                valid.set(true);
-            } else if (!(start.equals(oldValue.getValue1()) && end.equals(oldValue.getValue2()))) {
-                range.set(Tuple.of(start, end));
-            }
-        }
-
-    }
-
-    enum ConflictCheckStatus {
-        NOT_CHECKED,
-        HAS_CONFLICT,
-        NO_CONFLICT
-    }
-
-    private class AppointmentConflictsController {
-
-        private final ReadOnlyObjectWrapper<Tuple<CustomerModel, UserModel>> currentParticipants;
-        private final ReadOnlyObjectWrapper<ConflictCheckStatus> conflictCheckStatus;
-        private final ReadOnlyStringWrapper conflictMessage;
-        private final ObservableList<AppointmentModel> allAppointments;
-        private final ObservableList<AppointmentModel> conflictingAppointments;
-        private final DateRangeController dateRange;
-        private final ReadOnlyBooleanWrapper valid;
-        private LoadParticipantsAppointmentsTask currentTask = null;
-        private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
-        private ReadOnlyObjectProperty<UserModel> selectedUser;
-
-        private AppointmentConflictsController() {
-            currentParticipants = new ReadOnlyObjectWrapper<>(this, "currentParticipants", null);
-            conflictCheckStatus = new ReadOnlyObjectWrapper<>(this, "conflictCheckStatus", ConflictCheckStatus.NO_CONFLICT);
-            conflictMessage = new ReadOnlyStringWrapper("");
-            allAppointments = FXCollections.observableArrayList();
-            conflictingAppointments = FXCollections.observableArrayList();
-            dateRange = new DateRangeController();
-            valid = new ReadOnlyBooleanWrapper(this, "valid", false);
-            conflictMessage.addListener((observable, oldValue, newValue) -> {
-                onStartMessageChanged(dateRange.startValidationMessage.get(), newValue, dateRange.withinBusinessHours.get());
-            });
-            dateRange.startValidationMessage.addListener((observable, oldValue, newValue) -> {
-                onStartMessageChanged(newValue, conflictMessage.get(), dateRange.withinBusinessHours.get());
-            });
-            currentParticipants.addListener((observable, oldValue, newValue) -> {
-                onValidityChanged(null != newValue, dateRange.valid.get());
-            });
-            dateRange.valid.addListener((observable, oldValue, newValue) -> {
-                onValidityChanged(null != currentParticipants.get(), newValue);
-            });
-        }
-
-        private void initialize() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.AppointmentConflictsController", "initialize");
-            dateRange.initialize();
-
-            final SingleSelectionModel<CustomerModel> customerSelectionModel = customerComboBox.getSelectionModel();
-            selectedCustomer = customerSelectionModel.selectedItemProperty();
-            selectedUser = userComboBox.getSelectionModel().selectedItemProperty();
-            CustomerModel customer = selectedCustomer.get();
-            customerValidationLabel.setVisible(null == customer);
-            UserModel user = selectedUser.get();
-            userValidationLabel.setVisible(null == user);
-            if (null != customer && null != user) {
-                currentParticipants.set(Tuple.of(customer, user));
-                conflictCheckStatus.set(ConflictCheckStatus.NOT_CHECKED);
-            }
-            selectedCustomer.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedCustomer#value", "changed", new Object[]{oldValue, newValue});
-                if (null == newValue) {
-                    if (!customerValidationLabel.isVisible()) {
-                        customerValidationLabel.setVisible(true);
-                    }
-                } else if (customerValidationLabel.isVisible()) {
-                    customerValidationLabel.setVisible(false);
-                }
-                onParticipantsChanged(newValue, selectedUser.get());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedCustomer#value", "changed");
-            });
-            selectedUser.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedUser#value", "changed", new Object[]{oldValue, newValue});
-                if (null == newValue) {
-                    if (!userValidationLabel.isVisible()) {
-                        userValidationLabel.setVisible(true);
-                    }
-                } else if (userValidationLabel.isVisible()) {
-                    userValidationLabel.setVisible(false);
-                }
-                onParticipantsChanged(selectedCustomer.get(), newValue);
-                LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController.selectedUser#value", "changed");
-            });
-            checkConflictsButton.setOnAction(this::onCheckConflictsButtonAction);
-            showConflictsButton.setOnAction(this::onShowConflictsButtonAction);
-            hideConflictsButton.setOnAction(this::onHideConflictsButtonAction);
-            LOG.exiting("scheduler.view.appointment.EditAppointment.AppointmentConflictsController", "initialize");
-        }
-
-        private void initialize(Task<List<AppointmentDAO>> task) {
-            clearAndSelectEntity(customerComboBox, model.getCustomer());
-            clearAndSelectEntity(userComboBox, model.getUser());
-            onAppointmentsLoaded(task);
-            checkConflictsButton.setDisable(conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED);
-            dateRange.range.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue, dateRange.withinBusinessHours.get()));
-            conflictCheckStatus.addListener((observable, oldValue, newValue) -> {
-                checkConflictsButton.setDisable(newValue != ConflictCheckStatus.NOT_CHECKED);
-            });
-            onStartMessageChanged(dateRange.startValidationMessage.get(), conflictMessage.get(), dateRange.withinBusinessHours.get());
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
-            CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
-            UserModel.FACTORY.addEventHandler(UserSuccessEvent.INSERT_SUCCESS, userInsertEventHandler.getWeakEventHandler());
-            UserModel.FACTORY.addEventHandler(UserSuccessEvent.UPDATE_SUCCESS, userUpdateEventHandler.getWeakEventHandler());
-            UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, userDeleteEventHandler.getWeakEventHandler());
-        }
-
-        private synchronized void onCheckConflictsButtonAction(ActionEvent event) {
-            LOG.entering(LOG.getName(), "onCheckConflictsButtonAction", event);
-            Tuple<CustomerModel, UserModel> p = currentParticipants.get();
-            if (null != p) {
-                if (null != currentTask && !currentTask.isDone()) {
-                    currentTask.cancel(true);
-                }
-                checkConflictsButton.setDisable(true);
-                currentTask = new LoadParticipantsAppointmentsTask(p);
-                waitBorderPane.startNow(currentTask);
-            }
-            LOG.exiting(LOG.getName(), "onCheckConflictsButtonAction");
-        }
-
-        private synchronized void onShowConflictsButtonAction(ActionEvent event) {
-            LOG.entering(LOG.getName(), "onShowConflictsButtonAction", event);
-            if (!conflictingAppointments.isEmpty()) {
-                restoreNode(appointmentConflictsBorderPane);
-            }
-            LOG.exiting(LOG.getName(), "onShowConflictsButtonAction");
-        }
-
-        private synchronized void onHideConflictsButtonAction(ActionEvent event) {
-            LOG.entering(LOG.getName(), "onHideConflictsButtonAction", event);
-            collapseNode(appointmentConflictsBorderPane);
-            LOG.exiting(LOG.getName(), "onHideConflictsButtonAction");
-        }
-
-        private void onAppointmentsLoaded(Task<List<AppointmentDAO>> task) {
-            if (checkCurrentTask(task)) {
-                return;
-            }
-            List<AppointmentDAO> appointments;
-            try {
-                appointments = task.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                LOG.log(Level.SEVERE, "Error getting task result", ex);
-                allAppointments.clear();
-                conflictingAppointments.clear();
-                if (conflictCheckStatus.get() == ConflictCheckStatus.NO_CONFLICT) {
-                    conflictCheckStatus.set(ConflictCheckStatus.NOT_CHECKED);
-                }
-                showConflictsButton.setDisable(true);
-                return;
-            }
-            allAppointments.clear();
-            conflictingAppointments.clear();
-            if (null != appointments && !appointments.isEmpty()) {
-                LOG.fine("Creating appointment models");
-                if (model.getRowState() != DataRowState.NEW) {
-                    int pk = model.getPrimaryKey();
-                    appointments.stream().filter(t -> t.getPrimaryKey() != pk).map((t) -> t.cachedModel(true)).sorted(AppointmentHelper::compareByDates)
-                            .forEachOrdered((t) -> allAppointments.add(t));
-                } else {
-                    appointments.stream().map((t) -> t.cachedModel(true)).sorted(AppointmentHelper::compareByDates).forEachOrdered((t) -> allAppointments.add(t));
-                }
-            }
-            if (null != dateRange.range.get() && null != currentParticipants.get()) {
-                updateConflictingAppointments();
-            } else {
-                showConflictsButton.setDisable(true);
-                if (conflictCheckStatus.get() != ConflictCheckStatus.NO_CONFLICT) {
-                    conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
-                }
-            }
-        }
-
-        private synchronized boolean checkCurrentTask(Task<List<AppointmentDAO>> task) {
-            if (Objects.equals(currentTask, task)) {
-                currentTask = null;
-            } else if (null != currentTask) {
-                return true;
-            }
-            return false;
-        }
-
-        private synchronized void onParticipantsChanged(CustomerModel customer, UserModel user) {
-            Tuple<CustomerModel, UserModel> lookup = currentParticipants.get();
-            String message;
-            ConflictCheckStatus checkStatus;
-            if (null == customer || null == user) {
-                if (null == lookup) {
-                    LOG.fine("Participants not actually changed; nothing else to do");
-                    return;
-                }
-                LOG.fine("Customer and/or user not defined; Setting current participants to null");
-                currentParticipants.set(null);
-                checkStatus = ConflictCheckStatus.NO_CONFLICT;
-                message = "";
-            } else if (null != lookup && lookup.getValue1().equals(customer) && lookup.getValue2().equals(user)) {
-                LOG.fine("Participant values not changed; nothing else to do");
-                return;
-            } else {
-                LOG.fine("Participants changed; setting status to NOT_CHECKED");
-                currentParticipants.set(Tuple.of(customer, user));
-                checkStatus = ConflictCheckStatus.NOT_CHECKED;
-                message = (null == dateRange.range.get()) ? "" : resources.getString(RESOURCEKEY_CONFLICTDATASTALE);
-            }
-            showConflictsButton.setDisable(true);
-            if (!conflictMessage.get().equals(message)) {
-                conflictMessage.set(message);
-            }
-            if (conflictCheckStatus.get() != checkStatus) {
-                conflictCheckStatus.set(checkStatus);
-            }
-            if (null != currentTask && !currentTask.isDone()) {
-                LOG.fine("Superceding existing task");
-                currentTask.cancel(true);
-                currentTask = null;
-            }
-        }
-
-        private synchronized void onRangeChanged(Tuple<LocalDateTime, LocalDateTime> range, boolean isWithinBusinessHours) {
-            if (null == range) {
-                LOG.fine("Start and/or end not defined");
-                if (conflictCheckStatus.get() == ConflictCheckStatus.HAS_CONFLICT) {
-                    conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
-                    if (!conflictMessage.get().isEmpty()) {
-                        conflictMessage.set("");
-                    }
-                    conflictingAppointments.clear();
-                }
-            } else {
-                if (allAppointments.isEmpty()) {
-                    LOG.fine("Range changed, with no appointments; nothing else to do");
-                } else {
-                    Tuple<CustomerModel, UserModel> lookup = currentParticipants.get();
-                    if (null == lookup) {
-                        LOG.fine("Range changed, with no customer and/or user selection; nothing else to do");
-                        if (conflictCheckStatus.get() == ConflictCheckStatus.HAS_CONFLICT) {
-                            conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
-                            if (!conflictMessage.get().isEmpty()) {
-                                conflictMessage.set("");
-                            }
-                        }
-                    } else if (conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED) {
-                        updateConflictingAppointments();
-                    } else {
-                        LOG.fine("Range changed, with status NOT_CHECKED; nothing else to do");
-                    }
-                }
-            }
-            onStartMessageChanged(dateRange.startValidationMessage.get(), conflictMessage.get(), isWithinBusinessHours);
-        }
-
-        private synchronized void updateConflictingAppointments() {
-            Tuple<LocalDateTime, LocalDateTime> range = dateRange.range.get();
-            LOG.fine("Resetting conflicting appointments list");
-            conflictingAppointments.clear();
-            LocalDateTime start = range.getValue1();
-            LocalDateTime end = range.getValue2();
-            allAppointments.stream().filter((a) -> a.getStart().compareTo(end) < 0 && a.getEnd().compareTo(start) > 0).forEachOrdered((t) -> conflictingAppointments.add(t));
-            String message;
-            ConflictCheckStatus checkStatus;
-            if (conflictingAppointments.isEmpty()) {
-                LOG.fine("No conflicting appointments");
-                message = "";
-                checkStatus = ConflictCheckStatus.NO_CONFLICT;
-                conflictMessage.set("");
-                showConflictsButton.setDisable(true);
-            } else {
-                LOG.fine(() -> String.format("%d conflicting appointments", conflictingAppointments.size()));
-                checkStatus = ConflictCheckStatus.HAS_CONFLICT;
-                Tuple<CustomerModel, UserModel> participants = currentParticipants.get();
-                CustomerModel customer = participants.getValue1();
-                UserModel user = participants.getValue2();
-                int customerCount = (int) conflictingAppointments.stream().filter((t) -> ModelHelper.areSameRecord(customer, t.getCustomer())).count();
-                LOG.fine(() -> String.format("%d conflicting appointments for customer", customerCount));
-                int userCount = (int) conflictingAppointments.stream().filter((t) -> ModelHelper.areSameRecord(user, t.getUser())).count();
-                LOG.fine(() -> String.format("%d conflicting appointments for user", customerCount));
-                switch (customerCount) {
-                    case 0:
-                        switch (userCount) {
-                            case 1:
-                                message = resources.getString(RESOURCEKEY_CONFLICTUSER1);
-                                break;
-                            default:
-                                message = String.format(resources.getString(RESOURCEKEY_CONFLICTUSERN), userCount);
-                                break;
-                        }
-                        break;
-                    case 1:
-                        switch (userCount) {
-                            case 0:
-                                message = resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1);
-                                break;
-                            case 1:
-                                message = resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USER1);
-                                break;
-                            default:
-                                message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMER1USERN), userCount);
-                                break;
-                        }
-                        break;
-                    default:
-                        switch (userCount) {
-                            case 0:
-                                message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERN), customerCount);
-                                break;
-                            case 1:
-                                message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSER1), customerCount);
-                                break;
-                            default:
-                                message = String.format(resources.getString(RESOURCEKEY_CONFLICTCUSTOMERNUSERN), customerCount, userCount);
-                                break;
-                        }
-                        break;
-                }
-                showConflictsButton.setDisable(false);
-            }
-            if (!message.equals(conflictMessage.get())) {
-                conflictMessage.set(message);
-            }
-            if (conflictCheckStatus.get() != checkStatus) {
-                conflictCheckStatus.set(checkStatus);
-            }
-        }
-
-        private synchronized void onStartMessageChanged(String errorMessage, String warningMessage, boolean isWithinBusinessHours) {
-            if (errorMessage.isEmpty()) {
-                if (warningMessage.isEmpty()) {
-                    if (isWithinBusinessHours) {
-                        startValidationLabel.setText("");
-                        startValidationLabel.setVisible(false);
-                        return;
-                    }
-                    setWarningMessage(startValidationLabel, String.format("This appointment occurs outside business hours of %s to %s", dateRange.businessHoursStart,
-                            dateRange.businessHoursEnd));
-                } else {
-                    setWarningMessage(startValidationLabel, warningMessage);
-                }
-            } else {
-                setErrorMessage(startValidationLabel, errorMessage);
-            }
-            startValidationLabel.setVisible(true);
-        }
-
-        private synchronized void onValidityChanged(boolean hasParticipants, boolean hasRange) {
-            boolean v = hasParticipants && hasRange;
-            if (v != valid.get()) {
-                valid.set(v);
-            }
-        }
-
-    }
-
-    private class LoadParticipantsAppointmentsTask extends Task<List<AppointmentDAO>> {
-
-        private final Tuple<CustomerModel, UserModel> participants;
-
-        private LoadParticipantsAppointmentsTask(Tuple<CustomerModel, UserModel> participants) {
-            this.participants = participants;
-        }
-
-        @Override
-        protected List<AppointmentDAO> call() throws Exception {
-            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "call");
-            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
-            AppointmentFilter filter;
-            try (DbConnector dbConnector = new DbConnector()) {
-                if (isCancelled()) {
-                    return null;
-                }
-                filter = AppointmentFilter.of(AppointmentFilter.expressionOf(participants.getValue1(), participants.getValue2()));
-                updateMessage(filter.getLoadingMessage());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "call");
-                return AppointmentDAO.FACTORY.load(dbConnector.getConnection(), filter);
-            }
-        }
-
-        @Override
-        protected void succeeded() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "succeeded");
-            typeContext.appointmentConflicts.onAppointmentsLoaded(this);
-            super.succeeded();
-            LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "succeeded");
-        }
-
-        @Override
-        protected void cancelled() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "cancelled");
-            typeContext.appointmentConflicts.onAppointmentsLoaded(this);
-            super.cancelled();
-            LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "cancelled");
-        }
-
-        @Override
-        protected void failed() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "failed");
-            typeContext.appointmentConflicts.onAppointmentsLoaded(this);
-            super.failed();
-            LOG.exiting("scheduler.view.appointment.EditAppointment.LoadParticipantsAppointmentsTask", "failed");
-        }
-
-    }
-
-    private class TypeContextController {
-
-        private final ReadOnlyBooleanWrapper valid;
-        private final AppointmentConflictsController appointmentConflicts;
-        private final ObservableList<CorporateAddress> corporateLocationList;
-        private final ObservableList<CorporateAddress> remoteLocationList;
-        private StringBinding normalizedContact;
-        private ReadOnlyObjectProperty<AppointmentType> selectedType;
-        private ReadOnlyObjectProperty<CorporateAddress> selectedCorporateLocation;
-        private StringBinding normalizedLocation;
-        private StringBinding normalizedPhone;
-        private ObjectBinding<BinarySelective<String, String>> parsedUrl;
-
-        private TypeContextController() {
-            valid = new ReadOnlyBooleanWrapper(this, "valid", false);
-            corporateLocationList = FXCollections.observableArrayList();
-            remoteLocationList = FXCollections.observableArrayList();
-            PredefinedData.getCorporateAddressMap().values().forEach((t) -> {
-                if (t.isSatelliteOffice()) {
-                    remoteLocationList.add(t);
-                } else {
-                    corporateLocationList.add(t);
-                }
-            });
-            appointmentConflicts = new AppointmentConflictsController();
-        }
-
-        private void initialize() {
-            LOG.entering("scheduler.view.appointment.EditAppointment$TypeContextController", "initialize");
-            appointmentConflicts.initialize();
-            contactTextField.setText(model.getContact());
-            StringProperty contactText = contactTextField.textProperty();
-            normalizedContact = BindingHelper.asNonNullAndWsNormalized(contactText);
-
-            typeComboBox.setItems(FXCollections.observableArrayList(AppointmentType.values()));
-            SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
-            typeSelectionModel.select(model.getType());
-            selectedType = typeSelectionModel.selectedItemProperty();
-
-            corporateLocationComboBox.setItems(corporateLocationList);
-            SingleSelectionModel<CorporateAddress> corporateLocationSelectionModel = corporateLocationComboBox.getSelectionModel();
-            selectedCorporateLocation = corporateLocationSelectionModel.selectedItemProperty();
-
-            StringProperty locationText = locationTextArea.textProperty();
-            normalizedLocation = BindingHelper.asNonNullAndWsNormalizedMultiLine(locationText);
-
-            StringProperty phoneText = phoneTextField.textProperty();
-            normalizedPhone = BindingHelper.asNonNullAndWsNormalizedMultiLine(phoneText);
-
-            urlTextField.setText(model.getUrl());
-            parsedUrl = Bindings.createObjectBinding(() -> calculateURL(selectedType.get(), urlTextField.textProperty().get()), selectedType, urlTextField.textProperty());
-
-            String location = model.getLocation();
-            switch (selectedType.get()) {
-                case CORPORATE_LOCATION:
-                    restoreNode(corporateLocationComboBox);
-                    collapseNode(locationTextArea);
-                    CorporateAddress cl = corporateLocationList.stream().filter((t) -> t.getName().equals(location)).findFirst().orElseGet(() -> {
-                        CorporateAddress r = remoteLocationList.stream().filter((u) -> u.getName().equals(location)).findFirst().orElse(null);
-                        if (null != r) {
-                            includeRemoteCheckBox.setSelected(true);
-                            remoteLocationList.forEach((u) -> corporateLocationList.add(u));
-                        }
-                        return r;
-                    });
-                    locationValidationLabel.setVisible(null == cl);
-                    if (locationValidationLabel.isVisible()) {
-                        restoreLabeled(implicitLocationLabel, "(corporate location)");
-                    } else {
-                        restoreLabeled(implicitLocationLabel, cl.toMultiLineAddress());
-                        corporateLocationSelectionModel.select(cl);
-                        collapseNode(locationValidationLabel);
-                    }
-                    break;
-                case CUSTOMER_SITE:
-                    locationValidationLabel.setVisible(false);
-                    collapseNode(locationValidationLabel);
-                    collapseNode(locationTextArea);
-                    CustomerModel cm = appointmentConflicts.selectedCustomer.get();
-                    if (null == cm) {
-                        restoreLabeled(implicitLocationLabel, "(customer site)");
-                    } else {
-                        restoreLabeled(implicitLocationLabel, cm.getMultiLineAddress());
-                    }
-                    break;
-                case PHONE:
-                    collapseNode(locationTextArea);
-                    restoreNode(phoneTextField);
-                    locationLabel.setText(resources.getString(RESOURCEKEY_PHONENUMBER));
-                    phoneTextField.setText(location);
-                    locationValidationLabel.setVisible(normalizedPhone.get().isEmpty());
-                    if (!locationValidationLabel.isVisible()) {
-                        collapseNode(locationValidationLabel);
-                    }
-                    break;
-                case VIRTUAL:
-                    locationValidationLabel.setVisible(false);
-                    collapseNode(locationValidationLabel);
-                    break;
-                default:
-                    locationTextArea.setText(location);
-                    locationValidationLabel.setVisible(normalizedLocation.get().isEmpty());
-                    if (!locationValidationLabel.isVisible()) {
-                        collapseNode(locationValidationLabel);
-                    }
-                    contactValidationLabel.setVisible(normalizedContact.get().isEmpty());
-                    break;
-            }
-            parsedUrl.get().accept((t) -> {
-                urlValidationLabel.setText("");
-                urlValidationLabel.setVisible(false);
-            }, (t) -> {
-                urlValidationLabel.setText(t);
-                urlValidationLabel.setVisible(true);
-            });
-            appointmentConflicts.selectedCustomer.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#selectedCustomer", "changed", new Object[]{oldValue, newValue});
-                onContextSensitiveChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#selectedCustomer", "changed");
-            });
-            contactText.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.contactTextField#text", "changed", new Object[]{oldValue, newValue});
-                onContextSensitiveChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.contactTextField#text", "changed");
-            });
-            selectedCorporateLocation.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.corporateLocationComboBox#value", "changed", new Object[]{oldValue, newValue});
-                onContextSensitiveChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.corporateLocationComboBox#value", "changed");
-            });
-            locationText.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.locationTextArea#text", "changed", new Object[]{oldValue, newValue});
-                onContextSensitiveChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.locationTextArea#text", "changed");
-            });
-            phoneText.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.phoneTextField#text", "changed", new Object[]{oldValue, newValue});
-                onContextSensitiveChange();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.phoneTextField#text", "changed");
-            });
-            urlTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.urlTextField#text", "changed", new Object[]{oldValue, newValue});
-                onUrlChanged();
-                LOG.exiting("scheduler.view.appointment.EditAppointment.urlTextField#text", "changed");
-            });
-            appointmentConflicts.valid.addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#valid", "changed", new Object[]{oldValue, newValue});
-                onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), newValue);
-                LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController.appointmentConflicts#valid", "changed");
-            });
-            contactValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.contactValidationLabel#visible", "changed", new Object[]{oldValue, newValue});
-                onValidityChanged(newValue, locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), appointmentConflicts.valid.get());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.contactValidationLabel#visible", "changed");
-            });
-            locationValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.locationValidationLabel#visible", "changed", new Object[]{oldValue, newValue});
-                onValidityChanged(contactValidationLabel.isVisible(), newValue, urlValidationLabel.isVisible(), appointmentConflicts.valid.get());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.locationValidationLabel#visible", "changed");
-            });
-            urlValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-                LOG.entering("scheduler.view.appointment.EditAppointment.urlValidationLabel#visible", "changed", new Object[]{oldValue, newValue});
-                onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), newValue, appointmentConflicts.valid.get());
-                LOG.exiting("scheduler.view.appointment.EditAppointment.urlValidationLabel#visible", "changed");
-            });
-            onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), appointmentConflicts.valid.get());
-            selectedType.addListener(this::onTypeChanged);
-            LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "initialize");
-        }
-
-        private synchronized void onContextSensitiveChange() {
-            boolean wasInvalid = locationValidationLabel.isVisible();
-            switch (selectedType.get()) {
-                case CORPORATE_LOCATION:
-                    CorporateAddress cl = selectedCorporateLocation.get();
-                    locationValidationLabel.setVisible(null == cl);
-                    if (locationValidationLabel.isVisible()) {
-                        restoreLabeled(implicitLocationLabel, "(corporate location)");
-                    } else {
-                        restoreLabeled(implicitLocationLabel, cl.toMultiLineAddress());
-                    }
-                    break;
-                case CUSTOMER_SITE:
-                    CustomerModel cm = appointmentConflicts.selectedCustomer.get();
-                    if (null == cm) {
-                        restoreLabeled(implicitLocationLabel, "(customer site)");
-                    } else {
-                        restoreLabeled(implicitLocationLabel, cm.getMultiLineAddress());
-                    }
-                    break;
-                case PHONE:
-                    locationValidationLabel.setVisible(normalizedPhone.get().isEmpty());
-                    break;
-                case VIRTUAL:
-                    onUrlChanged();
-                    break;
-                default:
-                    locationValidationLabel.setVisible(normalizedLocation.get().isEmpty());
-                    contactValidationLabel.setVisible(normalizedContact.get().isEmpty());
-                    break;
-            }
-            if (wasInvalid != locationValidationLabel.isVisible()) {
-                if (wasInvalid) {
-                    collapseNode(locationValidationLabel);
-                } else {
-                    restoreNode(locationValidationLabel);
-                }
-            }
-        }
-
-        private synchronized void onValidityChanged(boolean contactIsInvalid, boolean locationIsInvalid, boolean urlIsInvalid, boolean rangesAreValid) {
-            LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController.onValidityChanged(boolean, boolean, boolean, boolean)", "onValidityChanged",
-                    new Object[]{contactIsInvalid, locationIsInvalid, urlIsInvalid, rangesAreValid});
-            boolean v = rangesAreValid && !(contactIsInvalid || locationIsInvalid || urlIsInvalid);
-            if (v != valid.get()) {
-                valid.set(v);
-            }
-        }
-
-        private synchronized void onUrlChanged() {
-            parsedUrl.get().accept((t) -> {
-                urlValidationLabel.setText("");
-                urlValidationLabel.setVisible(false);
-            }, (t) -> {
-                urlValidationLabel.setText(t);
-                urlValidationLabel.setVisible(true);
-            });
-        }
-
-        private synchronized void onTypeChanged(ObservableValue<? extends AppointmentType> observable, AppointmentType oldValue, AppointmentType newValue) {
-            LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
-            if (oldValue == newValue) {
-                return;
-            }
-            switch (oldValue) {
-                case CORPORATE_LOCATION:
-                    if (newValue == AppointmentType.CUSTOMER_SITE) {
-                        onContextSensitiveChange();
-                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
-                        return;
-                    }
-                    collapseNode(corporateLocationComboBox);
-                    collapseNode(implicitLocationLabel);
-                    break;
-                case CUSTOMER_SITE:
-                    if (newValue == AppointmentType.CORPORATE_LOCATION) {
-                        restoreNode(corporateLocationComboBox);
-                        onContextSensitiveChange();
-                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
-                        return;
-                    }
-                    collapseNode(implicitLocationLabel);
-                    break;
-                case PHONE:
-                    collapseNode(phoneTextField);
-                    locationLabel.setText(resources.getString(RESOURCEKEY_LOCATIONLABELTEXT));
-                    break;
-                case VIRTUAL:
-                    onUrlChanged();
-                    if (newValue == AppointmentType.OTHER) {
-                        onContextSensitiveChange();
-                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
-                        return;
-                    }
-                    collapseNode(locationTextArea);
-                    break;
-                default:
-                    if (newValue == AppointmentType.VIRTUAL) {
-                        locationValidationLabel.setVisible(false);
-                        contactValidationLabel.setVisible(false);
-                        onContextSensitiveChange();
-                        LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
-                        return;
-                    }
-                    contactValidationLabel.setVisible(false);
-                    collapseNode(locationTextArea);
-                    break;
-            }
-            switch (newValue) {
-                case CORPORATE_LOCATION:
-                    contactValidationLabel.setVisible(false);
-                    restoreNode(corporateLocationComboBox);
-                    break;
-                case CUSTOMER_SITE:
-                    contactValidationLabel.setVisible(false);
-                    locationValidationLabel.setVisible(false);
-                    break;
-                case PHONE:
-                    contactValidationLabel.setVisible(false);
-                    locationLabel.setText(resources.getString(RESOURCEKEY_PHONENUMBER));
-                    restoreNode(phoneTextField);
-                    break;
-                case VIRTUAL:
-                    locationValidationLabel.setVisible(false);
-                    contactValidationLabel.setVisible(false);
-                    restoreNode(locationTextArea);
-                    onUrlChanged();
-                    break;
-                default:
-                    restoreNode(locationTextArea);
-                    break;
-            }
-            onContextSensitiveChange();
-            LOG.exiting("scheduler.view.appointment.EditAppointment.TypeContextController", "onTypeChanged");
-        }
-
-    }
 }
