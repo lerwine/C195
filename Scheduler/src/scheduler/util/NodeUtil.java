@@ -95,7 +95,7 @@ public class NodeUtil {
     private static void addCssClass(ObservableList<String> styleClass, String name) {
         LOG.entering(LOG.getName(), "addCssClass", new Object[]{styleClass, name});
         if (!styleClass.contains(name)) {
-            LOG.fine(() -> String.format("Adding class %s", name));
+            LOG.finer(() -> String.format("Adding class %s", name));
             styleClass.add(name);
         }
         LOG.exiting(LOG.getName(), "addCssClass");

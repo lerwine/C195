@@ -323,7 +323,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
             String sql = createDmlSelectQueryBuilder().build().append(" WHERE LOWER(").append(DbColumn.USER_NAME.getDbName()).append(")=?").toString();
             LOG.fine(() -> String.format("Executing query \"%s\"", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                LOG.fine(() -> String.format("Set first parameter to \"%s\"", userName));
+                LOG.finer(() -> String.format("Set first parameter to \"%s\"", userName));
                 ps.setString(1, userName.trim().toLowerCase());
                 //ps.setShort(2, Values.USER_STATUS_INACTIVE);
                 try (ResultSet rs = ps.executeQuery()) {

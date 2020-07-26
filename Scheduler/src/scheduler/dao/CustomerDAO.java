@@ -384,7 +384,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                 String sql = createDmlSelectQueryBuilder().build().append(" WHERE LOWER(").append(DbColumn.CUSTOMER_NAME).append(")=?").toString();
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
                     ps.setString(1, StringValueFilter.encodeLikeString(value));
-                    LOG.fine(() -> String.format("findByName", "Executing DML query: %s", sql));
+                    LOG.fine(() -> String.format("Executing DML query: %s", sql));
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             Optional<CustomerDAO> result = Optional.of(fromResultSet(rs));
@@ -403,7 +403,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                     + " WHERE " + DbColumn.CUSTOMER_ADDRESS.getDbName() + "=?";
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, addressId);
-                LOG.fine(() -> String.format("countByAddress", "Executing DML statement: %s", sql));
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         int result = rs.getInt(1);

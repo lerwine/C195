@@ -93,7 +93,7 @@ public final class Login extends Scheduler.LoginBorderPane {
     public Login() {
         super();
         stageChangeHandler = ParentWindowChangeListener.createStageChangeHandler(sceneProperty(), (observable, oldValue, newValue) -> {
-            LOG.fine("stageChangeHandler#currentStage changed");
+            LOG.finer("stageChangeHandler#currentStage changed");
             if (null != newValue && null != resourceBundle) {
                 LOG.fine("Setting stage title");
                 newValue.setTitle(resourceBundle.get().getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
@@ -105,12 +105,14 @@ public final class Login extends Scheduler.LoginBorderPane {
     private void onExitButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onExitButtonAction", event);
         getScene().getWindow().hide();
+        LOG.exiting(LOG.getName(), "onExitButtonAction");
     }
 
     @FXML
     private void onLoginButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onLoginButtonAction", event);
         tryLoginUser(this, userNameTextField.getText(), passwordField.getText());
+        LOG.exiting(LOG.getName(), "onLoginButtonAction");
     }
 
     private ObjectBinding<SupportedLocale> initializeLanguageBindings() {
@@ -118,7 +120,7 @@ public final class Login extends Scheduler.LoginBorderPane {
         // Create binding which returns a resource bundle for the selected language, or the resource bundle loaded with the controller if no language
         // is selected in the languageComboBox.
         resourceBundle = Bindings.createObjectBinding(() -> {
-            LOG.fine("Calculating resourceBundle");
+            LOG.finer("Calculating resourceBundle");
             // The dependent binding (selectedLanguage) returns the currently selected item from languageComboBox.
             SupportedLocale l = selectedLanguage.get();
             if (null == l) {
@@ -135,19 +137,19 @@ public final class Login extends Scheduler.LoginBorderPane {
 
         // Bind the text property of userNameLabel to a StringBinding that returns the label text in the currently selected language.
         userNameLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            LOG.fine("Calculating text for userNameLabel");
+            LOG.finer("Calculating text for userNameLabel");
             return resourceBundle.get().getString(RESOURCEKEY_USERNAME);
         }, resourceBundle));
         passwordLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            LOG.fine("Calculating text for passwordLabel");
+            LOG.finer("Calculating text for passwordLabel");
             return resourceBundle.get().getString(RESOURCEKEY_PASSWORD);
         }, resourceBundle));
         loginButton.textProperty().bind(Bindings.createStringBinding(() -> {
-            LOG.fine("Calculating text for loginButton");
+            LOG.finer("Calculating text for loginButton");
             return resourceBundle.get().getString(RESOURCEKEY_LOGIN);
         }, resourceBundle));
         exitButton.textProperty().bind(Bindings.createStringBinding(() -> {
-            LOG.fine("Calculating text for exitButton");
+            LOG.finer("Calculating text for exitButton");
             return resourceBundle.get().getString(RESOURCEKEY_EXIT);
         }, resourceBundle));
 
@@ -158,7 +160,7 @@ public final class Login extends Scheduler.LoginBorderPane {
         LOG.fine("Resource bundle changed");
         Stage stage = stageChangeHandler.getCurrentStage();
         if (null != stage) {
-            LOG.fine("Setting stage title");
+            LOG.finer("Setting stage title");
             stage.setTitle(newValue.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
         }
     }
@@ -182,26 +184,26 @@ public final class Login extends Scheduler.LoginBorderPane {
         selectedLanguage = initializeLanguageBindings();
 
         BooleanBinding userNameValid = Bindings.createBooleanBinding(() -> {
-            LOG.fine("Calculating userNameValid");
+            LOG.finer("Calculating userNameValid");
             String s = userNameTextField.getText();
             return null != s && !s.trim().isEmpty();
         }, userNameTextField.textProperty());
 
         userNameValidationLabel.textProperty().bind(Bindings.when(userNameValid).then("").otherwise(Bindings.createStringBinding(() -> {
-            LOG.fine("Calculating text for userNameValidationLabel");
+            LOG.finer("Calculating text for userNameValidationLabel");
             return resourceBundle.get().getString(RESOURCEKEY_EMPTYUSERNAME);
         }, resourceBundle)));
 
         NodeUtil.bindCssCollapse(userNameValidationLabel, userNameValid);
 
         BooleanBinding passwordValid = Bindings.createBooleanBinding(() -> {
-            LOG.fine("Calculating passwordValid");
+            LOG.finer("Calculating passwordValid");
             String s = passwordField.getText();
             return null != s && !s.trim().isEmpty();
         }, passwordField.textProperty());
 
         passwordValidationLabel.textProperty().bind(Bindings.when(passwordValid).then("").otherwise(Bindings.createStringBinding(() -> {
-            LOG.fine("Calculating text for passwordValidationLabel");
+            LOG.finer("Calculating text for passwordValidationLabel");
             return resourceBundle.get().getString(RESOURCEKEY_EMPTYPASSWORD);
         }, resourceBundle)));
 

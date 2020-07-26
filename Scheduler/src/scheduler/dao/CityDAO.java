@@ -342,7 +342,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             String sql = createDmlSelectQueryBuilder().build().append(" WHERE ")
                     .append(DbTable.CITY).append(".").append(DbColumn.CITY_COUNTRY).append("=?").toString();
             ArrayList<CityDAO> result = new ArrayList<>();
-            LOG.fine(() -> String.format("getByCountry", "Executing DML statement: %s", sql));
+            LOG.fine(() -> String.format("Executing DML statement: %s", sql));
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setInt(1, countryId);
                 try (ResultSet rs = ps.executeQuery()) {

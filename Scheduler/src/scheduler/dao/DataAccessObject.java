@@ -924,7 +924,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             super.cancelled();
             ModelEvent<D, M> event = createCanceledEvent();
             if (null != event) {
-                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                LOG.finer(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
             }
             LOG.exiting(LOG.getName(), "cancelled");
@@ -936,7 +936,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             super.failed();
             ModelEvent<D, M> event = createFaultedEvent();
             if (null != event) {
-                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                LOG.finer(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
             }
             LOG.exiting(LOG.getName(), "failed");
@@ -949,7 +949,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             ModelEvent<D, M> event = getValue();
             if (null != event) {
                 LOG.fine(() -> String.format("Succeeded with %s", event));
-                LOG.fine(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
+                LOG.finer(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
             }
             LOG.exiting(LOG.getName(), "succeeded");
@@ -1037,10 +1037,10 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         protected final ModelEvent<D, M> call(Connection connection) throws Exception {
             LOG.entering(LOG.getName(), "call", connection);
             if (!validationSuccessful) {
-                LOG.fine("Validating");
+                LOG.finer("Validating");
                 ModelEvent<D, M> event = validate(connection);
                 if (null != event && event instanceof ModelFailedEvent) {
-                    LOG.fine(() -> String.format("Validation failed: %s", event));
+                    LOG.info(() -> String.format("Validation failed: %s", event));
                     LOG.exiting(LOG.getName(), "call", event);
                     return event;
                 }
@@ -1138,15 +1138,15 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 iterator = Arrays.stream(columns).iterator();
                 dbName = iterator.next().getDbName();
                 sb.append("UPDATE ").append(factory.getDbTable().getDbName()).append(" SET ");
-                LOG.fine(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
+                LOG.finer(String.format("Appending column SQL for column %s at index %d", dbName, ++colNum));
                 sb.append(dbName).append("=?");
                 while (iterator.hasNext()) {
                     dbName = iterator.next().getDbName();
-                    LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                    LOG.finer(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
                     sb.append(", ").append(dbName).append("=?");
                 }
                 dbName = factory.getPrimaryKeyColumn().getDbName();
-                LOG.fine(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
+                LOG.finer(String.format("Appending column SQL for %s at index %d", dbName, ++colNum));
                 sb.append(" WHERE ").append(dbName).append("=?");
             }
             String sql = sb.toString();
@@ -1158,7 +1158,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 do {
                     DbColumn column = iterator.next();
                     try {
-                        LOG.fine(String.format("Setting value SQL for column %s at index %d", column, index));
+                        LOG.finer(String.format("Setting value SQL for column %s at index %d", column, index));
                         if (column.getUsageCategory() == ColumnCategory.AUDIT) {
                             switch (column.getDbName()) {
                                 case CREATE_DATE:
@@ -1191,7 +1191,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 } while (iterator.hasNext());
                 if (getOriginalRowState() != DataRowState.NEW) {
                     try {
-                        LOG.fine(String.format("Setting value primary key at index %d", index));
+                        LOG.finer(String.format("Setting value primary key at index %d", index));
                         ps.setInt(index, dataObj.primaryKey);
                     } catch (SQLException ex) {
                         LogHelper.logWarnings(connection, LOG);
