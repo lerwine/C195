@@ -22,6 +22,14 @@ public class LogHelper {
     private static final Pattern STRING_ENCODE = Pattern.compile("[\"\\u0000-\\u0019\\u007f-\\uffff\\\\]");
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance();
 
+    public static String toLambdaSourceClass(Logger logger, String parentMethod, String target) {
+        return String.format("%s.lambda$%s#%s", logger.getName(), parentMethod, target);
+    }
+
+    public static String toLambdaSourceClass(Logger logger, String nestedSourceClass, String parentMethod, String target) {
+        return String.format("%s$%s.lambda$%s#%s", logger.getName(), nestedSourceClass, parentMethod, target);
+    }
+
     /**
      * Ensures that the {@link Handler}s are configured to emit according to the {@link Level} of the {@link Logger}.
      *
@@ -97,7 +105,6 @@ public class LogHelper {
         return String.format("%s.%s", value.getClass().getTypeName(), value.name());
     }
 
-
     public static String toLogText(Object obj) {
         if (null == obj) {
             return "null";
@@ -172,6 +179,9 @@ public class LogHelper {
             logger.log(Level.WARNING, "SQL warning", sqlWarning);
         } while (null != (sqlWarning = sqlWarning.getNextWarning()));
         return true;
+    }
+
+    private LogHelper() {
     }
 
 }

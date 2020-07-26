@@ -123,10 +123,12 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINEST);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
-    private static final String INVALID_NUMBER = "Invalid number";
-    public static final NumberFormat INTN_FORMAT;
-    public static final NumberFormat INT2_FORMAT;
-    public static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withZone(ZoneId.systemDefault());
+    private static final String INVALID_HOUR_NUMBER = "Invalid hour number";
+    private static final String INVALID_MINUTE_NUMBER = "Invalid minute number";
+    private static final String INVALID_URL = "Invalid URL";
+    private static final NumberFormat INTN_FORMAT;
+    private static final NumberFormat INT2_FORMAT;
+    private static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withZone(ZoneId.systemDefault());
 
     static {
         INT2_FORMAT = NumberFormat.getIntegerInstance();
@@ -197,9 +199,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         try {
             Matcher m = INT_PATTERN.matcher(trimmed);
             if (!m.find()) {
-                throw new ParseException("Invalid hour number", text.length() - trimmed.length());
+                throw new ParseException(INVALID_HOUR_NUMBER, text.length() - trimmed.length());
             } else if (m.end() < trimmed.length()) {
-                throw new ParseException("Invalid hour number", m.end() + (text.length() - trimmed.length()));
+                throw new ParseException(INVALID_HOUR_NUMBER, m.end() + (text.length() - trimmed.length()));
             }
             Number parse = INTN_FORMAT.parse(trimmed);
             int i = parse.intValue();
@@ -211,7 +213,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         } catch (ParseException ex) {
             int i = ex.getErrorOffset();
             result = BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid hour format at position %d", i)
-                    : "Invalid hour number");
+                    : INVALID_HOUR_NUMBER);
         }
         LOG.exiting(LOG.getName(), "calculateHour", result);
         return result;
@@ -229,9 +231,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         try {
             Matcher m = INT_PATTERN.matcher(trimmed);
             if (!m.find()) {
-                throw new ParseException("Invalid minute number", text.length() - trimmed.length());
+                throw new ParseException(INVALID_MINUTE_NUMBER, text.length() - trimmed.length());
             } else if (m.end() < trimmed.length()) {
-                throw new ParseException("Invalid minute number", m.end() + (text.length() - trimmed.length()));
+                throw new ParseException(INVALID_MINUTE_NUMBER, m.end() + (text.length() - trimmed.length()));
             }
             Number parse = INTN_FORMAT.parse(trimmed);
             int i = parse.intValue();
@@ -243,7 +245,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         } catch (ParseException ex) {
             int i = ex.getErrorOffset();
             result = BinarySelective.ofSecondary((i > 0 && i < trimmed.length()) ? String.format("Invalid minute format at position %d", i)
-                    : "Invalid minute number");
+                    : INVALID_MINUTE_NUMBER);
         }
         LOG.exiting(LOG.getName(), "calculateMinute", result);
         return result;
@@ -267,7 +269,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         } catch (URISyntaxException ex) {
             LOG.log(Level.WARNING, String.format("Error parsing url %s", text), ex);
             text = ex.getMessage();
-            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? "Invalid URL" : text);
+            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? INVALID_URL : text);
             LOG.exiting(LOG.getName(), "calculateURL", result);
             return result;
         }
@@ -277,7 +279,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         } catch (MalformedURLException | IllegalArgumentException ex) {
             LOG.log(Level.WARNING, String.format("Error converting uri %s", text), ex);
             text = ex.getMessage();
-            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? "Invalid URL" : text);
+            result = BinarySelective.ofSecondary((null == text || text.trim().isEmpty()) ? INVALID_URL : text);
             LOG.exiting(LOG.getName(), "calculateURL", result);
             return result;
         }
@@ -568,6 +570,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert titleTextField != null : "fx:id=\"titleTextField\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert titleValidationLabel != null : "fx:id=\"titleValidationLabel\" was not injected: check your FXML file 'EditAppointment.fxml'.";
         assert customerComboBox != null : "fx:id=\"customerComboBox\" was not injected: check your FXML file 'EditAppointment.fxml'.";
@@ -1345,7 +1348,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             LOG.exiting(LOG.getName(), "onHideConflictsButtonAction");
         }
 
-        private synchronized void onAppointmentsLoaded(Task<List<AppointmentDAO>> task) {
+        private void onAppointmentsLoaded(Task<List<AppointmentDAO>> task) {
             if (checkCurrentTask(task)) {
                 return;
             }
@@ -1641,7 +1644,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
 
         private void initialize() {
-            LOG.entering("scheduler.view.appointment.EditAppointment.TypeContextController", "initialize");
+            LOG.entering("scheduler.view.appointment.EditAppointment$TypeContextController", "initialize");
             appointmentConflicts.initialize();
             contactTextField.setText(model.getContact());
             StringProperty contactText = contactTextField.textProperty();

@@ -54,7 +54,7 @@ public final class Login extends Scheduler.LoginBorderPane {
     public static final String RESOURCEKEY_EMPTYUSERNAME = "emptyUserName";
     public static final String RESOURCEKEY_EMPTYPASSWORD = "emptyPassword";
 
-    private final ParentWindowChangeListener.StageListener stageChangeHandler;
+    private final ParentWindowChangeListener stageChangeHandler;
     private ObjectBinding<SupportedLocale> selectedLanguage;
 
     // Currently selected resource bundle
@@ -89,15 +89,19 @@ public final class Login extends Scheduler.LoginBorderPane {
 
     @FXML // fx:id="exitButton"
     private Button exitButton; // Value injected by FXMLLoader
+    private BooleanBinding userNameValid;
+    private BooleanBinding passwordValid;
 
     public Login() {
         super();
-        stageChangeHandler = ParentWindowChangeListener.createStageChangeHandler(sceneProperty(), (observable, oldValue, newValue) -> {
-            LOG.finer("stageChangeHandler#currentStage changed");
+        stageChangeHandler = new ParentWindowChangeListener(sceneProperty());
+        stageChangeHandler.currentStageProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change", new Object[] {oldValue, newValue});
             if (null != newValue && null != resourceBundle) {
                 LOG.fine("Setting stage title");
                 newValue.setTitle(resourceBundle.get().getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
             }
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change");
         });
     }
 
@@ -116,11 +120,12 @@ public final class Login extends Scheduler.LoginBorderPane {
     }
 
     private ObjectBinding<SupportedLocale> initializeLanguageBindings() {
+        LOG.entering(LOG.getName(), "initializeLanguageBindings");
         selectedLanguage = Bindings.select(languageComboBox.selectionModelProperty(), "selectedItem");
         // Create binding which returns a resource bundle for the selected language, or the resource bundle loaded with the controller if no language
         // is selected in the languageComboBox.
         resourceBundle = Bindings.createObjectBinding(() -> {
-            LOG.finer("Calculating resourceBundle");
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "resourceBundle"), "computeValue");
             // The dependent binding (selectedLanguage) returns the currently selected item from languageComboBox.
             SupportedLocale l = selectedLanguage.get();
             if (null == l) {
@@ -129,7 +134,9 @@ public final class Login extends Scheduler.LoginBorderPane {
                 return resources;
             }
             // Load the resource bundle for the selected locale.
-            return ResourceBundleHelper.getBundle(Login.class, l.getLocale());
+            ResourceBundle result = ResourceBundleHelper.getBundle(Login.class, l.getLocale());
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "resourceBundle"), "computeValue", result);
+            return result;
         }, selectedLanguage);
 
         // Add a listener so we can update the Stage title right away when the language changes.
@@ -137,36 +144,46 @@ public final class Login extends Scheduler.LoginBorderPane {
 
         // Bind the text property of userNameLabel to a StringBinding that returns the label text in the currently selected language.
         userNameLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "userNameLabel#text"), "computeValue");
             LOG.finer("Calculating text for userNameLabel");
-            return resourceBundle.get().getString(RESOURCEKEY_USERNAME);
+            String result = resourceBundle.get().getString(RESOURCEKEY_USERNAME);
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "userNameLabel#text"), "computeValue", result);
+            return result;
         }, resourceBundle));
         passwordLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-            LOG.finer("Calculating text for passwordLabel");
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "passwordLabel#text"), "computeValue");
             return resourceBundle.get().getString(RESOURCEKEY_PASSWORD);
         }, resourceBundle));
         loginButton.textProperty().bind(Bindings.createStringBinding(() -> {
-            LOG.finer("Calculating text for loginButton");
-            return resourceBundle.get().getString(RESOURCEKEY_LOGIN);
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "loginButton#text"), "computeValue");
+            String result = resourceBundle.get().getString(RESOURCEKEY_LOGIN);
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "loginButton#text"), "computeValue", result);
+            return result;
         }, resourceBundle));
         exitButton.textProperty().bind(Bindings.createStringBinding(() -> {
-            LOG.finer("Calculating text for exitButton");
-            return resourceBundle.get().getString(RESOURCEKEY_EXIT);
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "exitButton#text"), "computeValue");
+            String result = resourceBundle.get().getString(RESOURCEKEY_EXIT);
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initializeLanguageBindings", "exitButton#text"), "computeValue", result);
+            return result;
         }, resourceBundle));
 
+        LOG.exiting(LOG.getName(), "initializeLanguageBindings", selectedLanguage);
         return selectedLanguage;
     }
 
     private void onResourceBundleChanged(ResourceBundle newValue) {
-        LOG.fine("Resource bundle changed");
+        LOG.entering(LOG.getName(), "onResourceBundleChanged", newValue);
         Stage stage = stageChangeHandler.getCurrentStage();
         if (null != stage) {
             LOG.finer("Setting stage title");
             stage.setTitle(newValue.getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
         }
+        LOG.exiting(LOG.getName(), "onResourceBundleChanged");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
+        LOG.entering(LOG.getName(), "initialize");
         assert languageComboBox != null : "fx:id=\"languageComboBox\" was not injected: check your FXML file 'Login.fxml'.";
         assert userNameLabel != null : "fx:id=\"userNameLabel\" was not injected: check your FXML file 'Login.fxml'.";
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'Login.fxml'.";
@@ -183,33 +200,42 @@ public final class Login extends Scheduler.LoginBorderPane {
 
         selectedLanguage = initializeLanguageBindings();
 
-        BooleanBinding userNameValid = Bindings.createBooleanBinding(() -> {
-            LOG.finer("Calculating userNameValid");
+        userNameValid = Bindings.createBooleanBinding(() -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "userNameValid"), "computeValue");
             String s = userNameTextField.getText();
-            return null != s && !s.trim().isEmpty();
+            boolean result = null != s && !s.trim().isEmpty();
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "userNameValid"), "computeValue", result);
+            return result;
         }, userNameTextField.textProperty());
 
         userNameValidationLabel.textProperty().bind(Bindings.when(userNameValid).then("").otherwise(Bindings.createStringBinding(() -> {
-            LOG.finer("Calculating text for userNameValidationLabel");
-            return resourceBundle.get().getString(RESOURCEKEY_EMPTYUSERNAME);
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "userNameValidationLabel#text"), "computeValue");
+            String result = resourceBundle.get().getString(RESOURCEKEY_EMPTYUSERNAME);
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "userNameValidationLabel#text"), "computeValue", result);
+            return result;
         }, resourceBundle)));
 
         NodeUtil.bindCssCollapse(userNameValidationLabel, userNameValid);
 
-        BooleanBinding passwordValid = Bindings.createBooleanBinding(() -> {
-            LOG.finer("Calculating passwordValid");
+        passwordValid = Bindings.createBooleanBinding(() -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "passwordValid"), "computeValue");
             String s = passwordField.getText();
-            return null != s && !s.trim().isEmpty();
+            boolean result = null != s && !s.trim().isEmpty();
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "passwordValid"), "computeValue", result);
+            return result;
         }, passwordField.textProperty());
 
         passwordValidationLabel.textProperty().bind(Bindings.when(passwordValid).then("").otherwise(Bindings.createStringBinding(() -> {
-            LOG.finer("Calculating text for passwordValidationLabel");
-            return resourceBundle.get().getString(RESOURCEKEY_EMPTYPASSWORD);
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "passwordValidationLabel#text"), "computeValue");
+            String result = resourceBundle.get().getString(RESOURCEKEY_EMPTYPASSWORD);
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "passwordValidationLabel#text"), "computeValue", result);
+            return result;
         }, resourceBundle)));
 
         NodeUtil.bindCssCollapse(passwordValidationLabel, passwordValid);
 
         loginButton.disableProperty().bind(userNameValid.and(passwordValid).not().or(selectedLanguage.isNull()));
+        LOG.exiting(LOG.getName(), "initialize");
     }
 
     @Override

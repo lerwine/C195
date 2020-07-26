@@ -172,7 +172,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
     @SuppressWarnings("unused")
-    private final ParentWindowChangeListener.StageListener stageChangeListener;
+    private final ParentWindowChangeListener stageChangeListener;
     private final U editorRegion;
     private final T model;
     private final boolean keepOpen;
@@ -213,13 +213,16 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
 
     //</editor-fold>
     private EditItem(U editorRegion, T model, boolean keepOpen) {
-        stageChangeListener = ParentWindowChangeListener.createStageChangeHandler(sceneProperty(), (observable, oldValue, newValue) -> {
+        stageChangeListener = new ParentWindowChangeListener(sceneProperty());
+        stageChangeListener.currentStageProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change", new Object[] {oldValue, newValue});
             if (null != oldValue) {
                 oldValue.titleProperty().unbind();
             }
             if (null != newValue) {
                 newValue.titleProperty().bind(editorRegion.windowTitleProperty());
             }
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change");
         });
         this.editorRegion = editorRegion;
         this.model = model;
@@ -231,16 +234,15 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     @FXML
     void onCancelButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onCancelButtonAction", event);
-        Stage stage = (Stage) getScene().getWindow();
         ButtonType response;
         if (editorRegion.isModified()) {
             if (model.getRowState() == DataRowState.NEW) {
-                response = AlertHelper.showWarningAlert(stage, LOG,
+                response = AlertHelper.showWarningAlert(stageChangeListener.getCurrentWindow(), LOG,
                         resources.getString(RESOURCEKEY_CONFIRMCANCELNEW),
                         resources.getString(RESOURCEKEY_AREYOUSURECANCELNEW), ButtonType.YES, ButtonType.NO)
                         .orElse(ButtonType.NO);
             } else {
-                response = AlertHelper.showWarningAlert(stage, LOG,
+                response = AlertHelper.showWarningAlert(stageChangeListener.getCurrentWindow(), LOG,
                         resources.getString(RESOURCEKEY_CONFIRMDISCARDCHANGES),
                         resources.getString(RESOURCEKEY_AREYOUSUREDISCARDCHANGES), ButtonType.YES, ButtonType.NO)
                         .orElse(ButtonType.NO);
@@ -251,7 +253,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
             }
         }
 
-        getScene().getWindow().hide();
+        stageChangeListener.hide();
         LOG.exiting(LOG.getName(), "onCancelButtonAction");
     }
 
@@ -261,11 +263,10 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         LOG.entering(LOG.getName(), "onDeleteButtonAction", event);
         OperationRequestEvent<?, T> deleteRequestEvent = editorRegion.modelFactory().createDeleteRequestEvent(model, resources);
         Event.fireEvent(model.dataObject(), deleteRequestEvent);
-        Stage stage = (Stage) getScene().getWindow();
         if (deleteRequestEvent.isCanceled()) {
-            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+            AlertHelper.showWarningAlert(stageChangeListener.getCurrentWindow(), deleteRequestEvent.getCancelMessage(), ButtonType.OK);
         } else {
-            AlertHelper.showWarningAlert(stage, LOG,
+            AlertHelper.showWarningAlert(stageChangeListener.getCurrentWindow(), LOG,
                     resources.getString(RESOURCEKEY_CONFIRMDELETE),
                     resources.getString(RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO)
                     .ifPresent((t) -> {
@@ -342,7 +343,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         @SuppressWarnings("unchecked")
         ModelEvent<?, T> modelEvent = ((DataAccessObject.SaveDaoTask<?, T>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
-            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Save Changes Failure", ((ModelFailedEvent<?, T>) modelEvent).getMessage(), ButtonType.OK);
+            scheduler.util.AlertHelper.showWarningAlert(stageChangeListener.getCurrentWindow(), "Save Changes Failure", ((ModelFailedEvent<?, T>) modelEvent).getMessage(), ButtonType.OK);
         } else {
             switch (modelEvent.getOperation()) {
                 case DB_INSERT:
@@ -364,11 +365,11 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
                         }
                         onEditMode();
                     } else {
-                        getScene().getWindow().hide();
+                        stageChangeListener.hide();
                     }
                     break;
                 case DB_UPDATE:
-                    getScene().getWindow().hide();
+                    stageChangeListener.hide();
                     break;
                 default:
                     throw new AssertionError(modelEvent.getOperation().name());
@@ -382,9 +383,9 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         @SuppressWarnings("unchecked")
         ModelEvent<?, T> modelEvent = ((DataAccessObject.DeleteDaoTask<?, T>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
-            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure", ((ModelFailedEvent<?, T>) modelEvent).getMessage(), ButtonType.OK);
+            scheduler.util.AlertHelper.showWarningAlert(stageChangeListener.getCurrentWindow(), "Delete Failure", ((ModelFailedEvent<?, T>) modelEvent).getMessage(), ButtonType.OK);
         } else {
-            getScene().getWindow().hide();
+            stageChangeListener.hide();
         }
         LOG.exiting(LOG.getName(), "onDeleteDaoTaskSucceeded");
     }
