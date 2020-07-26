@@ -38,7 +38,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/HelpContent.fxml")
 public class HelpContent extends BorderPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(HelpContent.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(HelpContent.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(HelpContent.class.getName());
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -99,6 +99,7 @@ public class HelpContent extends BorderPane {
             ObservableList<Node> children = source.getChildren();
             children.add(t);
             while (iterator.hasNext()) {
+                // FIXME: Need to assign iterator.next to t
                 if (null != t) {
                     children.add(t);
                 }

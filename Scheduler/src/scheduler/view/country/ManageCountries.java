@@ -45,7 +45,7 @@ import static scheduler.view.country.ManageCountriesResourceKeys.*;
 @FXMLResource("/scheduler/view/country/ManageCountries.fxml")
 public final class ManageCountries extends MainListingControl<CountryDAO, CountryModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCountries.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCountries.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
 
     public static ManageCountries loadIntoMainContent(ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> filter) {

@@ -50,7 +50,7 @@ import scheduler.util.PropertyBindable;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PredefinedData {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(PredefinedData.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(PredefinedData.class.getName()), Level.FINE);
     private static final Logger LOG = Logger.getLogger(PredefinedData.class.getName());
 
     public static final String ELEMENT_NAME = "definitions";

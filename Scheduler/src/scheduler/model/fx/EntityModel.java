@@ -39,7 +39,7 @@ import scheduler.view.ModelFilter;
  */
 public abstract class EntityModel<T extends DataAccessObject> implements PartialEntityModel<T>, DataEntity<LocalDateTime> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModel.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModel.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EntityModel.class.getName());
 
     /**
@@ -199,7 +199,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
     public static abstract class EntityModelFactory<D extends DataAccessObject, M extends EntityModel<D>>
             implements EventTarget {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelFactory.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelFactory.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(EntityModelFactory.class.getName());
 
         private final EventHandlerManager eventHandlerManager;

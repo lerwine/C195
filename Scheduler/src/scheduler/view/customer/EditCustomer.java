@@ -127,7 +127,7 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
 public final class EditCustomer extends VBox implements EditItem.ModelEditorController<CustomerModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
 
     public static void editNew(PartialAddressModel<? extends PartialAddressDAO> address, Window parentWindow, boolean keepOpen, Consumer<CustomerModel> beforeShow) throws IOException {

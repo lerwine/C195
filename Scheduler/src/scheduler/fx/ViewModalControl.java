@@ -47,7 +47,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/ViewModalControl.fxml")
 public class ViewModalControl extends Control {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewModalControl.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewModalControl.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ViewModalControl.class.getName());
 
     @FXML // fx:id="backingBorderPane"
@@ -265,6 +265,7 @@ public class ViewModalControl extends Control {
         ObservableList<Node> children = source.getChildren();
         children.add(t);
         while (iterator.hasNext()) {
+            // FIXME: Need to assign iterator.next() to t.
             if (null != t) {
                 children.add(t);
             }

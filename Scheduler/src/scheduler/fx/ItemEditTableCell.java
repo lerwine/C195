@@ -30,7 +30,7 @@ import scheduler.view.SymbolText;
 public final class ItemEditTableCell<D extends DataAccessObject, M extends EntityModel<D>, E extends OperationRequestEvent<D, M>>
         extends TableCell<M, M> {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCell.class.getName()), Level.FINE);
     private static final Logger LOG = Logger.getLogger(ItemEditTableCell.class.getName());
 
     private final EntityModel.EntityModelFactory<D, M> modelFactory;

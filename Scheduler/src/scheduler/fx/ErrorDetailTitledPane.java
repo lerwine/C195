@@ -48,7 +48,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/ErrorDetailTitledPane.fxml")
 public final class ErrorDetailTitledPane extends TitledPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ErrorDetailTitledPane.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ErrorDetailTitledPane.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ErrorDetailTitledPane.class.getName());
 
     public static ErrorDetailTitledPane of(String heading, String message, Throwable error, int maxDepth) throws IOException {

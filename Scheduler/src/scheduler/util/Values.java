@@ -27,7 +27,8 @@ public final class Values {
     public static final Pattern REGEX_LINEBREAKN = Pattern.compile("[\\r\\n]+");
     private static final Pattern STRING_ENCODE = Pattern.compile("[\"\\u0000-\\u0019\\u007f-\\uffff\\\\]");
     private static final DateTimeFormatter LOCAL_DATE_TIME_FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
-    
+    private static final String LINE_BREAK_TEXT = String.format("%n");
+
     public static StringBuilder appendEnum(Enum<?> value, StringBuilder builder) {
         return builder.append((null == value) ? "null" : value.name());
     }
@@ -158,15 +159,14 @@ public final class Values {
         }
         return result;
     }
-    
-    private static final String LINE_BREAK_TEXT = String.format("%n");
+
 
     public static String toString(char c, int count) {
         if (count < 1) {
             return "";
         }
         if (count == 1) {
-            return String.valueOf(new char[] { c });
+            return String.valueOf(new char[]{c});
         }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < count; i++) {
@@ -174,24 +174,26 @@ public final class Values {
         }
         return sb.toString();
     }
+
     public static CharSequence indentText(CharSequence source, int count, boolean indentFirstLine) {
         if (count < 1 || null == source || source.length() == 0) {
             return source;
         }
         String[] lines;
         if (source instanceof String) {
-            if (((String)source).trim().isEmpty() || (lines = REGEX_LINEBREAK.split(source)).length < 2 && !indentFirstLine) {
+            if (((String) source).trim().isEmpty() || (lines = REGEX_LINEBREAK.split(source)).length < 2 && !indentFirstLine) {
                 return source;
             }
         } else if (((lines = REGEX_LINEBREAK.split(source)).length < 2 && !indentFirstLine) || Arrays.stream(lines).allMatch((t) -> t.trim().isEmpty())) {
             return source;
         }
-        
+
         StringBuilder result = new StringBuilder();
         String indent = toString('\t', count);
         String text = lines[0];
-        if (indentFirstLine && !text.trim().isEmpty())
+        if (indentFirstLine && !text.trim().isEmpty()) {
             result.append(indent);
+        }
         result.append(text);
         for (int i = 1; i < lines.length; i++) {
             result.append(LINE_BREAK_TEXT);
@@ -204,7 +206,7 @@ public final class Values {
         }
         return result;
     }
-    
+
     public static ArrayList<String> splitByChar(String source, char delimiter) {
         ArrayList<String> result = new ArrayList<>();
         if (null == source) {
@@ -509,6 +511,20 @@ public final class Values {
         return value;
     }
 
+    public static boolean areSameInstance(Object a, Object b) {
+        if (null == a) {
+            return null == b;
+        }
+        return null != b && a == b;
+    }
+
+    public static boolean notSameInstance(Object a, Object b) {
+        if (null == a) {
+            return null != b;
+        }
+        return null == b || a != b;
+    }
+
     private Values() {
     }
 
@@ -516,12 +532,11 @@ public final class Values {
 
         private final Supplier<String> baseSupplier;
 
-        protected String getBase() {
-            return baseSupplier.get();
-        }
-
         NonNullStringSupplier(Supplier<String> source) {
             this.baseSupplier = Objects.requireNonNull(source);
+        }
+        protected String getBase() {
+            return baseSupplier.get();
         }
 
         @Override

@@ -45,7 +45,7 @@ import static scheduler.view.customer.ManageCustomersResourceKeys.*;
 @FXMLResource("/scheduler/view/customer/ManageCustomers.fxml")
 public final class ManageCustomers extends MainListingControl<CustomerDAO, CustomerModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCustomers.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageCustomers.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
     public static ManageCustomers loadIntoMainContent(CustomerModelFilter filter) {

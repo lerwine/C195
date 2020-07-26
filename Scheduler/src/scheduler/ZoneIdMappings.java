@@ -31,7 +31,7 @@ import scheduler.util.Values;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ZoneIdMappings {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ZoneIdMappings.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ZoneIdMappings.class.getName()), Level.FINE);
     private static final Logger LOG = Logger.getLogger(ZoneIdMappings.class.getName());
 
     public static final String ELEMENT_NAME = "mappings";
@@ -151,7 +151,7 @@ public class ZoneIdMappings {
     }
 
     @XmlElement(name = Entry.ELEMENT_NAME, namespace = NAMESPACE_URI)
-    private List<Entry> entries;
+    private final List<Entry> entries;
 
     private ZoneIdMappings() {
         entries = new ArrayList<>();
@@ -167,11 +167,19 @@ public class ZoneIdMappings {
 
         public static final String ELEMENT_NAME = "entry";
 
+        @SuppressWarnings("unused")
+        private static Entry createInstanceJAXB() {
+            return new Entry();
+        }
+
         @XmlAttribute
         private String key;
 
         @XmlAttribute
         private String value;
+
+        private Entry() {
+        }
 
         /**
          * Gets the 2-letter key that represents a Zone ID. The value of this key is not necessarily the same as the ISO 3166 alpha-2 country code.
@@ -189,14 +197,6 @@ public class ZoneIdMappings {
          */
         public String getValue() {
             return value;
-        }
-
-        private Entry() {
-        }
-
-        @SuppressWarnings("unused")
-        private static Entry createInstanceJAXB() {
-            return new Entry();
         }
 
     }

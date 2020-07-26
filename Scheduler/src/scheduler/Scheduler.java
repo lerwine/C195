@@ -50,7 +50,7 @@ import scheduler.view.ViewAndController;
  */
 public final class Scheduler extends Application {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Scheduler.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Scheduler.class.getName()), Level.FINE);
     private static final String LOG_FILE_PATH = "log.txt";
     private static Scheduler currentApp = null;
     private static UserDAO currentUser = null;

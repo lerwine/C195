@@ -18,7 +18,7 @@ import javafx.stage.Window;
  */
 public class ParentWindowChangeListener {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ParentWindowChangeListener.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ParentWindowChangeListener.class.getName()), Level.FINE);
 
     public static StageListener createStageChangeHandler(ReadOnlyObjectProperty<Scene> sceneProperty, ChangeListener<Scene> onSceneChanged, ChangeListener<Stage> onStageChanged) {
         return new StageListener(sceneProperty) {
@@ -171,19 +171,26 @@ public class ParentWindowChangeListener {
     }
 
     private synchronized void onSceneChanged(ObservableValue<? extends Scene> observable, Scene oldValue, Scene newValue) {
+        ReadOnlyObjectProperty<Window> property;
         if (null != oldValue) {
+            if (null == newValue) {
+                property = oldValue.windowProperty();
+             } else {
+                if (oldValue == newValue) {
+                    return;
+                }
+                property = newValue.windowProperty();
+            }
             oldValue.windowProperty().removeListener(this::onWindowChanged);
-        } else if (null == newValue) {
+        } else if (null != newValue) {
+            property = newValue.windowProperty();
+        } else {
             return;
         }
-        if (null != newValue) {
-            newValue.windowProperty().addListener(this::onWindowChanged);
-            onWindowChanged(newValue.windowProperty(), currentWindow.get(), newValue.getWindow());
-        } else {
-            Window oldWindow = currentWindow.get();
-            if (null != oldWindow) {
-                onWindowChanged(oldValue.windowProperty(), currentWindow.get(), null);
-            }
+        Window oldWindow = currentWindow.get();
+        Window newWindow = (null != newValue) ? newValue.getWindow() : null;
+        if (Values.notSameInstance(oldWindow, newWindow)) {
+            onWindowChanged(property, currentWindow.get(), newWindow);
         }
     }
 

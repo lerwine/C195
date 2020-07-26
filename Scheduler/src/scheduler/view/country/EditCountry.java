@@ -91,7 +91,7 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/country/EditCountry.fxml")
 public final class EditCountry extends VBox implements EditItem.ModelEditorController<CountryModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCountry.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditCountry.class.getName());
 
     public static void editNew(Window parentWindow, boolean keepOpen, Consumer<CountryModel> beforeShow) throws IOException {

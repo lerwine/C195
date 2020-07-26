@@ -104,7 +104,7 @@ import scheduler.view.task.WaitTitledPane;
 public final class EditCity extends VBox implements EditItem.ModelEditorController<CityModel> {
 
     private static final Object TARGET_COUNTRY_KEY = new Object();
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCity.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditCity.class.getName());
 
     public static void editNew(PartialCountryModel<? extends PartialCountryDAO> country, Window parentWindow, boolean keepOpen, Consumer<CityModel> beforeShow) throws IOException {

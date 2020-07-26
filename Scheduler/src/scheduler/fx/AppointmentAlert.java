@@ -72,7 +72,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/fx/AppointmentAlert.fxml")
 public class AppointmentAlert extends BorderPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlert.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlert.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentAlert.class.getName());
 
     private static final String NODE_PROPERTYNAME_ALERT_MODEL = "scheduler.fx.AppointmentAlerts.model";

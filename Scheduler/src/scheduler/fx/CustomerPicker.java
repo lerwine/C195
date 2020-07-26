@@ -56,7 +56,7 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/fx/CustomerPicker.fxml")
 public class CustomerPicker extends BorderPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerPicker.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerPicker.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(CustomerPicker.class.getName());
 
     private ObservableList<CountryModel> countries;

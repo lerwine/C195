@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
@@ -58,17 +59,8 @@ import scheduler.view.SymbolText;
  */
 public class NodeUtil {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(NodeUtil.class.getName()), Level.FINER);
-    private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
-
-    private static void addCssClass(ObservableList<String> styleClass, String name) {
-        LOG.entering(LOG.getName(), "addCssClass", new Object[]{styleClass, name});
-        if (!styleClass.contains(name)) {
-            LOG.fine(() -> String.format("Adding class %s", name));
-            styleClass.add(name);
-        }
-        LOG.exiting(LOG.getName(), "addCssClass");
-    }
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(NodeUtil.class.getName()), Level.FINE);
+//    private static final Logger LOG = Logger.getLogger(NodeUtil.class.getName());
 
     public static boolean isVisibleInWindow(Node node) {
         if (node != null && node.isVisible()) {
@@ -100,6 +92,15 @@ public class NodeUtil {
         return false;
     }
 
+    private static void addCssClass(ObservableList<String> styleClass, String name) {
+        LOG.entering(LOG.getName(), "addCssClass", new Object[]{styleClass, name});
+        if (!styleClass.contains(name)) {
+            LOG.fine(() -> String.format("Adding class %s", name));
+            styleClass.add(name);
+        }
+        LOG.exiting(LOG.getName(), "addCssClass");
+    }
+
     /**
      * Adds CSS class names.
      *
@@ -110,9 +111,11 @@ public class NodeUtil {
      */
     public static <T extends Styleable> T addCssClass(T stylable, CssClassName... classNames) {
         LOG.entering(LOG.getName(), "addCssClass", new Object[]{stylable, classNames});
-        T result = CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
-        LOG.exiting(LOG.getName(), "addCssClass", result);
-        return result;
+        if (null != classNames && classNames.length > 0) {
+            CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
+        }
+        LOG.exiting(LOG.getName(), "addCssClass", stylable);
+        return stylable;
     }
 
     /**
@@ -125,9 +128,11 @@ public class NodeUtil {
      */
     public static <T extends Styleable> T addCssClass(T stylable, Collection<CssClassName> classNames) {
         LOG.entering(LOG.getName(), "addCssClass", new Object[]{stylable, classNames});
-        T result = CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
-        LOG.exiting(LOG.getName(), "addCssClass", result);
-        return result;
+        if (null != classNames && !classNames.isEmpty()) {
+            CssClassName.applyEachStringValue(stylable, (t) -> t.getStyleClass(), NodeUtil::addCssClass, classNames);
+        }
+        LOG.exiting(LOG.getName(), "addCssClass", stylable);
+        return stylable;
     }
 
     /**
@@ -141,9 +146,7 @@ public class NodeUtil {
     public static <T extends Styleable> T removeCssClass(T stylable, CssClassName... classNames) {
         LOG.entering(LOG.getName(), "removeCssClass", new Object[]{stylable, classNames});
         if (null != classNames && classNames.length > 0) {
-            LOG.fine(() -> String.format("Before remove: %s", String.join("; ", stylable.getStyleClass())));
             stylable.getStyleClass().removeAll(CssClassName.toStringArray(classNames));
-            LOG.fine(() -> String.format("After remove: %s", String.join("; ", stylable.getStyleClass())));
         }
         LOG.exiting(LOG.getName(), "removeCssClass", stylable);
         return stylable;
@@ -160,9 +163,7 @@ public class NodeUtil {
     public static <T extends Styleable> T setCssClass(T stylable, CssClassName... classNames) {
         LOG.entering(LOG.getName(), "setCssClass", new Object[]{stylable, classNames});
         if (null != classNames && classNames.length > 0) {
-            LOG.fine(() -> String.format("Before setAll: %s", String.join("; ", stylable.getStyleClass())));
             stylable.getStyleClass().setAll(CssClassName.toStringArray(classNames));
-            LOG.fine(() -> String.format("After setAll: %s", String.join("; ", stylable.getStyleClass())));
         }
         LOG.exiting(LOG.getName(), "setCssClass", stylable);
         return stylable;

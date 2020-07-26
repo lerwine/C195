@@ -38,7 +38,7 @@ import scheduler.util.Tuple;
  */
 public class AppointmentAlertManager implements EventTarget {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlertManager.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlertManager.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentAlertManager.class.getName());
 
     public static final AppointmentAlertManager INSTANCE = new AppointmentAlertManager();

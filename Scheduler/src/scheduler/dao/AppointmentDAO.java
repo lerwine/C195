@@ -64,7 +64,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalizedMultiLine;
 @DatabaseTable(DbTable.APPOINTMENT)
 public final class AppointmentDAO extends DataAccessObject implements AppointmentEntity<Timestamp> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDAO.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
@@ -631,7 +631,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AppointmentDAO, AppointmentModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance

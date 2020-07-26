@@ -90,7 +90,7 @@ import scheduler.util.WeakEventHandlingReference;
  */
 public abstract class MainListingControl<D extends DataAccessObject, M extends EntityModel<D>> extends StackPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
 
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;

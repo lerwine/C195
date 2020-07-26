@@ -79,7 +79,7 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointmentFilter.fxml")
 public final class EditAppointmentFilter extends BorderPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointmentFilter.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointmentFilter.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditAppointmentFilter.class.getName());
 
     private static <T extends DataAccessObject, U extends DataObjectItem<T>> boolean selectItem(ComboBox<U> source, T obj) {

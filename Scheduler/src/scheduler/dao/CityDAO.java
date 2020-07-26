@@ -61,7 +61,7 @@ import scheduler.view.country.EditCountryResourceKeys;
 @DatabaseTable(DbTable.CITY)
 public final class CityDAO extends DataAccessObject implements PartialCityDAO, CityEntity<Timestamp> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CityDAO.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CityDAO.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(CityDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
@@ -232,7 +232,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CityDAO, CityModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
@@ -399,7 +399,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                             return result;
                         }
                     }
-                LogHelper.logWarnings(connection, LOG);
+                    LogHelper.logWarnings(connection, LOG);
                 }
             }
             return null;
@@ -493,7 +493,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
     public static class SaveTask extends SaveDaoTask<CityDAO, CityModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking city name conflicts";
@@ -623,7 +623,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
     public static final class DeleteTask extends DeleteDaoTask<CityDAO, CityModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         public DeleteTask(CityModel target, boolean alreadyValidated) {
@@ -689,7 +689,7 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
 
     public static final class Partial extends PropertyBindable implements PartialCityDAO {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final int primaryKey;

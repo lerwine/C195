@@ -60,7 +60,7 @@ import scheduler.view.user.ManageUsers;
 @FXMLResource("/scheduler/view/MainView.fxml")
 public final class MainController {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainController.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainController.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(MainController.class.getName());
 
     public static void startBusyTaskNow(WaitTitledPane waitTitledPane, Task<?> task) {

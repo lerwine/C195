@@ -30,7 +30,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/task/WaitBorderPane.fxml")
 public final class WaitBorderPane extends BorderPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WaitBorderPane.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WaitBorderPane.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(WaitBorderPane.class.getName());
 
     @FXML

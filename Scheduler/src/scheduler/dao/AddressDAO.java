@@ -57,7 +57,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 @DatabaseTable(DbTable.ADDRESS)
 public final class AddressDAO extends DataAccessObject implements PartialAddressDAO, AddressEntity<Timestamp> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AddressDAO.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AddressDAO.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AddressDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
@@ -320,7 +320,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<AddressDAO, AddressModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
@@ -587,7 +587,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
     public static class SaveTask extends SaveDaoTask<AddressDAO, AddressModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking address conflicts";
@@ -742,7 +742,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
     public static final class DeleteTask extends DeleteDaoTask<AddressDAO, AddressModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         private static final String REFERENCED_BY_N = "Address is referenced by %d other customers";
@@ -810,7 +810,7 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
 
     public static class Partial extends PropertyBindable implements PartialAddressDAO {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final int primaryKey;

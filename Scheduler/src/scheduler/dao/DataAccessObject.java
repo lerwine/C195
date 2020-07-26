@@ -69,7 +69,7 @@ import scheduler.view.task.WaitBorderPane;
  */
 public abstract class DataAccessObject extends PropertyBindable implements PartialDataAccessObject, DataEntity<Timestamp>, EventTarget {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
     public static final String DEFAULT_USER_NAME = "admin";
 
@@ -490,7 +490,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class DaoFactory<D extends DataAccessObject, M extends EntityModel<D>>
             implements EventTarget {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
 
         private final EventHandlerManager eventHandlerManager;
@@ -816,7 +816,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      */
     public static abstract class DaoTask<D extends DataAccessObject, M extends EntityModel<D>> extends Task<ModelEvent<D, M>> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(DaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<D> dataAccessObject;
@@ -969,7 +969,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
             extends DaoTask<D, M> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<DaoFactory<D, M>> daoFactory;
@@ -1084,7 +1084,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
             extends ValidatingDaoTask<D, M> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
 
         /**
@@ -1283,7 +1283,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
             extends ValidatingDaoTask<D, M> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(DeleteDaoTask.class.getName());
 
         /**

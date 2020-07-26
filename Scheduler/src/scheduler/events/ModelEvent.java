@@ -392,7 +392,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends EntityMod
 
     private static final long serialVersionUID = -6832461936768738020L;
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ModelEvent.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ModelEvent.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ModelEvent.class.getName());
 
     /**

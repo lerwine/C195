@@ -106,7 +106,7 @@ import static scheduler.view.user.EditUserResourceKeys.*;
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
 public final class EditUser extends VBox implements EditItem.ModelEditorController<UserModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
     public static void editNew(Window parentWindow, boolean keepOpen, Consumer<UserModel> beforeShow) throws IOException {

@@ -41,7 +41,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/task/WaitTitledPane.fxml")
 public final class WaitTitledPane extends TitledPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WaitTitledPane.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WaitTitledPane.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(WaitTitledPane.class.getName());
 
     private Task<?> currentTask;

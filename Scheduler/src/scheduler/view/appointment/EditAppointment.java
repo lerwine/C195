@@ -118,7 +118,7 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
 public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     private static final String INVALID_NUMBER = "Invalid number";
@@ -140,12 +140,14 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return hour.map(
                 (hv) -> minute.map((mv) -> {
                     if (hv > 0) {
-                        if (mv > 0)
+                        if (mv > 0) {
                             return BinarySelective.ofPrimary(start.plusHours(hv).plusMinutes(mv));
+                        }
                         return BinarySelective.ofPrimary(start.plusHours(hv));
                     }
-                    if (mv > 0)
+                    if (mv > 0) {
                         return BinarySelective.ofPrimary(start.plusMinutes(mv));
+                    }
                     return BinarySelective.ofPrimary(start);
                 },
                         (v) -> BinarySelective.ofSecondary(v)

@@ -47,7 +47,7 @@ import scheduler.view.user.ManageUsers;
 @FXMLResource("/scheduler/view/Overview.fxml")
 public class Overview extends VBox {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Overview.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Overview.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(Overview.class.getName());
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -178,7 +178,7 @@ public class Overview extends VBox {
         private int appointmentsThisMonth;
         private int appointmentsNextMonth;
 
-        public InitializeTask() {
+        InitializeTask() {
             updateTitle(resources.getString(RESOURCEKEY_GETTINGAPPOINTMENTCOUNTS));
         }
 

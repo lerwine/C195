@@ -49,7 +49,7 @@ import static scheduler.view.country.EditCountryResourceKeys.RESOURCEKEY_SAVECON
 @DatabaseTable(DbTable.COUNTRY)
 public final class CountryDAO extends DataAccessObject implements PartialCountryDAO, CountryEntity<Timestamp> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CountryDAO.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CountryDAO.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(CountryDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
@@ -193,7 +193,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CountryDAO, CountryModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
@@ -379,7 +379,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
     public static class SaveTask extends SaveDaoTask<CountryDAO, CountryModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking country naming conflicts";
@@ -478,7 +478,7 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
 
     public static final class DeleteTask extends DeleteDaoTask<CountryDAO, CountryModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         private static final String ERROR_CHECKING_DEPENDENCIES = "Error checking dependencies";

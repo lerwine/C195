@@ -19,7 +19,7 @@ import scheduler.view.ViewAndController;
  */
 public class ViewControllerLoader {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINE);
     private static final Logger LOG = Logger.getLogger(ViewControllerLoader.class.getName());
 
     // private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
@@ -85,8 +85,8 @@ public class ViewControllerLoader {
     /**
      * Loads the FXML for a custom control.
      *
-     * @param <T> The custom control type. This class must have the {@link scheduler.view.annotations.FXMLResource} and
-     * {@link scheduler.view.annotations.GlobalizationResource} annotations.
+     * @param <T> The custom control type. This class must have the {@link scheduler.view.annotations.FXMLResource} and {@link scheduler.view.annotations.GlobalizationResource}
+     * annotations.
      * @param customControl The custom control to be initialized.
      * @throws IOException If unable to load the FXML.
      */
@@ -138,7 +138,7 @@ public class ViewControllerLoader {
      * @throws IOException If unable to load the view.
      */
     public static <T extends Parent, S> S showAndWait(Object source, Stage parent, ViewAndController<T, S> viewAndController) throws IOException {
-        return showAndWait(source, parent, viewAndController, (Object) null);
+        return showAndWait(source, parent, viewAndController, null);
     }
 
     /**
@@ -150,8 +150,8 @@ public class ViewControllerLoader {
      * @param parent The parent {@link Stage}.
      * @param controllerClass The controller class.
      * <p>
-     * This class definition for this parameter must have the {@link scheduler.view.annotations.FXMLResource} and
-     * {@link scheduler.view.annotations.GlobalizationResource} annotations.</p>
+     * This class definition for this parameter must have the {@link scheduler.view.annotations.FXMLResource} and {@link scheduler.view.annotations.GlobalizationResource}
+     * annotations.</p>
      * @param loadEventListener An object that can listen for load scheduler.events.
      * @return The controller object.
      * @throws IOException If unable to load the view.
@@ -175,7 +175,10 @@ public class ViewControllerLoader {
      * @throws IOException If unable to load the view.
      */
     public static <T extends Parent, S> S showAndWait(Object source, Stage parent, Class<S> controllerClass) throws IOException {
-        return showAndWait(source, parent, controllerClass, (Object) null);
+        return showAndWait(source, parent, controllerClass, null);
+    }
+
+    private ViewControllerLoader() {
     }
 
 }

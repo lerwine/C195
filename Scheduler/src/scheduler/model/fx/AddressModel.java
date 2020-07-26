@@ -260,7 +260,7 @@ public final class AddressModel extends EntityModel<AddressDAO> implements Parti
 
     public final static class Factory extends EntityModel.EntityModelFactory<AddressDAO, AddressModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
         // Singleton

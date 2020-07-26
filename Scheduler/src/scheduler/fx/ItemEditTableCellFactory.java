@@ -25,7 +25,7 @@ import scheduler.model.fx.EntityModel;
 public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M extends EntityModel<D>, E extends OperationRequestEvent<D, M>>
         implements Callback<TableColumn<M, M>, TableCell<M, M>>, EventTarget {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINER);
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ItemEditTableCellFactory.class.getName()), Level.FINE);
     private static final Logger LOG = Logger.getLogger(ItemEditTableCellFactory.class.getName());
 
     private final EventHandlerManager eventHandlerManager;

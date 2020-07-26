@@ -51,7 +51,7 @@ import static scheduler.util.Values.asNonNullAndWsNormalized;
 @DatabaseTable(DbTable.CUSTOMER)
 public final class CustomerDAO extends DataAccessObject implements PartialCustomerDAO, CustomerEntity<Timestamp> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerDAO.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(CustomerDAO.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(CustomerDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
@@ -253,7 +253,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<CustomerDAO, CustomerModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
@@ -446,7 +446,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
     public static class SaveTask extends SaveDaoTask<CustomerDAO, CustomerModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ERROR_CHECKING_CONFLICTS = "Error checking customer naming conflicts";
@@ -567,7 +567,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
     public static final class DeleteTask extends DeleteDaoTask<CustomerDAO, CustomerModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         private static final String REFERENCED_BY_ONE = "Customer is referenced by one appointment.";
@@ -635,7 +635,7 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
 
     public static class Partial extends PropertyBindable implements PartialCustomerDAO {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Partial.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(Partial.class.getName());
 
         private final String name;

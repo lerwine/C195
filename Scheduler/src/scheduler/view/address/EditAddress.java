@@ -113,7 +113,7 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/address/EditAddress.fxml")
 public final class EditAddress extends VBox implements EditItem.ModelEditorController<AddressModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAddress.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditAddress.class.getName());
 
     private static final Object TARGET_CITY_KEY = new Object();

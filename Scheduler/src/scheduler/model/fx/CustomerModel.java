@@ -264,7 +264,7 @@ public final class CustomerModel extends EntityModel<CustomerDAO> implements Par
 
     public final static class Factory extends EntityModel.EntityModelFactory<CustomerDAO, CustomerModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
+        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
 
         private Factory() {

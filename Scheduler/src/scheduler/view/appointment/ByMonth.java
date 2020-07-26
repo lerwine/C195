@@ -34,7 +34,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/appointment/ByMonth.fxml")
 public class ByMonth extends StackPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ByMonth.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ByMonth.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ByMonth.class.getName());
 
     public static ByMonth loadIntoMainContent(LocalDate month) {

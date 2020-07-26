@@ -42,7 +42,7 @@ import static scheduler.view.user.ManageUsersResourceKeys.*;
 @FXMLResource("/scheduler/view/user/ManageUsers.fxml")
 public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageUsers.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ManageUsers.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
 
     public static ManageUsers loadIntoMainContent(UserModelFilter filter) {
