@@ -124,6 +124,12 @@ public final class AppResources {
         return ResourceBundleHelper.getResourceString(AppResources.class, key);
     }
 
+    /**
+     * Gets the start of business hours for the home office.
+     * 
+     * @return The start of business hours for the home office.
+     * @throws ParseException if unable to parse business hour start time.
+     */
     public static final LocalTime getBusinessHoursStart() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_BUSINESSHOURSSTART, "");
         try {

@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -26,6 +27,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -1017,10 +1019,13 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private class DateRangeController {
 
+        private final LocalTime businessHoursStart;
+        private final LocalTime businessHoursEnd;
         private final ReadOnlyObjectWrapper<LocalDateTime> startDateTimeValue;
         private final ReadOnlyStringWrapper startValidationMessage;
         private final ReadOnlyObjectWrapper<LocalDateTime> endDateTimeValue;
         private final ReadOnlyObjectWrapper<Tuple<LocalDateTime, LocalDateTime>> range;
+        private final BooleanBinding withinBusinessHours;
         private final ReadOnlyBooleanWrapper valid;
         private ObjectBinding<BinarySelective<Integer, String>> parsedStartHour;
         private ObjectBinding<BinarySelective<Integer, String>> parsedStartMinute;
@@ -1030,10 +1035,21 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         private ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeBinding;
 
         DateRangeController() {
+            try {
+                businessHoursStart = AppResources.getBusinessHoursStart();
+                businessHoursEnd = businessHoursStart.plusMinutes(AppResources.getBusinessHoursDuration());
+            } catch (ParseException ex) {
+                Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, "Error parsing start business hours", ex);
+                throw new RuntimeException(ex);
+            }
             startValidationMessage = new ReadOnlyStringWrapper(this, "startValidationMessage", "");
             startDateTimeValue = new ReadOnlyObjectWrapper<>(this, "startDateTimeValue", null);
             endDateTimeValue = new ReadOnlyObjectWrapper<>(this, "endDateTimeValue", null);
             range = new ReadOnlyObjectWrapper<>(this, "range", null);
+            withinBusinessHours = Bindings.createBooleanBinding(() -> {
+                Tuple<LocalDateTime, LocalDateTime> value = range.get();
+                return null == value || (value.getValue1().toLocalTime().compareTo(businessHoursStart) >= 0 && value.getValue2().toLocalTime().compareTo(businessHoursEnd) < 0);
+            }, range);
             valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         }
 
@@ -1225,10 +1241,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             dateRange = new DateRangeController();
             valid = new ReadOnlyBooleanWrapper(this, "valid", false);
             conflictMessage.addListener((observable, oldValue, newValue) -> {
-                onStartMessageChanged(dateRange.startValidationMessage.get(), newValue);
+                onStartMessageChanged(dateRange.startValidationMessage.get(), newValue, dateRange.withinBusinessHours.get());
             });
             dateRange.startValidationMessage.addListener((observable, oldValue, newValue) -> {
-                onStartMessageChanged(newValue, conflictMessage.get());
+                onStartMessageChanged(newValue, conflictMessage.get(), dateRange.withinBusinessHours.get());
             });
             currentParticipants.addListener((observable, oldValue, newValue) -> {
                 onValidityChanged(null != newValue, dateRange.valid.get());
@@ -1288,11 +1304,11 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             clearAndSelectEntity(userComboBox, model.getUser());
             onAppointmentsLoaded(task);
             checkConflictsButton.setDisable(conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED);
-            dateRange.range.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue));
+            dateRange.range.addListener((observable, oldValue, newValue) -> onRangeChanged(newValue, dateRange.withinBusinessHours.get()));
             conflictCheckStatus.addListener((observable, oldValue, newValue) -> {
                 checkConflictsButton.setDisable(newValue != ConflictCheckStatus.NOT_CHECKED);
             });
-            onStartMessageChanged(dateRange.startValidationMessage.get(), conflictMessage.get());
+            onStartMessageChanged(dateRange.startValidationMessage.get(), conflictMessage.get(), dateRange.withinBusinessHours.get());
             CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
             CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
             CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.DELETE_SUCCESS, customerDeleteEventHandler.getWeakEventHandler());
@@ -1413,7 +1429,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             }
         }
 
-        private synchronized void onRangeChanged(Tuple<LocalDateTime, LocalDateTime> range) {
+        private synchronized void onRangeChanged(Tuple<LocalDateTime, LocalDateTime> range, boolean isWithinBusinessHours) {
             if (null == range) {
                 LOG.fine("Start and/or end not defined");
                 if (conflictCheckStatus.get() == ConflictCheckStatus.HAS_CONFLICT) {
@@ -1443,6 +1459,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                     }
                 }
             }
+            onStartMessageChanged(dateRange.startValidationMessage.get(), conflictMessage.get(), isWithinBusinessHours);
         }
 
         private synchronized void updateConflictingAppointments() {
@@ -1518,13 +1535,19 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             }
         }
 
-        private synchronized void onStartMessageChanged(String errorMessage, String warningMessage) {
+        private synchronized void onStartMessageChanged(String errorMessage, String warningMessage, boolean isWithinBusinessHours) {
             if (errorMessage.isEmpty()) {
                 if (warningMessage.isEmpty()) {
-                    startValidationLabel.setText("");
-                    startValidationLabel.setVisible(false);
+                    if (isWithinBusinessHours) {
+                        startValidationLabel.setText("");
+                        startValidationLabel.setVisible(false);
+                        return;
+                    }
+                    setWarningMessage(startValidationLabel, String.format("This appointment occurs outside business hours of %s to %s", dateRange.businessHoursStart,
+                            dateRange.businessHoursEnd));
+                } else {
+                    setWarningMessage(startValidationLabel, warningMessage);
                 }
-                setWarningMessage(startValidationLabel, warningMessage);
             } else {
                 setErrorMessage(startValidationLabel, errorMessage);
             }
