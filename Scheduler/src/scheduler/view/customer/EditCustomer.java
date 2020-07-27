@@ -295,7 +295,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private void onAddAppointmentButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onAddAppointmentButtonAction", event);
         try {
-            EditAppointment.editNew(model, null, getScene().getWindow(), false);
+            EditAppointment.editNew(model, null, getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
@@ -660,7 +660,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     }
 
     @Override
-    public void applyChanges() {
+    public boolean applyChanges() {
         model.setName(nameTextField.getText().trim());
         if (model.getRowState() == DataRowState.NEW || null == model.getAddress() || addressChanged.get()) {
             AddressModel addr = selectedAddress.get();
@@ -672,6 +672,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             model.setAddress(selectedAddress.get());
         }
         model.setActive(activeTrueRadioButton.isSelected());
+        return true;
     }
 
     private void onAppointmentInserted(AppointmentSuccessEvent event) {

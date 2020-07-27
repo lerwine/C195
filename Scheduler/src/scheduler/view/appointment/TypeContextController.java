@@ -43,11 +43,11 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement scheduler.view.appointment.edit.TypeContextController
  */
 public final class TypeContextController {
 
-    private static final Logger LOG = Logger.getLogger(TypeContextController.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(TypeContextController.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(TypeContextController.class.getName());
     private static final String INVALID_URL = "Invalid URL";
 
     private static BinarySelective<String, String> calculateURL(AppointmentType type, String text) {
@@ -184,37 +184,34 @@ public final class TypeContextController {
         return appointmentConflicts.getSelectedCustomer();
     }
 
-//    public ReadOnlyObjectProperty<CustomerModel> selectedCustomerProperty() {
-//        return appointmentConflicts.selectedCustomerProperty();
-//    }
     public UserModel getSelectedUser() {
         return appointmentConflicts.getSelectedUser();
     }
 
-//    public ReadOnlyObjectProperty<UserModel> selectedUserProperty() {
-//        return appointmentConflicts.selectedUserProperty();
-//    }
     public LocalDateTime getStartDateTimeValue() {
         return appointmentConflicts.getStartDateTimeValue();
     }
 
-//    public ReadOnlyObjectProperty<LocalDateTime> startDateTimeValueProperty() {
-//        return startDateTimeValue.getReadOnlyProperty();
-//    }
     public String getStartValidationMessage() {
         return appointmentConflicts.getStartValidationMessage();
     }
 
-//    public ReadOnlyStringProperty startValidationMessageProperty() {
-//        return startValidationMessage.getReadOnlyProperty();
-//    }
     public LocalDateTime getEndDateTimeValue() {
         return appointmentConflicts.getEndDateTimeValue();
     }
 
-//    public ReadOnlyObjectProperty<LocalDateTime> endDateTimeValueProperty() {
-//        return endDateTimeValue.getReadOnlyProperty();
-//    }
+    public boolean isWithinBusinessHours() {
+        return appointmentConflicts.isWithinBusinessHours();
+    }
+
+    public String getConflictMessage() {
+        return appointmentConflicts.getConflictMessage();
+    }
+
+    ConflictCheckStatus getConflictCheckStatus() {
+        return appointmentConflicts.getConflictCheckStatus();
+    }
+
     public boolean isValid() {
         return valid.get();
     }
@@ -376,6 +373,10 @@ public final class TypeContextController {
 
     void initialize(Task<List<AppointmentDAO>> task) {
         appointmentConflicts.initialize(task);
+    }
+
+    boolean canSave() {
+        return appointmentConflicts.canSave();
     }
 
     private synchronized void onContextSensitiveChange() {

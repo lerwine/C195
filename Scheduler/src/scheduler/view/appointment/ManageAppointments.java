@@ -332,7 +332,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
     @Override
     protected void onNewItem() {
         try {
-            EditAppointment.editNew(null, null, getScene().getWindow(), true);
+            EditAppointment.editNew(null, null, getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }

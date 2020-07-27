@@ -501,13 +501,14 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     }
 
     @Override
-    public void applyChanges() {
+    public boolean applyChanges() {
         model.setUserName(userNameTextField.getText());
         model.setStatus(activeComboBox.getSelectionModel().getSelectedItem());
         if (changePasswordCheckBox.isSelected()) {
             PwHash pw = new PwHash(passwordField.getText(), true);
             model.setPassword(pw.getEncodedHash());
         }
+        return true;
     }
 
     private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {

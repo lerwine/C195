@@ -73,11 +73,12 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/EditItem.fxml")
 public final class EditItem<T extends EntityModel<?>, U extends Region & EditItem.ModelEditorController<T>> extends StackPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
     private static final String FIELD_NAME_WAIT_BORDER_PANE = "waitBorderPane";
     private static final String FIELD_NAME_MODEL = "model";
+    private static final String FIELD_NAME_EDITWINDOWROOT = "editWindowRoot";
     private static final String METHOD_NAME_ON_MODEL_INSERTED = "onModelInserted";
 
     /**
@@ -100,6 +101,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         ViewControllerLoader.initializeCustomControl(root);
         Class<ModelEditor> annotationClass = ModelEditor.class;
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
+        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_EDITWINDOWROOT, root);
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, root.waitBorderPane);
         ViewControllerLoader.initializeCustomControl(editorRegion);
         StageManager.showAndWait(root, parentWindow, beforeShow);
@@ -109,13 +111,14 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     public static <U extends EntityModel<?>, S extends Region & EditItem.ModelEditorController<U>>
             void showAndWait(Window parentWindow, S editorRegion, U model, boolean keepOpen) throws IOException {
         LOG.entering(LOG.getName(), "showAndWait", new Object[]{parentWindow, editorRegion, model, keepOpen});
-        EditItem<U, S> result = new EditItem<>(editorRegion, model, keepOpen);
-        ViewControllerLoader.initializeCustomControl(result);
+        EditItem<U, S> root = new EditItem<>(editorRegion, model, keepOpen);
+        ViewControllerLoader.initializeCustomControl(root);
         Class<ModelEditor> annotationClass = ModelEditor.class;
         AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_MODEL, model);
-        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, result.waitBorderPane);
+        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_EDITWINDOWROOT, root);
+        AnnotationHelper.tryInjectField(editorRegion, annotationClass, FIELD_NAME_WAIT_BORDER_PANE, root.waitBorderPane);
         ViewControllerLoader.initializeCustomControl(editorRegion);
-        StageManager.showAndWait(result, parentWindow);
+        StageManager.showAndWait(root, parentWindow);
         LOG.exiting(LOG.getName(), "showAndWait");
     }
 
@@ -215,7 +218,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     private EditItem(U editorRegion, T model, boolean keepOpen) {
         stageChangeListener = new ParentWindowChangeListener(sceneProperty());
         stageChangeListener.currentStageProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change", new Object[] {oldValue, newValue});
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change", new Object[]{oldValue, newValue});
             if (null != oldValue) {
                 oldValue.titleProperty().unbind();
             }
@@ -281,12 +284,13 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     }
 
     @FXML
-    void onSaveButtonAction(ActionEvent event) {
+    public void onSaveButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onSaveButtonAction", event);
-        editorRegion.applyChanges();
-        DataAccessObject.SaveDaoTask<?, T> task = editorRegion.modelFactory().createSaveTask(model);
-        task.setOnSucceeded(this::onSaveDaoTaskSucceeded);
-        waitBorderPane.startNow(task);
+        if (editorRegion.applyChanges()) {
+            DataAccessObject.SaveDaoTask<?, T> task = editorRegion.modelFactory().createSaveTask(model);
+            task.setOnSucceeded(this::onSaveDaoTaskSucceeded);
+            waitBorderPane.startNow(task);
+        }
         LOG.exiting(LOG.getName(), "onSaveButtonAction");
     }
 
@@ -319,6 +323,10 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
             onEditMode();
         }
         LOG.exiting(LOG.getName(), "initialize");
+    }
+
+    public Button getSaveChangesButton() {
+        return saveChangesButton;
     }
 
     private void onEditMode() {
@@ -436,8 +444,10 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
 
         /**
          * Applies changes to the underlying {@link EntityModel}.
+         *
+         * @return {@code true} if changes have been applied or {@code false} to abort.
          */
-        void applyChanges();
+        boolean applyChanges();
     }
 
 }

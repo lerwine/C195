@@ -378,8 +378,9 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
     }
 
     @Override
-    public void applyChanges() {
+    public boolean applyChanges() {
         model.setLocale(localeComboBox.getSelectionModel().getSelectedItem());
+        return true;
     }
 
     private void onCityInserted(CitySuccessEvent event) {

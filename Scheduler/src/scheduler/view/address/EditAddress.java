@@ -261,12 +261,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     }
 
     @Override
-    public void applyChanges() {
+    public boolean applyChanges() {
         model.setAddress1(normalizedAddress1.get());
         model.setAddress2(normalizedAddress2.get());
         model.setCity(selectedCity.get());
         model.setPostalCode(normalizedPostalCode.get());
         model.setPhone(normalizedPhone.get());
+        return true;
     }
 
     @FXML

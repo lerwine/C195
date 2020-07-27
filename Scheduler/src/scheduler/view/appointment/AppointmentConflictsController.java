@@ -3,6 +3,7 @@ package scheduler.view.appointment;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -17,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SingleSelectionModel;
@@ -30,6 +32,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.CustomerModel;
 import scheduler.model.fx.UserModel;
+import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.clearAndSelectEntity;
@@ -38,16 +41,17 @@ import static scheduler.util.NodeUtil.restoreNode;
 import static scheduler.util.NodeUtil.setErrorMessage;
 import static scheduler.util.NodeUtil.setWarningMessage;
 import scheduler.util.Tuple;
+import scheduler.view.EditItem;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement scheduler.view.appointment.edit.AppointmentConflictsController
  */
 public final class AppointmentConflictsController {
 
-    private static final Logger LOG = Logger.getLogger(AppointmentConflictsController.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentConflictsController.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AppointmentConflictsController.class.getName());
 
     private final EditAppointment editAppointmentControl;
     private final ReadOnlyObjectWrapper<Tuple<CustomerModel, UserModel>> currentParticipants;
@@ -75,22 +79,30 @@ public final class AppointmentConflictsController {
         this.editAppointmentControl = editAppointmentControl;
         currentParticipants = new ReadOnlyObjectWrapper<>(this, "currentParticipants", null);
         conflictCheckStatus = new ReadOnlyObjectWrapper<>(this, "conflictCheckStatus", ConflictCheckStatus.NO_CONFLICT);
-        conflictMessage = new ReadOnlyStringWrapper("");
+        conflictMessage = new ReadOnlyStringWrapper(this, "conflictMessage", "");
+        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         allAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
         dateRange = new DateRangeController(editAppointmentControl);
-        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         conflictMessage.addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "conflictMessage#value"), "change", new Object[]{oldValue, newValue});
             onStartMessageChanged(dateRange.getStartValidationMessage(), newValue, dateRange.isWithinBusinessHours());
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "conflictMessage#value"), "change");
         });
         dateRange.startValidationMessageProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#startValidationMessage#value"), "change", new Object[]{oldValue, newValue});
             onStartMessageChanged(newValue, conflictMessage.get(), dateRange.isWithinBusinessHours());
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#startValidationMessage#value"), "change");
         });
         currentParticipants.addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "currentParticipants#value"), "change", new Object[]{oldValue, newValue});
             onValidityChanged(null != newValue, dateRange.isValid());
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "currentParticipants#value"), "change");
         });
         dateRange.validProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#valid#value"), "change", new Object[]{oldValue, newValue});
             onValidityChanged(null != currentParticipants.get(), newValue);
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "cdateRange#valid#value"), "change");
         });
     }
 
@@ -114,18 +126,24 @@ public final class AppointmentConflictsController {
         return dateRange.getStartDateTimeValue();
     }
 
-//    public ReadOnlyObjectProperty<LocalDateTime> startDateTimeValueProperty() {
-//        return startDateTimeValue.getReadOnlyProperty();
-//    }
     public String getStartValidationMessage() {
         return dateRange.getStartValidationMessage();
     }
 
-//    public ReadOnlyStringProperty startValidationMessageProperty() {
-//        return startValidationMessage.getReadOnlyProperty();
-//    }
     public LocalDateTime getEndDateTimeValue() {
         return dateRange.getEndDateTimeValue();
+    }
+
+    public boolean isWithinBusinessHours() {
+        return dateRange.isWithinBusinessHours();
+    }
+
+    public String getConflictMessage() {
+        return conflictMessage.get();
+    }
+
+    ConflictCheckStatus getConflictCheckStatus() {
+        return conflictCheckStatus.get();
     }
 
     public boolean isValid() {
@@ -136,9 +154,6 @@ public final class AppointmentConflictsController {
         return valid;
     }
 
-//    public ReadOnlyObjectProperty<LocalDateTime> endDateTimeValueProperty() {
-//        return endDateTimeValue.getReadOnlyProperty();
-//    }
     void initialize() {
         LOG.entering(LOG.getName(), "initialize");
         dateRange.initialize();
@@ -194,16 +209,58 @@ public final class AppointmentConflictsController {
     }
 
     void initialize(Task<List<AppointmentDAO>> task) {
+        LOG.entering(LOG.getName(), "initialize", task);
         AppointmentModel model = editAppointmentControl.getModel();
         clearAndSelectEntity(customerComboBox, model.getCustomer());
         clearAndSelectEntity(userComboBox, model.getUser());
-        onAppointmentsLoaded(task);
+        onAppointmentsLoaded(task, false);
         checkConflictsButton.setDisable(conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED);
         dateRange.rangeProperty().addListener((observable, oldValue, newValue) -> onRangeChanged(newValue, dateRange.isWithinBusinessHours()));
         conflictCheckStatus.addListener((observable, oldValue, newValue) -> {
             checkConflictsButton.setDisable(newValue != ConflictCheckStatus.NOT_CHECKED);
         });
         onStartMessageChanged(dateRange.getStartValidationMessage(), conflictMessage.get(), dateRange.isWithinBusinessHours());
+        LOG.exiting(LOG.getName(), "initialize");
+    }
+
+    boolean canSave() {
+        Optional<ButtonType> answer;
+        switch (conflictCheckStatus.get()) {
+            case HAS_CONFLICT:
+                if (dateRange.isWithinBusinessHours()) {
+                    answer = AlertHelper.showWarningAlert(editAppointmentControl.getScene().getWindow(), LOG, "Appointment Conflict",
+                            String.format("%s%n%nSave changes, anyway?", conflictMessage.get()), ButtonType.YES, ButtonType.NO);
+                } else {
+                    answer = AlertHelper.showWarningAlert(editAppointmentControl.getScene().getWindow(), LOG, "Appointment Conflict",
+                            String.format("Appointment occurs outside normal business hours.%n%n%s%n%nSave changes, anyway?", conflictMessage.get()), ButtonType.YES, ButtonType.NO);
+                }
+                break;
+            case CHECK_ERROR:
+                if (dateRange.isWithinBusinessHours()) {
+                    answer = AlertHelper.showWarningAlert(editAppointmentControl.getScene().getWindow(), LOG, "Appointment Conflict",
+                            String.format("There was an error that occurred while checking for conflicts.%n%nAttempt to save, anyway?"), ButtonType.YES, ButtonType.NO);
+                } else {
+                    answer = AlertHelper.showWarningAlert(editAppointmentControl.getScene().getWindow(), LOG, "Appointment Conflict",
+                            String.format("Appointment occurs outside normal business hours.%n%nThere was an error that occurred while checking for conflicts.%n%nAttempt to save, anyway?"), ButtonType.YES, ButtonType.NO);
+                }
+                break;
+            case NOT_CHECKED:
+                if (null != currentTask && !currentTask.isDone()) {
+                    currentTask.cancel(true);
+                }
+                checkConflictsButton.setDisable(true);
+                currentTask = new LoadParticipantsAppointmentsTask(currentParticipants.get(), true);
+                editAppointmentControl.getWaitBorderPane().startNow(currentTask);
+                return false;
+            default:
+                if (dateRange.isWithinBusinessHours()) {
+                    return true;
+                }
+                answer = AlertHelper.showWarningAlert(editAppointmentControl.getScene().getWindow(), LOG, "Extended Appointment Schedule",
+                        String.format("Appointment occurs outside normal business hours.%n%nSave changes, anyway?"), ButtonType.YES, ButtonType.NO);
+                break;
+        }
+        return answer.orElse(ButtonType.NO) == ButtonType.YES;
     }
 
     private synchronized void onCheckConflictsButtonAction(ActionEvent event) {
@@ -214,7 +271,7 @@ public final class AppointmentConflictsController {
                 currentTask.cancel(true);
             }
             checkConflictsButton.setDisable(true);
-            currentTask = new LoadParticipantsAppointmentsTask(p);
+            currentTask = new LoadParticipantsAppointmentsTask(p, false);
             editAppointmentControl.getWaitBorderPane().startNow(currentTask);
         }
         LOG.exiting(LOG.getName(), "onCheckConflictsButtonAction");
@@ -234,7 +291,8 @@ public final class AppointmentConflictsController {
         LOG.exiting(LOG.getName(), "onHideConflictsButtonAction");
     }
 
-    void onAppointmentsLoaded(Task<List<AppointmentDAO>> task) {
+    void onAppointmentsLoaded(Task<List<AppointmentDAO>> task, boolean saveMode) {
+        LOG.entering(LOG.getName(), "onAppointmentsLoaded", new Object[]{task, saveMode});
         if (checkCurrentTask(task)) {
             return;
         }
@@ -245,10 +303,16 @@ public final class AppointmentConflictsController {
             LOG.log(Level.SEVERE, "Error getting task result", ex);
             allAppointments.clear();
             conflictingAppointments.clear();
-            if (conflictCheckStatus.get() == ConflictCheckStatus.NO_CONFLICT) {
-                conflictCheckStatus.set(ConflictCheckStatus.NOT_CHECKED);
+            if (conflictCheckStatus.get() != ConflictCheckStatus.CHECK_ERROR) {
+                conflictCheckStatus.set(ConflictCheckStatus.CHECK_ERROR);
             }
             showConflictsButton.setDisable(true);
+            if (saveMode) {
+                EditItem<AppointmentModel, EditAppointment> editWindowRoot = editAppointmentControl.getEditWindowRoot();
+                ActionEvent event = new ActionEvent(editWindowRoot.getSaveChangesButton(), editWindowRoot);
+                editWindowRoot.onSaveButtonAction(event);
+            }
+            LOG.exiting(LOG.getName(), "onAppointmentsLoaded");
             return;
         }
         allAppointments.clear();
@@ -272,6 +336,12 @@ public final class AppointmentConflictsController {
                 conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
             }
         }
+        if (saveMode) {
+            EditItem<AppointmentModel, EditAppointment> editWindowRoot = editAppointmentControl.getEditWindowRoot();
+            ActionEvent event = new ActionEvent(editWindowRoot.getSaveChangesButton(), editWindowRoot);
+            editWindowRoot.onSaveButtonAction(event);
+        }
+        LOG.exiting(LOG.getName(), "onAppointmentsLoaded");
     }
 
     private synchronized boolean checkCurrentTask(Task<List<AppointmentDAO>> task) {
@@ -284,12 +354,14 @@ public final class AppointmentConflictsController {
     }
 
     private synchronized void onParticipantsChanged(CustomerModel customer, UserModel user) {
+        LOG.entering(LOG.getName(), "onParticipantsChanged", new Object[]{customer, user});
         Tuple<CustomerModel, UserModel> lookup = currentParticipants.get();
         String message;
         ConflictCheckStatus checkStatus;
         if (null == customer || null == user) {
             if (null == lookup) {
                 LOG.fine("Participants not actually changed; nothing else to do");
+                LOG.exiting(LOG.getName(), "onParticipantsChanged");
                 return;
             }
             LOG.fine("Customer and/or user not defined; Setting current participants to null");
@@ -298,6 +370,7 @@ public final class AppointmentConflictsController {
             message = "";
         } else if (null != lookup && lookup.getValue1().equals(customer) && lookup.getValue2().equals(user)) {
             LOG.fine("Participant values not changed; nothing else to do");
+            LOG.exiting(LOG.getName(), "onParticipantsChanged");
             return;
         } else {
             LOG.fine("Participants changed; setting status to NOT_CHECKED");
@@ -317,17 +390,22 @@ public final class AppointmentConflictsController {
             currentTask.cancel(true);
             currentTask = null;
         }
+        LOG.exiting(LOG.getName(), "onParticipantsChanged");
     }
 
     private synchronized void onRangeChanged(Tuple<LocalDateTime, LocalDateTime> range, boolean isWithinBusinessHours) {
+        LOG.entering(LOG.getName(), "onRangeChanged", new Object[]{range, isWithinBusinessHours});
         if (null == range) {
             LOG.fine("Start and/or end not defined");
-            if (conflictCheckStatus.get() == ConflictCheckStatus.HAS_CONFLICT) {
-                conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
-                if (!conflictMessage.get().isEmpty()) {
-                    conflictMessage.set("");
-                }
-                conflictingAppointments.clear();
+            switch (conflictCheckStatus.get()) {
+                case CHECK_ERROR:
+                case HAS_CONFLICT:
+                    conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
+                    if (!conflictMessage.get().isEmpty()) {
+                        conflictMessage.set("");
+                    }
+                    conflictingAppointments.clear();
+                    break;
             }
         } else {
             if (allAppointments.isEmpty()) {
@@ -336,20 +414,26 @@ public final class AppointmentConflictsController {
                 Tuple<CustomerModel, UserModel> lookup = currentParticipants.get();
                 if (null == lookup) {
                     LOG.fine("Range changed, with no customer and/or user selection; nothing else to do");
-                    if (conflictCheckStatus.get() == ConflictCheckStatus.HAS_CONFLICT) {
-                        conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
-                        if (!conflictMessage.get().isEmpty()) {
-                            conflictMessage.set("");
-                        }
+                    switch (conflictCheckStatus.get()) {
+                        case CHECK_ERROR:
+                        case HAS_CONFLICT:
+                            conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
+                            if (!conflictMessage.get().isEmpty()) {
+                                conflictMessage.set("");
+                            }
+                            break;
+                        case NOT_CHECKED:
+                            LOG.fine("Range changed, with status NOT_CHECKED; nothing else to do");
+                            break;
+                        default:
+                            updateConflictingAppointments();
+                            break;
                     }
-                } else if (conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED) {
-                    updateConflictingAppointments();
-                } else {
-                    LOG.fine("Range changed, with status NOT_CHECKED; nothing else to do");
                 }
             }
+            onStartMessageChanged(dateRange.getStartValidationMessage(), conflictMessage.get(), isWithinBusinessHours);
         }
-        onStartMessageChanged(dateRange.getStartValidationMessage(), conflictMessage.get(), isWithinBusinessHours);
+        LOG.exiting(LOG.getName(), "onRangeChanged");
     }
 
     private synchronized void updateConflictingAppointments() {
@@ -426,6 +510,7 @@ public final class AppointmentConflictsController {
     }
 
     private synchronized void onStartMessageChanged(String errorMessage, String warningMessage, boolean isWithinBusinessHours) {
+        LOG.entering(LOG.getName(), "onStartMessageChanged", new Object[]{errorMessage, warningMessage, isWithinBusinessHours});
         if (errorMessage.isEmpty()) {
             if (warningMessage.isEmpty()) {
                 if (isWithinBusinessHours) {
@@ -442,21 +527,26 @@ public final class AppointmentConflictsController {
             setErrorMessage(startValidationLabel, errorMessage);
         }
         startValidationLabel.setVisible(true);
+        LOG.exiting(LOG.getName(), "onStartMessageChanged");
     }
 
     private synchronized void onValidityChanged(boolean hasParticipants, boolean hasRange) {
+        LOG.entering(LOG.getName(), "onValidityChanged", new Object[]{hasParticipants, hasRange});
         boolean v = hasParticipants && hasRange;
         if (v != valid.get()) {
             valid.set(v);
         }
+        LOG.exiting(LOG.getName(), "onValidityChanged");
     }
 
     private class LoadParticipantsAppointmentsTask extends Task<List<AppointmentDAO>> {
 
         private final Tuple<CustomerModel, UserModel> participants;
+        private final boolean saveMode;
 
-        private LoadParticipantsAppointmentsTask(Tuple<CustomerModel, UserModel> participants) {
+        private LoadParticipantsAppointmentsTask(Tuple<CustomerModel, UserModel> participants, boolean saveMode) {
             this.participants = participants;
+            this.saveMode = saveMode;
         }
 
         @Override
@@ -478,7 +568,7 @@ public final class AppointmentConflictsController {
         @Override
         protected void succeeded() {
             LOG.entering(getClass().getName(), "succeeded");
-            onAppointmentsLoaded(this);
+            onAppointmentsLoaded(this, saveMode);
             super.succeeded();
             LOG.exiting(getClass().getName(), "succeeded");
         }
@@ -486,7 +576,7 @@ public final class AppointmentConflictsController {
         @Override
         protected void cancelled() {
             LOG.entering(getClass().getName(), "cancelled");
-            onAppointmentsLoaded(this);
+            onAppointmentsLoaded(this, saveMode);
             super.cancelled();
             LOG.exiting(getClass().getName(), "cancelled");
         }
@@ -494,7 +584,7 @@ public final class AppointmentConflictsController {
         @Override
         protected void failed() {
             LOG.entering(getClass().getName(), "failed");
-            onAppointmentsLoaded(this);
+            onAppointmentsLoaded(this, saveMode);
             super.failed();
             LOG.exiting(getClass().getName(), "failed");
         }

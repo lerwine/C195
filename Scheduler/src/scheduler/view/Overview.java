@@ -107,7 +107,7 @@ public class Overview extends VBox {
     private void onNewAppointmentHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewAppointmentHyperlinkAction", event);
         try {
-            EditAppointment.editNew(null, null, getScene().getWindow(), true);
+            EditAppointment.editNew(null, null, getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }

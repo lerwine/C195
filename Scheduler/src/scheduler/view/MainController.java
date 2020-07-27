@@ -192,7 +192,7 @@ public final class MainController {
     private void onNewAppointmentMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewAppointmentMenuItemAction", event);
         try {
-            EditAppointment.editNew(null, null, contentView.getScene().getWindow(), true);
+            EditAppointment.editNew(null, null, contentView.getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }

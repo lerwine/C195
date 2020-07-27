@@ -104,8 +104,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
-            Window parentWindow, boolean keepOpen) throws IOException {
-        editNew(customer, user, parentWindow, keepOpen, null);
+            Window parentWindow) throws IOException {
+        editNew(customer, user, parentWindow, false, null);
     }
 
     public static void edit(AppointmentModel model, Window parentWindow, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
@@ -135,6 +135,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
+
+    @ModelEditor
+    private EditItem<AppointmentModel, EditAppointment> editWindowRoot;
 
     @ModelEditor
     private AppointmentModel model;
@@ -580,6 +583,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return userModelList;
     }
 
+    public EditItem<AppointmentModel, EditAppointment> getEditWindowRoot() {
+        return editWindowRoot;
+    }
+
     public WaitBorderPane getWaitBorderPane() {
         return waitBorderPane;
     }
@@ -626,7 +633,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     //</editor-fold>
     @Override
-    public void applyChanges() {
+    public boolean applyChanges() {
+        if (!typeContext.canSave()) {
+            return false;
+        }
         model.setTitle(normalizedTitleBinding.get());
         model.setContact(typeContext.getNormalizedContact());
         model.setUrl(typeContext.getParsedUrl().toPrimary(""));
@@ -650,6 +660,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 model.setLocation(typeContext.getNormalizedLocation());
                 break;
         }
+        return true;
     }
 
     private synchronized void onCustomersLoaded(List<CustomerDAO> customerDaoList) {

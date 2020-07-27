@@ -37,11 +37,11 @@ import scheduler.util.Tuple;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement scheduler.view.appointment.edit.DateRangeController
  */
 public final class DateRangeController {
 
-    private static final Logger LOG = Logger.getLogger(DateRangeController.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DateRangeController.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(DateRangeController.class.getName());
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     private static final String INVALID_HOUR_NUMBER = "Invalid hour number";
     private static final String INVALID_MINUTE_NUMBER = "Invalid minute number";
@@ -208,8 +208,11 @@ public final class DateRangeController {
         endDateTimeValue = new ReadOnlyObjectWrapper<>(this, "endDateTimeValue", null);
         range = new ReadOnlyObjectWrapper<>(this, "range", null);
         withinBusinessHours = Bindings.createBooleanBinding(() -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue");
             Tuple<LocalDateTime, LocalDateTime> value = range.get();
-            return null == value || (value.getValue1().toLocalTime().compareTo(businessHoursStart) >= 0 && value.getValue2().toLocalTime().compareTo(businessHoursEnd) < 0);
+            boolean result = null == value || (value.getValue1().toLocalTime().compareTo(businessHoursStart) >= 0 && value.getValue2().toLocalTime().compareTo(businessHoursEnd) < 0);
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", result);
+            return result;
         }, range);
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
     }

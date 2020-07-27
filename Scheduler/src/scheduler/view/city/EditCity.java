@@ -444,9 +444,10 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     }
 
     @Override
-    public void applyChanges() {
+    public boolean applyChanges() {
         model.setName(normalizedName.get());
         model.setCountry(selectedCountry.get());
+        return true;
     }
 
     private void onAddressInserted(AddressSuccessEvent event) {
