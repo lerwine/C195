@@ -46,7 +46,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  */
 public final class TypeContextController {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(TypeContextController.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(TypeContextController.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(TypeContextController.class.getName());
     private static final String INVALID_URL = "Invalid URL";
 

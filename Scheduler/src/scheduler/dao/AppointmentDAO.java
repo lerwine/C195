@@ -548,6 +548,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
+        // FIXME: See if we should add scheduler.fx.AppointmentAlert to dispatch chain, instead.
         EventDispatchChain result = AppointmentAlertManager.INSTANCE.buildEventDispatchChain(FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail)));
         LOG.exiting(LOG.getName(), "buildEventDispatchChain");
         return result;

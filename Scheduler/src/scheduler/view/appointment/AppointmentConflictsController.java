@@ -50,7 +50,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  */
 public final class AppointmentConflictsController {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentConflictsController.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentConflictsController.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentConflictsController.class.getName());
 
     private final EditAppointment editAppointmentControl;

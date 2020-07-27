@@ -40,7 +40,7 @@ import scheduler.util.Tuple;
  */
 public final class DateRangeController {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DateRangeController.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DateRangeController.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(DateRangeController.class.getName());
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     private static final String INVALID_HOUR_NUMBER = "Invalid hour number";

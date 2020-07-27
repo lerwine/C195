@@ -85,7 +85,7 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
 public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINEST);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
 
     public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,

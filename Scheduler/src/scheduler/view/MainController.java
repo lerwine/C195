@@ -2,6 +2,7 @@ package scheduler.view;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -16,6 +17,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import scheduler.AppointmentAlertManager;
 import scheduler.Scheduler;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.HelpContent;
@@ -284,14 +286,14 @@ public final class MainController {
 
     public synchronized void replaceContent(Node newContent) {
         Node oldView = contentView;
-        contentView = newContent;
+        contentView = Objects.requireNonNull(newContent);
         if (null != oldView) {
             contentVBox.getChildren().remove(oldView);
+        } else {
+            // FIXME: Start background appointment checks
         }
-        if (null != newContent) {
-            VBox.setVgrow(newContent, Priority.ALWAYS);
-            contentVBox.getChildren().add(newContent);
-        }
+        VBox.setVgrow(newContent, Priority.ALWAYS);
+        contentVBox.getChildren().add(newContent);
     }
 
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {

@@ -67,6 +67,7 @@ import scheduler.view.annotations.GlobalizationResource;
  * FXML Controller class
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @todo See if this replaces {@link scheduler.AppointmentAlertManager}.
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/fx/AppointmentAlert.fxml")

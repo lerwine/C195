@@ -38,7 +38,7 @@ import scheduler.util.Tuple;
  */
 public class AppointmentAlertManager implements EventTarget {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlertManager.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlertManager.class.getName()), Level.FINEST);
 //    private static final Logger LOG = Logger.getLogger(AppointmentAlertManager.class.getName());
 
     public static final AppointmentAlertManager INSTANCE = new AppointmentAlertManager();
@@ -54,7 +54,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     // Singleton
     private AppointmentAlertManager() {
-        alerting = new ReadOnlyBooleanWrapper(false);
+        alerting = new ReadOnlyBooleanWrapper(this, "alerting", false);
         alertingList = FXCollections.observableArrayList();
         snoozedMap = new HashMap<>();
         dismissedMap = new HashMap<>();
@@ -91,7 +91,9 @@ public class AppointmentAlertManager implements EventTarget {
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return tail.append(eventHandlerManager);
+        EventDispatchChain result = tail.append(eventHandlerManager);
+        LOG.exiting(LOG.getName(), "buildEventDispatchChain", result);
+        return result;
     }
 
     private AppointmentModel getModel(int key) {
@@ -168,6 +170,7 @@ public class AppointmentAlertManager implements EventTarget {
         if (checkInsert(event.getDataAccessObject(), true)) {
             alerting.set(true);
         }
+        LOG.exiting(LOG.getName(), "onAppointmentInserted");
     }
 
     private void onAppointmentUpdated(AppointmentSuccessEvent event) {
@@ -175,6 +178,7 @@ public class AppointmentAlertManager implements EventTarget {
         if (checkUpdate(event.getDataAccessObject(), true)) {
             alerting.set(!alertingList.isEmpty());
         }
+        LOG.exiting(LOG.getName(), "onAppointmentUpdated");
     }
 
     private void onAppointmentDeleted(AppointmentSuccessEvent event) {
@@ -182,10 +186,15 @@ public class AppointmentAlertManager implements EventTarget {
         if (checkDelete(event.getDataAccessObject().getPrimaryKey())) {
             alerting.set(false);
         }
+        LOG.exiting(LOG.getName(), "onAppointmentDeleted");
     }
 
     public void start() {
         start(true);
+    }
+
+    void stop() {
+        stop(true);
     }
 
     private synchronized void start(boolean isInitial) {
@@ -218,6 +227,7 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private void onCheckAppointmentsTaskError(Throwable ex) {
+        LOG.entering(LOG.getName(), "onCheckAppointmentsTaskError", ex);
         if (stop(false)) {
             try {
                 LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
@@ -227,9 +237,11 @@ public class AppointmentAlertManager implements EventTarget {
                 start(false);
             }
         }
+        LOG.exiting(LOG.getName(), "onCheckAppointmentsTaskError");
     }
 
     private synchronized boolean checkPeriodicCheckResult(List<AppointmentDAO> appointments) {
+        LOG.entering(LOG.getName(), "checkPeriodicCheckResult", appointments);
         final LocalDateTime now = LocalDateTime.now();
         boolean wasEmpty = alertingList.isEmpty();
         snoozedMap.keySet().stream().filter((t) -> snoozedMap.get(t).getValue1().compareTo(now) <= 0).forEach((t) -> {
@@ -254,11 +266,11 @@ public class AppointmentAlertManager implements EventTarget {
         }
         dismissedMap.keySet().stream().filter((t) -> dismissedMap.get(t).compareTo(now) < 0).forEach((t) -> dismissedMap.remove(t));
         if (alertingList.isEmpty()) {
-            return !wasEmpty;
-        }
-        if (alertingList.size() > 1) {
+            wasEmpty = !wasEmpty;
+        } else if (alertingList.size() > 1) {
             alertingList.sort(AppointmentHelper::compareByDates);
         }
+        LOG.exiting(LOG.getName(), "checkPeriodicCheckResult");
         return wasEmpty;
     }
 
@@ -282,19 +294,23 @@ public class AppointmentAlertManager implements EventTarget {
 
         @Override
         public void run() {
+            LOG.entering(getClass().getName(), "run");
             List<AppointmentDAO> appointments;
             try {
                 appointments = DbConnector.apply((t) -> {
                     LocalDateTime start = LocalDateTime.now();
-                    return factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(start),
+                   List<AppointmentDAO> result = factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(start),
                             DateTimeUtil.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
+                    return result;
                 });
             } catch (SQLException | ClassNotFoundException ex) {
                 LOG.log(Level.SEVERE, "Error checking impending appointments", ex);
                 Platform.runLater(() -> onCheckAppointmentsTaskError(ex));
+                LOG.exiting(getClass().getName(), "run");
                 return;
             }
             Platform.runLater(() -> onPeriodicCheckFinished(appointments));
+            LOG.exiting(getClass().getName(), "run");
         }
     }
 

@@ -73,7 +73,7 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/EditItem.fxml")
 public final class EditItem<T extends EntityModel<?>, U extends Region & EditItem.ModelEditorController<T>> extends StackPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
     private static final String FIELD_NAME_WAIT_BORDER_PANE = "waitBorderPane";
