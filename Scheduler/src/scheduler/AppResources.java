@@ -22,7 +22,7 @@ import scheduler.view.annotations.GlobalizationResource;
 
 // PENDING: (TODO) Test alert for scheduling overlapping appointments
 /**
- * Gets data from resources intended to be used throughout the application. settings from the {@code /resources/scheduler/config.properties} file.
+ * Gets data from resources intended to be used throughout the application.
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -93,8 +93,7 @@ public final class AppResources {
     }
 
     /**
-     * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}. This value is specified using the
-     * {@link FXMLResource} annotation.
+     * Gets the name of the FXML resource associated with the specified controller {@link java.lang.Class}. This value is specified using the {@link FXMLResource} annotation.
      *
      * @param ctlClass The {@link java.lang.Class} for the target controller.
      * @return The name of the FXML resource associated with the target controller or an empty string if resource name is not specified.
@@ -125,10 +124,12 @@ public final class AppResources {
     }
 
     /**
-     * Gets the start of business hours for the home office.
-     * 
-     * @return The start of business hours for the home office.
-     * @throws ParseException if unable to parse business hour start time.
+     * Gets the start of business hours. This is parsed from the {@link PROPERTYKEY_BUSINESSHOURSSTART "businessHoursStart"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The start of business hours.
+     * @throws ParseException if unable to parse the time string for the {@link PROPERTYKEY_BUSINESSHOURSSTART "businessHoursStart"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
      */
     public static final LocalTime getBusinessHoursStart() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_BUSINESSHOURSSTART, "");
@@ -139,25 +140,60 @@ public final class AppResources {
         }
     }
 
+    /**
+     * Gets the length of the business day in minutes. This is parsed from the {@link PROPERTYKEY_BUSINESSHOURSDURATION "businessHoursDuration"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The length of the business day in minutes.
+     * @throws ParseException if unable to parse the integer string for the {@link PROPERTYKEY_BUSINESSHOURSDURATION "businessHoursDuration"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     */
     public static final int getBusinessHoursDuration() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_BUSINESSHOURSDURATION, "");
         return NumberFormat.getIntegerInstance().parse(s).intValue();
     }
 
+    /**
+     * Gets the lead time for impending appointment alerts in minutes. This is parsed from the {@link PROPERTYKEY_APPOINTMENTALERTLEADTIME "appointmentAlertLeadTime"} setting in
+     * the {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The lead time for impending appointment alerts in minutes.
+     * @throws ParseException if unable to parse the integer string for the {@link PROPERTYKEY_APPOINTMENTALERTLEADTIME "appointmentAlertLeadTime"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     */
     public static final int getAppointmentAlertLeadTime() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_APPOINTMENTALERTLEADTIME, "");
         return NumberFormat.getIntegerInstance().parse(s).intValue();
     }
 
+    /**
+     * Gets the interval, in seconds, to check for impending appointments. This is parsed from the {@link PROPERTYKEY_APPOINTMENTCHECKFREQUENCY "appointmentCheckFrequency"} setting
+     * in the {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The interval, in seconds, to check for impending appointments.
+     * @throws ParseException if unable to parse the integer string for the {@link PROPERTYKEY_APPOINTMENTCHECKFREQUENCY "appointmentCheckFrequency"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     */
     public static final int getAppointmentCheckFrequency() throws ParseException {
         String s = APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_APPOINTMENTCHECKFREQUENCY, "");
         return NumberFormat.getIntegerInstance().parse(s).intValue();
     }
 
+    /**
+     * Gets the database server name. This is read from the {@link PROPERTYKEY_DBSERVERNAME "dbServerName"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The database server name.
+     */
     public static final String getDbServerName() {
         return APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_DBSERVERNAME, "");
     }
 
+    /**
+     * Gets the name of the database. This is read from the {@link PROPERTYKEY_DBNAME "dbName"} setting in the {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The name of the database.
+     */
     public static final String getDatabaseName() {
         return APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_DBNAME, "");
     }
@@ -176,10 +212,22 @@ public final class AppResources {
         return "";
     }
 
+    /**
+     * Gets the login credential for the database connection. This is read from the {@link PROPERTYKEY_DBLOGIN "dbLogin"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The login credential for the database connection.
+     */
     public static final String getDbLoginName() {
         return APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_DBLOGIN, "");
     }
 
+    /**
+     * Gets the password credential for the database connection. This is read from the {@link PROPERTYKEY_DBPASSWORD "dbPassword"} setting in the
+     * {@link PROPERTIES_FILE_APPCONFIG scheduler/config.properties} file.
+     *
+     * @return The password credential for the database connection.
+     */
     public static String getDbLoginPassword() {
         return APPCONFIG_PROPERTIES.getProperty(PROPERTYKEY_DBPASSWORD, "");
     }

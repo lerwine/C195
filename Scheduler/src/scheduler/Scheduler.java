@@ -104,6 +104,7 @@ public final class Scheduler extends Application {
         StackPane mainView = mainViewAndController.getView();
         mainController = mainViewAndController.getController();
 
+        // Add login view under root of scene.
         Login login = new Login();
         // Bind extents of login view to main view extents.
         login.setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
@@ -119,6 +120,10 @@ public final class Scheduler extends Application {
     @Override
     public void stop() throws Exception {
         if (null != currentUser) {
+            // Stop the background timer for appointment alert checking
+            AppointmentAlertManager.INSTANCE.stop();
+
+            // Record user logout to file
             File logFile = new File(LOG_FILE_PATH);
             LOG.fine(() -> String.format("Logging logout timestamp to %s", logFile.getAbsolutePath()));
             try (FileWriter writer = new FileWriter(logFile, true)) {
@@ -167,6 +172,7 @@ public final class Scheduler extends Application {
         protected abstract void onLoginFailure();
     }
 
+    // Task that connects to DB in background and validates user credials
     private static class LoginTask extends Task<UserDAO> {
 
         private final String userName, password;
@@ -188,6 +194,7 @@ public final class Scheduler extends Application {
             if (null == user) {
                 onNotSucceeded.run();
             } else {
+                // Record user logout to file
                 File logFile = new File(LOG_FILE_PATH);
                 LOG.fine(() -> String.format("Logging login timestamp to %s", logFile.getAbsolutePath()));
                 try (FileWriter writer = new FileWriter(logFile, true)) {
@@ -199,10 +206,18 @@ public final class Scheduler extends Application {
                 } catch (IOException ex) {
                     LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
+
+                // Remove login control from view
                 unbindExtents(loginView);
                 Pane pane = (Pane) loginView.getParent();
                 pane.getChildren().remove(loginView);
+
+                // Update window title
                 ((Stage) pane.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
+
+                // Start the background timer for appointment alert checking
+                AppointmentAlertManager.INSTANCE.start();
+                // Set the initial content view
                 getMainController().replaceContent(new Overview());
             }
         }

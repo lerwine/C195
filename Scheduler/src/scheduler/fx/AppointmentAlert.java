@@ -1,73 +1,36 @@
 package scheduler.fx;
 
 import java.io.IOException;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.Duration;
 import java.util.ResourceBundle;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javafx.application.Platform;
-import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.TableView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
-import scheduler.AppResources;
-import static scheduler.Scheduler.getCurrentUser;
-import scheduler.dao.AppointmentDAO;
-import scheduler.dao.UserDAO;
-import scheduler.dao.filter.AppointmentFilter;
-import scheduler.events.AppointmentSuccessEvent;
-import scheduler.model.AppointmentType;
-import scheduler.model.ModelHelper.AppointmentHelper;
-import scheduler.model.PartialDataEntity;
+import scheduler.AppointmentAlertManager;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
-import scheduler.util.DateTimeUtil;
-import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.restoreNode;
-import static scheduler.util.NodeUtil.setBorderedNode;
-import static scheduler.util.NodeUtil.setLeftControlLabel;
-import static scheduler.util.NodeUtil.setLeftLabeledControl;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.ViewControllerLoader;
-import static scheduler.view.MainResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
+import scheduler.view.appointment.EditAppointment;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo See if this replaces {@link scheduler.AppointmentAlertManager}.
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/fx/AppointmentAlert.fxml")
@@ -76,27 +39,16 @@ public class AppointmentAlert extends BorderPane {
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlert.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentAlert.class.getName());
 
-    private static final String NODE_PROPERTYNAME_ALERT_MODEL = "scheduler.fx.AppointmentAlerts.model";
-    private static final String NODE_PROPERTYNAME_ALERT_TITLE = "scheduler.fx.AppointmentAlerts.title";
-    private static final String NODE_PROPERTYNAME_ALERT_START = "scheduler.fx.AppointmentAlerts.start";
-    private static final String NODE_PROPERTYNAME_ALERT_END = "scheduler.fx.AppointmentAlerts.end";
-    private static final String NODE_PROPERTYNAME_ALERT_TYPE = "scheduler.fx.AppointmentAlerts.type";
-    private static final String NODE_PROPERTYNAME_ALERT_CUSTOMER = "scheduler.fx.AppointmentAlerts.customer";
-    private static final String NODE_PROPERTYNAME_ALERT_LOCATION = "scheduler.fx.AppointmentAlerts.location";
-
-    private final int checkFrequency;
-    private final int alertLeadtime;
-    private DateTimeFormatter formatter;
-    private Timer appointmentCheckTimer;
-    private List<Integer> dismissed;
+    private final ParentWindowChangeListener windowChangeListener;
+    private final ChangeListener<Boolean> alertingChangeListener;
+    private final ChangeListener<Throwable> faultChangeListener;
+    private ObservableList<AppointmentModel> activeAlerts;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="appointmentAlertsVBox"
-    private VBox appointmentAlertsVBox; // Value injected by FXMLLoader
-    private ReadOnlyObjectProperty<Window> currentWindowProperty;
-    private Window currentWindow;
+    @FXML // fx:id="appointmentsTableView"
+    private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
 
     @SuppressWarnings("LeakingThisInConstructor")
     public AppointmentAlert() {
@@ -106,440 +58,147 @@ public class AppointmentAlert extends BorderPane {
             LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
-        int i;
-        try {
-            i = AppResources.getAppointmentAlertLeadTime();
-        } catch (ParseException ex) {
-            LOG.log(Level.SEVERE, "Error getting alert lead time from settings", ex);
-            i = 15;
-        }
-        alertLeadtime = i;
-        try {
-            i = AppResources.getAppointmentCheckFrequency();
-        } catch (ParseException ex) {
-            LOG.log(Level.SEVERE, "Error getting alert lead time from settings", ex);
-            i = 2;
-        }
-        checkFrequency = i;
-        addEventFilter(AppointmentSuccessEvent.INSERT_SUCCESS, this::onAppointmentInserted);
-        addEventFilter(AppointmentSuccessEvent.UPDATE_SUCCESS, this::onAppointmentUpdated);
-        addEventFilter(AppointmentSuccessEvent.DELETE_SUCCESS, this::onAppointmentDeleted);
-    }
-
-    private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
-        AppointmentModel entityModel = event.getEntityModel();
-        LocalDateTime start = LocalDateTime.now();
-        if (start.compareTo(entityModel.getEnd()) < 0) {
-            LocalDateTime end = start.plusMinutes(alertLeadtime);
-            if (end.compareTo(entityModel.getStart()) >= 0) {
-                ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-                Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
-                Stream.concat(stream, Stream.of(entityModel)).sorted(AppointmentHelper::compareByDates).forEach(new Consumer<AppointmentModel>() {
-                    int index = -1;
-
-                    @Override
-                    public void accept(AppointmentModel t) {
-                        if (++index < itemsViewList.size()) {
-                            reBind((FlowPane) itemsViewList.get(index), t);
-                        } else {
-                            itemsViewList.add(createNew(t));
-                        }
-                    }
-                });
-            }
-        }
-    }
-
-    private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
-        AppointmentModel entityModel = event.getEntityModel();
-        int key = entityModel.getPrimaryKey();
-        FlowPane view = getViewNode(key);
-        ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-        LocalDateTime start = LocalDateTime.now();
-        AppointmentModel item;
-        if (null == view) {
-            item = entityModel;
-        } else {
-            item = (AppointmentModel) view.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL);
-        }
-        if (start.compareTo(item.getEnd()) < 0) {
-            LocalDateTime end = start.plusMinutes(alertLeadtime);
-            if (end.compareTo(item.getStart()) >= 0) {
-                if (dismissed.contains(key)) {
-                    return;
-                }
-                Stream<AppointmentModel> stream = itemsViewList.stream().map((t) -> (AppointmentModel) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL));
-                if (null != view) {
-                    stream = stream.filter((t) -> t.getPrimaryKey() != key);
-                }
-                Stream.concat(stream, Stream.of(item)).sorted(AppointmentHelper::compareByDates).forEach(new Consumer<AppointmentModel>() {
-                    int index = -1;
-
-                    @Override
-                    public void accept(AppointmentModel t) {
-                        if (++index < itemsViewList.size()) {
-                            reBind((FlowPane) itemsViewList.get(index), t);
-                        } else {
-                            itemsViewList.add(createNew(t));
-                        }
-                    }
-                });
-                return;
-            }
-        }
-        if (dismissed.contains(key)) {
-            dismissed.remove(key);
-        } else if (null != view) {
-            reBind(view, null);
-            itemsViewList.remove(view);
-            if (itemsViewList.isEmpty()) {
-                setVisible(false);
-            }
-        }
-    }
-
-    private synchronized void onAppointmentDeleted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
-        AppointmentModel entityModel = event.getEntityModel();
-        int pk = entityModel.getPrimaryKey();
-        if (dismissed.contains(pk)) {
-            dismissed.remove(pk);
-        } else {
-            FlowPane view = getViewNode(pk);
-            if (null != view) {
-                ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-                reBind(view, null);
-                itemsViewList.remove(view);
-                if (itemsViewList.isEmpty()) {
-                    setVisible(false);
-                }
-            }
-        }
-
+        windowChangeListener = new ParentWindowChangeListener(sceneProperty());
+        activeAlerts = FXCollections.emptyObservableList();
+        alertingChangeListener = (observable, oldValue, newValue) -> onAlertingChanged(newValue);
+        faultChangeListener = (observable, oldValue, newValue) -> onFaultChanged(newValue);
     }
 
     @FXML
     private void onDismissAllAppointmentAlerts(ActionEvent event) {
         LOG.entering(LOG.getName(), "onDismissAllAppointmentAlerts", event);
-        dismissAll();
+        AppointmentAlertManager.INSTANCE.dismissAll();
+        LOG.exiting(LOG.getName(), "onDismissAllAppointmentAlerts");
+    }
+
+    @FXML
+    private void onDismissAppointmentMenuItemAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onDismissAppointmentMenuItemAction", event);
+        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            dismissAppointment(item);
+        }
+        LOG.exiting(LOG.getName(), "onDismissAppointmentMenuItemAction");
+    }
+
+    @FXML
+    private void onEditAppointmentMenuItemAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onEditAppointmentMenuItemAction", event);
+        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
+        if (null != item) {
+            editAppointment(item);
+        }
+        LOG.exiting(LOG.getName(), "onEditAppointmentMenuItemAction");
+    }
+
+    @FXML
+    @SuppressWarnings("incomplete-switch")
+    private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased", event);
+        if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
+            AppointmentModel item;
+            switch (event.getCode()) {
+                case DELETE:
+                    item = appointmentsTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        dismissAppointment(item);
+                    }
+                    break;
+                case ENTER:
+                    item = appointmentsTableView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        editAppointment(item);
+                    }
+                    break;
+            }
+        }
+        LOG.exiting(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        assert appointmentAlertsVBox != null : "fx:id=\"appointmentAlertsVBox\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
-        dismissed = Collections.synchronizedList(new ArrayList<>());
-        formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
-        // Add listener to see when scene changes, so we can add listeners for when the window is hidden.
-        sceneProperty().addListener(this::onSceneChanged);
-    }
-
-    private synchronized void onSceneChanged(Observable observable) {
-        if (null != currentWindowProperty) {
-            currentWindowProperty.removeListener(this::onWindowChanged);
-        }
-        @SuppressWarnings("unchecked")
-        Scene scene = ((ReadOnlyObjectProperty<Scene>) observable).get();
-        if (null == scene) {
-            currentWindowProperty = null;
-            onWindowChanged(Bindings.createObjectBinding(() -> (Window) null));
+        LOG.entering(LOG.getName(), "initialize");
+        assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
+        appointmentsTableView.setItems(activeAlerts);
+        Window window = windowChangeListener.getCurrentWindow();
+        if (null != window && window.isShowing()) {
+            onWindowNotNullAndShown();
         } else {
-            (currentWindowProperty = scene.windowProperty()).addListener(this::onWindowChanged);
+            windowChangeListener.setOnWindowNotNullAndShown(this::onWindowNotNullAndShown);
+        }
+        LOG.exiting(LOG.getName(), "initialize");
+    }
+
+    private void dismissAppointment(AppointmentModel item) {
+        AppointmentAlertManager.INSTANCE.dismiss(item);
+    }
+
+    private void editAppointment(AppointmentModel item) {
+        AppointmentAlertManager.INSTANCE.dismiss(item);
+        // TODO: Snooze time shouldn't be an inline constant
+        AppointmentAlertManager.INSTANCE.snoozeAll(Duration.ofMinutes(5));
+        try {
+            EditAppointment.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private synchronized void onWindowChanged(Observable observable) {
-        if (null != currentWindow) {
-            currentWindow.removeEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
+    private void onWindowNotNullAndShown() {
+        activeAlerts = AppointmentAlertManager.INSTANCE.activeAlertsProperty();
+        appointmentsTableView.setItems(activeAlerts);
+        if (AppointmentAlertManager.INSTANCE.isAlerting()) {
+            onAlertingChanged(true);
         }
-        currentWindow = ((ReadOnlyObjectProperty<Window>) observable).get();
-        if (null != currentWindow) {
-            currentWindow.addEventHandler(WindowEvent.WINDOW_HIDDEN, this::onWindowHidden);
-        }
+        AppointmentAlertManager.INSTANCE.alertingProperty().addListener(alertingChangeListener);
+        AppointmentAlertManager.INSTANCE.faultProperty().addListener(faultChangeListener);
+        windowChangeListener.setOnWindowNullOrHidden(this::onWindowNullOrHidden);
     }
 
-    private void onWindowHidden(WindowEvent event) {
+    private synchronized void onWindowNotNullAndShown(WindowEvent event) {
+        LOG.entering(LOG.getName(), "onWindowNotNullAndShown", event);
+        windowChangeListener.setOnWindowNotNullAndShown(null);
+        onWindowNotNullAndShown();
+        LOG.exiting(LOG.getName(), "onWindowNotNullAndShown");
+    }
+
+    private synchronized void onWindowNullOrHidden(WindowEvent event) {
         LOG.entering(LOG.getName(), "onWindowHidden", event);
-        stop(true);
+        windowChangeListener.setOnWindowNullOrHidden(null);
+        AppointmentAlertManager.INSTANCE.alertingProperty().removeListener(alertingChangeListener);
+        AppointmentAlertManager.INSTANCE.faultProperty().removeListener(faultChangeListener);
+        activeAlerts = FXCollections.emptyObservableList();
+        appointmentsTableView.setItems(activeAlerts);
+        if (AppointmentAlertManager.INSTANCE.isAlerting()) {
+            onAlertingChanged(false);
+        }
+        LOG.exiting(LOG.getName(), "onWindowHidden");
     }
 
-    private FlowPane createNew(AppointmentModel model) {
-        FlowPane view = setBorderedNode(new FlowPane());
-        view.setPadding(new Insets(8));
-        ObservableList<Node> rootChildren = view.getChildren();
-        ObservableMap<Object, Object> properties = view.getProperties();
-        properties.put(NODE_PROPERTYNAME_ALERT_MODEL, model);
-        HBox hBox = new HBox();
-        rootChildren.add(hBox);
-        ObservableList<Node> children = hBox.getChildren();
-        children.add(setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_TITLE)));
-        Label label = setLeftLabeledControl(new Label(), true);
-        label.textProperty().bind(model.titleProperty());
-        children.add(label);
-        properties.put(NODE_PROPERTYNAME_ALERT_TITLE, label.textProperty());
-
-        hBox = new HBox();
-        rootChildren.add(hBox);
-        children = hBox.getChildren();
-        label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_START));
-        label.setPadding(new Insets(0, 0, 0, 8));
-        children.add(label);
-        label = setLeftLabeledControl(new Label(), true);
-        label.textProperty().bind(Bindings.createStringBinding(() -> {
-            LocalDateTime d = model.getStart();
-            return (null == d) ? "" : formatter.format(d);
-        }, model.startProperty()));
-        children.add(label);
-        properties.put(NODE_PROPERTYNAME_ALERT_START, label.textProperty());
-
-        hBox = new HBox();
-        rootChildren.add(hBox);
-        children = hBox.getChildren();
-        label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_END));
-        label.setPadding(new Insets(0, 0, 0, 8));
-        children.add(label);
-        label = setLeftLabeledControl(new Label(), true);
-        label.textProperty().bind(Bindings.createStringBinding(() -> {
-            LocalDateTime d = model.getEnd();
-            return (null == d) ? "" : formatter.format(d);
-        }, model.endProperty()));
-        children.add(label);
-        properties.put(NODE_PROPERTYNAME_ALERT_END, label.textProperty());
-
-        hBox = new HBox();
-        rootChildren.add(hBox);
-        children = hBox.getChildren();
-        label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_TYPE));
-        label.setPadding(new Insets(0, 0, 0, 8));
-        children.add(label);
-        label = setLeftLabeledControl(new Label(), true);
-        label.textProperty().bind(Bindings.createStringBinding(() -> AppointmentType.toDisplayText(model.getType()), model.typeProperty()));
-        children.add(label);
-        properties.put(NODE_PROPERTYNAME_ALERT_TYPE, label.textProperty());
-
-        hBox = new HBox();
-        rootChildren.add(hBox);
-        children = hBox.getChildren();
-        label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_CUSTOMER));
-        label.setPadding(new Insets(0, 0, 0, 8));
-        children.add(label);
-        label = setLeftLabeledControl(new Label(), true);
-        label.textProperty().bind(model.customerNameProperty());
-        children.add(label);
-        properties.put(NODE_PROPERTYNAME_ALERT_CUSTOMER, label.textProperty());
-
-        hBox = new HBox();
-        rootChildren.add(hBox);
-        children = hBox.getChildren();
-        label = setLeftControlLabel(new Label(), resources.getString(RESOURCEKEY_LOCATION));
-        label.setPadding(new Insets(0, 0, 0, 8));
-        children.add(label);
-        label = setLeftLabeledControl(new Label(), true);
-        label.textProperty().bind(model.effectiveLocationProperty());
-        children.add(label);
-        properties.put(NODE_PROPERTYNAME_ALERT_LOCATION, label.textProperty());
-
-        Button button = new Button();
-        button.setPadding(new Insets(0, 0, 0, 8));
-        rootChildren.add(button);
-        button.setText(AppResources.getResourceString(RESOURCEKEY_DISMISS));
-        button.setOnAction((event) -> dismiss((FlowPane) ((Node) event.getSource()).getParent()));
-        return view;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void reBind(FlowPane view, AppointmentModel model) {
-        StringProperty stringProperty;
-        ObservableMap<Object, Object> properties = view.getProperties();
-        if (null == model) {
-            properties.remove(NODE_PROPERTYNAME_ALERT_MODEL);
-            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_TITLE)).unbind();
-            properties.remove(NODE_PROPERTYNAME_ALERT_TITLE);
-            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_START)).unbind();
-            properties.remove(NODE_PROPERTYNAME_ALERT_START);
-            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_END)).unbind();
-            properties.remove(NODE_PROPERTYNAME_ALERT_END);
-            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_TYPE)).unbind();
-            properties.remove(NODE_PROPERTYNAME_ALERT_TYPE);
-            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_CUSTOMER)).unbind();
-            properties.remove(NODE_PROPERTYNAME_ALERT_CUSTOMER);
-            ((Property<String>) properties.get(NODE_PROPERTYNAME_ALERT_LOCATION)).unbind();
-            properties.remove(NODE_PROPERTYNAME_ALERT_LOCATION);
+    private void onAlertingChanged(boolean isAlerting) {
+        LOG.entering(LOG.getName(), "onAlertingChanged", isAlerting);
+        if (isAlerting) {
+            restoreNode(this);
         } else {
-            properties.put(NODE_PROPERTYNAME_ALERT_MODEL, model);
-            stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TITLE);
-            stringProperty.unbind();
-            stringProperty.bind(model.titleProperty());
-
-            stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_START);
-            stringProperty.unbind();
-            stringProperty.bind(Bindings.createStringBinding(() -> {
-                LocalDateTime d = model.getStart();
-                return (null == d) ? "" : formatter.format(d);
-            }, model.startProperty()));
-
-            stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_END);
-            stringProperty.unbind();
-            stringProperty.bind(Bindings.createStringBinding(() -> {
-                LocalDateTime d = model.getEnd();
-                return (null == d) ? "" : formatter.format(d);
-            }, model.endProperty()));
-
-            stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_TYPE);
-            stringProperty.unbind();
-            stringProperty.bind(Bindings.createStringBinding(() -> AppointmentType.toDisplayText(model.getType()), model.typeProperty()));
-
-            stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_CUSTOMER);
-            stringProperty.unbind();
-            stringProperty.bind(model.customerNameProperty());
-
-            stringProperty = (StringProperty) properties.get(NODE_PROPERTYNAME_ALERT_LOCATION);
-            stringProperty.unbind();
-            stringProperty.bind(model.effectiveLocationProperty());
-        }
-    }
-
-    private synchronized void dismissAll() {
-        ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-        if (!itemsViewList.isEmpty()) {
-            itemsViewList.forEach((t) -> {
-                FlowPane f = (FlowPane) t;
-                ObservableList<Node> children = f.getChildren();
-                ObservableMap<Object, Object> properties = f.getProperties();
-                dismissed.add(((PartialDataEntity) properties.get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
-                reBind(f, null);
-                children.clear();
-            });
-            itemsViewList.clear();
             collapseNode(this);
         }
+        LOG.exiting(LOG.getName(), "onAlertingChanged");
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    private synchronized void dismiss(FlowPane flowPane) {
-        ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-        dismissed.add(((PartialDataEntity) flowPane.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey());
-        reBind(flowPane, null);
-        itemsViewList.remove(flowPane);
-        if (itemsViewList.isEmpty()) {
-            collapseNode(this);
-        }
-    }
-
-    private FlowPane getViewNode(int key) {
-        Optional<Node> result = appointmentAlertsVBox.getChildren().stream().filter((t)
-                -> ((PartialDataEntity) t.getProperties().get(NODE_PROPERTYNAME_ALERT_MODEL)).getPrimaryKey() == key).findFirst();
-        return (FlowPane) result.orElse(null);
-    }
-
-    public void start() {
-        start(true);
-    }
-
-    private synchronized void start(boolean isInitial) {
-        if (null != appointmentCheckTimer) {
-            if (isInitial) {
-                return;
-            }
-            appointmentCheckTimer.purge();
-        }
-        appointmentCheckTimer = new Timer();
-        appointmentCheckTimer.schedule(new CheckAppointmentsTask(alertLeadtime), 0, checkFrequency * 60_000L);
-    }
-
-    private synchronized boolean stop(boolean isPermanent) {
-        if (null == appointmentCheckTimer) {
-            return false;
-        }
-        appointmentCheckTimer.cancel();
-        if (isPermanent) {
-            appointmentCheckTimer.purge();
-            appointmentCheckTimer = null;
-        }
-        return true;
-    }
-
-    private void onCheckAppointmentsTaskError(Throwable ex) {
-        if (AppointmentAlert.this.stop(false)) {
+    private void onFaultChanged(Throwable fault) {
+        LOG.entering(LOG.getName(), "onFaultChanged", fault);
+        if (null != fault) {
+            AppointmentAlertManager.INSTANCE.faultProperty().removeListener(faultChangeListener);
             try {
-                LOG.log(Level.SEVERE, "Error while checking for new appointments", ex);
-                AlertHelper.showErrorAlert(resources.getString(RESOURCEKEY_APPOINTMENTLOADERROR),
-                        resources.getString(RESOURCEKEY_ERRORCHECKINGIMPENDINGAPPOINTMENTS));
+                AlertHelper.showErrorAlert("Error loading appointments",
+                        String.format("An unexpected error occurred while checking for upcoming appointments: %s", fault));
             } finally {
-                start(false);
+                AppointmentAlertManager.INSTANCE.faultProperty().addListener(faultChangeListener);
+                AppointmentAlertManager.INSTANCE.clearFault();
             }
         }
-    }
-
-    private synchronized void onPeriodicCheckFinished(List<AppointmentDAO> appointments) {
-        ObservableList<Node> itemsViewList = appointmentAlertsVBox.getChildren();
-        if (appointments.isEmpty()) {
-            itemsViewList.forEach((t) -> {
-                reBind((FlowPane) t, null);
-            });
-            itemsViewList.clear();
-        } else {
-            ArrayList<Integer> d = new ArrayList<>();
-            dismissed.forEach((i) -> d.add(i));
-            dismissed.clear();
-
-            appointments.stream().sorted(AppointmentHelper::compareByDates).forEach(new Consumer<AppointmentDAO>() {
-                int index = -1;
-
-                @Override
-                public void accept(AppointmentDAO t) {
-                    int pk = t.getPrimaryKey();
-                    if (d.contains(pk)) {
-                        dismissed.add(pk);
-                    } else if (++index < itemsViewList.size()) {
-                        reBind((FlowPane) itemsViewList.get(index), t.cachedModel(true));
-                    } else {
-                        itemsViewList.add(createNew(t.cachedModel(true)));
-                    }
-                }
-            });
-            int e = appointments.size() - dismissed.size();
-            while (itemsViewList.size() > e) {
-                reBind((FlowPane) itemsViewList.get(e), null);
-                itemsViewList.remove(e);
-            }
-        }
-        if (itemsViewList.isEmpty()) {
-            collapseNode(this);
-            return;
-        }
-        restoreNode(this);
-    }
-
-    private class CheckAppointmentsTask extends TimerTask {
-
-        private final UserDAO user;
-        private final AppointmentDAO.FactoryImpl factory;
-        private final int alertLeadTime;
-
-        private CheckAppointmentsTask(int alertLeadTime) {
-            this.alertLeadTime = alertLeadTime;
-            user = Objects.requireNonNull(getCurrentUser());
-            factory = AppointmentDAO.FACTORY;
-        }
-
-        @Override
-        public void run() {
-            List<AppointmentDAO> appointments;
-            try {
-                appointments = DbConnector.apply((t) -> {
-                    LocalDateTime start = LocalDateTime.now();
-                    return factory.load(t, AppointmentFilter.of(AppointmentFilter.expressionOf(DateTimeUtil.toUtcTimestamp(start),
-                            DateTimeUtil.toUtcTimestamp(start.plusMinutes(alertLeadTime))).and(AppointmentFilter.expressionOf(user))));
-                });
-            } catch (SQLException | ClassNotFoundException ex) {
-                LOG.log(Level.SEVERE, "Error checking impending appointments", ex);
-                Platform.runLater(() -> onCheckAppointmentsTaskError(ex));
-                return;
-            }
-            Platform.runLater(() -> onPeriodicCheckFinished(appointments));
-        }
+        LOG.exiting(LOG.getName(), "onFaultChanged");
     }
 
 }

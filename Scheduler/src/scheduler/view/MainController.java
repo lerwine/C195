@@ -17,7 +17,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import scheduler.AppointmentAlertManager;
 import scheduler.Scheduler;
 import scheduler.fx.AppointmentAlert;
 import scheduler.fx.HelpContent;
@@ -289,8 +288,6 @@ public final class MainController {
         contentView = Objects.requireNonNull(newContent);
         if (null != oldView) {
             contentVBox.getChildren().remove(oldView);
-        } else {
-            // FIXME: Start background appointment checks
         }
         VBox.setVgrow(newContent, Priority.ALWAYS);
         contentVBox.getChildren().add(newContent);
