@@ -44,6 +44,7 @@ import scheduler.dao.AppointmentDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.DataRowState;
 import scheduler.dao.UserDAO;
+import scheduler.dao.filter.AppointmentFilter;
 import scheduler.events.AppointmentEvent;
 import scheduler.events.AppointmentFailedEvent;
 import scheduler.events.AppointmentOpRequestEvent;
@@ -51,6 +52,7 @@ import scheduler.events.AppointmentSuccessEvent;
 import scheduler.events.ModelFailedEvent;
 import scheduler.events.UserEvent;
 import scheduler.model.ModelHelper;
+import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.UserStatus;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.EntityModel;
@@ -188,7 +190,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     private ComboBox<UserStatus> activeComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsFilterComboBox"
-    private ComboBox<String> appointmentsFilterComboBox; // Value injected by FXMLLoader
+    private ComboBox<AppointmentFilterItem> appointmentsFilterComboBox; // Value injected by FXMLLoader
 
     @FXML // fx:id="appointmentsTableView"
     private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
@@ -263,37 +265,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         LOG.exiting(LOG.getName(), "onEditAppointmentMenuItemAction");
     }
 
-    private void editAppointment(AppointmentModel item) {
-        try {
-            EditAppointment.edit(item, getScene().getWindow());
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error opening child window", ex);
-        }
-    }
-
-    private void deleteAppointment(AppointmentModel target) {
-        AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(target, this, true);
-        Event.fireEvent(target.dataObject(), deleteRequestEvent);
-        Stage stage = (Stage) getScene().getWindow();
-        if (deleteRequestEvent.isCanceled()) {
-            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
-        } else {
-            AlertHelper.showWarningAlert(stage, LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
-                if (t == ButtonType.YES) {
-                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(target);
-                    task.setOnSucceeded((e) -> {
-                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
-                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
-                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
-                        }
-                    });
-                    waitBorderPane.startNow(task);
-                }
-            });
-        }
+    @FXML
+    private void onAppointmentFilterComboBoxAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentFilterComboBoxAction", event);
+        waitBorderPane.startNow(new AppointmentReloadTask());
+        LOG.exiting(LOG.getName(), "onAppointmentFilterComboBoxAction");
     }
 
     @FXML
@@ -330,6 +306,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         activeComboBox.setItems(userActiveStateOptions);
         clearAndSelect(activeComboBox, model.getStatus());
         appointmentsTableView.setItems(userAppointments);
+        appointmentsFilterComboBox.setItems(filterOptions);
 
         selectedFilter = Bindings.select(appointmentsFilterComboBox.selectionModelProperty(), "selectedItem");
 
@@ -401,6 +378,39 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             initEditMode();
         }
         LOG.exiting(LOG.getName(), "initialize");
+    }
+
+    private void editAppointment(AppointmentModel item) {
+        try {
+            EditAppointment.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
+
+    private void deleteAppointment(AppointmentModel target) {
+        AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(target, this, true);
+        Event.fireEvent(target.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                    task.setOnSucceeded((e) -> {
+                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
+                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    waitBorderPane.startNow(task);
+                }
+            });
+        }
     }
 
     private void updateValidation() {
@@ -663,6 +673,44 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 UserDAO.FactoryImpl uf = UserDAO.FACTORY;
                 LOG.exiting("scheduler.view.user.EditUser.LoadExistingUsersTask", "call");
                 return uf.load(dbConnector.getConnection(), uf.getAllItemsFilter());
+            }
+        }
+
+    }
+
+    private class AppointmentReloadTask extends Task<List<AppointmentDAO>> {
+
+        private final AppointmentFilter filter;
+
+        private AppointmentReloadTask() {
+            updateTitle(AppResources.getResourceString(RESOURCEKEY_LOADINGAPPOINTMENTS));
+            AppointmentFilterItem filterItem = selectedFilter.get();
+            filter = (null == filterItem) ? null : filterItem.getModelFilter().getDaoFilter();
+        }
+
+        @Override
+        protected void succeeded() {
+            LOG.entering(getClass().getName(), "succeeded");
+            List<AppointmentDAO> result = getValue();
+            userAppointments.clear();
+            if (null != result && !result.isEmpty()) {
+                result.forEach((t) -> {
+                    userAppointments.add(t.cachedModel(true));
+                });
+                userAppointments.sort(AppointmentHelper::compareByDates);
+            }
+            LOG.exiting(getClass().getName(), "succeeded");
+        }
+
+        @Override
+        protected List<AppointmentDAO> call() throws Exception {
+            LOG.entering(getClass().getName(), "call");
+            updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
+                AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
+                LOG.exiting(getClass().getName(), "call");
+                return af.load(dbConnector.getConnection(), filter);
             }
         }
 

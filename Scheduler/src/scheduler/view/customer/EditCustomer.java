@@ -417,6 +417,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         LOG.exiting(LOG.getName(), "onNewCountryButtonAction");
     }
 
+    @FXML
     private void onAppointmentFilterComboBoxAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentFilterComboBoxAction", event);
         waitBorderPane.startNow(new AppointmentReloadTask());
@@ -945,18 +946,18 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
         @Override
         protected void succeeded() {
-            LOG.entering("scheduler.view.customer.EditCustomer.NewDataLoadTask", "succeeded");
+            LOG.entering(getClass().getName(), "succeeded");
             Quadruplet<List<CustomerDAO>, Integer, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> result = getValue();
             if (null != result.getValue1() && !result.getValue1().isEmpty()) {
                 result.getValue1().stream().map((t) -> t.getName().toLowerCase()).forEach(unavailableNames::add);
             }
             loadData(result.getValue2(), result.getValue3(), result.getValue4());
-            LOG.exiting("scheduler.view.customer.EditCustomer.NewDataLoadTask", "succeeded");
+            LOG.exiting(getClass().getName(), "succeeded");
         }
 
         @Override
         protected Quadruplet<List<CustomerDAO>, Integer, Tuple<AddressDAO, List<CityDAO>>, List<CountryDAO>> call() throws Exception {
-            LOG.entering("scheduler.view.customer.EditCustomer.NewDataLoadTask", "call");
+            LOG.entering(getClass().getName(), "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
@@ -979,7 +980,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_LOADINGCOUNTRIES));
                 CountryDAO.FactoryImpl nf = CountryDAO.FACTORY;
                 List<CountryDAO> countries = nf.load(dbConnector.getConnection(), nf.getAllItemsFilter());
-                LOG.exiting("scheduler.view.customer.EditCustomer.NewDataLoadTask", "call");
+                LOG.exiting(getClass().getName(), "call");
                 return Quadruplet.of(customers, sameAddr, Tuple.of(addressDAO, cities), countries);
             }
         }
@@ -998,7 +999,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
         @Override
         protected void succeeded() {
-            LOG.entering("scheduler.view.customer.EditCustomer.AppointmentReloadTask", "succeeded");
+            LOG.entering(getClass().getName(), "succeeded");
             List<AppointmentDAO> result = getValue();
             customerAppointments.clear();
             if (null != result && !result.isEmpty()) {
@@ -1007,17 +1008,17 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 });
                 customerAppointments.sort(AppointmentHelper::compareByDates);
             }
-            LOG.exiting("scheduler.view.customer.EditCustomer.AppointmentReloadTask", "succeeded");
+            LOG.exiting(getClass().getName(), "succeeded");
         }
 
         @Override
         protected List<AppointmentDAO> call() throws Exception {
-            LOG.entering("scheduler.view.customer.EditCustomer.AppointmentReloadTask", "call");
+            LOG.entering(getClass().getName(), "call");
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             try (DbConnector dbConnector = new DbConnector()) {
                 updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTEDTODB));
                 AppointmentDAO.FactoryImpl af = AppointmentDAO.FACTORY;
-                LOG.exiting("scheduler.view.customer.EditCustomer.AppointmentReloadTask", "call");
+                LOG.exiting(getClass().getName(), "call");
                 return af.load(dbConnector.getConnection(), filter);
             }
         }
