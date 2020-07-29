@@ -20,9 +20,17 @@ import java.util.stream.Stream;
  */
 public enum CssClassName {
     /**
+     * The {@code "symbol"} CSS class for nodes that display text using the {@code Segoe UI Symbol} font.
+     */
+    SYMBOL("symbol"),
+    /**
      * The {@code "symbol-button"} CSS class for buttons that display text using the {@code Segoe UI Symbol} font.
      */
     SYMBOL_BUTTON("symbol-button"),
+    /**
+     * The {@code "symbol-button"} CSS class for buttons that display text using the {@code Segoe UI Symbol} font.
+     */
+    SMALL_CONTROL("small-control"),
     /**
      * The {@code "collapsed"} CSS class that sets visibility to {@code false} and collapses the height and width to zero.
      */

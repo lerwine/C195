@@ -3,6 +3,8 @@ package scheduler.fx;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ResourceBundle;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
@@ -16,17 +18,15 @@ import scheduler.view.appointment.ManageAppointments;
  */
 public class AppointmentListCellFactory implements Callback<ListView<AppointmentModel>, ListCell<AppointmentModel>> {
 
-    private final ResourceBundle resources;
     private final DateTimeFormatter formatter;
 
     public AppointmentListCellFactory() {
-        resources = ResourceBundleHelper.getBundle(ManageAppointments.class);
         formatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM);
     }
 
     @Override
     public AppointmentListCell call(ListView<AppointmentModel> param) {
-        return new AppointmentListCell(resources, formatter);
+        return new AppointmentListCell(formatter);
     }
 
 }
