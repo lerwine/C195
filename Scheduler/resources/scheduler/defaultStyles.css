@@ -151,6 +151,11 @@ Labeled.innerLeftControlLabel {
     -fx-fill: -scheduler-warning-color-dark;
 }
 
+.key-info {
+    -fx-text-fill: -scheduler-alt-darker-color;
+    -fx-fill: -scheduler-alt-darker-color;
+}
+
 .information,
 .bordered-section.information .validationMessage {
     -fx-text-fill: -scheduler-info-color;
@@ -176,20 +181,107 @@ Labeled.innerLeftControlLabel {
     -fx-font-size: 16px;
 }
 
-.h3 {
+.h3,
+.month-gridpane > Label {
     -fx-font-size: 16px;
+}
+
+
+.h4 {
+    -fx-font-size: 14px;
 }
 
 .h1,
 .h2,
 .h3,
+.h4,
+.h1-alt,
+.h2-alt,
+.h3-alt,
+.h4-alt,
 .h1 .text,
 .h2 .text,
-.h3 .text {
+.h3 .text,
+.h4 .text,
+.h1-alt .text,
+.h2-alt .text,
+.h3-alt .text,
+.h4-alt .text,
+.month-gridpane > .label,
+.month-gridpane > .label .text,
+.month-gridpane > AnchorPane > .label,
+.month-gridpane > AnchorPane > .label .text {
     -fx-font-weight: bold;
+    -fx-wrap-text: true;
+}
+
+.h1,
+.h2,
+.h3,
+.h4,
+.h1 .text,
+.h2 .text,
+.h3 .text,
+.h4 .text,
+.month-gridpane > .label,
+.month-gridpane > .label .text,
+.month-gridpane > AnchorPane > .label,
+.month-gridpane > AnchorPane > .label .text {
     -fx-text-fill: -scheduler-info-color-dark;
     -fx-fill: -scheduler-info-color-dark;
+}
+
+.h1-alt,
+.h2-alt,
+.h3-alt,
+.h4-alt,
+.h1-alt .text,
+.h2-alt .text,
+.h3-alt .text,
+.h4-alt .text {
+    -fx-font-weight: bold;
+    -fx-text-fill: -scheduler-alt-darker-color;
+    -fx-fill: -scheduler-alt-darker-color;
     -fx-wrap-text: true;
+}
+
+.month-gridpane > .label,
+.month-gridpane > .label .text {
+    -fx-alignment: CENTER;
+    -fx-max-width: infinity;
+    -fx-max-height: infinity;
+}
+
+.month-gridpane > AnchorPane > .label {
+    -fx-padding: 0px 0px 0px 1px;
+    -fx-background-color: transparent;
+}
+
+.month-gridpane > AnchorPane > .list-view {
+    -fx-box-border: transparent;
+    -fx-pref-height: 88.8333333333333;
+    -fx-max-height: infinity;
+}
+
+.month-gridpane > AnchorPane,
+.month-gridpane > .label {
+    -fx-background-color: -fx-background;
+    -fx-border-style: solid centered;
+    -fx-border-width: 2px;
+    -fx-border-color: -scheduler-info-color;
+    -fx-background-color: -fx-box-border, -fx-control-inner-background;
+}
+
+.month-gridpane > AnchorPane > .list-view .sheet .list-cell {
+    -fx-border-style: solid centered;
+    -fx-border-width: 0px 0px 1px 0px;
+    -fx-padding: 1px;
+    -fx-font-size: 10px;
+    -fx-wrap-text: true;
+}
+
+.month-gridpane > AnchorPane > .list-view .sheet .list-cell:first-child {
+    -fx-padding: 1px 1px 1px 16px;
 }
 
 .view-modal-mask {
@@ -387,10 +479,14 @@ RadioButton.leftLabeledControl,
     -fx-font-family: "Segoe UI Symbol", sans-serif;
 }
 
-.small-control {
+.small-control,
+.small-control .text{
     -fx-font-size: 10px;
 }
 
+.hyperlink.small-control {
+    -fx-padding: 0px;
+}
 Button .small-control,
 .symbol-button {
     -fx-padding: 1px 4px 1px 4px;

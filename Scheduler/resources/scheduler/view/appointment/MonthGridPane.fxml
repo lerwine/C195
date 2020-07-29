@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import scheduler.fx.AppointmentListCellFactory?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../defaultStyles.css" type="GridPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="900.0" styleClass="month-gridpane" stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <rowConstraints>
-        <RowConstraints vgrow="NEVER" />
+        <RowConstraints />
+        <RowConstraints />
+        <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
     </rowConstraints>
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
@@ -19,12 +28,327 @@
         <ColumnConstraints hgrow="NEVER" percentWidth="14.2857142857143" />
     </columnConstraints>
     <children>
-        <Label fx:id="sundayLabel" styleClass="h3" text="Sunday" GridPane.halignment="CENTER" />
-        <Label fx:id="mondayLabel" styleClass="h3" text="Monday" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-        <Label fx:id="tuesdayLabel" styleClass="h3" text="Tuesday" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
-        <Label fx:id="wednesdayLabel" styleClass="h3" text="Wednesday" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
-        <Label fx:id="thursdayLabel" styleClass="h3" text="Thursday" GridPane.columnIndex="4" GridPane.halignment="CENTER" />
-        <Label fx:id="fridayLabel" styleClass="h3" text="Friday" GridPane.columnIndex="5" GridPane.halignment="CENTER" />
-        <Label fx:id="saturdayLabel" styleClass="h3" text="Saturday" GridPane.columnIndex="6" GridPane.halignment="CENTER" />
+        <Label fx:id="sundayLabel" text="Sunday" />
+        <Label fx:id="mondayLabel" text="Monday" GridPane.columnIndex="1" />
+        <Label fx:id="tuesdayLabel" text="Tuesday" GridPane.columnIndex="2" />
+        <Label fx:id="wednesdayLabel" text="Wednesday" GridPane.columnIndex="3" />
+        <Label fx:id="thursdayLabel" text="Thursday" GridPane.columnIndex="4" />
+        <Label fx:id="fridayLabel" text="Friday" GridPane.columnIndex="5" />
+        <Label fx:id="saturdayLabel" text="Saturday" GridPane.columnIndex="6" />
+        <AnchorPane id="sunday0AnchorPane" fx:id="sunday0AnchorPane" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView fx:id="sunday0ListView" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="sunday0ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label fx:id="sunday0Label" text="1" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="monday0AnchorPane" fx:id="monday0AnchorPane" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="monday0ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="2" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="tuesday0AnchorPane" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="tuesday0ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="3" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="wednesday0AnchorPane" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="wednesday0ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="4" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="thursday0AnchorPane" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="thursday0ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="5" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="friday0AnchorPane" GridPane.columnIndex="5" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="friday0ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="6" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="saturday0AnchorPane" GridPane.columnIndex="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="saturday0ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="7" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        
+        <AnchorPane id="sunday1AnchorPanee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="sunday1ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="8" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="monday1AnchorPane" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="monday1ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="9" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="tuesday1AnchorPane" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="tuesday1ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="10" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="wednesday1AnchorPane" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="wednesday1ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="11" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="thursday1AnchorPane" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="thursday1ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="12" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="friday1AnchorPane" GridPane.columnIndex="5" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="friday1ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="13" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="saturday1AnchorPane" GridPane.columnIndex="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="saturday1ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="14" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        
+        <AnchorPane id="sunday2AnchorPanee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="sunday2ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="15" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="monday2AnchorPane" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="monday2ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="16" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="tuesday2AnchorPane" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="tuesday2ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="17" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="wednesday2AnchorPane" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="wednesday2ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="18" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="thursday2AnchorPane" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="thursday2ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="19" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="friday2AnchorPane" GridPane.columnIndex="5" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="friday2ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="20" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="saturday2AnchorPane" GridPane.columnIndex="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="saturday2ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="21" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        
+        <AnchorPane id="sunday3AnchorPanee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="sunday3ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="22" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="monday3AnchorPane" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="monday3ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="23" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="tuesday3AnchorPane" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="tuesday3ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="24" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="wednesday3AnchorPane" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="wednesday3ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="25" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="thursday3AnchorPane" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="thursday3ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="26" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="friday3AnchorPane" GridPane.columnIndex="5" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="friday3ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="27" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="saturday3AnchorPane" GridPane.columnIndex="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="saturday3ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="28" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        
+        <AnchorPane id="sunday4AnchorPanee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="sunday4ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="29" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="monday4AnchorPane" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="monday4ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="30" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <AnchorPane id="tuesday4AnchorPane" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS">
+            <children>
+                <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                    <cellFactory>
+                        <AppointmentListCellFactory fx:id="tuesday4ListCellFactory" />
+                    </cellFactory>
+                </ListView>
+                <Label text="31" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            </children>
+        </AnchorPane>
+        <BorderPane id="emtyPane2" GridPane.columnIndex="3" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS" />
     </children>
-</fx:root>
+</GridPane>

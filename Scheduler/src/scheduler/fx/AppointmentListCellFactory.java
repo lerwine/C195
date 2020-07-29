@@ -6,8 +6,8 @@ import java.util.ResourceBundle;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
-import scheduler.util.ResourceBundleHelper;
 import scheduler.model.fx.AppointmentModel;
+import scheduler.util.ResourceBundleHelper;
 import scheduler.view.appointment.ManageAppointments;
 
 /**

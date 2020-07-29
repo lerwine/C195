@@ -1,15 +1,15 @@
 package scheduler.view.appointment;
 
-import java.io.IOException;
+import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.SimpleListProperty;
@@ -20,20 +20,22 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
 import scheduler.fx.AppointmentListCellFactory;
 import scheduler.fx.CssClassName;
 import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.NodeUtil;
-import scheduler.util.ViewControllerLoader;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
-import scheduler.view.report.DailyAppointmentsBorderPane;
 
 /**
  * FXML Controller class
@@ -42,135 +44,147 @@ import scheduler.view.report.DailyAppointmentsBorderPane;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/MonthGridPane.fxml")
-public class MonthGridPane extends GridPane {
+public final class MonthGridPane extends GridPane {
 
     private static final Logger LOG = Logger.getLogger(MonthGridPane.class.getName());
+    private static final NumberFormat FORMATTER = NumberFormat.getIntegerInstance();
 
+    private final RowConstraints firstRow;
     private final ObjectProperty<LocalDate> targetDate;
     private final ListProperty<AppointmentModel> items;
-    private final ObservableList<DateHBox> cellNodes;
+    private final BorderPane emtpyPane1;
+    private final ObservableList<CalendarDateCell> cellNodes;
+    private final BorderPane emtpyPane2;
     private int year;
     private Month month;
     private final ObservableList<DayOfWeek> daysOfWeekOrdered;
 
-    @FXML // fx:id="sundayLabel"
-    private Label sundayLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="mondayLabel"
-    private Label mondayLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="tuesdayLabel"
-    private Label tuesdayLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="wednesdayLabel"
-    private Label wednesdayLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="thursdayLabel"
-    private Label thursdayLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="fridayLabel"
-    private Label fridayLabel; // Value injected by FXMLLoader
-
-    @FXML // fx:id="saturdayLabel"
-    private Label saturdayLabel; // Value injected by FXMLLoader
-
-    @SuppressWarnings("LeakingThisInConstructor")
     public MonthGridPane() {
+        setMaxHeight(USE_PREF_SIZE);
+        setMaxWidth(USE_PREF_SIZE);
+        setMinHeight(USE_PREF_SIZE);
+        setMinWidth(USE_PREF_SIZE);
+        setPrefWidth(900.0);
+        getStyleClass().add("month-gridpane");
+        firstRow = new RowConstraints();
+        getRowConstraints().add(firstRow);
+        daysOfWeekOrdered = FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(new DayOfWeek[]{
+            DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY
+        }));
         LocalDate d = LocalDate.now();
         targetDate = new SimpleObjectProperty<>(d);
         year = d.getYear();
         month = d.getMonth();
 
-        daysOfWeekOrdered = FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(new DayOfWeek[]{
-            DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY
-        }));
-
-        cellNodes = FXCollections.observableArrayList();
-        for (int i = 0; i < 31; i++) {
-            cellNodes.add(new DateHBox());
-        }
         items = new SimpleListProperty<>();
-        targetDate.addListener(this::onTargetDateChange);
-        items.addListener(this::onItemsListChange);
-        try {
-            ViewControllerLoader.initializeCustomControl(this);
-        } catch (IOException ex) {
-            Logger.getLogger(DailyAppointmentsBorderPane.class.getName()).log(Level.SEVERE, "Error loading view", ex);
-        }
-    }
 
-    @FXML // This method is called by the FXMLLoader when initialization is complete
-    private void initialize() {
-        assert wednesdayLabel != null : "fx:id=\"wednesdayLabel\" was not injected: check your FXML file 'MonthGridPane.fxml'.";
-        assert sundayLabel != null : "fx:id=\"sundayLabel\" was not injected: check your FXML file 'MonthGridPane.fxml'.";
-        assert mondayLabel != null : "fx:id=\"mondayLabel\" was not injected: check your FXML file 'MonthGridPane.fxml'.";
-        assert tuesdayLabel != null : "fx:id=\"tuesdayLabel\" was not injected: check your FXML file 'MonthGridPane.fxml'.";
-        assert thursdayLabel != null : "fx:id=\"thursdayLabel\" was not injected: check your FXML file 'MonthGridPane.fxml'.";
-        assert fridayLabel != null : "fx:id=\"fridayLabel\" was not injected: check your FXML file 'MonthGridPane.fxml'.";
-        assert saturdayLabel != null : "fx:id=\"saturdayLabel\" was not injected: check your FXML file 'MonthGridPane.fxml'.";
-
-        LocalDate d = LocalDate.now();
         while (d.getDayOfWeek() != DayOfWeek.SUNDAY) {
             d = d.minusDays(1L);
         }
         DateTimeFormatter dowFmt = DateTimeFormatter.ofPattern("eeee");
-        sundayLabel.setText(dowFmt.format(d));
-        d = d.plusDays(1L);
-        mondayLabel.setText(dowFmt.format(d));
-        d = d.plusDays(1L);
-        tuesdayLabel.setText(dowFmt.format(d));
-        d = d.plusDays(1L);
-        wednesdayLabel.setText(dowFmt.format(d));
-        d = d.plusDays(1L);
-        thursdayLabel.setText(dowFmt.format(d));
-        d = d.plusDays(1L);
-        fridayLabel.setText(dowFmt.format(d));
-        d = d.plusDays(1L);
-        saturdayLabel.setText(dowFmt.format(d));
+        ObservableList<Node> children = getChildren();
+        ObservableList<ColumnConstraints> columnConstraints = getColumnConstraints();
+        double pct = 100.0 / 7.0;
+        for (int i = 0; i < daysOfWeekOrdered.size(); i++) {
+            ColumnConstraints c = new ColumnConstraints();
+            c.setHgrow(javafx.scene.layout.Priority.NEVER);
+            c.setPercentWidth(pct);
+            columnConstraints.add(c);
+            Label label = new Label();
+            GridPane.setColumnIndex(label, i);
+            label.setText(dowFmt.format(d));
+            children.add(label);
+            d = d.plusDays(1L);
+        }
+
+        cellNodes = FXCollections.observableArrayList();
+        for (int i = 1; i < 32; i++) {
+            CalendarDateCell cell = new CalendarDateCell(i);
+            GridPane.setHgrow(cell, javafx.scene.layout.Priority.ALWAYS);
+            GridPane.setVgrow(cell, javafx.scene.layout.Priority.ALWAYS);
+            cellNodes.add(cell);
+        }
+        emtpyPane1 = new BorderPane();
+        GridPane.setHgrow(emtpyPane1, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setVgrow(emtpyPane1, javafx.scene.layout.Priority.ALWAYS);
+        emtpyPane2 = new BorderPane();
+        GridPane.setHgrow(emtpyPane2, javafx.scene.layout.Priority.ALWAYS);
+        GridPane.setVgrow(emtpyPane2, javafx.scene.layout.Priority.ALWAYS);
+
+        onTargetDateChange(targetDate, null, targetDate.get());
+        targetDate.addListener(this::onTargetDateChange);
+        items.addListener(this::onItemsListChange);
     }
 
     private synchronized void populateCalender() {
         ObservableList<AppointmentModel> itemList = items.get();
-        LocalDate startDate = targetDate.get();
-        if (null == startDate) {
-            getChildren().removeAll(cellNodes);
-        } else {
-            LocalDate endDateExcl = (startDate = startDate.withDayOfMonth(1)).plusMonths(1L);
-            int rowIndex = (daysOfWeekOrdered.indexOf(startDate.getDayOfWeek()) == 0) ? 0 : 1;
-            int daysInMonth = 0;
-            for (LocalDate d = startDate; d.compareTo(endDateExcl) < 0; d = d.plusDays(1L)) {
-                int colIndex = daysOfWeekOrdered.indexOf(d.getDayOfWeek());
-                if (colIndex == 0) {
-                    rowIndex++;
+        ObservableList<Node> children = getChildren();
+        if (null != emtpyPane1) {
+            children.remove(emtpyPane1);
+        }
+        cellNodes.forEach((t) -> {
+            if (null != t.getParent()) {
+                t.items.get().clear();
+                children.remove(t);
+            }
+        });
+        if (null != emtpyPane2) {
+            children.remove(emtpyPane2);
+        }
+        ObservableList<RowConstraints> rowConstraints = getRowConstraints();
+        rowConstraints.retainAll(firstRow);
+        LocalDate d = targetDate.get();
+        if (null == d) {
+            return;
+        }
+
+        final LocalDate startDate = d.withDayOfMonth(1);
+        int offset = daysOfWeekOrdered.indexOf(startDate.getDayOfWeek());
+        final LocalDate lastDate = startDate.plusMonths(1L).minusDays(1L);
+        int daysInMonth = lastDate.getDayOfMonth();
+        if (offset > 0) {
+            GridPane.setColumnSpan(emtpyPane1, offset);
+            children.add(emtpyPane1);
+        }
+        int cellIndex;
+        int colIndex;
+        int rowIndex;
+        int rc = rowConstraints.size();
+        for (int i = 0; i < daysInMonth; i++) {
+            cellIndex = offset + i;
+            colIndex = cellIndex % 7;
+            rowIndex = ((cellIndex - colIndex) / 7) + 1;
+            if (rowIndex == rc) {
+                rowConstraints.add(new RowConstraints());
+                rc++;
+            }
+            CalendarDateCell cn = cellNodes.get(i);
+            GridPane.setColumnIndex(cn, colIndex);
+            GridPane.setRowIndex(cn, rowIndex);
+            children.add(cn);
+        }
+        cellIndex = offset + daysInMonth;
+        colIndex = cellIndex % 7;
+        rowIndex = ((cellIndex - colIndex) / 7) + 1;
+        if (rowIndex < rc) {
+            GridPane.setColumnIndex(emtpyPane2, colIndex);
+            GridPane.setRowIndex(emtpyPane2, rowIndex);
+            GridPane.setColumnSpan(emtpyPane2, 7 - colIndex);
+            children.add(emtpyPane2);
+        }
+        // FIXME: Need to create a method that adds and removes only the changed items, versus re-populating the entire calendar every time
+        if (!(null == itemList || itemList.isEmpty())) {
+            itemList.stream().sorted(AppointmentHelper::compareByDates).forEach((t) -> {
+                LocalDate startRange = t.getStart().toLocalDate();
+                LocalDate endRange = t.getEnd().toLocalDate();
+                if (startRange.compareTo(startDate) < 0) {
+                    startRange = startDate;
                 }
-                DateHBox dateHBox = cellNodes.get(daysInMonth++);
-                dateHBox.backingList.clear();
-                NodeUtil.setGridPanePosition(dateHBox, this, colIndex, rowIndex);
-            }
-            if (daysInMonth < cellNodes.size()) {
-                ObservableList<Node> children = getChildren();
-                do {
-                    DateHBox dateHBox = cellNodes.get(daysInMonth++);
-                    dateHBox.backingList.clear();
-                    children.remove(dateHBox);
-                } while (daysInMonth < cellNodes.size());
-            }
-            if (!(null == itemList || itemList.isEmpty())) {
-                LocalDateTime beginIncl = startDate.atStartOfDay();
-                LocalDateTime endExcl = endDateExcl.atStartOfDay();
-                itemList.stream().sorted(AppointmentHelper::compareByDates).forEach((t) -> {
-                    LocalDateTime startRange = t.getStart();
-                    LocalDateTime endRange = t.getEnd();
-                    if (startRange.compareTo(endExcl) < 0 && endRange.compareTo(beginIncl) > 0) {
-                        int s = ((startRange.compareTo(beginIncl) < 0) ? beginIncl : startRange).getDayOfMonth() - 1;
-                        int e = (endRange.compareTo(endExcl) < 0) ? ((endRange.equals(endRange.toLocalDate().atStartOfDay()))
-                                ? endRange.getDayOfMonth() - 1 : endRange.getDayOfMonth()) : 31;
-                        for (int i = s; i < e; i++) {
-                            cellNodes.get(i).backingList.add(t);
-                        }
-                    }
-                });
-            }
+                int e = ((endRange.compareTo(lastDate) > 0) ? lastDate : endRange).getDayOfMonth();
+                for (int i = ((startRange.compareTo(startDate) < 0) ? startDate : startRange).getDayOfMonth() - 1; i < e; i++) {
+                    cellNodes.get(i).items.get().add(t);
+                }
+            });
         }
     }
 
@@ -217,6 +231,54 @@ public class MonthGridPane extends GridPane {
 
     public ListProperty<AppointmentModel> itemsProperty() {
         return items;
+    }
+
+
+    public final class CalendarDateCell extends AnchorPane {
+
+        private final ReadOnlyListWrapper<AppointmentModel> items;
+        private final ReadOnlyIntegerWrapper value;
+        private final ListView<AppointmentModel> listView;
+        private final AppointmentListCellFactory listCellFactory;
+        private final Label label;
+
+        public CalendarDateCell(int value) {
+            ObservableList<AppointmentModel> list = FXCollections.observableArrayList();
+            listView = new ListView<>();
+            AnchorPane.setBottomAnchor(listView, 0.0);
+            AnchorPane.setLeftAnchor(listView, 0.0);
+            AnchorPane.setRightAnchor(listView, 0.0);
+            AnchorPane.setTopAnchor(listView, 1.0);
+            listCellFactory = new AppointmentListCellFactory();
+            listView.setCellFactory(listCellFactory);
+            listView.setItems(list);
+            ObservableList<Node> children = getChildren();
+            children.add(listView);
+            label = new Label();
+            AnchorPane.setLeftAnchor(label, 0.0);
+            AnchorPane.setTopAnchor(label, 0.0);
+            label.setText(FORMATTER.format(value));
+            children.add(label);
+            this.value = new ReadOnlyIntegerWrapper(value);
+            items = new ReadOnlyListWrapper<>(list);
+        }
+
+        public int getValue() {
+            return value.get();
+        }
+
+        public ReadOnlyIntegerProperty valueProperty() {
+            return value.getReadOnlyProperty();
+        }
+
+        public ObservableList<AppointmentModel> getItems() {
+            return items.get();
+        }
+
+        public ReadOnlyListProperty<AppointmentModel> itemsProperty() {
+            return items.getReadOnlyProperty();
+        }
+
     }
 
     class DateHBox extends HBox {
