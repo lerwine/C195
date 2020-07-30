@@ -245,6 +245,46 @@ Labeled.innerLeftControlLabel {
     -fx-wrap-text: true;
 }
 
+.month-gridpane > VBox {
+    -fx-font-size: 10px;
+    -fx-border-style: solid centered;
+    -fx-border-width: 2px;
+    -fx-border-color: -scheduler-info-color;
+    -fx-background-color: -fx-box-border, -fx-control-inner-background;
+}
+
+.month-gridpane > VBox > TextFlow {
+    -fx-border-color: -scheduler-alt-dark-color;
+    -fx-border-width: 1 0 0 0;
+}
+
+.month-gridpane > VBox > TextFlow.first-item {
+    -fx-border-width: 0;
+}
+
+.month-gridpane > VBox > TextFlow > .label,
+.month-gridpane > AnchorPane > .label {
+    -fx-min-width: 15px;
+    -fx-background-color: -scheduler-info-color;
+    -fx-alignment: CENTER;
+}
+
+.month-gridpane > VBox > TextFlow > .label .text,
+.month-gridpane > AnchorPane > .label .text {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-fill: -scheduler-text-color-lighter;
+}
+
+.month-gridpane > VBox > TextFlow > .hyperlink {
+    -fx-font-weight: bold;
+    -fx-padding: 0px;
+}
+
+.month-gridpane > VBox > TextFlow.first-item > .hyperlink {
+    -fx-padding: 0px 0px 0px 4px;
+}
+
 .month-gridpane > .label,
 .month-gridpane > .label .text {
     -fx-alignment: CENTER;
@@ -263,8 +303,7 @@ Labeled.innerLeftControlLabel {
     -fx-max-height: infinity;
 }
 
-.month-gridpane > AnchorPane,
-.month-gridpane > .label {
+.month-gridpane > AnchorPane {
     -fx-background-color: -fx-background;
     -fx-border-style: solid centered;
     -fx-border-width: 2px;
@@ -480,8 +519,13 @@ RadioButton.leftLabeledControl,
 }
 
 .small-control,
-.small-control .text{
+.small-control .text {
     -fx-font-size: 10px;
+}
+
+.normal-font,
+.normal-font .text{
+    -fx-font-size: 12px;
 }
 
 .hyperlink.small-control {
