@@ -64,6 +64,10 @@ public enum CssClassName {
      */
     LEFTCONTROLLABEL("leftControlLabel"),
     /**
+     * The {@code "innerLeftControlLabel"} CSS class for {@link javafx.scene.control.Labeled} nodes aligned to the left of the control they label.
+     */
+    INNERLEFTCONTROLLABEL("innerLeftControlLabel"),
+    /**
      * The {@code "leftLabeledControl"} CSS class for nodes aligned to the right their label.
      */
     LEFTLABELEDCONTROL("leftLabeledControl"),

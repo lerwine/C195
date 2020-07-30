@@ -79,7 +79,11 @@ public class AppointmentListCell extends ListCell<AppointmentModel> {
         overviewTextFlow = new OverviewTextFlow();
         locationHBox = new LocationHBox();
         openButton = NodeUtil.createSymbolButton(SymbolText.EDIT, this::onOpenButtonAction);
+        openButton.setMinWidth(USE_PREF_SIZE);
+        openButton.setMinHeight(USE_PREF_SIZE);
         dismissButton = NodeUtil.createSymbolButton(SymbolText.DISMISS, this::onDismissButtonAction);
+        dismissButton.setMinWidth(USE_PREF_SIZE);
+        dismissButton.setMinHeight(USE_PREF_SIZE);
         singleLineChangeListener = this::onSingleLineChanged;
         overviewTextFlow.initialize();
         locationHBox.initialize();
@@ -244,6 +248,7 @@ public class AppointmentListCell extends ListCell<AppointmentModel> {
 
         private void initialize() {
             LOG.entering(getClass().getName(), "initialize");
+            NodeUtil.addCssClass(this, CssClassName.SMALL_CONTROL);
             ObservableList<Node> children = getChildren();
             children.addAll(
                     startDateTimeText,
@@ -356,7 +361,7 @@ public class AppointmentListCell extends ListCell<AppointmentModel> {
 
         LocationHBox() {
             LOG.entering(getClass().getName(), "<init>");
-            locationHeadingLabel = NodeUtil.createLabel(CssClassName.BOLD_TEXT);
+            locationHeadingLabel = NodeUtil.createLabel(CssClassName.BOLD_TEXT, CssClassName.SMALL_CONTROL);
             locationValueLabel = NodeUtil.createLabel(CssClassName.SMALL_CONTROL);
             urlHyperlink = NodeUtil.createHyperlink(CssClassName.SMALL_CONTROL);
             typeChangeListener = WeakChangeHandlingReference.<AppointmentType>of(this::onTypeChanged);
@@ -368,7 +373,6 @@ public class AppointmentListCell extends ListCell<AppointmentModel> {
 
         private void initialize() {
             LOG.entering(getClass().getName(), "initialize");
-            NodeUtil.setMaxXY(NodeUtil.addCssClass(this, CssClassName.SMALL_CONTROL));
             setFillHeight(true);
             ObservableList<Node> children = getChildren();
             children.addAll(

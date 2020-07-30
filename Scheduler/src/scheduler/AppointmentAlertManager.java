@@ -334,7 +334,8 @@ public class AppointmentAlertManager implements EventTarget {
 
     private synchronized void onAppointmentInserted(AppointmentModel model) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", model);
-        if (model.getEnd().compareTo(LocalDateTime.now()) >= 0 && model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
+        if (model.getUser().getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey() && model.getEnd().compareTo(LocalDateTime.now()) >= 0 &&
+                model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
             insertAppointment(model);
         }
         LOG.exiting(LOG.getName(), "onAppointmentInserted");
@@ -345,7 +346,8 @@ public class AppointmentAlertManager implements EventTarget {
         int primaryKey = model.getPrimaryKey();
         if (allItems.containsKey(primaryKey)) {
             updateAppointment(model);
-        } else if (model.getEnd().compareTo(LocalDateTime.now()) >= 0 && model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
+        } else if (model.getUser().getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey() && model.getEnd().compareTo(LocalDateTime.now()) >= 0 &&
+                model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
             insertAppointment(model);
         }
         LOG.exiting(LOG.getName(), "onAppointmentUpdated");
