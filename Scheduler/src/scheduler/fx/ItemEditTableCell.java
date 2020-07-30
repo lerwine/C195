@@ -40,7 +40,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends Entit
 
     @SuppressWarnings("unchecked")
     public ItemEditTableCell(ItemEditTableCellFactory<D, M, ? extends ModelEvent<D, M>> factory) {
-//    public ItemEditTableCell(EntityModel.EntityModelFactory<D, M, ? extends ModelEvent<D, M>> factory) {
+        LOG.entering(getClass().getName(), "<init>", factory);
         onItemActionRequest = new SimpleObjectProperty<>();
         cellFactory = new WeakReference<>(factory);
         modelFactory = factory.getFactory();
@@ -57,6 +57,7 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends Entit
                 addEventHandler((EventType<E>) modelFactory.getBaseRequestEventType(), newValue);
             }
         });
+        LOG.exiting(getClass().getName(), "<init>");
     }
 
     public EventHandler<E> getOnItemActionRequest() {
@@ -73,15 +74,18 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends Entit
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         ItemEditTableCellFactory<D, M, ? extends OperationRequestEvent<D, M>> factory = cellFactory.get();
         if (null != factory) {
             tail = factory.buildEventDispatchChain(tail);
         }
-        return super.buildEventDispatchChain(tail);
+        tail = super.buildEventDispatchChain(tail);
+        LOG.exiting(getClass().getName(), "buildEventDispatchChain", tail);
+        return tail;
     }
 
     private void onEditButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onEditButtonAction", event);
+        LOG.entering(getClass().getName(), "onEditButtonAction", event);
         M item = getItem();
         if (null != item) {
             @SuppressWarnings("unchecked")
@@ -89,10 +93,11 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends Entit
             LOG.fine(() -> String.format("Firing %s%n\ton %s", e, getClass().getName()));
             fireEvent(e);
         }
+        LOG.exiting(getClass().getName(), "onEditButtonAction");
     }
 
     private void onDeleteButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onDeleteButtonAction", event);
+        LOG.entering(getClass().getName(), "onDeleteButtonAction", event);
         M item = getItem();
         if (null != item) {
             @SuppressWarnings("unchecked")
@@ -100,20 +105,25 @@ public final class ItemEditTableCell<D extends DataAccessObject, M extends Entit
             LOG.fine(() -> String.format("Firing %s%n\ton %s", e, getClass().getName()));
             fireEvent(e);
         }
+        LOG.exiting(getClass().getName(), "onDeleteButtonAction");
     }
 
     @Override
     protected void updateItem(M item, boolean empty) {
+        LOG.entering(getClass().getName(), "updateItem", new Object[]{item, empty});
         super.updateItem(item, empty);
         if (empty || null == item) {
+            LOG.finer("Initializing empty cell");
             setContentDisplay(ContentDisplay.TEXT_ONLY);
             setText("");
         } else {
+            LOG.finer("Setting cell graphic");
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             if (graphic != getGraphic()) {
                 setGraphic(graphic);
             }
         }
+        LOG.exiting(getClass().getName(), "updateIndex");
     }
 
 }

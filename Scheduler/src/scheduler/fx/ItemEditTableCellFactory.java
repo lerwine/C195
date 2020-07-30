@@ -33,8 +33,9 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
 
     @SuppressWarnings("unchecked")
     public ItemEditTableCellFactory() {
+        LOG.entering(getClass().getName(), "<init>");
         eventHandlerManager = new EventHandlerManager(this);
-        onItemActionRequest = new SimpleObjectProperty<>();
+        onItemActionRequest = new SimpleObjectProperty<>(this, "onItemActionRequest");
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
             EntityModel.EntityModelFactory<D, M> factory = getFactory();
             if (null != oldValue) {
@@ -44,6 +45,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
                 eventHandlerManager.addEventHandler((EventType<E>) factory.getBaseRequestEventType(), newValue);
             }
         });
+        LOG.exiting(getClass().getName(), "<init>");
     }
 
     public EventHandler<E> getOnItemActionRequest() {
@@ -58,19 +60,12 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
         return onItemActionRequest;
     }
 
-    protected void onItemActionRequest(E event) {
-        EventHandler<E> listener = onItemActionRequest.get();
-        if (null != listener) {
-            LOG.fine(() -> String.format("Relaying event %s", event));
-            listener.handle(event);
-        } else {
-            LOG.fine(() -> String.format("Handled event %s, but no listener", event));
-        }
-    }
-
     @Override
     public ItemEditTableCell<D, M, E> call(TableColumn<M, M> param) {
-        return new ItemEditTableCell<>(this);
+        LOG.entering(LOG.getName(), "call", param);
+        ItemEditTableCell<D, M, E> tableCell = new ItemEditTableCell<>(this);
+        LOG.exiting(getClass().getName(), "call", tableCell);
+        return tableCell;
     }
 
     public abstract EntityModel.EntityModelFactory<D, M> getFactory();
@@ -78,7 +73,9 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
         LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
-        return tail.append(eventHandlerManager);
+        tail = tail.append(eventHandlerManager);
+        LOG.exiting(getClass().getName(), "buildEventDispatchChain", tail);
+        return tail;
     }
 
     /**
@@ -87,7 +84,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void addEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
+    public void addEventHandler(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.addEventHandler(type, eventHandler);
     }
 
@@ -97,7 +94,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void addEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
+    public void addEventFilter(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.addEventFilter(type, eventHandler);
     }
 
@@ -107,7 +104,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void removeEventHandler(EventType<E> type, EventHandler<E> eventHandler) {
+    public void removeEventHandler(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.removeEventHandler(type, eventHandler);
     }
 
@@ -117,7 +114,7 @@ public abstract class ItemEditTableCellFactory<D extends DataAccessObject, M ext
      * @param type The event type.
      * @param eventHandler The event handler.
      */
-    public void removeEventFilter(EventType<E> type, EventHandler<E> eventHandler) {
+    public void removeEventFilter(EventType<E> type, EventHandler<? super E> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
     }
 

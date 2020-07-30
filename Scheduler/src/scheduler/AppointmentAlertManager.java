@@ -5,6 +5,9 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +52,7 @@ public class AppointmentAlertManager implements EventTarget {
 
     public static final AppointmentAlertManager INSTANCE = new AppointmentAlertManager();
 
+    private final DateTimeFormatter formatter;
     private final HashMap<Integer, Item> allItems;
     private final ObservableList<AppointmentModel> backingAlertList;
     private final ReadOnlyListWrapper<AppointmentModel> activeAlerts;
@@ -66,6 +70,8 @@ public class AppointmentAlertManager implements EventTarget {
 
     // Singleton
     private AppointmentAlertManager() {
+        LOG.entering(getClass().getName(), "<init>");
+        formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault());
         allItems = new HashMap<>();
         backingAlertList = FXCollections.observableArrayList();
         checking = new ReadOnlyBooleanWrapper(this, "checking", false);
@@ -119,6 +125,7 @@ public class AppointmentAlertManager implements EventTarget {
             }
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "DELETE_SUCCESS"), "handle");
         });
+        LOG.exiting(getClass().getName(), "<init>");
     }
 
     public boolean isAlerting() {
@@ -146,7 +153,9 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private synchronized boolean setChecking(boolean value) {
+        LOG.entering(getClass().getName(), "setChecking", value);
         if (checkingFlag == value) {
+            LOG.exiting(getClass().getName(), "setChecking", false);
             return false;
         }
         checkingFlag = value;
@@ -155,6 +164,7 @@ public class AppointmentAlertManager implements EventTarget {
         } else {
             Platform.runLater(() -> checking.set(value));
         }
+        LOG.exiting(getClass().getName(), "setChecking", true);
         return true;
     }
 
@@ -167,17 +177,21 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     private void setLastCheck(LocalDateTime value) {
+        LOG.entering(getClass().getName(), "setChecking", value);
         if (Platform.isFxApplicationThread()) {
             if (!value.equals(lastCheck.get())) {
                 lastCheck.set(value);
             }
         } else {
             Platform.runLater(() -> {
+                LOG.entering(LogHelper.toLambdaSourceClass(LOG, "setLastCheck", "Platform.runLater"), "run");
                 if (!value.equals(lastCheck.get())) {
                     lastCheck.set(value);
                 }
+                LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "setLastCheck", "Platform.runLater"), "run");
             });
         }
+        LOG.exiting(getClass().getName(), "setChecking");
     }
 
     public Throwable getFault() {
@@ -193,11 +207,14 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     public synchronized boolean clearFault() {
+        LOG.entering(getClass().getName(), "clearFault");
         if (null == fault.get()) {
+            LOG.exiting(getClass().getName(), "clearFault", false);
             return false;
         }
         start(false);
         fault.set(null);
+        LOG.exiting(getClass().getName(), "clearFault", true);
         return true;
     }
 
@@ -487,13 +504,16 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     public synchronized void snooze(Appointment<?> appointment, Duration duration) {
+        LOG.entering(LOG.getName(), "snooze", new Object[] {appointment, duration});
         int primaryKey = appointment.getPrimaryKey();
         if (allItems.containsKey(primaryKey)) {
             setSnooze(allItems.get(primaryKey), LocalDateTime.now().plus(duration));
         }
+        LOG.exiting(LOG.getName(), "snooze");
     }
 
     public synchronized void snoozeAll(Duration duration) {
+        LOG.entering(LOG.getName(), "snoozeAll", duration);
         LocalDateTime snoozedUntil = LocalDateTime.now().plus(duration);
         allItems.values().stream().filter((t) -> null == t.snoozedUntil && !t.dismissed).forEach((t) -> {
             t.setSnoozedUntil(snoozedUntil);
@@ -503,18 +523,22 @@ public class AppointmentAlertManager implements EventTarget {
             LOG.finer("Setting alerting to false");
             alerting.set(false);
         }
+        LOG.exiting(LOG.getName(), "snoozeAll");
     }
 
     public synchronized void dismissAll() {
+        LOG.entering(LOG.getName(), "dismissAll");
         allItems.values().stream().filter((t) -> null == t.snoozedUntil).forEach((t) -> t.dismissed = true);
         backingAlertList.clear();
         if (alerting.get()) {
             LOG.finer("Setting alerting to false");
             alerting.set(false);
         }
+        LOG.exiting(LOG.getName(), "dismissAll");
     }
 
     public synchronized void dismiss(Appointment<?> appointment) {
+        LOG.entering(LOG.getName(), "dismiss", appointment);
         int primaryKey = appointment.getPrimaryKey();
         if (allItems.containsKey(primaryKey)) {
             Item item = allItems.get(primaryKey);
@@ -530,6 +554,7 @@ public class AppointmentAlertManager implements EventTarget {
                 }
             }
         }
+        LOG.exiting(LOG.getName(), "dismiss");
     }
 
     private class Item {
@@ -588,18 +613,25 @@ public class AppointmentAlertManager implements EventTarget {
          * {@link #snoozedUntil} was changed to a {@code null} value; otherwise {@link Optional#EMPTY}.
          */
         Optional<Boolean> setSnoozedUntil(LocalDateTime value) {
+            LOG.entering(getClass().getName(), "setSnoozedUntil", value);
+            Optional<Boolean> result;
             if (null == value) {
                 if (null != snoozedUntil) {
+                    LOG.finer("Clearing snooze");
                     snoozedUntil = null;
                     onSnoozeCleared();
-                    return Optional.of(false);
+                    result = Optional.of(false);
+                    LOG.exiting(LOG.getName(), "setSnoozedUntil", result);
+                    return result;
                 }
             } else {
                 if (null == snoozedUntil) {
                     snoozedUntil = value;
                     if (null != lastSnoozed) {
                         onSnoozeSet(lastSnoozed);
-                        return Optional.of(true);
+                        result = Optional.of(true);
+                        LOG.exiting(LOG.getName(), "setSnoozedUntil", result);
+                        return result;
                     }
                 } else if (!value.equals(snoozedUntil)) {
                     snoozedUntil = value;
@@ -607,7 +639,40 @@ public class AppointmentAlertManager implements EventTarget {
                     onSnoozeSet(lastSnoozed);
                 }
             }
-            return Optional.empty();
+            result = Optional.empty();
+            LOG.exiting(LOG.getName(), "setSnoozedUntil", result);
+            return result;
+        }
+
+        @Override
+        public synchronized String toString() {
+            if (null == previousSnoozed) {
+                if (null == nextSnoozed) {
+                    return String.format("Item{model=%d, snoozedUntil=%s, start=%s, end=%s, previousSnoozed=(null), nextSnoozed=(null), dismissed=%s}",
+                            model.getPrimaryKey(), (null == snoozedUntil) ? "(null)" : formatter.format(snoozedUntil), formatter.format(start), formatter.format(end), dismissed);
+                }
+                return String.format("Item{model=%d, snoozedUntil=%s, start=%s, end=%s, previousSnoozed=(null),%n"
+                        + "\tnextSnoozed={model=%d, snoozedUntil=%s, start=%s, end=%s, dismissed=%s},%n"
+                        + "\tdismissed=%s}", model.getPrimaryKey(), (null == snoozedUntil) ? "(null)" : formatter.format(snoozedUntil), formatter.format(start),
+                        formatter.format(end), nextSnoozed.model.getPrimaryKey(), (null == nextSnoozed.snoozedUntil) ? "(null)" : formatter.format(nextSnoozed.snoozedUntil),
+                        formatter.format(nextSnoozed.start), formatter.format(nextSnoozed.end), nextSnoozed.dismissed, dismissed);
+            }
+            if (null == nextSnoozed) {
+                    return String.format("Item{model=%d, snoozedUntil=%s, start=%s, end=%s,%n"
+                            + "\tpreviousSnoozed={model=%d, snoozedUntil=%s, start=%s, end=%s, dismissed=%s},%n"
+                            + "\tnextSnoozed=(null), dismissed=%s}", model.getPrimaryKey(), (null == snoozedUntil) ? "(null)" : formatter.format(snoozedUntil),
+                            formatter.format(start), formatter.format(end), previousSnoozed.model.getPrimaryKey(),
+                            (null == previousSnoozed.snoozedUntil) ? "(null)" : formatter.format(previousSnoozed.snoozedUntil), formatter.format(previousSnoozed.start),
+                            formatter.format(previousSnoozed.end), previousSnoozed.dismissed, dismissed);
+            }
+            return String.format("Item{model=%d, snoozedUntil=%s, start=%s, end=%s,%n"
+                    + "\tpreviousSnoozed={model=%d, snoozedUntil=%s, start=%s, end=%s, dismissed=%s},%n"
+                    + "\tnextSnoozed={model=%d, snoozedUntil=%s, start=%s, end=%s, dismissed=%s},%n"
+                    + "\tdismissed=%s}", model.getPrimaryKey(), (null == snoozedUntil) ? "(null)" : formatter.format(snoozedUntil), formatter.format(start), formatter.format(end),
+                    previousSnoozed.model.getPrimaryKey(), (null == previousSnoozed.snoozedUntil) ? "(null)" : formatter.format(previousSnoozed.snoozedUntil),
+                    formatter.format(previousSnoozed.start), formatter.format(previousSnoozed.end), previousSnoozed.dismissed, nextSnoozed.model.getPrimaryKey(),
+                    (null == nextSnoozed.snoozedUntil) ? "(null)" : formatter.format(nextSnoozed.snoozedUntil), formatter.format(nextSnoozed.start),
+                    formatter.format(nextSnoozed.end), nextSnoozed.dismissed, dismissed);
         }
 
     }

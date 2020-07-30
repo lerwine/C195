@@ -172,67 +172,67 @@
                 </ButtonBar>
             </children>
         </VBox>
-      <BorderPane fx:id="helpBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
-         <center>
-            <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
-               <top>
-                  <Label text="Appointment Listing Help">
-                     <styleClass>
-                        <String fx:value="header" />
-                        <String fx:value="h1" />
-                     </styleClass>
-                  </Label>
-               </top>
-               <styleClass>
-                  <String fx:value="mainFxmlClass" />
-                  <String fx:value="bordered" />
-               </styleClass>
-               <center>
-                  <VBox spacing="8.0" BorderPane.alignment="CENTER">
-                     <children>
-                        <TextFlow>
-                           <children>
-                              <Text styleClass="h2" text="Edit Countries" />
-                              <Text text="&#10;Select a country and hit " />
-                              <Text styleClass="refNameText" text="ENTER" />
-                              <Text text=" or right-click and select " />
-                              <Text styleClass="refNameText" text="&quot;Edit&quot;" />
-                              <Text text="." />
-                              <Text styleClass="h2" text="&#10;Add Countries" />
-                              <Text text="&#10;Countries are automatically added from a pre-determined compatibility list when needed." />
-                              <Text styleClass="h2" text="&#10;Delete Countries" />
-                              <Text text="&#10;Select a country and hit " />
-                              <Text styleClass="refNameText" text="DELETE" />
-                              <Text text=" or right-click and select " />
-                              <Text styleClass="refNameText" text="&quot;Delete&quot;" />
-                              <Text text="." />
-                              <Text styleClass="h2" text="&#10;Listing Display Options" />
-                              <Text styleClass="symbol" text="&#10;•" />
-                              <Text text=" Click column headings to sort." />
-                              <Text styleClass="symbol" text="&#10;•" />
-                              <Text text=" Click the " />
-                              <Text text="&quot;✚&quot;">
-                                 <styleClass>
-                                    <String fx:value="refNameText" />
-                                    <String fx:value="symbol" />
-                                 </styleClass>
-                              </Text>
-                              <Text text=" symbol at the upper left to select what colums are displayed." />
-                           </children>
-                        </TextFlow>
-                        <ButtonBar>
-                           <buttons>
-                              <Button mnemonicParsing="false" onAction="#onHelpOKButtonAction" text="OK" />
-                           </buttons>
-                        </ButtonBar>
-                     </children>
-                     <padding>
-                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                     </padding>
-                  </VBox>
-               </center>
-            </BorderPane>
-         </center>
-      </BorderPane>
+        <BorderPane fx:id="helpBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
+            <center>
+                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
+                    <top>
+                        <Label text="Appointment Listing Help">
+                            <styleClass>
+                                <String fx:value="header" />
+                                <String fx:value="h1" />
+                            </styleClass>
+                        </Label>
+                    </top>
+                    <styleClass>
+                        <String fx:value="mainFxmlClass" />
+                        <String fx:value="bordered" />
+                    </styleClass>
+                    <center>
+                        <VBox spacing="8.0" BorderPane.alignment="CENTER">
+                            <children>
+                                <TextFlow>
+                                    <children>
+                                        <Text styleClass="h2" text="Edit Countries" />
+                                        <Text text="&#10;Select a country and hit " />
+                                        <Text styleClass="refNameText" text="ENTER" />
+                                        <Text text=" or right-click and select " />
+                                        <Text styleClass="refNameText" text="&quot;Edit&quot;" />
+                                        <Text text="." />
+                                        <Text styleClass="h2" text="&#10;Add Countries" />
+                                        <Text text="&#10;Countries are automatically added from a pre-determined compatibility list when needed." />
+                                        <Text styleClass="h2" text="&#10;Delete Countries" />
+                                        <Text text="&#10;Select a country and hit " />
+                                        <Text styleClass="refNameText" text="DELETE" />
+                                        <Text text=" or right-click and select " />
+                                        <Text styleClass="refNameText" text="&quot;Delete&quot;" />
+                                        <Text text="." />
+                                        <Text styleClass="h2" text="&#10;Listing Display Options" />
+                                        <Text styleClass="symbol" text="&#10;•" />
+                                        <Text text=" Click column headings to sort." />
+                                        <Text styleClass="symbol" text="&#10;•" />
+                                        <Text text=" Click the " />
+                                        <Text text="&quot;✚&quot;">
+                                            <styleClass>
+                                                <String fx:value="refNameText" />
+                                                <String fx:value="symbol" />
+                                            </styleClass>
+                                        </Text>
+                                        <Text text=" symbol at the upper left to select what colums are displayed." />
+                                    </children>
+                                </TextFlow>
+                                <ButtonBar>
+                                    <buttons>
+                                        <Button mnemonicParsing="false" onAction="#onHelpOKButtonAction" text="OK" />
+                                    </buttons>
+                                </ButtonBar>
+                            </children>
+                            <padding>
+                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                            </padding>
+                        </VBox>
+                    </center>
+                </BorderPane>
+            </center>
+        </BorderPane>
     </children>
 </fx:root>

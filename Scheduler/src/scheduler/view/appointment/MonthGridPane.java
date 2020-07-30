@@ -1,5 +1,6 @@
 package scheduler.view.appointment;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -27,23 +28,20 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
+import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.fx.CalendarListCellFactory;
 import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.LogHelper;
-import scheduler.view.annotations.FXMLResource;
-import scheduler.view.annotations.GlobalizationResource;
 
 /**
  * FXML Controller class
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-@GlobalizationResource("scheduler/view/appointment/ManageAppointments")
-@FXMLResource("/scheduler/view/appointment/MonthGridPane.fxml")
 public final class MonthGridPane extends GridPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MonthGridPane.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MonthGridPane.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(MonthGridPane.class.getName());
     private static final NumberFormat FORMATTER = NumberFormat.getIntegerInstance();
 
@@ -51,6 +49,7 @@ public final class MonthGridPane extends GridPane {
     private final RowConstraints rowConstraint6;
     private final ObjectProperty<LocalDate> targetDate;
     private final ListProperty<AppointmentModel> items;
+    private final CalendarListCellFactory listCellFactory;
     private final BorderPane emtpyPane1;
     private final ObservableList<CalendarDateCell> cellNodes;
     private final BorderPane emtpyPane2;
@@ -59,6 +58,8 @@ public final class MonthGridPane extends GridPane {
     private final ObservableList<DayOfWeek> daysOfWeekOrdered;
 
     public MonthGridPane() {
+        LOG.entering(getClass().getName(), "<init>");
+        listCellFactory = new CalendarListCellFactory();
         setMaxHeight(USE_PREF_SIZE);
         setMaxWidth(USE_PREF_SIZE);
         setMinHeight(USE_PREF_SIZE);
@@ -118,6 +119,8 @@ public final class MonthGridPane extends GridPane {
         onTargetDateChange(targetDate, null, targetDate.get());
         targetDate.addListener(this::onTargetDateChange);
         items.addListener(this::onItemsListChange);
+        listCellFactory.addEventHandler(AppointmentOpRequestEvent.EDIT_REQUEST, this::onAppointmentEditRequest);
+        LOG.exiting(getClass().getName(), "<init>");
     }
 
     private synchronized void populateCalendar() {
@@ -200,9 +203,22 @@ public final class MonthGridPane extends GridPane {
                 }
             });
         }
+        LOG.exiting(getClass().getName(), "populateCalendar");
+    }
+
+    private void onAppointmentEditRequest(AppointmentOpRequestEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentEditRequest", event);
+        AppointmentModel appointment = event.getEntityModel();
+        try {
+            EditAppointment.edit(appointment, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+        LOG.exiting(LOG.getName(), "onAppointmentEditRequest");
     }
 
     private void onTargetDateChange(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
+        LOG.entering(getClass().getName(), "onTargetDateChange", new Object[]{observable, oldValue, newValue});
         LocalDate d = (null == newValue) ? LocalDate.now() : newValue;
         Month m = d.getMonth();
         int y = d.getYear();
@@ -211,10 +227,12 @@ public final class MonthGridPane extends GridPane {
             year = y;
             populateCalendar();
         }
+        LOG.exiting(getClass().getName(), "onTargetDateChange");
     }
 
     private void onItemsListChange(ObservableValue<? extends ObservableList<AppointmentModel>> observable, ObservableList<AppointmentModel> oldValue,
             ObservableList<AppointmentModel> newValue) {
+        LOG.entering(getClass().getName(), "onItemsListChange", new Object[]{observable, oldValue, newValue});
         if (null != oldValue) {
             newValue.removeListener(this::onItemsContentChange);
         }
@@ -222,10 +240,13 @@ public final class MonthGridPane extends GridPane {
             newValue.addListener(this::onItemsContentChange);
         }
         populateCalendar();
+        LOG.exiting(getClass().getName(), "onItemsListChange");
     }
 
     private void onItemsContentChange(ListChangeListener.Change<? extends AppointmentModel> change) {
+        LOG.entering(getClass().getName(), "onItemsContentChange", change);
         populateCalendar();
+        LOG.exiting(getClass().getName(), "onItemsContentChange");
     }
 
     public LocalDate getTargetDate() {
@@ -257,17 +278,16 @@ public final class MonthGridPane extends GridPane {
         private final ReadOnlyListWrapper<CalendarCellData> items;
         private final ReadOnlyIntegerWrapper value;
         private final ListView<CalendarCellData> listView;
-        private final CalendarListCellFactory listCellFactory;
         private final Label label;
 
         public CalendarDateCell(int value) {
+            LOG.entering(getClass().getName(), "<init>", value);
             ObservableList<CalendarCellData> list = FXCollections.observableArrayList();
             listView = new ListView<>();
             AnchorPane.setBottomAnchor(listView, 0.0);
             AnchorPane.setLeftAnchor(listView, 0.0);
             AnchorPane.setRightAnchor(listView, 0.0);
             AnchorPane.setTopAnchor(listView, 1.0);
-            listCellFactory = new CalendarListCellFactory();
             listView.setCellFactory(listCellFactory);
             listView.setItems(list);
             ObservableList<Node> children = getChildren();
@@ -279,6 +299,7 @@ public final class MonthGridPane extends GridPane {
             children.add(label);
             this.value = new ReadOnlyIntegerWrapper(value);
             items = new ReadOnlyListWrapper<>(list);
+            LOG.exiting(getClass().getName(), "<init>");
         }
 
         public int getValue() {

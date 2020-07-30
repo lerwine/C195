@@ -10,12 +10,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.TableView;
+import javafx.scene.control.ListView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import scheduler.AppointmentAlertManager;
+import scheduler.events.AppointmentOpRequestEvent;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.LogHelper;
@@ -36,7 +37,7 @@ import scheduler.view.appointment.EditAppointment;
 @FXMLResource("/scheduler/fx/AppointmentAlert.fxml")
 public final class AppointmentAlert extends BorderPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlert.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlert.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentAlert.class.getName());
 
     private final ParentWindowChangeListener windowChangeListener;
@@ -47,11 +48,12 @@ public final class AppointmentAlert extends BorderPane {
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="appointmentsTableView"
-    private TableView<AppointmentModel> appointmentsTableView; // Value injected by FXMLLoader
+    @FXML // fx:id="appointmentsListView"
+    private ListView<AppointmentModel> appointmentsListView; // Value injected by FXMLLoader
 
     @SuppressWarnings("LeakingThisInConstructor")
     public AppointmentAlert() {
+        LOG.entering(getClass().getName(), "<init>");
         windowChangeListener = new ParentWindowChangeListener(sceneProperty());
         activeAlerts = FXCollections.emptyObservableList();
         alertingChangeListener = (observable, oldValue, newValue) -> onAlertingChanged(newValue);
@@ -62,6 +64,22 @@ public final class AppointmentAlert extends BorderPane {
             LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
+        LOG.exiting(getClass().getName(), "<init>");
+    }
+
+    @FXML
+    void onItemActionRequest(AppointmentOpRequestEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentEditRequest", event);
+        AppointmentModel appointment = event.getEntityModel();
+        AppointmentAlertManager.INSTANCE.dismiss(appointment);
+        if (event.isEdit()) {
+            try {
+                EditAppointment.edit(appointment, getScene().getWindow());
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, "Error opening child window", ex);
+            }
+        }
+        LOG.exiting(LOG.getName(), "onAppointmentEditRequest");
     }
 
     @FXML
@@ -72,40 +90,20 @@ public final class AppointmentAlert extends BorderPane {
     }
 
     @FXML
-    private void onDismissAppointmentMenuItemAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onDismissAppointmentMenuItemAction", event);
-        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
-        if (null != item) {
-            dismissAppointment(item);
-        }
-        LOG.exiting(LOG.getName(), "onDismissAppointmentMenuItemAction");
-    }
-
-    @FXML
-    private void onEditAppointmentMenuItemAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onEditAppointmentMenuItemAction", event);
-        AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
-        if (null != item) {
-            editAppointment(item);
-        }
-        LOG.exiting(LOG.getName(), "onEditAppointmentMenuItemAction");
-    }
-
-    @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
+    private void onAppointmentsListViewKeyReleased(KeyEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased", event);
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             AppointmentModel item;
             switch (event.getCode()) {
                 case DELETE:
-                    item = appointmentsTableView.getSelectionModel().getSelectedItem();
+                    item = appointmentsListView.getSelectionModel().getSelectedItem();
                     if (null != item) {
                         dismissAppointment(item);
                     }
                     break;
                 case ENTER:
-                    item = appointmentsTableView.getSelectionModel().getSelectedItem();
+                    item = appointmentsListView.getSelectionModel().getSelectedItem();
                     if (null != item) {
                         editAppointment(item);
                     }
@@ -118,8 +116,8 @@ public final class AppointmentAlert extends BorderPane {
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         LOG.entering(LOG.getName(), "initialize");
-        assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
-        appointmentsTableView.setItems(activeAlerts);
+        assert appointmentsListView != null : "fx:id=\"appointmentsListView\" was not injected: check your FXML file 'AppointmentAlert.fxml'.";
+        appointmentsListView.setItems(activeAlerts);
         Window window = windowChangeListener.getCurrentWindow();
         if (null != window && window.isShowing()) {
             onWindowNotNullAndShown();
@@ -146,7 +144,7 @@ public final class AppointmentAlert extends BorderPane {
 
     private void onWindowNotNullAndShown() {
         activeAlerts = AppointmentAlertManager.INSTANCE.activeAlertsProperty();
-        appointmentsTableView.setItems(activeAlerts);
+        appointmentsListView.setItems(activeAlerts);
         if (AppointmentAlertManager.INSTANCE.isAlerting()) {
             onAlertingChanged(true);
         }
@@ -168,7 +166,7 @@ public final class AppointmentAlert extends BorderPane {
         AppointmentAlertManager.INSTANCE.alertingProperty().removeListener(alertingChangeListener);
         AppointmentAlertManager.INSTANCE.faultProperty().removeListener(faultChangeListener);
         activeAlerts = FXCollections.emptyObservableList();
-        appointmentsTableView.setItems(activeAlerts);
+        appointmentsListView.setItems(activeAlerts);
         if (AppointmentAlertManager.INSTANCE.isAlerting()) {
             onAlertingChanged(false);
         }
@@ -183,7 +181,6 @@ public final class AppointmentAlert extends BorderPane {
             collapseNode(this);
         }
         LOG.exiting(LOG.getName(), "onAlertingChanged");
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     private void onFaultChanged(Throwable fault) {
