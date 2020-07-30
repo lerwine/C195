@@ -28,13 +28,13 @@ import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.EditAppointment;
 
 /**
- * FXML Controller class
+ * AppointmentAlert Custom Control class
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/Main")
 @FXMLResource("/scheduler/fx/AppointmentAlert.fxml")
-public class AppointmentAlert extends BorderPane {
+public final class AppointmentAlert extends BorderPane {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentAlert.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentAlert.class.getName());
@@ -52,16 +52,16 @@ public class AppointmentAlert extends BorderPane {
 
     @SuppressWarnings("LeakingThisInConstructor")
     public AppointmentAlert() {
+        windowChangeListener = new ParentWindowChangeListener(sceneProperty());
+        activeAlerts = FXCollections.emptyObservableList();
+        alertingChangeListener = (observable, oldValue, newValue) -> onAlertingChanged(newValue);
+        faultChangeListener = (observable, oldValue, newValue) -> onFaultChanged(newValue);
         try {
             ViewControllerLoader.initializeCustomControl(this);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
-        windowChangeListener = new ParentWindowChangeListener(sceneProperty());
-        activeAlerts = FXCollections.emptyObservableList();
-        alertingChangeListener = (observable, oldValue, newValue) -> onAlertingChanged(newValue);
-        faultChangeListener = (observable, oldValue, newValue) -> onFaultChanged(newValue);
     }
 
     @FXML

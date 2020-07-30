@@ -9,9 +9,12 @@ public enum SymbolText {
     EDIT(""),
     COPY(""),
     DELETE(""),
+    DISMISS("✔"),
     HYPHEN_POINT("‧"),
     FILTER(""),
     EXPORT(""),
+    LEFT_DOUBLE_ARROW("⇐"),
+    RIGHT_DOUBLE_ARROW("⇒"),
     HELP("❓");
 
     private final String value;

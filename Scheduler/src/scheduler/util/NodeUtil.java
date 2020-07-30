@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.Styleable;
@@ -22,6 +21,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ListCell;
@@ -44,6 +45,10 @@ import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.StrokeType;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Window;
 import javafx.util.Callback;
 import scheduler.dao.DataRowState;
@@ -184,6 +189,16 @@ public class NodeUtil {
         region.setPrefHeight(USE_COMPUTED_SIZE);
         region.setMaxWidth(USE_PREF_SIZE);
         region.setMaxHeight(USE_PREF_SIZE);
+        return region;
+    }
+
+    public static <T extends Region> T setMaxXY(T region) {
+        region.setMinWidth(USE_COMPUTED_SIZE);
+        region.setMinHeight(USE_COMPUTED_SIZE);
+        region.setPrefWidth(USE_COMPUTED_SIZE);
+        region.setPrefHeight(USE_COMPUTED_SIZE);
+        region.setMaxWidth(Double.MAX_VALUE);
+        region.setMaxHeight(Double.MAX_VALUE);
         return region;
     }
 
@@ -396,20 +411,114 @@ public class NodeUtil {
         return setGridPanePosition(child, gridPane, columnIndex, rowIndex, 1, 1);
     }
 
+    public static HBox createCompactHBox(double spacing, CssClassName className, Node... elements) {
+        HBox hBox = createCompactHBox(spacing, elements);
+        return addCssClass(hBox, className);
+    }
+
+    public static HBox createCompactHBox(double spacing, CssClassName[] className, Node... elements) {
+        HBox hBox = createCompactHBox(spacing, elements);
+        return addCssClass(hBox, className);
+    }
+
     public static HBox createCompactHBox(double spacing, Node... elements) {
-        HBox hBox = setCompactXY(new HBox());
+        HBox hBox = createCompactHBox(elements);
         hBox.setSpacing(spacing);
-        return appendChildNodes(hBox, elements);
+        return hBox;
     }
 
     public static HBox createCompactHBox(Node... elements) {
-        return appendChildNodes(setCompactXY(new HBox()), elements);
+        HBox hBox = setCompactXY(new HBox());
+        hBox.setFillHeight(false);
+        return appendChildNodes(hBox, elements);
+    }
+
+    public static HBox createFillingHBox(double spacing, CssClassName className, Node... elements) {
+        HBox hBox = createFillingHBox(spacing, elements);
+        return addCssClass(hBox, className);
+    }
+
+    public static HBox createFillingHBox(double spacing, CssClassName[] className, Node... elements) {
+        HBox hBox = createFillingHBox(spacing, elements);
+        return addCssClass(hBox, className);
+    }
+
+    public static HBox createFillingHBox(double spacing, Node... elements) {
+        HBox hBox = createFillingHBox(elements);
+        hBox.setSpacing(spacing);
+        return hBox;
+    }
+
+    public static HBox createFillingHBox(Node... elements) {
+        HBox hBox = setMaxXY(new HBox());
+        hBox.setFillHeight(true);
+        return appendChildNodes(hBox, elements);
+    }
+
+    public static <T extends Node> T setHBoxGrow(T node, Priority priority) {
+        HBox.setHgrow(node, priority);
+        return node;
+    }
+    
+    public static VBox createCompactVBox(double spacing, CssClassName className, Node... elements) {
+        VBox vBox = createCompactVBox(spacing, elements);
+        return addCssClass(vBox, className);
+    }
+
+    public static VBox createCompactVBox(double spacing, CssClassName[] className, Node... elements) {
+        VBox vBox = createCompactVBox(spacing, elements);
+        return addCssClass(vBox, className);
+    }
+
+    public static VBox createCompactVBox(double spacing, Node... elements) {
+        VBox vBox = createCompactVBox(elements);
+        vBox.setSpacing(spacing);
+        return vBox;
     }
 
     public static VBox createCompactVBox(Node... elements) {
-        return appendChildNodes(setCompactXY(new VBox()), elements);
+        VBox vBox = setCompactXY(new VBox());
+        vBox.setFillWidth(false);
+        return appendChildNodes(vBox, elements);
     }
 
+    public static VBox createFillingVBox(double spacing, CssClassName className, Node... elements) {
+        VBox vBox = createFillingVBox(spacing, elements);
+        return addCssClass(vBox, className);
+    }
+
+    public static VBox createFillingVBox(double spacing, CssClassName[] className, Node... elements) {
+        VBox vBox = createFillingVBox(spacing, elements);
+        return addCssClass(vBox, className);
+    }
+
+    public static VBox createFillingVBox(double spacing, Node... elements) {
+        VBox vBox = createFillingVBox(elements);
+        vBox.setSpacing(spacing);
+        return vBox;
+    }
+
+    public static VBox createFillingVBox(Node... elements) {
+        VBox vBox = setMaxXY(new VBox());
+        vBox.setFillWidth(true);
+        return appendChildNodes(vBox, elements);
+    }
+
+    public static <T extends Node> T setVBoxGrow(T node, Priority priority) {
+        VBox.setVgrow(node, priority);
+        return node;
+    }
+    
+    public static <T extends Node> T setGridVgrow(T node, Priority priority) {
+        GridPane.setVgrow(node, priority);
+        return node;
+    }
+    
+    public static <T extends Node> T setGridHgrow(T node, Priority priority) {
+        GridPane.setVgrow(node, priority);
+        return node;
+    }
+    
     public static BorderPane createCompactBorderPane(Node top, Node center, Node bottom, CssClassName... className) {
         BorderPane result = setCompactXY(new BorderPane());
         if (null != top) {
@@ -420,6 +529,9 @@ public class NodeUtil {
         }
         if (null != bottom) {
             result.setBottom(bottom);
+        }
+        if (null != className && className.length > 0) {
+            addCssClass(result, className);
         }
         return result;
     }
@@ -436,31 +548,142 @@ public class NodeUtil {
         return createCompactBorderPane(null, null, null, className);
     }
 
-    public static Label createLabel(String text, CssClassName... className) {
-        Label result = new Label((null == text) ? "" : text);
-        if (null != className && className.length > 0) {
-            setCssClass(result, className);
+    public static TextFlow createTextFlow(TextAlignment textAlignment, CssClassName[] className, Node... children) {
+        TextFlow result = createTextFlow(className, children);
+        if (null != textAlignment) {
+            result.setTextAlignment(textAlignment);
         }
         return result;
     }
 
-    public static Label createLabel(ObservableValue<String> bindingSource, CssClassName... className) {
-        Label result = createLabel((String) null, className);
-        if (null != bindingSource) {
-            result.textProperty().bind(bindingSource);
+    public static TextFlow createTextFlow(TextAlignment textAlignment, CssClassName className, Node... children) {
+        TextFlow result = createTextFlow(className, children);
+        if (null != textAlignment) {
+            result.setTextAlignment(textAlignment);
         }
         return result;
+    }
+
+    public static TextFlow createTextFlow(TextAlignment textAlignment, Node... children) {
+        TextFlow result = createTextFlow(children);
+        if (null != textAlignment) {
+            result.setTextAlignment(textAlignment);
+        }
+        return result;
+    }
+
+    public static TextFlow createTextFlow(CssClassName className, Node... children) {
+        TextFlow result = createTextFlow(children);
+        return addCssClass(result, className);
+    }
+
+    public static TextFlow createTextFlow(CssClassName[] className, Node... children) {
+        TextFlow result = createTextFlow(children);
+        return addCssClass(result, className);
+    }
+
+    public static TextFlow createTextFlow(Node... children) {
+        return (null == children) ? new TextFlow() : new TextFlow(children);
+    }
+
+    public static TextFlow createTextFlow(CssClassName... className) {
+        TextFlow result = new TextFlow();
+        return addCssClass(result, className);
+    }
+
+    public static Text createText(String content, double strokeWidth, StrokeType strokeType, CssClassName... className) {
+        Text result = new Text(content);
+        result.setStrokeType(strokeType);
+        result.setStrokeWidth(strokeWidth);
+        return addCssClass(result, className);
+    }
+
+    public static Text createText(String content, double strokeWidth, CssClassName... className) {
+        return createText(content, strokeWidth, StrokeType.OUTSIDE, className);
+    }
+
+    public static Text createText(double strokeWidth, StrokeType strokeType, CssClassName... className) {
+        Text result = new Text();
+        result.setStrokeType(strokeType);
+        result.setStrokeWidth(strokeWidth);
+        return addCssClass(result, className);
+    }
+
+    public static Text createText(String content, CssClassName... className) {
+        return createText(content, 0.0, StrokeType.OUTSIDE, className);
+    }
+
+    public static Text createText(double strokeWidth, CssClassName... className) {
+        return createText(strokeWidth, StrokeType.OUTSIDE, className);
+    }
+
+    public static Text createText(CssClassName... className) {
+        return createText(0.0, StrokeType.OUTSIDE, className);
+    }
+
+    public static Label createLabel(String text, boolean wrapText, ContentDisplay contentDisplay, CssClassName... className) {
+        Label result = addCssClass(new Label((null == text) ? "" : text), className);
+        result.setWrapText(wrapText);
+        result.setContentDisplay(contentDisplay);
+        return result;
+    }
+
+    public static Label createLabel(String text, boolean wrapText, CssClassName... className) {
+        return createLabel(text, wrapText, ContentDisplay.TEXT_ONLY, className);
+    }
+
+    public static Label createLabel(boolean wrapText, ContentDisplay contentDisplay, CssClassName... className) {
+        Label result = addCssClass(new Label(), className);
+        result.setWrapText(wrapText);
+        result.setContentDisplay(contentDisplay);
+        return result;
+    }
+
+    public static Label createLabel(String text, CssClassName... className) {
+        return createLabel(text, true, ContentDisplay.TEXT_ONLY, className);
+    }
+
+    public static Label createLabel(boolean wrapText, CssClassName... className) {
+        return createLabel(wrapText, ContentDisplay.TEXT_ONLY, className);
     }
 
     public static Label createLabel(CssClassName... className) {
-        return createLabel((String) null, className);
+        return createLabel(true, ContentDisplay.TEXT_ONLY, className);
+    }
+
+    public static Hyperlink createHyperlink(String text, boolean wrapText, ContentDisplay contentDisplay, CssClassName... className) {
+        Hyperlink result = addCssClass(new Hyperlink((null == text) ? "" : text), className);
+        result.setWrapText(wrapText);
+        result.setContentDisplay(contentDisplay);
+        return result;
+    }
+
+    public static Hyperlink createHyperlink(String text, boolean wrapText, CssClassName... className) {
+        return createHyperlink(text, wrapText, ContentDisplay.TEXT_ONLY, className);
+    }
+
+    public static Hyperlink createHyperlink(boolean wrapText, ContentDisplay contentDisplay, CssClassName... className) {
+        Hyperlink result = addCssClass(new Hyperlink(), className);
+        result.setWrapText(wrapText);
+        result.setContentDisplay(contentDisplay);
+        return result;
+    }
+
+    public static Hyperlink createHyperlink(String text, CssClassName... className) {
+        return createHyperlink(text, true, ContentDisplay.TEXT_ONLY, className);
+    }
+
+    public static Hyperlink createHyperlink(boolean wrapText, CssClassName... className) {
+        return createHyperlink(wrapText, ContentDisplay.TEXT_ONLY, className);
+    }
+
+    public static Hyperlink createHyperlink(CssClassName... className) {
+        return createHyperlink(true, ContentDisplay.TEXT_ONLY, className);
     }
 
     public static <E> ListView<E> createListView(ObservableList<E> items, Callback<ListView<E>, ListCell<E>> cellFactory, CssClassName... className) {
         ListView<E> result = (null == items) ? new ListView<>() : new ListView<>(items);
-        if (null != className && className.length > 0) {
-            setCssClass(result, className);
-        }
+        addCssClass(result, className);
         if (null != cellFactory) {
             result.setCellFactory(cellFactory);
         }
@@ -511,19 +734,33 @@ public class NodeUtil {
     }
 
     public static Button createSymbolButton(SymbolText value, EventHandler<ActionEvent> onAction) {
-        Button button = setCssClass(new Button(value.toString()), CssClassName.SYMBOL_BUTTON);
+        return createButton(value.toString(), onAction, CssClassName.SYMBOL_BUTTON);
+    }
+
+    public static Button createSymbolButton(SymbolText value) {
+        return createButton(value.toString(), CssClassName.SYMBOL_BUTTON);
+    }
+
+    public static Button createButton(String text, boolean mnemonicParsing, EventHandler<ActionEvent> onAction, CssClassName... className) {
+        Button button = createButton(text, mnemonicParsing, className);
         if (null != onAction) {
             button.setOnAction(onAction);
         }
         return button;
     }
 
-    public static Button createSymbolButton(SymbolText value) {
-        return createSymbolButton(value, null);
+    public static Button createButton(String text, EventHandler<ActionEvent> onAction, CssClassName... className) {
+        return createButton(text, false, onAction, className);
     }
 
-    public static Button createButton(String text, EventHandler<ActionEvent> onAction, CssClassName... className) {
-        Button button = setCssClass(new Button(text), className);
+    public static Button createButton(String text, boolean mnemonicParsing, CssClassName... className) {
+        Button button = addCssClass(new Button((null == text) ? "" : text), className);
+        button.setMnemonicParsing(mnemonicParsing);
+        return button;
+    }
+
+    public static Button createButton(boolean mnemonicParsing, EventHandler<ActionEvent> onAction, CssClassName... className) {
+        Button button = createButton(mnemonicParsing, className);
         if (null != onAction) {
             button.setOnAction(onAction);
         }
@@ -531,7 +768,21 @@ public class NodeUtil {
     }
 
     public static Button createButton(String text, CssClassName... className) {
-        return createButton(text, null, className);
+        return createButton(text, false, className);
+    }
+
+    public static Button createButton(EventHandler<ActionEvent> onAction, CssClassName... className) {
+        return createButton(false, onAction, className);
+    }
+
+    public static Button createButton(boolean mnemonicParsing, CssClassName... className) {
+        Button button = addCssClass(new Button(), className);
+        button.setMnemonicParsing(mnemonicParsing);
+        return button;
+    }
+
+    public static Button createButton(CssClassName... className) {
+        return createButton(false, className);
     }
 
     public static ButtonBar createButtonBar(Button... buttons) {
