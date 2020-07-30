@@ -116,6 +116,8 @@ public final class MonthGridPane extends GridPane {
         GridPane.setHgrow(emtpyPane2, javafx.scene.layout.Priority.ALWAYS);
         GridPane.setVgrow(emtpyPane2, javafx.scene.layout.Priority.ALWAYS);
 
+        getStylesheets().add("/scheduler/defaultStyles.css");
+        
         onTargetDateChange(targetDate, null, targetDate.get());
         targetDate.addListener(this::onTargetDateChange);
         items.addListener(this::onItemsListChange);
