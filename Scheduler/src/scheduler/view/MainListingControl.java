@@ -362,10 +362,10 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         @Override
         protected void failed() {
-            LOG.entering(LOG.getName(), "failed");
+            LOG.entering(getClass().getName(), "failed");
             updateMessage(getFailMessage());
             super.failed();
-            LOG.exiting(LOG.getName(), "failed");
+            LOG.exiting(getClass().getName(), "failed");
         }
 
         protected String getConnectingMessage() {
@@ -378,11 +378,12 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
 
         @Override
         protected List<D> call() throws Exception {
-            LOG.entering(LOG.getName(), "call");
+            LOG.entering(getClass().getName(), "call");
             updateMessage(getConnectingMessage());
             try (DbConnector dbConnector = new DbConnector()) {
-                LOG.exiting(LOG.getName(), "call");
-                return onConnected(dbConnector.getConnection());
+                List<D> result = onConnected(dbConnector.getConnection());
+                LOG.exiting(getClass().getName(), "call", result);
+                return result;
             }
         }
 
