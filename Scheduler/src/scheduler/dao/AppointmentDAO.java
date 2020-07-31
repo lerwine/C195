@@ -873,19 +873,31 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         public List<AppointmentCountByType> getCountsByType(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {
-            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS c, ")
-                    .append(DbColumn.START.getDbName()).append(", ").append(DbColumn.END.getDbName()).append(", ")
-                    .append(DbColumn.TYPE.getDbName())
-                    .append(" FROM ").append(DbTable.APPOINTMENT.getDbName())
-                    .append(" GROUP BY ").append(DbColumn.TYPE.getDbName());
+            // SELECT COUNT(appointmentId) AS c, type FROM appointment WHERE end > '2019-12-03 05:00:00' AND start < '2020-07-30 10:05:00' GROUP BY type
+//            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS c, ")
+//                    .append(DbColumn.START.getDbName()).append(", ").append(DbColumn.END.getDbName()).append(", ")
+//                    .append(DbColumn.TYPE.getDbName())
+//                    .append(" FROM ").append(DbTable.APPOINTMENT.getDbName())
+//                    .append(" GROUP BY ").append(DbColumn.TYPE.getDbName());
+//            if (null != start) {
+//                sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
+//                if (null != end) {
+//                    sb.append(" AND ").append(DbColumn.START.getDbName()).append(" < ?");
+//                }
+//            } else if (null != end) {
+//                sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" < ?");
+//            }
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS c, ").append(", ").append(DbColumn.TYPE.getDbName())
+                    .append(" FROM ").append(DbTable.APPOINTMENT.getDbName());
             if (null != start) {
-                sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
+                sb.append(" WHERE ").append(DbColumn.END.getDbName()).append(" > ?");
                 if (null != end) {
                     sb.append(" AND ").append(DbColumn.START.getDbName()).append(" < ?");
                 }
             } else if (null != end) {
-                sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" < ?");
+                sb.append(" WHERE ").append(DbColumn.START.getDbName()).append(" < ?");
             }
+            sb.append(" GROUP BY ").append(DbColumn.TYPE.getDbName());
             String sql = sb.toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 int index = 0;
