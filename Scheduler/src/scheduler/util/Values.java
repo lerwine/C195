@@ -309,6 +309,14 @@ public final class Values {
         return (null == value) ? "" : value.trim();
     }
 
+    public static String asNonNullOrWhitespace(String value, String ifNullOrWhitespace) {
+        return (null == value || value.trim().isEmpty()) ? ifNullOrWhitespace : value;
+    }
+
+    public static String asNonNullOrWhitespace(String value, Supplier<String> ifNullOrWhitespace) {
+        return (null == value || value.trim().isEmpty()) ? ifNullOrWhitespace.get() : value;
+    }
+
     /**
      * Composes a {@link Supplier} that returns the non-null, trimmed value result of the source {@link Supplier} or an empty string.
      *
