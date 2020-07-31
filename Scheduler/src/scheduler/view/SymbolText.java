@@ -15,6 +15,12 @@ public enum SymbolText {
     EXPORT(""),
     LEFT_DOUBLE_ARROW("⇐"),
     RIGHT_DOUBLE_ARROW("⇒"),
+    LEFT_ARROWHEAD("⮘"),
+    RIGHT_AROWHEAD("⮚"),
+    LEFT_HOOK("↩"),
+    RIGHT_HOOK("↪"),
+    LEFT_DUPLICATE(""),
+    RIGHT_DUPLICATE(""),
     HELP("❓");
 
     private final String value;

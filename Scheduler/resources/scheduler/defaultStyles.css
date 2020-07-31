@@ -245,6 +245,7 @@ Labeled.innerLeftControlLabel {
     -fx-wrap-text: true;
 }
 
+/* The calendar cell */
 .month-gridpane > VBox {
     -fx-font-size: 10px;
     -fx-border-style: solid centered;
@@ -253,27 +254,58 @@ Labeled.innerLeftControlLabel {
     -fx-background-color: -fx-box-border, -fx-control-inner-background;
 }
 
+/* Outer empty calendar cells */
+.month-gridpane > .empty-cell {
+    -fx-border-style: solid centered;
+    -fx-border-width: 1px;
+    -fx-border-color: -scheduler-info-color;
+    -fx-background-color: -fx-background;
+}
+
+/* Labels containing names of days */
+.month-gridpane > .label,
+.month-gridpane > .label .text {
+    -fx-alignment: CENTER;
+    -fx-max-width: infinity;
+    -fx-max-height: infinity;
+}
+
+/* Contains information for an appointment */
 .month-gridpane > VBox > TextFlow {
     -fx-border-color: -scheduler-alt-dark-color;
     -fx-border-width: 1 0 0 0;
 }
 
+/* First appointment in calendar cell */
 .month-gridpane > VBox > TextFlow.first-item {
     -fx-border-width: 0;
 }
 
-.month-gridpane > VBox > TextFlow > .label,
-.month-gridpane > AnchorPane > .label {
-    -fx-min-width: 15px;
+/* The month number */
+.month-gridpane > VBox > TextFlow > .label {
+    -fx-min-width: 20px;
     -fx-background-color: -scheduler-info-color;
     -fx-alignment: CENTER;
+    -fx-padding: 1px 2px 1px 2px;
 }
 
-.month-gridpane > VBox > TextFlow > .label .text,
-.month-gridpane > AnchorPane > .label .text {
+.month-gridpane > VBox > TextFlow > .label .text {
     -fx-font-weight: bold;
-    -fx-font-size: 12px;
+    -fx-font-size: 14px;
+    -fx-text-fill: -scheduler-text-color-lighter;
     -fx-fill: -scheduler-text-color-lighter;
+}
+
+.month-gridpane > VBox > TextFlow.repeating > Text,
+.month-gridpane > VBox > TextFlow.repeating > Text .text {
+    -fx-text-fill: -fx-mid-text-color;
+    -fx-fill: -fx-mid-text-color;
+}
+
+.month-gridpane > VBox > TextFlow.repeating > .symbol,
+.month-gridpane > VBox > TextFlow.repeating > .symbol .text {
+    -fx-text-fill: -scheduler-alt-dark-color;
+    -fx-fill: -scheduler-alt-dark-color;
 }
 
 .month-gridpane > VBox > TextFlow > .hyperlink {
@@ -282,45 +314,7 @@ Labeled.innerLeftControlLabel {
 }
 
 .month-gridpane > VBox > TextFlow.first-item > .hyperlink {
-    -fx-padding: 0px 0px 0px 4px;
-}
-
-.month-gridpane > .label,
-.month-gridpane > .label .text {
-    -fx-alignment: CENTER;
-    -fx-max-width: infinity;
-    -fx-max-height: infinity;
-}
-
-.month-gridpane > AnchorPane > .label {
-    -fx-padding: 0px 0px 0px 1px;
-    -fx-background-color: transparent;
-}
-
-.month-gridpane > AnchorPane > .list-view {
-    -fx-box-border: transparent;
-    -fx-pref-height: 88.8333333333333;
-    -fx-max-height: infinity;
-}
-
-.month-gridpane > AnchorPane {
-    -fx-background-color: -fx-background;
-    -fx-border-style: solid centered;
-    -fx-border-width: 2px;
-    -fx-border-color: -scheduler-info-color;
-    -fx-background-color: -fx-box-border, -fx-control-inner-background;
-}
-
-.month-gridpane > AnchorPane > .list-view .sheet .list-cell {
-    -fx-border-style: solid centered;
-    -fx-border-width: 0px 0px 1px 0px;
-    -fx-padding: 1px;
-    -fx-font-size: 10px;
-    -fx-wrap-text: true;
-}
-
-.month-gridpane > AnchorPane > .list-view .sheet .list-cell:first-child {
-    -fx-padding: 1px 1px 1px 16px;
+    -fx-padding: 0px 0px 0px 2px;
 }
 
 .view-modal-mask {
@@ -396,11 +390,22 @@ Labeled.innerLeftControlLabel {
     -fx-fill: -scheduler-text-color-light;
 }
 
-.header .button,
-.footer .button {
+.header > .button,
+.footer > .button {
     -fx-background-color: -scheduler-alt-dark-gradient;
     -fx-text-fill: -scheduler-text-color-light;
     -fx-fill: -scheduler-text-color-light;
+}
+
+.header > .symbol-button,
+.footer > .symbol-button,
+.header > .symbol-button .text,
+.footer > .symbol-button .text {
+    -fx-font-weight: bold;
+    -fx-background-color: -scheduler-alt-dark-gradient;
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+    -fx-padding: -2px 6px -2px 6px;
 }
 
 .bordered-section > .header,
@@ -513,6 +518,11 @@ RadioButton.leftLabeledControl,
     -fx-background-color: -scheduler-progress-gradient;
 }
 
+.alt-dark-text  {
+    -fx-text-fill: -scheduler-alt-dark-color;
+    -fx-fill: -scheduler-alt-dark-color;
+}
+
 .symbol,
 .symbol-button {
     -fx-font-family: "Segoe UI Symbol", sans-serif;
@@ -531,7 +541,7 @@ RadioButton.leftLabeledControl,
 .hyperlink.small-control {
     -fx-padding: 0px;
 }
-Button .small-control,
+Button.small-control,
 .symbol-button {
     -fx-padding: 1px 4px 1px 4px;
 }

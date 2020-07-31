@@ -40,6 +40,10 @@ public enum CssClassName {
      */
     BORDERED("bordered"),
     /**
+     * The {@code "message"} CSS class for bold text.
+     */
+    MESSAGE("message"),
+    /**
      * The {@code "error"} CSS class for nodes that display in red text, aligned to the upper-left and have no padding.
      */
     ERROR("error"),
@@ -88,9 +92,21 @@ public enum CssClassName {
      */
     BOLD_TEXT("boldText"),
     /**
-     * The {@code "message"} CSS class for bold text.
+     * The {@code "first-item"} CSS class.
      */
-    MESSAGE("message");
+    FIRST_ITEM("first-item"),
+    /**
+     * The {@code "month-gridpane"} CSS class for bold text.
+     */
+    MONTH_GRIDPANE("month-gridpane"),
+    /**
+     * The {@code "empty-cell"} CSS class for bold text.
+     */
+    EMPTY_CELL("empty-cell"),
+    /**
+     * The {@code "alt-dark-text"} CSS class for bold text.
+     */
+    ALT_DARK_TEXT("alt-dark-text");
 
     public static final List<CssClassName> VALIDATION_CSS_CLASSES = Collections.unmodifiableList(Arrays.asList(CssClassName.INFO, CssClassName.WARNING, CssClassName.ERROR));
     public static final CssClassName VALIDATION_MESSAGE_CSS_CLASS = CssClassName.VALIDATIONMSG;
