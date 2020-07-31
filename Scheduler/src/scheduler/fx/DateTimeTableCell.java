@@ -5,6 +5,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableCell;
 
 /**
@@ -13,23 +15,43 @@ import javafx.scene.control.TableCell;
  * @param <S> The row item type.
  * @param <T> The cell item type.
  */
-public class DateTimeTableCell<S, T extends TemporalAccessor> extends TableCell<S, T> {
+public final class DateTimeTableCell<S, T extends TemporalAccessor> extends TableCell<S, T> {
 
-    private final DateTimeFormatter formatter;
+    private final ReadOnlyObjectProperty<DateTimeFormatter> property;
+    private DateTimeFormatter formatter;
 
-    DateTimeTableCell(DateTimeFormatter formatter) {
-        this.formatter = (null == formatter) ? DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-                .withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault()) : formatter;
+    DateTimeTableCell(ReadOnlyObjectProperty<DateTimeFormatter> formatter) {
+        this.property = formatter;
+        setWrapText(true);
+        if (null != formatter) {
+            formatter.addListener(this::onFormatterChanged);
+            this.formatter = formatter.get();
+            if (null != this.formatter) {
+                return;
+            }
+        }
+        this.formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
+    }
+
+    public DateTimeTableCell(DateTimeFormatter formatter) {
+        this.property = null;
+        setWrapText(true);
+        this.formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault());
     }
 
     public DateTimeTableCell() {
-        this(null);
+        this((DateTimeFormatter) null);
     }
 
     @Override
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
-        setWrapText(true);
-        setText((item == null) ? "" : formatter.format(item));
+        setText((empty || null == item) ? "" : formatter.format(item));
+    }
+
+    private void onFormatterChanged(ObservableValue<? extends DateTimeFormatter> observable, DateTimeFormatter oldValue, DateTimeFormatter newValue) {
+        formatter = (null == newValue) 
+                ? DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.getDefault(Locale.Category.DISPLAY)).withZone(ZoneId.systemDefault()) 
+                : newValue;
     }
 }
