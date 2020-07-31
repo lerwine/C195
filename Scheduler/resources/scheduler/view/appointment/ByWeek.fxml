@@ -1,98 +1,761 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import scheduler.fx.AppointmentEditTableCellFactory?>
+<?import scheduler.fx.DateTimeTableCellFactory?>
+<?import scheduler.fx.MonthNameListCell?>
+<?import scheduler.fx.MonthNameListCellFactory?>
+<?import scheduler.fx.RelayCellValueFactory?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="StackPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<VBox stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <GridPane>
-            <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-                <ColumnConstraints hgrow="SOMETIMES" />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints vgrow="SOMETIMES" />
-                <RowConstraints vgrow="ALWAYS" />
-            </rowConstraints>
+        <HBox>
             <children>
-                <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Sunday" />
-                <Label text="Monday" GridPane.columnIndex="1" />
-                <Label text="Tuesday" GridPane.columnIndex="2" />
-                <Label text="Wednesday" GridPane.columnIndex="3" />
-                <Label text="Thursday" GridPane.columnIndex="4" />
-                <Label text="Friday" GridPane.columnIndex="5" />
-                <Label text="Saturday" GridPane.columnIndex="6" />
-                <ListView fx:id="sundayListView" GridPane.rowIndex="1" />
-                <ListView fx:id="mondayListView" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <ListView fx:id="tuesdayListView" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                <ListView fx:id="wednesdayListView" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                <ListView fx:id="thursdayListView" GridPane.columnIndex="4" GridPane.rowIndex="1" />
-                <ListView fx:id="fridayListView" GridPane.columnIndex="5" GridPane.rowIndex="1" />
-                <ListView fx:id="saturdayListView" GridPane.columnIndex="6" GridPane.rowIndex="1" />
+                <Button mnemonicParsing="false" onAction="#onPreviousWeekButtonAction" styleClass="symbol-button" text="⮘" HBox.hgrow="NEVER" />
+                <Label fx:id="weekAndMonthNameLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="January" HBox.hgrow="ALWAYS" />
+                <Button mnemonicParsing="false" onAction="#onNextWeekButtonAction" styleClass="symbol-button" text="⮚" HBox.hgrow="NEVER" />
             </children>
-        </GridPane>
-        <BorderPane fx:id="detailsBorderPane" minHeight="-Infinity" minWidth="-Infinity" styleClass="view-modal-mask" visible="false">
-            <center>
-                <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" BorderPane.alignment="CENTER">
-                    <center>
-                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="bordered" BorderPane.alignment="CENTER">
-                            <children>
-                                <GridPane>
-                                    <columnConstraints>
-                                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
-                                        <ColumnConstraints hgrow="ALWAYS" />
-                                    </columnConstraints>
-                                    <rowConstraints>
-                                        <RowConstraints vgrow="SOMETIMES" />
-                                        <RowConstraints vgrow="SOMETIMES" />
-                                        <RowConstraints vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                    </rowConstraints>
-                                    <children>
-                                        <Label styleClass="leftControlLabel" text="Title:" />
-                                        <Label fx:id="titleLabel" styleClass="leftLabeledControl" GridPane.columnIndex="1" />
-                                        <Label text="Time:" GridPane.rowIndex="1" />
-                                        <Label fx:id="timeLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                        <Label text="Customer:" GridPane.rowIndex="2" />
-                                        <Label fx:id="customerLabel" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                        <Label text="User:" GridPane.rowIndex="3" />
-                                        <Label text="Label" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                                        <Label text="Type:" GridPane.rowIndex="4" />
-                                        <Label text="Label" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                                        <Label text="Location:" GridPane.rowIndex="5" />
-                                        <Label text="Label" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                                    </children>
-                                </GridPane>
-                                <ButtonBar>
-                                    <buttons>
-                                        <Button mnemonicParsing="false" text="Edit" />
-                                        <Button mnemonicParsing="false" text="Close" />
-                                    </buttons>
-                                </ButtonBar>
-                            </children>
-                            <padding>
-                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                            </padding>
-                        </VBox>
-                    </center>
-                </BorderPane>
-            </center>
-        </BorderPane>
+            <styleClass>
+                <String fx:value="header" />
+                <String fx:value="h1" />
+            </styleClass>
+        </HBox>
+        <Accordion VBox.vgrow="ALWAYS">
+            <panes>
+                <TitledPane fx:id="sundayTitledPane" animated="false" text="Sunday">
+                    <content>
+                        <TableView fx:id="sundayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                            <columns>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="typeDisplay" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="url" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="contact" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="description" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                                    <cellValueFactory>
+                                        <RelayCellValueFactory />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="mondayTitledPane" animated="false" layoutX="10.0" layoutY="10.0" text="Monday">
+                    <content>
+                        <TableView fx:id="mondayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                            <columns>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="typeDisplay" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="url" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="contact" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="description" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                                    <cellValueFactory>
+                                        <RelayCellValueFactory />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="tuesdayTitledPane" animated="false" layoutX="10.0" layoutY="434.0" text="Tuesday">
+                    <content>
+                        <TableView fx:id="tuesdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                            <columns>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="typeDisplay" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="url" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="contact" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="description" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                                    <cellValueFactory>
+                                        <RelayCellValueFactory />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="wednesdayTitledPane" animated="false" layoutX="10.0" layoutY="457.0" text="Wednesday">
+                    <content>
+                        <TableView fx:id="wednesdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                            <columns>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="typeDisplay" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="url" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="contact" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="description" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                                    <cellValueFactory>
+                                        <RelayCellValueFactory />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="thursdayTitledPane" animated="false" layoutX="10.0" layoutY="480.0" text="Thursday">
+                    <content>
+                        <TableView fx:id="thursdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                            <columns>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="typeDisplay" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="url" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="contact" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="description" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                                    <cellValueFactory>
+                                        <RelayCellValueFactory />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="fridayTitledPane" animated="false" layoutX="10.0" layoutY="503.0" text="Friday">
+                    <content>
+                        <TableView fx:id="fridayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                            <columns>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="typeDisplay" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="url" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="contact" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="description" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                                    <cellValueFactory>
+                                        <RelayCellValueFactory />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="saturdayTitledPane" animated="false" layoutX="10.0" layoutY="526.0" text="Saturday">
+                    <content>
+                        <TableView fx:id="saturdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                            <columns>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="title" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="start" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="end" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory format="h:mm a" />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="typeDisplay" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="customerName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="userName" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="effectiveLocation" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="url" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="contact" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="description" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createDate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="createdBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdate" />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <DateTimeTableCellFactory />
+                                    </cellFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="lastUpdateBy" />
+                                    </cellValueFactory>
+                                </TableColumn>
+                                <TableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
+                                    <cellValueFactory>
+                                        <RelayCellValueFactory />
+                                    </cellValueFactory>
+                                    <cellFactory>
+                                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
+                                    </cellFactory>
+                                </TableColumn>
+                            </columns>
+                        </TableView>
+                    </content>
+                </TitledPane>
+            </panes>
+        </Accordion>
+        <HBox alignment="CENTER_LEFT">
+            <children>
+                <Label styleClass="leftControlLabel" text="Year:" />
+                <Spinner fx:id="yearSpinner" styleClass="leftLabeledControl">
+                    <min>
+                        <Integer fx:value="1000" />
+                    </min>
+                    <max>
+                        <Integer fx:value="9999" />
+                    </max>
+                    <initialValue>
+                        <Integer fx:value="2020" />
+                    </initialValue>
+                </Spinner>
+                <Label styleClass="innerLeftControlLabel" text="Month:" />
+                <ComboBox fx:id="monthComboBox" styleClass="leftLabeledControl">
+                    <cellFactory>
+                        <MonthNameListCellFactory />
+                    </cellFactory>
+                    <buttonCell>
+                        <MonthNameListCell />
+                    </buttonCell>
+                </ComboBox>
+                <Label styleClass="innerLeftControlLabel" text="Week:" />
+                <ComboBox fx:id="weekComboBox" styleClass="leftLabeledControl" />
+                <Button mnemonicParsing="false" onAction="#onSearchButtonAction" text="Search">
+                    <HBox.margin>
+                        <Insets left="8.0" />
+                    </HBox.margin>
+                </Button>
+            </children>
+            <VBox.margin>
+                <Insets top="8.0" />
+            </VBox.margin>
+        </HBox>
     </children>
-</fx:root>
+</VBox>

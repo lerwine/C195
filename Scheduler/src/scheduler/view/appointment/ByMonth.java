@@ -1,63 +1,52 @@
 package scheduler.view.appointment;
 
-import java.time.DayOfWeek;
+import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.Month;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
+import javafx.stage.Stage;
+import scheduler.AppResourceKeys;
+import scheduler.AppResources;
 import scheduler.Scheduler;
-import scheduler.fx.CssClassName;
+import scheduler.dao.AppointmentDAO;
+import scheduler.dao.DataAccessObject;
+import scheduler.dao.filter.AppointmentFilter;
+import scheduler.events.AppointmentEvent;
+import scheduler.events.AppointmentFailedEvent;
+import scheduler.events.AppointmentOpRequestEvent;
+import scheduler.events.AppointmentSuccessEvent;
+import scheduler.events.ModelFailedEvent;
+import scheduler.model.ModelHelper;
 import scheduler.model.fx.AppointmentModel;
+import scheduler.util.AlertHelper;
+import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
-import scheduler.util.NodeUtil;
-import scheduler.util.Values;
+import static scheduler.util.NodeUtil.isInShownWindow;
+import scheduler.util.ViewControllerLoader;
+import scheduler.util.WeakEventHandlingReference;
+import scheduler.view.MainController;
 import scheduler.view.annotations.GlobalizationResource;
 
 /**
@@ -71,639 +60,292 @@ public final class ByMonth extends HBox {
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ByMonth.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(ByMonth.class.getName());
 
-    public static ByMonth loadIntoMainContent(LocalDate month) {
-        ByMonth newContent = new ByMonth();
-        newContent.monthStart = ((null == month) ? LocalDate.now() : month).withDayOfMonth(1);
-        newContent.initialize();
+    public static ByMonth loadIntoMainContent(YearMonth month) {
+        ByMonth newContent = new ByMonth(month);
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
         Scheduler.getMainController().replaceContent(newContent);
         return newContent;
     }
 
-    private LocalDate monthStart;
-    ObservableList<AppointmentModel> allAppointments;
+    private final ReadOnlyObjectWrapper<YearMonth> targetMonth;
+    private final ReadOnlyObjectWrapper<AppointmentModelFilter> modelFilter;
+    private final ObservableList<AppointmentModel> allAppointments;
+    private final ObservableList<AppointmentDay> appointmentDays;
+    private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentInsertEventHandler;
+    private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentUpdateEventHandler;
+    private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentDeleteEventHandler;
 
-//    private ResourceBundle resources;
-    private final Spinner<Integer> yearSpinner;
+    @FXML // fx:id="monthNameLabel"
+    private Label monthNameLabel; // Value injected by FXMLLoader
 
-    private final ComboBox<String> monthComboBox;
+    @FXML // fx:id="appointmentsTableTreeView"
+    private TreeTableView<AppointmentDay> appointmentsTableTreeView; // Value injected by FXMLLoader
 
-    private final Button runButton;
+    @FXML // fx:id="yearSpinner"
+    private Spinner<Integer> yearSpinner; // Value injected by FXMLLoader
 
-    private final Label monthLabel;
+    @FXML // fx:id="monthComboBox"
+    private ComboBox<Month> monthComboBox; // Value injected by FXMLLoader
 
-    private final MonthGridPane monthGridPane;
-
-    private ByMonth() {
-        yearSpinner = NodeUtil.setCssClass(new Spinner<>(LocalDateTime.MIN.getYear() + 1, LocalDateTime.MAX.getYear() - 1, LocalDateTime.now().getYear()),
-                CssClassName.LEFTLABELEDCONTROL);
-        monthComboBox = NodeUtil.setCssClass(new ComboBox<>(), CssClassName.LEFTLABELEDCONTROL);
-        runButton = NodeUtil.createButton("Run", this::onRunButtonAction);
-        monthLabel = NodeUtil.createLabel("Month: ", CssClassName.TOPCONTROLLABEL);
-        monthGridPane = new MonthGridPane();
-
-        ObservableList<Node> children = getChildren();
-        children.addAll(
-                NodeUtil.createFillingHBox(
-                        NodeUtil.createLabel("Year: ", CssClassName.LEFTCONTROLLABEL),
-                        yearSpinner,
-                        NodeUtil.createLabel("Month: ", CssClassName.INNERLEFTCONTROLLABEL),
-                        monthComboBox,
-                        runButton
-                ),
-                monthLabel,
-                NodeUtil.setCssClass(monthGridPane, CssClassName.TOPLABELEDCONTROL)
-        );
+    public ByMonth(YearMonth targetMonth) {
+        this.targetMonth = new ReadOnlyObjectWrapper<>(this, "targetMonth", (null == targetMonth) ? YearMonth.now() : targetMonth);
+        modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter");
+        allAppointments = FXCollections.observableArrayList();
+        appointmentDays = FXCollections.observableArrayList();
+        allAppointments.addListener(this::onAllAppointmentsChanged);
+        modelFilter.addListener(this::onModelFilterChanged);
+        appointmentInsertEventHandler = WeakEventHandlingReference.create(this::onAppointmentInserted);
+        appointmentUpdateEventHandler = WeakEventHandlingReference.create(this::onAppointmentUpdated);
+        appointmentDeleteEventHandler = WeakEventHandlingReference.create(this::onAppointmentDeleted);
     }
 
-    private void initialize() {
-        LOG.entering(LOG.getName(), "initialize");
-        getStylesheets().add("/scheduler/defaultStyles.css");
-        int y = yearSpinner.getValue();
-        if (y < monthStart.getYear()) {
-            do {
-                yearSpinner.increment();
-            } while (y < monthStart.getYear());
-        } else if (y > monthStart.getYear()) {
-            do {
-                yearSpinner.decrement();
-            } while (y > monthStart.getYear());
-        }
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMMM");
-        ObservableList<String> monthNames = FXCollections.observableArrayList();
-        for (int i = 1; i < 13; i++) {
-            monthNames.add(fmt.format(monthStart.withMonth(i)));
-        }
-        monthComboBox.setItems(monthNames);
-        allAppointments = FXCollections.observableArrayList();
-        monthGridPane.setItems(allAppointments);
-//        yearSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(LocalDate.MIN.getYear(),
-//                LocalDate.MAX.getYear(), d.getYear()));
-        monthComboBox.setItems(monthNames);
-        monthComboBox.getSelectionModel().clearAndSelect(monthStart.getMonthValue() - 1);
-        monthLabel.setText(monthStart.getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault()));
-        loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1);
-        LOG.exiting(LOG.getName(), "initialize");
+    public ByMonth() {
+        this(null);
     }
 
     @FXML
-    private void onRunButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onRunButtonAction", event);
-        loadAppointments(yearSpinner.getValue(), monthComboBox.getSelectionModel().getSelectedIndex() + 1);
-        LOG.exiting(LOG.getName(), "onRunButtonAction");
+    void onItemActionRequest(AppointmentOpRequestEvent event) {
+        LOG.entering(LOG.getName(), "onItemActionRequest", event);
+        if (event.isEdit()) {
+            editItem(event.getEntityModel());
+        } else {
+            deleteItem(event.getEntityModel());
+        }
+        LOG.exiting(LOG.getName(), "onItemActionRequest");
     }
 
-    private void loadAppointments(int year, int month) {
-        LOG.entering(LOG.getName(), "loadAppointments", new Object[]{year, month});
-        LocalDate d = LocalDate.of(year, Month.of(month), 1);
-        monthLabel.setText(d.getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault()));
-//        AppointmentModel.FACTORY.loadAsync(AppointmentFilter.of(AppointmentFilter.expressionOf(DB.toUtcTimestamp(d.atStartOfDay()),
-//                DB.toUtcTimestamp(d.plusMonths(1).atStartOfDay()))), allAppointments, (t) -> {
-//            allAppointments.clear();
-//            allAppointments.addAll(t);
-//        });
+    @FXML
+    @SuppressWarnings("incomplete-switch")
+    private void onAppointmentsTableTreeViewViewKeyReleased(KeyEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentsTableTreeViewViewKeyReleased", event);
+        if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
+            TreeItem<AppointmentDay> item;
+            switch (event.getCode()) {
+                case DELETE:
+                    item = appointmentsTableTreeView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        deleteItem(item.getValue().getModel());
+                    }
+                    break;
+                case ENTER:
+                    item = appointmentsTableTreeView.getSelectionModel().getSelectedItem();
+                    if (null != item) {
+                        editItem(item.getValue().getModel());
+                    }
+                    break;
+            }
+        }
+        LOG.exiting(LOG.getName(), "onAppointmentsTableTreeViewViewKeyReleased");
     }
 
-    static final class HeaderHBox extends HBox {
-
-        protected final Button button;
-        protected final Label monthNameLabel;
-        protected final Button button0;
-
-        HeaderHBox() {
-
-            button = new Button();
-            monthNameLabel = new Label();
-            button0 = new Button();
-
-            HBox.setHgrow(button, javafx.scene.layout.Priority.NEVER);
-            button.setMnemonicParsing(false);
-            button.setOnAction(this::onPreviousMonthButtonAction);
-            button.setText("?");
-
-            HBox.setHgrow(monthNameLabel, javafx.scene.layout.Priority.ALWAYS);
-            monthNameLabel.setAlignment(javafx.geometry.Pos.CENTER);
-            monthNameLabel.setMaxWidth(Double.MAX_VALUE);
-            monthNameLabel.setText("January");
-
-            HBox.setHgrow(button0, javafx.scene.layout.Priority.NEVER);
-            button0.setMnemonicParsing(false);
-            button0.setOnAction(this::onNextMonthButtonAction);
-            button0.getStyleClass().add("symbol-button");
-            button0.setText("?");
-
-            getChildren().add(button);
-            getChildren().add(monthNameLabel);
-            getChildren().add(button0);
-
-        }
-
-        void onPreviousMonthButtonAction(ActionEvent actionEvent) {
-
-        }
-
-        void onNextMonthButtonAction(ActionEvent actionEvent) {
-
-        }
-
+    @FXML
+    void onNextMonthButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onNextMonthButtonAction", event);
+        targetMonth.set(targetMonth.get().plusMonths(1));
+        LOG.exiting(getClass().getName(), "onNextMonthButtonAction");
     }
 
-    static final class AppointmentTextFlow extends TextFlow {
+    @FXML
+    void onPreviousMonthButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onPreviousMonthButtonAction", event);
+        targetMonth.set(targetMonth.get().minusMonths(1));
+        LOG.exiting(getClass().getName(), "onPreviousMonthButtonAction");
+    }
 
-        private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d");
-        private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
-
-        private static LocalDate toEndDateExclusive(LocalDateTime value) {
-            return (value.toLocalTime().equals(LocalTime.MIN)) ? value.toLocalDate() : value.toLocalDate().plusDays(1);
+    @FXML
+    void onSearchButtonAction(ActionEvent event) {
+        LOG.entering(getClass().getName(), "onSearchButtonAction", event);
+        int year = yearSpinner.getValue();
+        Month month = monthComboBox.getSelectionModel().getSelectedItem();
+        YearMonth current = targetMonth.get();
+        if (year != current.getYear() || month != current.getMonth()) {
+            YearMonth newValue = YearMonth.of(year, month);
+            LOG.info(() -> String.format("Changing target month from %s to %s", current, newValue));
+            targetMonth.set(newValue);
         }
+        LOG.exiting(getClass().getName(), "onSearchButtonAction");
+    }
 
-        private static LocalDate getLater(LocalDate a, LocalDate b) {
-            return (a.compareTo(b) > 0) ? a : b;
+    @FXML // This method is called by the FXMLLoader when initialization is complete
+    void initialize() {
+        LOG.entering(getClass().getName(), "initialize");
+        assert monthNameLabel != null : "fx:id=\"monthNameLabel\" was not injected: check your FXML file 'ByMonth.fxml'.";
+        assert appointmentsTableTreeView != null : "fx:id=\"appointmentsTableTreeView\" was not injected: check your FXML file 'ByMonth.fxml'.";
+        assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'ByMonth.fxml'.";
+        assert monthComboBox != null : "fx:id=\"monthComboBox\" was not injected: check your FXML file 'ByMonth.fxml'.";
+
+        YearMonth t = targetMonth.get();
+        int y = yearSpinner.getValue();
+        if (y < t.getYear()) {
+        } else if (y > t.getYear()) {
+            yearSpinner.decrement(y - t.getYear());
         }
+        monthComboBox.getSelectionModel().select(t.getMonth());
+        onTargetMonthChanged(targetMonth, null, targetMonth.get());
+        targetMonth.addListener(this::onTargetMonthChanged);
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, appointmentInsertEventHandler.getWeakEventHandler());
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, appointmentUpdateEventHandler.getWeakEventHandler());
+        AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, appointmentDeleteEventHandler.getWeakEventHandler());
+        LOG.exiting(getClass().getName(), "initialize");
+    }
 
-        private static LocalDate getEarlier(LocalDate a, LocalDate b) {
-            return (a.compareTo(b) < 0) ? a : b;
+    private void editItem(AppointmentModel item) {
+        try {
+            EditAppointment.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
+    }
 
-        private static LocalDate assertRangeValid(AppointmentModel model, LocalDate targetRangeStart, LocalDate targetRangeEnd) {
-            LocalDate end = model.getEnd().toLocalDate();
-            if (model.getStart().toLocalDate().compareTo(Objects.requireNonNull(targetRangeEnd)) > 0 || end.compareTo(targetRangeStart) <= 0) {
-                throw new IllegalArgumentException("Target date does not fall on or after the start date and before the end date");
-            }
-            return (end.compareTo(targetRangeEnd) < 0) ? end : targetRangeEnd;
-        }
-
-        static AppointmentTextFlow setFirstInCell(ObservableList<AppointmentTextFlow> nodes) {
-            Iterator<AppointmentTextFlow> iterator = nodes.iterator();
-            AppointmentTextFlow result;
-            do {
-                if (!iterator.hasNext()) {
-                    return null;
-                }
-            } while (null == (result = iterator.next()));
-
-            result.firstInCell.set(true);
-            while (iterator.hasNext()) {
-                AppointmentTextFlow n = iterator.next();
-                if (null != n && n.firstInCell.get()) {
-                    n.firstInCell.set(false);
-                }
-            }
-            return result;
-        }
-
-        private final ReadOnlyObjectWrapper<AppointmentModel> model;
-        private final ReadOnlyObjectWrapper<LocalDate> day;
-        private final ReadOnlyObjectWrapper<LocalTime> startTime;
-        private final ReadOnlyObjectWrapper<LocalTime> endTime;
-        private final ReadOnlyObjectWrapper<AppointmentTextFlow> previousDay;
-        private final ReadOnlyObjectWrapper<AppointmentTextFlow> nextDay;
-        private final ReadOnlyBooleanWrapper firstInCell;
-        private final Label dateNumberLabel;
-        private final Hyperlink appointmentTimeHyperlink;
-        private final Text prevDaySymbolText;
-        private final Text appointmentTitleText;
-        private final Text nextDaySymbolText;
-
-        private AppointmentTextFlow(AppointmentModel model, LocalDate targetRangeStart, AppointmentTextFlow previous) {
-            this.model = new ReadOnlyObjectWrapper<>(model);
-            day = new ReadOnlyObjectWrapper<>(targetRangeStart);
-            startTime = new ReadOnlyObjectWrapper<>(model.getStart().toLocalTime());
-            endTime = new ReadOnlyObjectWrapper<>(model.getEnd().toLocalTime());
-            nextDay = new ReadOnlyObjectWrapper<>();
-            previousDay = new ReadOnlyObjectWrapper<>(previous);
-            dateNumberLabel = NodeUtil.collapseNode(new Label(DATE_FORMATTER.format(targetRangeStart)));
-            day.addListener((observable, oldValue, newValue) -> dateNumberLabel.setText(DATE_FORMATTER.format(newValue)));
-            appointmentTimeHyperlink = new Hyperlink(String.format("%s - %s", TIME_FORMATTER.format(startTime.get()), TIME_FORMATTER.format(endTime.get())));
-            startTime.addListener((observable, oldValue, newValue) -> onTimeChanged(newValue, endTime.get()));
-            endTime.addListener((observable, oldValue, newValue) -> onTimeChanged(startTime.get(), newValue));
-
-            prevDaySymbolText = NodeUtil.addCssClass(new Text(" "), CssClassName.SYMBOL);
-            if (null == previous) {
-                NodeUtil.collapseNode(prevDaySymbolText);
-            }
-            appointmentTitleText = new Text(model.getTitle());
-            nextDaySymbolText = NodeUtil.collapseNode(NodeUtil.addCssClass(new Text(" "), CssClassName.SYMBOL));
-            firstInCell = new ReadOnlyBooleanWrapper(false);
-            firstInCell.addListener((observable, oldValue, newValue) -> onFirstInCellChanged(newValue));
-            previousDay.addListener((observable, oldValue, newValue) -> {
-                if (null == newValue) {
-                    NodeUtil.collapseNode(prevDaySymbolText);
-                } else {
-                    NodeUtil.restoreNode(prevDaySymbolText);
+    private void deleteItem(AppointmentModel target) {
+        AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(target, this, true);
+        Event.fireEvent(target.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                    task.setOnSucceeded((e) -> {
+                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
+                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    MainController.startBusyTaskNow(task);
                 }
             });
-            nextDay.addListener((observable, oldValue, newValue) -> {
-                if (null == newValue) {
-                    NodeUtil.collapseNode(nextDaySymbolText);
-                } else {
-                    NodeUtil.restoreNode(nextDaySymbolText);
-                }
-            });
-            getChildren().addAll(dateNumberLabel, appointmentTimeHyperlink, new Text(Values.LINEBREAK_STRING), prevDaySymbolText, appointmentTitleText, nextDaySymbolText);
-        }
-
-        private AppointmentTextFlow(AppointmentModel model, LocalDate targetRangeStart, LocalDate targetRangeEnd, AppointmentTextFlow previous) {
-            this(model, targetRangeStart, previous);
-
-            LocalDate startDate = targetRangeStart.plusDays(1);
-            if (startDate.compareTo(targetRangeEnd) < 0) {
-                nextDay.set(new AppointmentTextFlow(model, startDate, targetRangeEnd, this));
-            }
-        }
-
-        public AppointmentTextFlow(AppointmentModel model, LocalDate targetRangeStart, LocalDate targetRangeEnd) {
-            this(model, getLater(targetRangeStart, model.getStart().toLocalDate()), assertRangeValid(model, targetRangeStart, targetRangeEnd), null);
-        }
-
-        public AppointmentTextFlow(AppointmentModel model) {
-            this(model, model.getStart().toLocalDate(), toEndDateExclusive(model.getEnd()));
-        }
-
-        public AppointmentModel getModel() {
-            return model.get();
-        }
-
-        public ReadOnlyObjectProperty<AppointmentModel> modelProperty() {
-            return model.getReadOnlyProperty();
-        }
-
-        public LocalDate getDay() {
-            return day.get();
-        }
-
-        public ReadOnlyObjectProperty<LocalDate> dayOfMonthProperty() {
-            return day.getReadOnlyProperty();
-        }
-
-        public LocalTime getStartTime() {
-            return startTime.get();
-        }
-
-        public ReadOnlyObjectProperty<LocalTime> startTimeProperty() {
-            return startTime.getReadOnlyProperty();
-        }
-
-        public LocalTime getEndTime() {
-            return endTime.get();
-        }
-
-        public ReadOnlyObjectProperty<LocalTime> endTimeProperty() {
-            return endTime.getReadOnlyProperty();
-        }
-
-        public AppointmentTextFlow getPreviousDay() {
-            return previousDay.get();
-        }
-
-        public ReadOnlyObjectProperty<AppointmentTextFlow> previousDayProperty() {
-            return previousDay.getReadOnlyProperty();
-        }
-
-        public AppointmentTextFlow getNextDay() {
-            return nextDay.get();
-        }
-
-        public ReadOnlyObjectProperty<AppointmentTextFlow> nextDayProperty() {
-            return nextDay.getReadOnlyProperty();
-        }
-
-        public boolean isFirstInCell() {
-            return firstInCell.get();
-        }
-
-        public ReadOnlyBooleanProperty firstInCellProperty() {
-            return firstInCell.getReadOnlyProperty();
-        }
-
-        private void onFirstInCellChanged(Boolean newValue) {
-            if (newValue) {
-                NodeUtil.addCssClass(this, CssClassName.FIRST_ITEM);
-                NodeUtil.restoreNode(dateNumberLabel);
-            } else {
-                NodeUtil.removeCssClass(this, CssClassName.FIRST_ITEM);
-                NodeUtil.collapseNode(dateNumberLabel);
-            }
-        }
-
-        public AppointmentTextFlow firstDay() {
-            AppointmentTextFlow result = previousDay.get();
-            return (null == result) ? this : result.firstDay();
-        }
-
-        public AppointmentTextFlow lastDay() {
-            AppointmentTextFlow result = nextDay.get();
-            return (null == result) ? this : result.lastDay();
-        }
-
-        public Stream<AppointmentTextFlow> allDays() {
-            Stream.Builder<AppointmentTextFlow> builder = Stream.builder();
-            AppointmentTextFlow item = firstDay();
-            do {
-                builder.accept(item);
-            } while (null != (item = item.nextDay.get()));
-            return builder.build();
-        }
-
-        private void onTimeChanged(LocalTime start, LocalTime end) {
-            appointmentTimeHyperlink.setText(String.format("%s - %s", TIME_FORMATTER.format(start), TIME_FORMATTER.format(end)));
         }
 
     }
 
-    static final class CalendarCellVBox extends VBox {
+    public YearMonth getTargetMonth() {
+        return targetMonth.get();
+    }
 
-        private final ObservableList<Node> children;
+    public ReadOnlyObjectProperty<YearMonth> targetMonthProperty() {
+        return targetMonth.getReadOnlyProperty();
+    }
 
-        CalendarCellVBox() {
-            children = FXCollections.unmodifiableObservableList(super.getChildren());
+    public AppointmentModelFilter getModelFilter() {
+        return modelFilter.get();
+    }
+
+    public ReadOnlyObjectProperty<AppointmentModelFilter> modelFilterProperty() {
+        return modelFilter.getReadOnlyProperty();
+    }
+
+    private void onAppointmentInserted(AppointmentSuccessEvent event) {
+        LOG.entering(getClass().getName(), "onAppointmentAdded", event);
+        if (isInShownWindow(this)) {
+            AppointmentModel entityModel = event.getEntityModel();
+            if (modelFilter.get().test(entityModel)) {
+                allAppointments.add(entityModel);
+            }
+        }
+        LOG.exiting(getClass().getName(), "onAppointmentInserted");
+    }
+
+    private void onAppointmentUpdated(AppointmentSuccessEvent event) {
+        LOG.entering(getClass().getName(), "onAppointmentUpdated", event);
+        if (isInShownWindow(this)) {
+            AppointmentModel updatedModel = event.getEntityModel();
+            AppointmentModel currentModel = ModelHelper.findByPrimaryKey(updatedModel.getPrimaryKey(), allAppointments).orElse(null);
+            if (modelFilter.get().test(updatedModel)) {
+                if (null != currentModel) {
+                    if (currentModel == updatedModel) {
+                        return;
+                    }
+                    allAppointments.remove(currentModel);
+                }
+                allAppointments.add(updatedModel);
+            } else if (null == currentModel) {
+                allAppointments.remove(currentModel);
+            }
+        }
+        LOG.exiting(getClass().getName(), "onAppointmentUpdated");
+    }
+
+    private void onAppointmentDeleted(AppointmentSuccessEvent event) {
+        LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
+        if (isInShownWindow(this)) {
+            AppointmentModel currentModel = ModelHelper.findByPrimaryKey(event.getEntityModel().getPrimaryKey(), allAppointments).orElse(null);
+            if (null != currentModel) {
+                allAppointments.remove(currentModel);
+            }
+        }
+        LOG.exiting(LOG.getName(), "onAppointmentDeleted");
+    }
+
+    private void onTargetMonthChanged(ObservableValue<? extends YearMonth> observable, YearMonth oldValue, YearMonth newValue) {
+        LOG.entering(getClass().getName(), "onTargetMonthChanged", new Object[]{observable, oldValue, newValue});
+        LocalDate start = newValue.atDay(1);
+        modelFilter.set(AppointmentModelFilter.of(start, start.plusMonths(1)));
+        LOG.exiting(getClass().getName(), "onTargetMonthChanged");
+    }
+
+    private void onModelFilterChanged(ObservableValue<? extends AppointmentModelFilter> observable, AppointmentModelFilter oldValue, AppointmentModelFilter newValue) {
+        LOG.entering(getClass().getName(), "onModelFilterChanged", new Object[]{observable, oldValue, newValue});
+        LoadItemsTask task = new LoadItemsTask(newValue.getDaoFilter());
+        MainController.startBusyTaskNow(task);
+        LOG.exiting(getClass().getName(), "onModelFilterChanged");
+    }
+
+    private void onAllAppointmentsChanged(Change<? extends AppointmentModel> c) {
+        LOG.entering(getClass().getName(), "onAllAppointmentsChanged", c);
+        if (AppointmentDay.update(c, appointmentDays)) {
+            appointmentDays.sort(AppointmentDay::compareByDates);
+        }
+        LOG.exiting(getClass().getName(), "onAllAppointmentsChanged");
+    }
+
+    private class LoadItemsTask extends Task<List<AppointmentDAO>> {
+
+        private final AppointmentFilter filter;
+
+        LoadItemsTask(AppointmentFilter filter) {
+            this.filter = filter;
         }
 
         @Override
-        public ObservableList<Node> getChildren() {
-            return children;
-        }
-        
-        Stream<AppointmentTextFlow> stream() {
-            ObservableList<Node> c = super.getChildren();
-            if (c.isEmpty()) {
-                return Stream.empty();
-            }
-            Stream.Builder<AppointmentTextFlow> builder = Stream.builder();
-            c.forEach((t) -> {
-                if (null != t && t instanceof AppointmentTextFlow) {
-                    builder.accept((AppointmentTextFlow) t);
-                }
-            });
-            return builder.build();
-        }
-        
-        Optional<AppointmentTextFlow> find(int pk) {
-            Iterator<AppointmentTextFlow> iterator = stream().iterator();
-            while (iterator.hasNext()) {
-                AppointmentTextFlow item = iterator.next();
-                if (item.getModel().getPrimaryKey() == pk) {
-                    return Optional.of(item.firstDay());
-                }
-            }
-            return Optional.empty();
-        }
-        
-    }
-
-    static final class CalendarGridPane extends GridPane {
-
-        private final RowConstraints week5RowConstraints;
-        private final RowConstraints week6RowConstraints;
-        private final BorderPane[] emptyPanesTop;
-        private final BorderPane[] emptyPanesBottom;
-        private final CalendarCellVBox[] calendarCells;
-        private final SimpleListProperty<AppointmentModel> items;
-        private final SimpleObjectProperty<YearMonth> targetMonth;
-
-        CalendarGridPane(YearMonth targetMonth, ObservableList<AppointmentModel> items) {
-            this.targetMonth = new SimpleObjectProperty<>((null == targetMonth) ? YearMonth.now() : targetMonth);
-            this.items = new SimpleListProperty<>((null == items) ? FXCollections.observableArrayList() : items);
-            ObservableList<RowConstraints> rc = getRowConstraints();
-            for (int i = 0; i < 6; i++) {
-                RowConstraints r = new RowConstraints();
-                rc.add(r);
-            }
-            week5RowConstraints = new RowConstraints();
-            week6RowConstraints = new RowConstraints();
-            getStyleClass().add("month-gridpane");
-
-            double percent = 100.0 / 7.0;
-            ObservableList<Node> children = getChildren();
-            ObservableList<ColumnConstraints> columnConstraints = getColumnConstraints();
-            for (int i = 0; i < 7; i++) {
-                ColumnConstraints cc = new ColumnConstraints();
-                cc.setHgrow(Priority.NEVER);
-                cc.setPercentWidth(percent);
-                columnConstraints.add(cc);
-                Label label = new Label(DayOfWeek.of(i).getDisplayName(TextStyle.FULL, Locale.getDefault()));
-                GridPane.setColumnIndex(label, 1);
-                children.add(label);
-            }
-
-            emptyPanesTop = new BorderPane[6];
-            emptyPanesBottom = new BorderPane[6];
-            for (int i = 0; i < 6; i++) {
-                BorderPane b = NodeUtil.addCssClass(new BorderPane(), CssClassName.EMPTY_CELL);
-                GridPane.setHgrow(b, Priority.ALWAYS);
-                GridPane.setVgrow(b, Priority.ALWAYS);
-                GridPane.setColumnIndex(b, i);
-                GridPane.setRowIndex(b, 1);
-                emptyPanesTop[i] = b;
-                b = NodeUtil.addCssClass(new BorderPane(), CssClassName.EMPTY_CELL);
-                GridPane.setHgrow(b, Priority.ALWAYS);
-                GridPane.setVgrow(b, Priority.ALWAYS);
-                GridPane.setColumnIndex(b, i + 6);
-                GridPane.setRowIndex(b, 5);
-                emptyPanesBottom[i] = b;
-                // TODO: set row and column index and Add to child controls
-            }
-
-            calendarCells = new CalendarCellVBox[31];
-            for (int i = 0; i < 31; i++) {
-                CalendarCellVBox c = new CalendarCellVBox();
-                GridPane.setHgrow(c, Priority.ALWAYS);
-                GridPane.setVgrow(c, Priority.ALWAYS);
-                calendarCells[i] = c;
-                // TODO: set row and column index and Add to child controls
-            }
-
-            this.targetMonth.addListener(this::onMonthChanged);
-            this.items.addListener(this::onItemsChanged);
-        }
-
-        YearMonth getTargetMonth() {
-            return targetMonth.get();
-        }
-
-        void setTargetMonth(YearMonth value) {
-            targetMonth.set(value);
-        }
-
-        ObjectProperty<YearMonth> targetMonthProperty() {
-            return targetMonth;
-        }
-
-        ObservableList<AppointmentModel> getItems() {
-            return items.get();
-        }
-
-        void setItems(ObservableList<AppointmentModel> value) {
-            items.set(value);
-        }
-
-        ListProperty<AppointmentModel> itemsProperty() {
-            return items;
-        }
-
-        private void onMonthChanged(ObservableValue<? extends YearMonth> observable, YearMonth oldValue, YearMonth newValue) {
-            if (null == newValue) {
-                targetMonth.set((null == oldValue) ? YearMonth.now() : oldValue);
+        protected List<AppointmentDAO> call() throws Exception {
+            LOG.entering(getClass().getName(), "call");
+            updateMessage("Connecting to database");
+            try (DbConnector dbConnector = new DbConnector()) {
+                updateMessage("Connected. Loading appointments.");
+                List<AppointmentDAO> result = AppointmentDAO.FACTORY.load(dbConnector.getConnection(), filter);
+                LOG.exiting(getClass().getName(), "call", result);
+                return result;
             }
         }
 
-        private void onItemsChanged(ListChangeListener.Change<? extends AppointmentModel> c) {
-            while (c.next()) {
-                if (!c.wasPermutated()) {
-                    List<? extends AppointmentModel> list;
-                    if (c.wasUpdated()) {
-                        list = c.getList();
-                        int e = c.getTo();
-                        for (int i = c.getFrom(); i < e && i < list.size(); i++) {
-                            onItemChanged(list.get(i));
-                        }
-                    } else {
-                        list = c.getRemoved();
-                        if (null != list && !list.isEmpty()) {
-                            list.forEach(this::onItemRemoved);
-                        }
-                        list = c.getAddedSubList();
-                        if (null != list && !list.isEmpty()) {
-                            list.forEach(this::onItemAdded);
-                        }
-                    }
-                }
-            }
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            List<AppointmentDAO> list = getValue();
+            AppointmentDAO.updateModelList(list, allAppointments);
         }
 
-        private void onItemAdded(AppointmentModel item) {
-            LocalDateTime startDateTime = item.getStart();
-            LocalDateTime endDateTime = item.getEnd();
-            LocalDate targetStart = targetMonth.get().atDay(1);
-            LocalDate targetEnd = targetStart.plusMonths(1);
-            LocalDate startDate = startDateTime.toLocalDate();
-            LocalTime endTime = endDateTime.toLocalTime();
-            LocalDate endDate = (endTime.equals(LocalTime.MIN)) ? endDateTime.toLocalDate() : endDateTime.toLocalDate().plusDays(1);
-            if (startDate.isBefore(targetEnd) && endDate.isAfter(targetStart)) {
-                
-            } else {
-                // TODO: Search all for existing and remove it.
-            }
+        @Override
+        protected void cancelled() {
+            super.cancelled();
+            AppointmentDAO.updateModelList(Collections.emptyList(), allAppointments);
         }
 
-        private void onItemChanged(AppointmentModel item) {
-            LocalDateTime startDateTime = item.getStart();
-            LocalDateTime endDateTime = item.getEnd();
-            LocalDate targetStart = targetMonth.get().atDay(1);
-            LocalDate targetEnd = targetStart.plusMonths(1);
-            LocalDate startDate = startDateTime.toLocalDate();
-            LocalTime endTime = endDateTime.toLocalTime();
-            LocalDate endDate = (endTime.equals(LocalTime.MIN)) ? endDateTime.toLocalDate() : endDateTime.toLocalDate().plusDays(1);
-            if (startDate.isBefore(targetEnd) && endDate.isAfter(targetStart)) {
-                // TODO: 
-            } else {
-                // TODO: Search all for existingn and remove it.
-            }
+        @Override
+        protected void failed() {
+            super.failed();
+            AppointmentDAO.updateModelList(Collections.emptyList(), allAppointments);
         }
 
-        private void onItemRemoved(AppointmentModel item) {
-            LocalDateTime startDateTime = item.getStart();
-            LocalDateTime endDateTime = item.getEnd();
-            LocalDate targetStart = targetMonth.get().atDay(1);
-            LocalDate targetEnd = targetStart.plusMonths(1);
-            LocalDate startDate = startDateTime.toLocalDate();
-            LocalTime endTime = endDateTime.toLocalTime();
-            LocalDate endDate = (endTime.equals(LocalTime.MIN)) ? endDateTime.toLocalDate() : endDateTime.toLocalDate().plusDays(1);
-            if (startDate.isBefore(targetEnd) && endDate.isAfter(targetStart)) {
-                // TODO: 
-            } else {
-                // TODO: Search all for existingn and remove it.
-            }
-        }
-
-    }
-
-    static final class FooterHBox extends HBox {
-
-        private final SingleSelectionModel<Month> monthSelection;
-        private final ReadOnlyObjectProperty<Integer> year;
-        private final SpinnerValueFactory<Integer> yearValue;
-        private final ReadOnlyObjectWrapper<YearMonth> targetDate;
-        private final Button button;
-
-        FooterHBox(YearMonth targetDate) {
-            this.targetDate = new ReadOnlyObjectWrapper<>((null == targetDate) ? YearMonth.now() : targetDate);
-
-            setAlignment(Pos.CENTER_RIGHT);
-            setMaxWidth(Double.MAX_VALUE);
-
-            Spinner<Integer> yearSpinner = new Spinner<>(LocalDate.MIN.getYear() + 1, LocalDate.MAX.getYear() - 1, this.targetDate.get().getYear());
-            year = yearSpinner.valueProperty();
-            yearValue = yearSpinner.getValueFactory();
-
-            ComboBox<Month> monthComboBox = new ComboBox<>(FXCollections.observableArrayList(Month.values()));
-            monthSelection = monthComboBox.getSelectionModel();
-            monthSelection.select(this.targetDate.get().getMonth());
-            button = NodeUtil.createButton("Submit");
-            HBox.setMargin(button, new Insets(0.0, 0.0, 0.0, 8.0));
-            getChildren().addAll(
-                    NodeUtil.createLabel("Year:", CssClassName.LEFTCONTROLLABEL),
-                    NodeUtil.addCssClass(yearSpinner, CssClassName.LEFTLABELEDCONTROL),
-                    NodeUtil.createLabel("Month:", CssClassName.INNERLEFTCONTROLLABEL),
-                    NodeUtil.addCssClass(monthComboBox, CssClassName.LEFTLABELEDCONTROL),
-                    button
-            );
-            yearValue.valueProperty().addListener(this::onYearChanged);
-            monthSelection.selectedItemProperty().addListener(this::onMonthChanged);
-        }
-
-        YearMonth getTargetDate() {
-            return targetDate.get();
-        }
-
-        void setTargetDate(YearMonth value) {
-            if (null == value) {
-                setTargetDate(YearMonth.now());
-            } else {
-                Month m = monthSelection.getSelectedItem();
-                if (value.getMonth() != m) {
-                    monthSelection.select(value.getMonth());
-                }
-                Integer y = year.get();
-                int n = value.getYear();
-                if (y < n) {
-                    yearValue.increment(n - y);
-                } else if (y > n) {
-                    yearValue.decrement(y - n);
-                }
-            }
-        }
-
-        ReadOnlyObjectProperty<YearMonth> targetDateProperty() {
-            return targetDate.getReadOnlyProperty();
-        }
-
-        final void addSubmitEventHandler(EventType<ActionEvent> eventType, EventHandler<? super ActionEvent> eventHandler) {
-            button.addEventFilter(eventType, eventHandler);
-        }
-        
-        final void removeSubmitEventHandler(EventType<ActionEvent> eventType, EventHandler<? super ActionEvent> eventHandler) {
-            button.removeEventFilter(eventType, eventHandler);
-        }
-
-        private void onYearChanged(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
-            YearMonth t = targetDate.get();
-            if (null == t) {
-                t = YearMonth.now();
-            }
-            if (newValue != t.getYear()) {
-                targetDate.set(t.withYear(newValue));
-            }
-        }
-
-        private void onMonthChanged(ObservableValue<? extends Month> observable, Month oldValue, Month newValue) {
-            YearMonth t = targetDate.get();
-            if (null == t) {
-                t = YearMonth.now();
-            }
-            if (newValue != t.getMonth()) {
-                targetDate.set(t.withMonth(newValue.getValue()));
-            }
-        }
-        
     }
 }
