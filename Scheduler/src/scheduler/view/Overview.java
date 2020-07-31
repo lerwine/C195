@@ -6,6 +6,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.YearMonth;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -83,7 +84,7 @@ public class Overview extends VBox {
 
     private void onByMonthHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onByMonthHyperlinkAction", event);
-        ByMonth.loadIntoMainContent(LocalDate.now());
+        ByMonth.loadIntoMainContent(YearMonth.now());
     }
 
     private void onByWeekHyperlinkAction(ActionEvent event) {

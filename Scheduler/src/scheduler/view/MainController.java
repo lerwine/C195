@@ -2,6 +2,7 @@ package scheduler.view;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
@@ -253,7 +254,7 @@ public final class MainController {
     @FXML
     private void onMonthlyCalendarMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onMonthlyCalendarMenuItemAction", event);
-        ByMonth.loadIntoMainContent(LocalDate.now());
+        ByMonth.loadIntoMainContent(YearMonth.now());
         LOG.exiting(LOG.getName(), "onMonthlyCalendarMenuItemAction");
     }
 
