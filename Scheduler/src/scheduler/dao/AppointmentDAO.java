@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import scheduler.AppointmentAlertManager;
@@ -76,6 +77,38 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         USER_UPDATE_EVENT_HANDLER = FACTORY::onUserSaved;
         CustomerDAO.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, CUSTOMER_UPDATE_EVENT_HANDLER);
         UserDAO.FACTORY.addEventHandler(UserSuccessEvent.UPDATE_SUCCESS, USER_UPDATE_EVENT_HANDLER);
+    }
+
+    public static boolean updateModelList(List<AppointmentDAO> source, ObservableList<AppointmentModel> target) {
+        if (null == source || source.isEmpty()) {
+            if (target.isEmpty()) {
+                return false;
+            }
+            target.clear();
+            return true;
+        }
+        ArrayList<AppointmentModel> toAdd = new ArrayList<>();
+        ArrayList<AppointmentModel> toRemove = new ArrayList<>();
+        toRemove.addAll(target);
+        source.forEach((dao) -> {
+            int pk = dao.getPrimaryKey();
+            AppointmentModel model = target.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().orElse(null);
+            if (null != model) {
+                toRemove.remove(model);
+            } else {
+                toAdd.add(dao.cachedModel(true));
+            }
+        });
+        if (!toRemove.isEmpty()) {
+            target.removeAll(toRemove);
+            if (toAdd.isEmpty()) {
+                return true;
+            }
+        } else if (toAdd.isEmpty()) {
+            return false;
+        }
+        target.addAll(toAdd);
+        return true;
     }
 
     private final OriginalValues originalValues;
