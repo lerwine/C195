@@ -384,11 +384,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private void onItemActionRequest(AppointmentOpRequestEvent event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
-            try {
-                EditAppointment.edit(event.getEntityModel(), getScene().getWindow());
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error opening child window", ex);
-            }
+            editItem(event.getEntityModel());
         } else {
             deleteItem(event.getEntityModel());
         }
