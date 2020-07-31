@@ -361,8 +361,8 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINE);
 //        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
-        private static final String ANOTHER_USER_HAS_SAME_NAME = "Another user has the same name";
-        private final String ERROR_CHECKING_CONFLICTS = "Error checking user name conflicts";
+        private static final String ANOTHER_USER_HAS_SAME_NAME = "Another consultant has the same name";
+        private final String ERROR_CHECKING_CONFLICTS = "Error checking consultant name conflicts";
 
         public SaveTask(UserModel model, boolean alreadyValidated) {
             super(model, UserModel.FACTORY, alreadyValidated);

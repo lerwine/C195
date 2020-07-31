@@ -28,7 +28,7 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All Consultants"}.
      */
     public static final String RESOURCEKEY_ALLUSERS = "allUsers";
 
@@ -153,12 +153,12 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_ERRORLOADINGNEWCUSTOMERWINDOW = "errorLoadingNewCustomerWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading new user edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading new consultant edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGNEWUSERWINDOW = "errorLoadingNewUserWindow";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading user edit window."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading consultant edit window."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGUSEREDITWINDOW = "errorLoadingUserEditWindow";
 
@@ -178,7 +178,7 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_MANAGECUSTOMERS = "manageCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Manage Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Manage Consultants"}.
      */
     public static final String RESOURCEKEY_MANAGEUSERS = "manageUsers";
 
@@ -253,12 +253,12 @@ public interface MainResourceKeys {
     public static final String RESOURCEKEY_TYPESBYMONTH = "typesByMonth";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading user listing."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading consultant listing."}.
      */
     public static final String RESOURCEKEY_USERLOADERROR = "userLoadError";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Consultants"}.
      */
     public static final String RESOURCEKEY_USERS = "users";
 

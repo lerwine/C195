@@ -106,7 +106,7 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_MANAGECUSTOMERSHEADING = "manageCustomersHeading";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Use the \"Users\" menu to view a"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Use the \"Consultants\" menu to view a"}.
      */
     public static final String RESOURCEKEY_MANAGEUSERSA = "manageUsersA";
 
@@ -116,12 +116,12 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_MANAGEUSERSB = "manageUsersB";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Manage Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Manage Consultants"}.
      */
     public static final String RESOURCEKEY_MANAGEUSERSHEADING = "manageUsersHeading";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "list of users."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "list of consultants."}.
      */
     public static final String RESOURCEKEY_MANGEUSERSLINK = "mangeUsersLink";
 
@@ -161,7 +161,7 @@ public interface OverviewResourceKeys {
     public static final String RESOURCEKEY_UPCOMINGAPPOINTMENTS = "upcomingAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading user listing."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading consultant listing."}.
      */
     public static final String RESOURCEKEY_USERLOADERROR = "userLoadError";
 

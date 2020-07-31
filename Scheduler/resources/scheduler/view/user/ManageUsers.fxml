@@ -122,7 +122,7 @@
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
                     <top>
-                        <Label text="User Display Options">
+                        <Label text="Consultant Display Options">
                             <styleClass>
                                 <String fx:value="header" />
                                 <String fx:value="h1" />
@@ -136,13 +136,13 @@
                     <center>
                         <VBox spacing="8.0" BorderPane.alignment="CENTER">
                             <children>
-                                <RadioButton fx:id="activeUsersRadioButton" mnemonicParsing="false" selected="true" text="Active Users">
+                                <RadioButton fx:id="activeUsersRadioButton" mnemonicParsing="false" selected="true" text="Active Consultants">
                                     <toggleGroup>
                                         <ToggleGroup fx:id="userFilterToggleGroup" />
                                     </toggleGroup>
                                 </RadioButton>
-                                <RadioButton fx:id="inactiveUsersRadioButton" mnemonicParsing="false" text="Inactive Users" toggleGroup="$userFilterToggleGroup" />
-                                <RadioButton fx:id="allUsersRadioButton" mnemonicParsing="false" text="All Users" toggleGroup="$userFilterToggleGroup" />
+                                <RadioButton fx:id="inactiveUsersRadioButton" mnemonicParsing="false" text="Inactive Consultants" toggleGroup="$userFilterToggleGroup" />
+                                <RadioButton fx:id="allUsersRadioButton" mnemonicParsing="false" text="All Consultants" toggleGroup="$userFilterToggleGroup" />
                                 <ButtonBar>
                                     <buttons>
                                         <Button mnemonicParsing="false" onAction="#onUserFilterOKButtonAction" text="OK" />
@@ -162,7 +162,7 @@
             <center>
                 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="CENTER">
                     <top>
-                        <Label text="User Listing Help">
+                        <Label text="Consultant Listing Help">
                             <styleClass>
                                 <String fx:value="header" />
                                 <String fx:value="h1" />
@@ -178,18 +178,18 @@
                             <children>
                                 <TextFlow>
                                     <children>
-                                        <Text styleClass="h2" text="Edit Users" />
-                                        <Text text="&#10;Select a user and hit " />
+                                        <Text styleClass="h2" text="Edit Consultants" />
+                                        <Text text="&#10;Select a consultant and hit " />
                                         <Text styleClass="refNameText" text="ENTER" />
                                         <Text text=" or right-click and select " />
                                         <Text styleClass="refNameText" text="&quot;Edit&quot;" />
                                         <Text text="." />
-                                        <Text styleClass="h2" text="&#10;Add Users" />
+                                        <Text styleClass="h2" text="&#10;Add Consultants" />
                                         <Text text="&#10;Use the " />
                                         <Text text="&quot;New&quot;" />
                                         <Text text="button at the bottom." />
-                                        <Text styleClass="h2" text="&#10;Delete Users" />
-                                        <Text text="&#10;Select a user and hit " />
+                                        <Text styleClass="h2" text="&#10;Delete Consultants" />
+                                        <Text text="&#10;Select a consultant and hit " />
                                         <Text styleClass="refNameText" text="DELETE" />
                                         <Text text=" or right-click and select " />
                                         <Text styleClass="refNameText" text="&quot;Delete&quot;" />
@@ -205,7 +205,7 @@
                                                 <String fx:value="symbol" />
                                             </styleClass>
                                         </Text>
-                                        <Text text=" button toward the upper-left to select which users are displayed." />
+                                        <Text text=" button toward the upper-left to select which consultants are displayed." />
                                         <Text styleClass="symbol" text="&#10;•" />
                                         <Text text=" Click the " />
                                         <Text text="&quot;✚&quot;">

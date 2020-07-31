@@ -23,7 +23,7 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_ACTIVECUSTOMERS = "activeCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Active Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Active Consultants"}.
      */
     public static final String RESOURCEKEY_ACTIVEUSERS = "activeUsers";
 
@@ -58,7 +58,7 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_ALLCUSTOMERS = "allCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All Consultants"}.
      */
     public static final String RESOURCEKEY_ALLUSERS = "allUsers";
 
@@ -269,7 +269,7 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_INACTIVECUSTOMERS = "inactiveCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Inactive Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Inactive Consultants"}.
      */
     public static final String RESOURCEKEY_INACTIVEUSERS = "inactiveUsers";
 
@@ -315,7 +315,7 @@ public interface AppResourceKeys {
     public static final String RESOURCEKEY_LOADINGCUSTOMERS = "loadingCustomers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading users, please wait\u2026"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading consultants, please wait\u2026"}.
      */
     public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
 

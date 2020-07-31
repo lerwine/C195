@@ -40,11 +40,11 @@ import scheduler.view.ViewAndController;
 /**
  * Main Application class for the Scheduler application.
  * <p>
- * Upon startup, {@link MainController} is loaded as the root node a the {@link Scene} of the primary {@link Stage}. It will not be completely initialized until the user is
+ * Upon startup, {@link MainController} is loaded as the root node a the {@link Scene} of the primary {@link Stage}. It will not be completely initialized until the consultant is
  * successfully logged in. The {@link Login} custom control is appended as the last child node of the view for the main controller, which masks the entire window until the login is
  * successful. To validate credentials, the {@link Login} control invokes
- * {@link LoginBorderPane#tryLoginUser(scheduler.Scheduler.LoginBorderPane, java.lang.String, java.lang.String)}. After successful authentication, the current user data object is
- * stored in {@link Scheduler#currentUser}, the {@link Login} control is removed, and the {@link MainController} is completed.</p>
+ * {@link LoginBorderPane#tryLoginUser(scheduler.Scheduler.LoginBorderPane, java.lang.String, java.lang.String)}. After successful authentication, the current consultant data
+ * object is stored in {@link Scheduler#currentUser}, the {@link Login} control is removed, and the {@link MainController} is completed.</p>
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
@@ -56,9 +56,9 @@ public final class Scheduler extends Application {
     private static UserDAO currentUser = null;
 
     /**
-     * Gets the currently logged in user.
+     * Gets the currently logged in consultant.
      *
-     * @return The {@link UserDAO} object representing the currently logged in user.
+     * @return The {@link UserDAO} object representing the currently logged in consultant.
      */
     public static UserDAO getCurrentUser() {
         return currentUser;
@@ -123,7 +123,7 @@ public final class Scheduler extends Application {
             // Stop the background timer for appointment alert checking
             AppointmentAlertManager.INSTANCE.stop();
 
-            // Record user logout to file
+            // Record consultant logout to file
             File logFile = new File(LOG_FILE_PATH);
             LOG.fine(() -> String.format("Logging logout timestamp to %s", logFile.getAbsolutePath()));
             try (FileWriter writer = new FileWriter(logFile, true)) {
@@ -145,7 +145,7 @@ public final class Scheduler extends Application {
         @SuppressWarnings("LeakingThisInConstructor")
         protected LoginBorderPane() {
             if (null != currentUser) {
-                throw new IllegalStateException("Login controller cannot be instantiated after user is logged in");
+                throw new IllegalStateException("Login controller cannot be instantiated after consultant is logged in");
             }
             try {
                 ViewControllerLoader.initializeCustomControl(this);
@@ -156,11 +156,11 @@ public final class Scheduler extends Application {
         }
 
         /**
-         * Looks up a user from the database and sets the current logged in user for the application if the password hash matches.
+         * Looks up a consultant from the database and sets the current logged in consultant for the application if the password hash matches.
          *
          * @param loginView The view for the login.
-         * @param userName The login name for the user to look up.
-         * @param password The raw password provided by the user.
+         * @param userName The login name for the consultant to look up.
+         * @param password The raw password provided by the consultant.
          */
         protected void tryLoginUser(LoginBorderPane loginView, String userName, String password) {
             MainController.startBusyTaskNow(new LoginTask(loginView, userName, password, this::onLoginFailure));
@@ -172,7 +172,7 @@ public final class Scheduler extends Application {
         protected abstract void onLoginFailure();
     }
 
-    // Task that connects to DB in background and validates user credials
+    // Task that connects to DB in background and validates consultant credials
     private static class LoginTask extends Task<UserDAO> {
 
         private final String userName, password;
@@ -194,7 +194,7 @@ public final class Scheduler extends Application {
             if (null == user) {
                 onNotSucceeded.run();
             } else {
-                // Record user logout to file
+                // Record consultant logout to file
                 File logFile = new File(LOG_FILE_PATH);
                 LOG.fine(() -> String.format("Logging login timestamp to %s", logFile.getAbsolutePath()));
                 try (FileWriter writer = new FileWriter(logFile, true)) {

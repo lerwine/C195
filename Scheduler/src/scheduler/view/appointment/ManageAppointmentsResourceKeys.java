@@ -48,7 +48,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_ALLAPPOINTMENTS = "allAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All appointments for customer \"%s\" and user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All appointments for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_ALLAPPOINTMENTSFORBOTH = "allAppointmentsForBoth";
 
@@ -58,7 +58,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_ALLAPPOINTMENTSFORCUST = "allAppointmentsForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All appointments for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "All appointments for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_ALLAPPOINTMENTSFORUSER = "allAppointmentsForUser";
 
@@ -104,7 +104,7 @@ public interface ManageAppointmentsResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Appointments after %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
+     * {@code "Appointments after %tm %<te, %<tY for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSAFTERDATEFORBOTH = "appointmentsAfterDateForBoth";
 
@@ -114,7 +114,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTSAFTERDATEFORCUST = "appointmentsAfterDateForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments after %tm %<te, %<tY for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments after %tm %<te, %<tY for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSAFTERDATEFORUSER = "appointmentsAfterDateForUser";
 
@@ -125,7 +125,7 @@ public interface ManageAppointmentsResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Appointments before %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
+     * {@code "Appointments before %tm %<te, %<tY for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSBEFOREDATEFORBOTH = "appointmentsBeforeDateForBoth";
 
@@ -135,7 +135,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTSBEFOREDATEFORCUST = "appointmentsBeforeDateForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments before %tm %<te, %<tY for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments before %tm %<te, %<tY for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSBEFOREDATEFORUSER = "appointmentsBeforeDateForUser";
 
@@ -146,7 +146,7 @@ public interface ManageAppointmentsResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
+     * {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSBETWEENDATESFORBOTH = "appointmentsBetweenDatesForBoth";
 
@@ -158,7 +158,7 @@ public interface ManageAppointmentsResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY for user \"%s\""}.
+     * {@code "Appointments between %tm %<te, %<tY and %tm %<te, %<tY for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSBETWEENDATESFORUSER = "appointmentsBetweenDatesForUser";
 
@@ -168,7 +168,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTSFORCUSTOMER = "appointmentsForCustomer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSFORUSER = "appointmentsForUser";
 
@@ -188,7 +188,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTSONDATEFORCUST = "appointmentsOnDateForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments on %tm %<te, %<tY for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments on %tm %<te, %<tY for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSONDATEFORUSER = "appointmentsOnDateForUser";
 
@@ -199,7 +199,7 @@ public interface ManageAppointmentsResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Appointments on or after %tm %<te, %<tY for customer \"%s\" and user \"%s\""}.
+     * {@code "Appointments on or after %tm %<te, %<tY for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSONORAFTERFORBOTH = "appointmentsOnOrAfterForBoth";
 
@@ -210,7 +210,8 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_APPOINTMENTSONORAFTERFORCUST = "appointmentsOnOrAfterForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Appointments on or after %tm %<te, %<tY for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Appointments on or after %tm %<te, %<tY for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_APPOINTMENTSONORAFTERFORUSER = "appointmentsOnOrAfterForUser";
 
@@ -296,7 +297,7 @@ public interface ManageAppointmentsResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Current and future appointments for customer \"%s\" and user \"%s\""}.
+     * {@code "Current and future appointments for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTANDFUTUREFORBOTH = "currentAndFutureForBoth";
 
@@ -306,7 +307,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CURRENTANDFUTUREFORCUST = "currentAndFutureForCust";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current and future appointments for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current and future appointments for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTANDFUTUREFORUSER = "currentAndFutureForUser";
 
@@ -317,7 +318,7 @@ public interface ManageAppointmentsResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "Current and past appointments for customer \"%s\" and user \"%s\""}.
+     * {@code "Current and past appointments for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTANDPASTFORBOTH = "currentAndPastForBoth";
 
@@ -327,7 +328,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CURRENTANDPASTFORCUSTOMER = "currentAndPastForCustomer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current and past appointments for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current and past appointments for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTANDPASTFORUSER = "currentAndPastForUser";
 
@@ -337,7 +338,8 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CURRENTAPPOINTMENTS = "currentAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current appointments for customer \"%s\" and user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Current appointments for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTFORBOTH = "currentForBoth";
 
@@ -347,7 +349,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_CURRENTFORCUSTOMER = "currentForCustomer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current appointments for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Current appointments for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_CURRENTFORUSER = "currentForUser";
 
@@ -634,7 +636,8 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_PASTAPPOINTMENTS = "pastAppointments";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Past appointments for customer \"%s\" and user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Past appointments for customer \"%s\" and consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_PASTAPPOINTMENTSFORBOTH = "pastAppointmentsForBoth";
 
@@ -644,7 +647,7 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_PASTAPPOINTMENTSFORCUSTOMER = "pastAppointmentsForCustomer";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Past appointments for user \"%s\""}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Past appointments for consultant \"%s\""}.
      */
     public static final String RESOURCEKEY_PASTAPPOINTMENTSFORUSER = "pastAppointmentsForUser";
 
@@ -755,17 +758,17 @@ public interface ManageAppointmentsResourceKeys {
     public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Consultant"}.
      */
     public static final String RESOURCEKEY_USER = "user";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User ID"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Consultant ID"}.
      */
     public static final String RESOURCEKEY_USERID = "userId";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User:"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Consultant:"}.
      */
     public static final String RESOURCEKEY_USERLABELTEXT = "userLabelText";
 

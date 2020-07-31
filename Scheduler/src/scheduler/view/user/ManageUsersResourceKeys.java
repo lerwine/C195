@@ -33,17 +33,18 @@ public interface ManageUsersResourceKeys {
     public static final String RESOURCEKEY_EDIT = "edit";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Error loading users.\u000aSee logs for more information."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
+     * {@code "Error loading consultants.\u000aSee logs for more information."}.
      */
     public static final String RESOURCEKEY_ERRORLOADINGUSERS = "errorLoadingUsers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Loading Consultants"}.
      */
     public static final String RESOURCEKEY_LOADINGUSERS = "loadingUsers";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Manage Users"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Manage Consultants"}.
      */
     public static final String RESOURCEKEY_MANAGEUSERS = "manageUsers";
 
@@ -58,7 +59,7 @@ public interface ManageUsersResourceKeys {
     public static final String RESOURCEKEY_NEW = "new";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "No users to show."}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "No consultants to show."}.
      */
     public static final String RESOURCEKEY_NOUSERSTOSHOW = "noUsersToShow";
 
@@ -79,7 +80,7 @@ public interface ManageUsersResourceKeys {
 
     /**
      * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for
-     * {@code "That user is referenced in one or more appointments and cannot be deleted."}.
+     * {@code "That consultant is referenced in one or more appointments and cannot be deleted."}.
      */
     public static final String RESOURCEKEY_USERHASAPPOINTMENTS = "userHasAppointments";
 

@@ -364,10 +364,10 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      * For instance, the {@link scheduler.model.fx.AppointmentModel} class has an {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation} property, which is
      * a calculated property where the calculation algorithm changes based upon the value of the {@link scheduler.model.fx.AppointmentModel#type type} property. Sometimes, the
      * algorithm uses properties from the {@link scheduler.model.fx.PartialCustomerModel} referenced by the {@link scheduler.model.fx.AppointmentModel#customer customer} property.
-     * It is possible to have a navigation path in which the {@link scheduler.model.fx.CustomerModel#address} property is modified, and the application user will be eventually
-     * returned to a scene that has a listing of appointments where one of the columns displays the {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation},
-     * with one or more of them displaying the customer's address. By using cached objects, it is much easier to ensure that the customer address in the columns of the parent
-     * listing is automatically updated after any change.</p>
+     * It is possible to have a navigation path in which the {@link scheduler.model.fx.CustomerModel#address} property is modified, and the application consultant will be
+     * eventually returned to a scene that has a listing of appointments where one of the columns displays the
+     * {@link scheduler.model.fx.AppointmentModel#effectiveLocation effectiveLocation}, with one or more of them displaying the customer's address. By using cached objects, it is
+     * much easier to ensure that the customer address in the columns of the parent listing is automatically updated after any change.</p>
      * This class was created (versus just using a {@link java.util.WeakHashMap} for the following reasons:
      * <ol>
      * <li>The mapping is keyed by the value of the {@link DataAccessObject#primaryKey primaryKey}. Items which have not yet been added to the database will not have a primary key,

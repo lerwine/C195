@@ -130,8 +130,7 @@ public class SchemaHelper {
      * @param table The {@link DbTable} value representing the target data table definition.
      * @param name The {@link DbName} of the column to search for.
      * @return The {@link DbColumn} value of the specified data {@code table} that matches the given {@code name}.
-     * @throws NoSuchElementException if {@code name} does not match any {@link DbColumn#dbName} value for the columns of the specified data
-     * {@code table}.
+     * @throws NoSuchElementException if {@code name} does not match any {@link DbColumn#dbName} value for the columns of the specified data {@code table}.
      */
     public static DbColumn getDbColumn(DbTable table, DbName name) {
         Map<DbName, DbColumn> map = TABLE_COLUMN_MAPPINGS.get(table);
@@ -166,8 +165,7 @@ public class SchemaHelper {
      *
      * @param table The {@link DbTable} value representing the target database table.
      * @param predicate A {@link Predicate} that determines which {@link DbColumn}s to include in the results.
-     * @return A {@link Stream} of {@link DbColumn}s from the specified data {@code table} where the given {@code predicate} returned a {@code true}
-     * value.
+     * @return A {@link Stream} of {@link DbColumn}s from the specified data {@code table} where the given {@code predicate} returned a {@code true} value.
      */
     public static Stream<DbColumn> getTableColumns(DbTable table, Predicate<DbColumn> predicate) {
         return COLUMNS_BY_TABLE.get(table).stream().filter(predicate);
@@ -194,11 +192,11 @@ public class SchemaHelper {
     }
 
     /**
-     * Tests whether a column is one that stores user-provided data, excluding foreign key values.
+     * Tests whether a column is one that stores consultant-provided data, excluding foreign key values.
      *
      * @param column The column to test.
-     * @return {@code true} if {@link DbColumn#getUsageCategory()} is {@link ColumnCategory#DATA}, {@link ColumnCategory#UNIQUE_KEY} or
-     * {@link ColumnCategory#CRYPTO_HASH}; otherwise, {@code false}.
+     * @return {@code true} if {@link DbColumn#getUsageCategory()} is {@link ColumnCategory#DATA}, {@link ColumnCategory#UNIQUE_KEY} or {@link ColumnCategory#CRYPTO_HASH};
+     * otherwise, {@code false}.
      */
     @SuppressWarnings("incomplete-switch")
     public static boolean isEntityData(DbColumn column) {
@@ -215,8 +213,8 @@ public class SchemaHelper {
      * Tests whether a column is suitable for inclusion in table joins.
      *
      * @param column The column to test.
-     * @return {@code true} if {@link DbColumn#getUsageCategory()} is {@link ColumnCategory#DATA}, {@link ColumnCategory#UNIQUE_KEY} or
-     * {@link ColumnCategory#FOREIGN_KEY}; otherwise, {@code false}.
+     * @return {@code true} if {@link DbColumn#getUsageCategory()} is {@link ColumnCategory#DATA}, {@link ColumnCategory#UNIQUE_KEY} or {@link ColumnCategory#FOREIGN_KEY};
+     * otherwise, {@code false}.
      */
     @SuppressWarnings("incomplete-switch")
     public static boolean isForJoinedData(DbColumn column) {
@@ -233,8 +231,7 @@ public class SchemaHelper {
      * Gets the columns that are referenced in a foreign-key relationship to the given column.
      *
      * @param column The {@link DbColumn} value representing a data column that may refer to other columns.
-     * @return A read-only {@link Collection} of {@link DbColumn} values that represent the joining column for the {@link DbTable}s that the given
-     * {@code column} refers to.
+     * @return A read-only {@link Collection} of {@link DbColumn} values that represent the joining column for the {@link DbTable}s that the given {@code column} refers to.
      */
     public static Collection<DbColumn> getReferencedColumns(DbColumn column) {
         if (REFERENCED_COLUMN_MAPPINGS.containsKey(column)) {
@@ -247,8 +244,7 @@ public class SchemaHelper {
      * Gets the columns that refer to the given column in a foreign-key relationship.
      *
      * @param column The {@link DbColumn} value representing a data column that may referred to by other columns.
-     * @return A read-only {@link Collection} of {@link DbColumn} values that represent the joining column for the {@link DbTable}s that refer to the
-     * given {@code column}.
+     * @return A read-only {@link Collection} of {@link DbColumn} values that represent the joining column for the {@link DbTable}s that refer to the given {@code column}.
      */
     public static Collection<DbColumn> getReferencingColumns(DbColumn column) {
         if (REFERRING_COLUMN_MAPPINGS.containsKey(column)) {
@@ -279,7 +275,7 @@ public class SchemaHelper {
 
     /**
      * Checks whether to columns are equal or are involved in the same foreign-key relationship.
-     * 
+     *
      * @param a The first {@link DbColumn} to test.
      * @param b The second {@link DbColumn} to test.
      * @return {@code true} if both columns are equal or if they are both involved in the same foreign-key relationship.

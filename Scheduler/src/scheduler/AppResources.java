@@ -84,7 +84,7 @@ public final class AppResources {
 
     public static void setCurrentLocale(SupportedLocale newLocale) {
         if (Scheduler.getCurrentUser() != null) {
-            throw new IllegalStateException("Cannot change locale after user is loggged in");
+            throw new IllegalStateException("Cannot change locale after consultant is loggged in");
         }
         if (currentLocale != Objects.requireNonNull(newLocale)) {
             currentLocale = newLocale;

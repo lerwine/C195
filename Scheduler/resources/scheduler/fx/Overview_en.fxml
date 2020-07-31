@@ -41,11 +41,11 @@
         <Text text=" menu to view a " />
         <Hyperlink fx:id="countryListingHyperlink" id="countryListingHyperlink" text="list of countries" />
         <Text text=". You can then select the city and address to view customers at that specific address." />
-        <Text styleClass="h2" text="&#10;&#10;Manage Users" />
+        <Text styleClass="h2" text="&#10;&#10;Manage Consultants" />
         <Text text="&#10;Use the " />
-        <Text styleClass="refNameText" text="&quot;Users&quot;" />
+        <Text styleClass="refNameText" text="&quot;Consultants&quot;" />
         <Text text=" menu to view a " />
-        <Hyperlink fx:id="userListingHyperlink" id="userListingHyperlink" text="list of users" />
+        <Hyperlink fx:id="userListingHyperlink" id="userListingHyperlink" text="list of consultants" />
         <Text text="." />
     </children>
 </TextFlow>

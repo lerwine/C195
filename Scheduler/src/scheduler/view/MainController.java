@@ -49,7 +49,7 @@ import scheduler.view.user.ManageUsers;
 /**
  * FXML Controller class for main application content.
  * <p>
- * This controller will remain active from the time the user is logged in until the application exits.</p>
+ * This controller will remain active from the time the consultant is logged in until the application exits.</p>
  * <p>
  * All data object create, update and delete operations should be initiated through this controller. This allows dynamically loaded views to be notified of changes, if
  * necessary.</p>

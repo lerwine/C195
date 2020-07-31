@@ -281,7 +281,7 @@ public interface EditCustomerResourceKeys {
     public static final String RESOURCEKEY_UPDATEDON = "updatedOn";
 
     /**
-     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "User"}.
+     * Resource key in the current {@link java.util.ResourceBundle} that contains the locale-specific text for {@code "Consultant"}.
      */
     public static final String RESOURCEKEY_USER = "user";
 
