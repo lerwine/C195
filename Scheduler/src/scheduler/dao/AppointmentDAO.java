@@ -81,9 +81,6 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
 
     public static boolean updateModelList(List<AppointmentDAO> source, ObservableList<AppointmentModel> target) {
         if (null == source || source.isEmpty()) {
-            if (target.isEmpty()) {
-                return false;
-            }
             target.clear();
             return true;
         }
@@ -99,13 +96,15 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 toAdd.add(dao.cachedModel(true));
             }
         });
-        if (!toRemove.isEmpty()) {
+        if (toRemove.isEmpty()) {
+            if (toAdd.isEmpty()) {
+                return false;
+            }
+        } else {
             target.removeAll(toRemove);
             if (toAdd.isEmpty()) {
-                return true;
+                return false;
             }
-        } else if (toAdd.isEmpty()) {
-            return false;
         }
         target.addAll(toAdd);
         return true;
