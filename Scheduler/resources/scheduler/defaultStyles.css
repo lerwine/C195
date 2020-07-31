@@ -390,17 +390,17 @@ Labeled.innerLeftControlLabel {
     -fx-fill: -scheduler-text-color-light;
 }
 
-.header > .button,
-.footer > .button {
+.header .button,
+.footer .button {
     -fx-background-color: -scheduler-alt-dark-gradient;
     -fx-text-fill: -scheduler-text-color-light;
     -fx-fill: -scheduler-text-color-light;
 }
 
-.header > .symbol-button,
-.footer > .symbol-button,
-.header > .symbol-button .text,
-.footer > .symbol-button .text {
+.header .symbol-button,
+.footer .symbol-button,
+.header .symbol-button .text,
+.footer .symbol-button .text {
     -fx-font-weight: bold;
     -fx-background-color: -scheduler-alt-dark-gradient;
     -fx-text-fill: -scheduler-text-color-light;
