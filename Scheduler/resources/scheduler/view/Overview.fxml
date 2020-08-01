@@ -110,9 +110,7 @@
         <TextFlow>
             <children>
                 <Text text="The " />
-                <Text styleClass="refNameText" text="&quot;" />
-                <Text styleClass="refNameText" text="%appointments" />
-                <Text styleClass="refNameText" text="&quot;" />
+                <Text styleClass="refNameText" text="&quot;Appointments&quot;" />
                 <Text text=" menu dropdown lets you view listings of appointments.;" />
             </children>
         </TextFlow>
@@ -122,9 +120,9 @@
                 <TextFlow>
                     <children>
                         <Text text="The " />
-                        <Hyperlink onAction="#onByWeekHyperlinkAction" text="%weeklyCalendar" />
+                        <Hyperlink onAction="#onByWeekHyperlinkAction" text="Weekly Calendar" />
                         <Text text=" menu item shows a weekly calendar of appointments, and " />
-                        <Hyperlink onAction="#onByMonthHyperlinkAction" text="%monthlyCalendar" />
+                        <Hyperlink onAction="#onByMonthHyperlinkAction" text="Monthly Calendar" />
                         <Text text=" shows all appointments for a given month." />
                     </children>
                 </TextFlow>
@@ -136,9 +134,9 @@
                 <TextFlow>
                     <children>
                         <Text text="The " />
-                        <Hyperlink onAction="#onMyCurrentAndUpcomingHyperlinkAction" text="%myCurrentAndUpcoming" />
+                        <Hyperlink onAction="#onMyCurrentAndUpcomingHyperlinkAction" text="My Current and Upcoming Appointments" />
                         <Text text=" menu item shows your appointments for today as well as upcoming appointments. The " />
-                        <Hyperlink onAction="#onAllAppointmentsHyperlinkAction" text="%allAppointments" />
+                        <Hyperlink onAction="#onAllAppointmentsHyperlinkAction" text="All Appointments" />
                         <Text text=" menu item shows all appointments." />
                     </children>
                 </TextFlow>
