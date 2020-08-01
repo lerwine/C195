@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -20,7 +18,6 @@ import javafx.collections.ObservableList;
 import scheduler.dao.PartialCustomerDAO;
 import scheduler.dao.PartialUserDAO;
 import scheduler.model.AppointmentType;
-import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.UserStatus;
 import scheduler.model.fx.AppointmentModel;
@@ -30,7 +27,6 @@ import scheduler.model.fx.PartialUserModel;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement scheduler.view.appointment.AppointmentDay
  */
 public class AppointmentDay {
 
@@ -43,14 +39,14 @@ public class AppointmentDay {
         }
         return builder.build();
     }
-    
+
     private static Stream<AppointmentDay> find(int pk, Collection<AppointmentDay> source) {
         if (null == source) {
             return Stream.empty();
         }
         return source.stream().filter((item) -> item.model.get().getPrimaryKey() == pk);
     }
-    
+
     public static int compareByDates(AppointmentDay a, AppointmentDay b) {
         if (null == a) {
             return (null == b) ? 0 : 1;
@@ -64,12 +60,12 @@ public class AppointmentDay {
         int result = a.date.get().compareTo(b.date.get());
         return (result == 0) ? AppointmentHelper.compareByDates(a.model.get(), b.model.get()) : 0;
     }
-    
+
     public static boolean update(ListChangeListener.Change<? extends AppointmentModel> sourceChange, ObservableList<AppointmentDay> target) {
         if (sourceChange.wasPermutated() || sourceChange.wasUpdated()) {
             return false;
         }
-        
+
         ArrayList<AppointmentDay> toAdd = new ArrayList<>();
         ArrayList<AppointmentDay> toRemove = new ArrayList<>();
         sourceChange.getRemoved().forEach((remitem) -> {
@@ -79,7 +75,7 @@ public class AppointmentDay {
             find(additem.getPrimaryKey(), target).forEach((t) -> toRemove.add(t));
             create(additem).forEach((t) -> toAdd.add(t));
         });
-        
+
         if (toRemove.isEmpty()) {
             if (toAdd.isEmpty()) {
                 return false;
@@ -93,7 +89,7 @@ public class AppointmentDay {
         target.addAll(toAdd);
         return true;
     }
-    
+
     private final ReadOnlyObjectWrapper<LocalDate> date;
     private final ReadOnlyObjectWrapper<AppointmentModel> model;
 

@@ -43,7 +43,6 @@ import scheduler.util.LogHelper;
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.AppointmentAlertManager}
  */
 public class AppointmentAlertManager implements EventTarget {
 
@@ -334,8 +333,8 @@ public class AppointmentAlertManager implements EventTarget {
 
     private synchronized void onAppointmentInserted(AppointmentModel model) {
         LOG.entering(LOG.getName(), "onAppointmentInserted", model);
-        if (model.getUser().getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey() && model.getEnd().compareTo(LocalDateTime.now()) >= 0 &&
-                model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
+        if (model.getUser().getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey() && model.getEnd().compareTo(LocalDateTime.now()) >= 0
+                && model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
             insertAppointment(model);
         }
         LOG.exiting(LOG.getName(), "onAppointmentInserted");
@@ -346,8 +345,8 @@ public class AppointmentAlertManager implements EventTarget {
         int primaryKey = model.getPrimaryKey();
         if (allItems.containsKey(primaryKey)) {
             updateAppointment(model);
-        } else if (model.getUser().getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey() && model.getEnd().compareTo(LocalDateTime.now()) >= 0 &&
-                model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
+        } else if (model.getUser().getPrimaryKey() == Scheduler.getCurrentUser().getPrimaryKey() && model.getEnd().compareTo(LocalDateTime.now()) >= 0
+                && model.getStart().compareTo(LocalDateTime.now().plusMinutes(alertLeadtimeMinutes)) <= 0) {
             insertAppointment(model);
         }
         LOG.exiting(LOG.getName(), "onAppointmentUpdated");
@@ -506,7 +505,7 @@ public class AppointmentAlertManager implements EventTarget {
     }
 
     public synchronized void snooze(Appointment<?> appointment, Duration duration) {
-        LOG.entering(LOG.getName(), "snooze", new Object[] {appointment, duration});
+        LOG.entering(LOG.getName(), "snooze", new Object[]{appointment, duration});
         int primaryKey = appointment.getPrimaryKey();
         if (allItems.containsKey(primaryKey)) {
             setSnooze(allItems.get(primaryKey), LocalDateTime.now().plus(duration));
@@ -660,12 +659,12 @@ public class AppointmentAlertManager implements EventTarget {
                         formatter.format(nextSnoozed.start), formatter.format(nextSnoozed.end), nextSnoozed.dismissed, dismissed);
             }
             if (null == nextSnoozed) {
-                    return String.format("Item{model=%d, snoozedUntil=%s, start=%s, end=%s,%n"
-                            + "\tpreviousSnoozed={model=%d, snoozedUntil=%s, start=%s, end=%s, dismissed=%s},%n"
-                            + "\tnextSnoozed=(null), dismissed=%s}", model.getPrimaryKey(), (null == snoozedUntil) ? "(null)" : formatter.format(snoozedUntil),
-                            formatter.format(start), formatter.format(end), previousSnoozed.model.getPrimaryKey(),
-                            (null == previousSnoozed.snoozedUntil) ? "(null)" : formatter.format(previousSnoozed.snoozedUntil), formatter.format(previousSnoozed.start),
-                            formatter.format(previousSnoozed.end), previousSnoozed.dismissed, dismissed);
+                return String.format("Item{model=%d, snoozedUntil=%s, start=%s, end=%s,%n"
+                        + "\tpreviousSnoozed={model=%d, snoozedUntil=%s, start=%s, end=%s, dismissed=%s},%n"
+                        + "\tnextSnoozed=(null), dismissed=%s}", model.getPrimaryKey(), (null == snoozedUntil) ? "(null)" : formatter.format(snoozedUntil),
+                        formatter.format(start), formatter.format(end), previousSnoozed.model.getPrimaryKey(),
+                        (null == previousSnoozed.snoozedUntil) ? "(null)" : formatter.format(previousSnoozed.snoozedUntil), formatter.format(previousSnoozed.start),
+                        formatter.format(previousSnoozed.end), previousSnoozed.dismissed, dismissed);
             }
             return String.format("Item{model=%d, snoozedUntil=%s, start=%s, end=%s,%n"
                     + "\tpreviousSnoozed={model=%d, snoozedUntil=%s, start=%s, end=%s, dismissed=%s},%n"
