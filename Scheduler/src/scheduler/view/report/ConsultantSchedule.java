@@ -98,7 +98,7 @@ public class ConsultantSchedule extends VBox {
             rangeValidationLabel.setVisible(true);
             rangeValidationLabel.setText(resources.getString("endCannotBeBeforeStart"));
         } else {
-            rangeValidationLabel.setVisible(true);
+            rangeValidationLabel.setVisible(false);
             if (null == consultantsComboBox.getValue()) {
                 consultantValidationLabel.setVisible(true);
                 runButton.setDisable(true);
@@ -149,7 +149,7 @@ public class ConsultantSchedule extends VBox {
                     byDate.put(d, al);
                 }
             });
-            byDate.keySet().stream().sorted().forEach((t) -> appointmentsByDay.add(DailyAppointmentsBorderPane.create(t, byDate.get(t))));
+            byDate.keySet().stream().sorted().forEachOrdered((t) -> appointmentsByDay.add(DailyAppointmentsBorderPane.create(t, byDate.get(t))));
         }
     }
 
