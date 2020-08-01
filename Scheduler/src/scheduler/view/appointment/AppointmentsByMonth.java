@@ -25,7 +25,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -57,7 +57,7 @@ import scheduler.view.annotations.GlobalizationResource;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/AppointmentsByMonth.fxml")
-public final class AppointmentsByMonth extends HBox {
+public final class AppointmentsByMonth extends VBox {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByMonth.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentsByMonth.class.getName());
