@@ -924,6 +924,14 @@ public class NodeUtil {
         return result;
     }
 
+    public static void collapseNodes(Node ...nodes) {
+        LOG.entering(LOG.getName(), "collapseNodes", nodes);
+        for (Node n : nodes) {
+            addCssClass(n, CssClassName.COLLAPSED);
+        }
+        LOG.exiting(LOG.getName(), "collapseNodes");
+    }
+
     public static void bindCssCollapse(Styleable target, BooleanBinding predicate) {
         final ObservableList<String> css = target.getStyleClass();
         final ObservableList<String> whenFalse = FXCollections.observableArrayList(css);
@@ -1027,6 +1035,17 @@ public class NodeUtil {
         }
         LOG.exiting(LOG.getName(), "collapseNode", node);
         return node;
+    }
+
+    public static void restoreNodes(Node ...nodes) {
+        LOG.entering(LOG.getName(), "collapseNode", nodes);
+        for (Node n : nodes) {
+            removeCssClass(n, CssClassName.COLLAPSED);
+            if (!n.isVisible()) {
+                n.setVisible(true);
+            }
+        }
+        LOG.exiting(LOG.getName(), "collapseNode");
     }
 
     /**
