@@ -84,9 +84,9 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      *
      * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a {@link DataAccessObject} object is
+     * less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link DataAccessObject} object is greater than
+     * {@code value}.
      */
     default int compareTo(T dao, LocalDateTime value) {
         LocalDateTime s = get(dao);
@@ -101,9 +101,8 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      *
      * @param model The target {@link EntityModel}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a
-     * {@link EntityModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link EntityModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a {@link EntityModel} object is less than
+     * {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link EntityModel} object is greater than {@code value}.
      */
     default int compareTo(U model, LocalDateTime value) {
         LocalDateTime s = get(model);
@@ -118,9 +117,9 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      *
      * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a {@link DataAccessObject} object is
+     * less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link DataAccessObject} object is greater than
+     * {@code value}.
      */
     default int compareTo(T dao, LocalDate value) {
         LocalDate s = getLocalDate(dao);
@@ -135,9 +134,8 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      *
      * @param model The target {@link EntityModel}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a
-     * {@link EntityModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link EntityModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a {@link EntityModel} object is less than
+     * {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link EntityModel} object is greater than {@code value}.
      */
     default int compareTo(U model, LocalDate value) {
         LocalDate s = getLocalDate(model);
@@ -152,9 +150,9 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      *
      * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a {@link DataAccessObject} object is
+     * less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link DataAccessObject} object is greater than
+     * {@code value}.
      */
     default int compareTo(T dao, Timestamp value) {
         Timestamp s = getTimestamp(dao);
@@ -169,9 +167,8 @@ public interface ItemTemporalComparer<T extends DataAccessObject, U extends Enti
      *
      * @param model The target {@link EntityModel}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a
-     * {@link EntityModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link EntityModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a {@link EntityModel} object is less than
+     * {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link EntityModel} object is greater than {@code value}.
      */
     default int compareTo(U model, Timestamp value) {
         Timestamp s = getTimestamp(model);

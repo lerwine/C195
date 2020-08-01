@@ -228,5 +228,5 @@ public interface LogicalFilter<T extends DataAccessObject> extends DaoFilterExpr
     LogicalOperator getLogicalOperator();
 
     List<DaoFilterExpression<T>> getSubExpressions();
-    
+
 }

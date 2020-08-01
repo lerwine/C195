@@ -3,8 +3,8 @@ package scheduler.dao.filter;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.dao.UserDAO;
-import scheduler.model.fx.EntityModel;
 import scheduler.model.fx.CustomerModel;
+import scheduler.model.fx.EntityModel;
 import scheduler.model.fx.UserModel;
 
 /**
@@ -12,7 +12,7 @@ import scheduler.model.fx.UserModel;
  *
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link EntityModel} object.
- @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public interface ItemStringComparer<T extends DataAccessObject, U extends EntityModel<T>> extends ItemValueComparer<T, U, String> {
 
@@ -27,7 +27,7 @@ public interface ItemStringComparer<T extends DataAccessObject, U extends Entity
             return model.getName();
         }
     };
-    
+
     public static ItemStringComparer<UserDAO, UserModel> USER_NAME = new ItemStringComparer<UserDAO, UserModel>() {
         @Override
         public String get(UserDAO dao) {
@@ -39,7 +39,7 @@ public interface ItemStringComparer<T extends DataAccessObject, U extends Entity
             return model.getUserName();
         }
     };
-    
+
     /**
      * Compares the value associated with a {@link DataAccessObject} object with another value.
      *

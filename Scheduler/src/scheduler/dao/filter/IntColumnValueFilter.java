@@ -1,9 +1,9 @@
 package scheduler.dao.filter;
 
 import java.util.Objects;
-import scheduler.dao.filter.value.IntValueFilter;
 import java.util.function.ToIntFunction;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.filter.value.IntValueFilter;
 import scheduler.dao.schema.DbColumn;
 
 /**
@@ -12,11 +12,6 @@ import scheduler.dao.schema.DbColumn;
  * @param <T>
  */
 public interface IntColumnValueFilter<T extends DataAccessObject> extends ColumnValueFilter<T, Integer, IntValueFilter>, ToIntFunction<T> {
-
-    @Override
-    public default Integer apply(T t) {
-        return applyAsInt(t);
-    }
 
     public static <T extends DataAccessObject> IntColumnValueFilter<T> of(DbColumn column, IntValueFilter filter, ToIntFunction<T> getColumnValue) {
         int h = 0;
@@ -58,18 +53,23 @@ public interface IntColumnValueFilter<T extends DataAccessObject> extends Column
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof IntColumnValueFilter) {
                     @SuppressWarnings("unchecked")
-                    IntColumnValueFilter<T> other = (IntColumnValueFilter<T>)obj;
+                    IntColumnValueFilter<T> other = (IntColumnValueFilter<T>) obj;
                     return getColumn() == other.getColumn() && getValueFilter().equals(other.getValueFilter());
                 }
                 return false;
             }
-            
+
         };
     }
 
     public static <T extends DataAccessObject> IntColumnValueFilter<T> of(DbColumn column, ComparisonOperator operator, int value,
             ToIntFunction<T> getColumnValue) {
-        return of (column, IntValueFilter.of(value, operator), getColumnValue);
+        return of(column, IntValueFilter.of(value, operator), getColumnValue);
     }
     
+    @Override
+    public default Integer apply(T t) {
+        return applyAsInt(t);
+    }
+
 }

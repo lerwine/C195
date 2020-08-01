@@ -7,11 +7,11 @@ import scheduler.dao.CityDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.DataAccessObject;
 import scheduler.model.ModelHelper;
-import scheduler.model.fx.EntityModel;
 import scheduler.model.fx.AddressModel;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.CityModel;
 import scheduler.model.fx.CustomerModel;
+import scheduler.model.fx.EntityModel;
 
 /**
  * Compares {@link DataAccessObject} and {@link EntityModel} to integer values.
@@ -21,34 +21,6 @@ import scheduler.model.fx.CustomerModel;
  * @param <U> The type of {@link EntityModel} object.
  */
 public interface ItemIntComparer<T extends DataAccessObject, U extends EntityModel<T>> {
-
-    public static <T extends DataAccessObject, U extends EntityModel<T>> ItemIntComparer<T, U> of(ToIntFunction<T> getDaoValue, ToIntFunction<U> getModelValue) {
-        return new ItemIntComparer<T, U>() {
-            @Override
-            public int get(T dao) {
-                return getDaoValue.applyAsInt(dao);
-            }
-
-            @Override
-            public int get(U model) {
-                return getModelValue.applyAsInt(model);
-            }
-        };
-    }
-
-    public static <T extends DataAccessObject, U extends EntityModel<T>> ItemIntComparer<T, U> forPrimaryKey() {
-        return new ItemIntComparer<T, U>() {
-            @Override
-            public int get(T dao) {
-                return dao.getPrimaryKey();
-            }
-
-            @Override
-            public int get(U model) {
-                return model.dataObject().getPrimaryKey();
-            }
-        };
-    }
 
     public static final ItemIntComparer<AppointmentDAO, AppointmentModel> CUSTOMER_APPOINTMENTS = new ItemIntComparer<AppointmentDAO, AppointmentModel>() {
         @Override
@@ -109,6 +81,34 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends EntityMod
             return ModelHelper.getPrimaryKey(model.getCountry());
         }
     };
+    
+    public static <T extends DataAccessObject, U extends EntityModel<T>> ItemIntComparer<T, U> of(ToIntFunction<T> getDaoValue, ToIntFunction<U> getModelValue) {
+        return new ItemIntComparer<T, U>() {
+            @Override
+            public int get(T dao) {
+                return getDaoValue.applyAsInt(dao);
+            }
+            
+            @Override
+            public int get(U model) {
+                return getModelValue.applyAsInt(model);
+            }
+        };
+    }
+    
+    public static <T extends DataAccessObject, U extends EntityModel<T>> ItemIntComparer<T, U> forPrimaryKey() {
+        return new ItemIntComparer<T, U>() {
+            @Override
+            public int get(T dao) {
+                return dao.getPrimaryKey();
+            }
+            
+            @Override
+            public int get(U model) {
+                return model.dataObject().getPrimaryKey();
+            }
+        };
+    }
 
     /**
      * Gets the integer value associated with the target {@link DataAccessObject}.
@@ -153,9 +153,9 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends EntityMod
      *
      * @param dao The target {@link DataAccessObject}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a
-     * {@link DataAccessObject} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link DataAccessObject} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link DataAccessObject} object is equal to {@code value}. If the value associated with a {@link DataAccessObject} object is
+     * less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link DataAccessObject} object is greater than
+     * {@code value}.
      */
     default int compareTo(T dao, int value) {
         return Integer.compare(get(dao), value);
@@ -166,9 +166,8 @@ public interface ItemIntComparer<T extends DataAccessObject, U extends EntityMod
      *
      * @param model The target {@link EntityModel}.
      * @param value The value to compare.
-     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a
-     * {@link EntityModel} object is less than {@code value}, a negative value is returned; otherwise a positive value indicates that the value
-     * associated with a {@link EntityModel} object is greater than {@code value}.
+     * @return {@code 0} if the value associated with a {@link EntityModel} object is equal to {@code value}. If the value associated with a {@link EntityModel} object is less than
+     * {@code value}, a negative value is returned; otherwise a positive value indicates that the value associated with a {@link EntityModel} object is greater than {@code value}.
      */
     default int compareTo(U model, int value) {
         return Integer.compare(get(model), value);

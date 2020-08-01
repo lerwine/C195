@@ -6,7 +6,7 @@ import scheduler.model.fx.EntityModel;
 /**
  * Compares {@link DataAccessObject} and {@link EntityModel} to boolean values.
  *
- @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link EntityModel} object.
  */

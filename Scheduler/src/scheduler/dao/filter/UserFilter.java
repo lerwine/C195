@@ -6,8 +6,8 @@ import java.util.Objects;
 import static scheduler.AppResourceKeys.RESOURCEKEY_LOADINGUSERS;
 import scheduler.AppResources;
 import scheduler.dao.UserDAO;
-import scheduler.model.UserStatus;
 import scheduler.dao.schema.DbColumn;
+import scheduler.model.UserStatus;
 
 /**
  *
@@ -16,7 +16,7 @@ import scheduler.dao.schema.DbColumn;
 public interface UserFilter extends DaoFilter<UserDAO> {
 
     DaoFilterExpression<UserDAO> getExpression();
-    
+
     @Override
     public default String getLoadingMessage() {
         return AppResources.getResourceString(RESOURCEKEY_LOADINGUSERS);
@@ -33,7 +33,7 @@ public interface UserFilter extends DaoFilter<UserDAO> {
             public void appendJoinedDmlConditional(StringBuffer sb) {
                 expr.appendJoinedDmlConditional(sb);
             }
-            
+
             @Override
             public DaoFilterExpression<UserDAO> getExpression() {
                 return expr;
@@ -52,9 +52,9 @@ public interface UserFilter extends DaoFilter<UserDAO> {
             @Override
             public boolean equals(Object obj) {
                 if (null != obj && obj instanceof UserFilter) {
-                    UserFilter other = (UserFilter)obj;
-                    return other.getLoadingMessage().equals(getLoadingMessage()) && other.getLoadingTitle().equals(getLoadingTitle()) &&
-                            other.getExpression().equals(expr);
+                    UserFilter other = (UserFilter) obj;
+                    return other.getLoadingMessage().equals(getLoadingMessage()) && other.getLoadingTitle().equals(getLoadingTitle())
+                            && other.getExpression().equals(expr);
                 }
                 return false;
             }
@@ -75,11 +75,11 @@ public interface UserFilter extends DaoFilter<UserDAO> {
 
         };
     }
-    
+
     public static IntColumnValueFilter<UserDAO> expressionOf(UserStatus status, ComparisonOperator operator) {
         return IntColumnValueFilter.of(DbColumn.STATUS, operator, status.getValue(), (t) -> t.getStatus().getValue());
     }
-    
+
     public static StringColumnValueFilter<UserDAO> expressionOf(String userName) {
         return StringColumnValueFilter.of(DbColumn.USER_NAME, ComparisonOperator.EQUALS_CASE_INSENSITIVE, userName, (t) -> t.getUserName());
     }

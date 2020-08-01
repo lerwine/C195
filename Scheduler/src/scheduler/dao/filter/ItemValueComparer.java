@@ -5,14 +5,14 @@ import scheduler.model.fx.EntityModel;
 
 /**
  * Compares {@link DataAccessObject} and {@link EntityModel} to generic values.
- * 
- @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
+ *
+ * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  * @param <T> The type of {@link DataAccessObject} object.
  * @param <U> The type of {@link EntityModel} object.
  * @param <S> The type of value being compared.
  */
 public interface ItemValueComparer<T extends DataAccessObject, U extends EntityModel<T>, S> {
-    
+
     /**
      * Gets the integer value associated with the target {@link DataAccessObject}.
      *

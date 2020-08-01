@@ -4,8 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.function.Function;
-import scheduler.dao.filter.value.StringValueFilter;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.filter.value.StringValueFilter;
 import scheduler.dao.schema.DbColumn;
 import scheduler.dao.schema.ValueType;
 

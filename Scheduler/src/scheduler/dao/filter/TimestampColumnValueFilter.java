@@ -1,6 +1,5 @@
 package scheduler.dao.filter;
 
-import scheduler.dao.filter.value.TimestampValueFilter;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,6 +7,7 @@ import java.time.temporal.Temporal;
 import java.util.Objects;
 import java.util.function.Function;
 import scheduler.dao.DataAccessObject;
+import scheduler.dao.filter.value.TimestampValueFilter;
 import scheduler.dao.schema.DbColumn;
 
 /**
