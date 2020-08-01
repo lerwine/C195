@@ -1,17 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package scheduler.view.appointment;
 
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -49,6 +47,7 @@ import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import scheduler.util.ViewControllerLoader;
 import scheduler.util.WeakEventHandlingReference;
@@ -65,7 +64,9 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/appointment/AppointmentsByWeek.fxml")
 public class AppointmentsByWeek extends StackPane {
 
-    private static final Logger LOG = Logger.getLogger(AppointmentsByWeek.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByWeek.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AppointmentsByWeek.class.getName());
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
 
     public static AppointmentsByWeek loadIntoMainContent(LocalDate week) {
         AppointmentsByWeek newContent = new AppointmentsByWeek(week);
@@ -393,6 +394,7 @@ public class AppointmentsByWeek extends StackPane {
 
     private void onStartOfWeekChanged(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
         LOG.entering(getClass().getName(), "onTargetMonthChanged", new Object[]{observable, oldValue, newValue});
+        weekAndMonthNameLabel.setText(String.format("Week #%d of %s", ((newValue.getDayOfMonth() - 1) / 7) + 1, FORMATTER.format(newValue)));
         modelFilter.set(AppointmentModelFilter.of(newValue, newValue.plusWeeks(1)));
         LOG.exiting(getClass().getName(), "onTargetMonthChanged");
     }
