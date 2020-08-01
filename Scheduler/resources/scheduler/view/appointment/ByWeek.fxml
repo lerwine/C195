@@ -69,7 +69,7 @@
                                         <PropertyValueFactory property="customerName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="userName" />
                                     </cellValueFactory>
@@ -167,7 +167,7 @@
                                         <PropertyValueFactory property="customerName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="userName" />
                                     </cellValueFactory>
@@ -265,7 +265,7 @@
                                         <PropertyValueFactory property="customerName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="userName" />
                                     </cellValueFactory>
@@ -363,7 +363,7 @@
                                         <PropertyValueFactory property="customerName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="userName" />
                                     </cellValueFactory>
@@ -461,7 +461,7 @@
                                         <PropertyValueFactory property="customerName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="userName" />
                                     </cellValueFactory>
@@ -559,7 +559,7 @@
                                         <PropertyValueFactory property="customerName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="userName" />
                                     </cellValueFactory>
@@ -657,7 +657,7 @@
                                         <PropertyValueFactory property="customerName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="userName" />
                                     </cellValueFactory>

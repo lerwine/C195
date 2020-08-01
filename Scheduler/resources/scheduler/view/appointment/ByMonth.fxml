@@ -71,7 +71,7 @@
                         <PropertyValueFactory property="customerName" />
                     </cellValueFactory>
                 </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="User">
+                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
                     <cellValueFactory>
                         <PropertyValueFactory property="userName" />
                     </cellValueFactory>
