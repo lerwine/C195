@@ -1,5 +1,6 @@
 package scheduler.fx;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -13,7 +14,8 @@ import scheduler.util.LogHelper;
  */
 public class WrappingTextTableCellFactory<T> implements Callback<TableColumn<T, String>, TableCell<T, String>> {
 
-    private static final Logger LOG = Logger.getLogger(WrappingTextTableCellFactory.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WrappingTextTableCellFactory.class.getName()), Level.FINE);
+//    private static final Logger LOG = Logger.getLogger(WrappingTextTableCellFactory.class.getName());
 
     @Override
     public TableCell<T, String> call(TableColumn<T, String> param) {
