@@ -906,9 +906,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         public List<ItemCountResult<String>> getCountsByCustomerRegion(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {
-            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append("), a.")
-                    .append(DbColumn.START.getDbName()).append(" AS ").append(DbColumn.START.getDbName()).append(", a.")
-                    .append(DbColumn.END.getDbName()).append(" AS ").append(DbColumn.END.getDbName()).append(", n.")
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS r, n.")
                     .append(DbColumn.COUNTRY_NAME.getDbName()).append(" AS ").append(DbColumn.COUNTRY_NAME.getDbName())
                     .append(" FROM ").append(DbTable.APPOINTMENT.getDbName())
                     .append(" a LEFT JOIN ").append(DbTable.CUSTOMER.getDbName()).append(" c ON a.").append(DbColumn.CUSTOMER_ID.getDbName()).append("=c.")
@@ -939,7 +937,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                 try (ResultSet rs = ps.executeQuery()) {
                     ArrayList<ItemCountResult<String>> result = new ArrayList<>();
                     while (rs.next()) {
-                        result.add(new ItemCountResult<>(rs.getString(DbColumn.COUNTRY_NAME.toString()), rs.getInt("c")));
+                        result.add(new ItemCountResult<>(rs.getString(DbColumn.COUNTRY_NAME.toString()), rs.getInt("r")));
                     }
                     LogHelper.logWarnings(connection, LOG);
                     return result;
