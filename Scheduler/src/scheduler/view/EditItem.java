@@ -16,16 +16,13 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.dao.DataAccessObject;
@@ -174,7 +171,6 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     }
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
-    
     private final ParentWindowChangeListener stageChangeListener;
     private final U editorRegion;
     private final T model;
@@ -184,11 +180,8 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
 
-    @FXML // fx:id="parentVBox"
-    private VBox parentVBox; // Value injected by FXMLLoader
-
-    @FXML // fx:id="contentGridPane"
-    private GridPane contentGridPane; // Value injected by FXMLLoader
+    @FXML // fx:id="contentAnchorPane"
+    private AnchorPane contentAnchorPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="createdLabel"
     private Label createdLabel; // Value injected by FXMLLoader
@@ -297,8 +290,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         LOG.entering(LOG.getName(), "initialize");
-        assert parentVBox != null : "fx:id=\"parentVBox\" was not injected: check your FXML file 'EditItem.fxml'.";
-        assert contentGridPane != null : "fx:id=\"contentGridPane\" was not injected: check your FXML file 'EditItem.fxml'.";
+        assert contentAnchorPane != null : "fx:id=\"contentAnchorPane\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert createdLabel != null : "fx:id=\"createdLabel\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert lastUpdateLabel != null : "fx:id=\"lastUpdateLabel\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert createdValue != null : "fx:id=\"createdValue\" was not injected: check your FXML file 'EditItem.fxml'.";
@@ -308,9 +300,11 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         assert cancelButton != null : "fx:id=\"cancelButton\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert waitBorderPane != null : "fx:id=\"waitBorderPane\" was not injected: check your FXML file 'EditItem.fxml'.";
 
-        parentVBox.getChildren().add(0, editorRegion);
-        VBox.setVgrow(editorRegion, Priority.ALWAYS);
-        VBox.setMargin(editorRegion, new Insets(8.0));
+        AnchorPane.setTopAnchor(editorRegion, 0.0);
+        AnchorPane.setRightAnchor(editorRegion, 0.0);
+        AnchorPane.setBottomAnchor(editorRegion, 0.0);
+        AnchorPane.setLeftAnchor(editorRegion, 0.0);
+        contentAnchorPane.getChildren().add(editorRegion);
         saveChangesButton.disableProperty().bind(editorRegion.validProperty().and(editorRegion.modifiedProperty().or(model.newRowProperty())).not());
         if (model.isNewRow()) {
             deleteButton.setDisable(true);

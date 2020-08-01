@@ -9,7 +9,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root styleClass="mainFxmlClass" stylesheets="@../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <Label styleClass="h1" text="Upcoming Appointments" />
         <TextFlow>
@@ -17,8 +17,8 @@
                 <Text fx:id="nextAppointmentLeadText" strokeType="OUTSIDE" strokeWidth="0.0" text="Loading data. Please wait..." />
                 <Hyperlink fx:id="nextAppointmentHyperlink" onAction="#onNextAppointmentHyperlinkAction" styleClass="collapsed" />
                 <Text fx:id="nextAppointmentAppendLabel" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="collapsed" text=" with " />
-            <Hyperlink fx:id="nextAppointmentCustomerHyperlink" onAction="#onNextAppointmentCustomerHyperlinkAction" styleClass="collapsed" />
-            <Text fx:id="nextAppointmentTerminalText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="collapsed" />
+                <Hyperlink fx:id="nextAppointmentCustomerHyperlink" onAction="#onNextAppointmentCustomerHyperlinkAction" styleClass="collapsed" />
+                <Text fx:id="nextAppointmentTerminalText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="collapsed" />
             </children>
             <VBox.margin>
                 <Insets />
@@ -77,24 +77,24 @@
                         <Insets left="4.0" />
                     </HBox.margin>
                 </Label>
-            <VBox alignment="TOP_RIGHT" HBox.hgrow="NEVER">
-               <HBox.margin>
-                  <Insets left="16.0" />
-               </HBox.margin>
-               <children>
-                  <HBox>
-                     <children>
-                            <Label styleClass="leftControlLabel" text="Next Month:" />
-                            <Label fx:id="appointmentsNextMonthLabel" styleClass="leftLabeledControl" text="?">
-                                <HBox.margin>
-                                    <Insets left="4.0" />
-                                </HBox.margin>
-                            </Label>
-                     </children>
-                  </HBox>
-                    <Button mnemonicParsing="false" onAction="#onRefreshButtonAction" styleClass="small-control" text="Refresh" />
-               </children>
-            </VBox>
+                <VBox alignment="TOP_RIGHT" HBox.hgrow="NEVER">
+                    <HBox.margin>
+                        <Insets left="16.0" />
+                    </HBox.margin>
+                    <children>
+                        <HBox>
+                            <children>
+                                <Label styleClass="leftControlLabel" text="Next Month:" />
+                                <Label fx:id="appointmentsNextMonthLabel" styleClass="leftLabeledControl" text="?">
+                                    <HBox.margin>
+                                        <Insets left="4.0" />
+                                    </HBox.margin>
+                                </Label>
+                            </children>
+                        </HBox>
+                        <Button mnemonicParsing="false" onAction="#onRefreshButtonAction" styleClass="small-control" text="Refresh" />
+                    </children>
+                </VBox>
             </children>
         </HBox>
         <Label styleClass="h1" text="Common Tasks">

@@ -13,13 +13,10 @@ import javafx.beans.binding.DoubleBinding;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
@@ -95,8 +92,10 @@ public final class MainController {
     @FXML // fx:id="rootStackPane"
     private StackPane rootStackPane; // Value injected by FXMLLoader
 
-    @FXML // fx:id="contentVBox"
-    private VBox contentVBox; // Value injected by FXMLLoader
+//    @FXML // fx:id="contentVBox"
+//    private VBox contentVBox; // Value injected by FXMLLoader
+    @FXML // fx:id="contentAnchorPane"
+    private AnchorPane contentAnchorPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="weeklyCalendarMenuItem"
     private MenuItem weeklyCalendarMenuItem; // Value injected by FXMLLoader
@@ -270,7 +269,8 @@ public final class MainController {
     private void initialize() {
         LOG.entering(LOG.getName(), "initialize");
         assert rootStackPane != null : "fx:id=\"rootStackPane\" was not injected: check your FXML file 'MainView.fxml'.";
-        assert contentVBox != null : "fx:id=\"contentVBox\" was not injected: check your FXML file 'MainView.fxml'.";
+//        assert contentVBox != null : "fx:id=\"contentVBox\" was not injected: check your FXML file 'MainView.fxml'.";
+        assert contentAnchorPane != null : "fx:id=\"contentAnchorPane\" was not injected: check your FXML file 'MainView.fxml'.";
         assert weeklyCalendarMenuItem != null : "fx:id=\"weeklyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert monthlyCalendarMenuItem != null : "fx:id=\"monthlyCalendarMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
         assert myCurrentAndFutureAppointmentsMenuItem != null : "fx:id=\"myCurrentAndFutureAppointmentsMenuItem\" was not injected: check your FXML file 'MainView.fxml'.";
@@ -290,34 +290,20 @@ public final class MainController {
         bindExtents(waitBorderPane, rootStackPane);
         bindExtents(appointmentAlert, rootStackPane);
         LOG.exiting(LOG.getName(), "initialize");
-
-        contentWidthBinding = contentVBox.widthProperty().subtract(16);
-        contentHeightBinding = contentVBox.heightProperty().subtract(16);
     }
 
     public synchronized void replaceContent(Node newContent) {
         Node oldView = contentView;
         contentView = Objects.requireNonNull(newContent);
-        Region region;
         if (null != oldView) {
-            if (oldView instanceof Region) {
-                region = (Region) oldView;
-                region.prefWidthProperty().unbind();
-                region.prefHeightProperty().unbind();
-            }
-            contentVBox.getChildren().remove(oldView);
-            ((Stage) contentVBox.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
+            contentAnchorPane.getChildren().remove(oldView);
+            ((Stage) contentAnchorPane.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
         }
-        VBox.setVgrow(newContent, Priority.ALWAYS);
-        VBox.setMargin(newContent, new Insets(8));
-        if (newContent instanceof Region) {
-            region = (Region) newContent;
-            region.setMaxHeight(Region.USE_PREF_SIZE);
-            region.setMaxWidth(Region.USE_PREF_SIZE);
-            region.prefWidthProperty().bind(contentWidthBinding);
-            region.prefHeightProperty().bind(contentHeightBinding);
-        }
-        contentVBox.getChildren().add(newContent);
+        AnchorPane.setTopAnchor(newContent, 0.0);
+        AnchorPane.setRightAnchor(newContent, 0.0);
+        AnchorPane.setBottomAnchor(newContent, 0.0);
+        AnchorPane.setLeftAnchor(newContent, 0.0);
+        contentAnchorPane.getChildren().add(newContent);
     }
 
     public <T extends Node> T showHelp(String title, String fxmlResourceName, String bundleBaseName) throws IOException {

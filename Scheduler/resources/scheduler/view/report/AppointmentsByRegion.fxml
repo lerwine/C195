@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <GridPane hgap="4.0">
             <columnConstraints>
@@ -27,12 +27,12 @@
                 <RowConstraints minHeight="8.0" valignment="TOP" vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-                <Label styleClass="topControlLabel" text="%year">
+                <Label styleClass="topControlLabel" text="Year">
                     <GridPane.margin>
                         <Insets bottom="4.0" />
                     </GridPane.margin>
                 </Label>
-                <Label styleClass="topControlLabel" text="%month" GridPane.columnIndex="1">
+                <Label styleClass="topControlLabel" text="Month" GridPane.columnIndex="1">
                     <GridPane.margin>
                         <Insets bottom="4.0" />
                     </GridPane.margin>
