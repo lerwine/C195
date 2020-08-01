@@ -28,13 +28,14 @@ public class DateTimeTableCellFactory<S, T extends TemporalAccessor> implements 
 
     private final StringProperty format;
     private final ReadOnlyObjectWrapper<DateTimeFormatter> formatter;
-    
+
     public DateTimeTableCellFactory(@NamedArg("format") String format) {
         this.format = new SimpleStringProperty(this, "format", Values.asNonNullOrWhitespace(format, ()
                 -> DateTimeFormatterBuilder.getLocalizedDateTimePattern(FormatStyle.SHORT, FormatStyle.SHORT,
                         Chronology.ofLocale(Locale.getDefault(Locale.Category.FORMAT)), Locale.getDefault(Locale.Category.DISPLAY))));
         formatter = new ReadOnlyObjectWrapper<>(this, "format", DateTimeFormatter.ofPattern(this.format.get(), Locale.getDefault(Locale.Category.DISPLAY))
                 .withZone(ZoneId.systemDefault()));
+        this.format.addListener(this::onFormatChanged);
     }
 
     public String getFormat() {
@@ -56,7 +57,6 @@ public class DateTimeTableCellFactory<S, T extends TemporalAccessor> implements 
     public ReadOnlyObjectProperty<DateTimeFormatter> formatterProperty() {
         return formatter.getReadOnlyProperty();
     }
-
 
     @Override
     public TableCell<S, T> call(TableColumn<S, T> param) {
