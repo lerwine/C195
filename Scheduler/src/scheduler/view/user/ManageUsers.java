@@ -46,7 +46,7 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
 //    private static final Logger LOG = Logger.getLogger(ManageUsers.class.getName());
 
     public static ManageUsers loadIntoMainContent(UserModelFilter filter) {
-        ManageUsers newContent = new ManageUsers();
+        ManageUsers newContent = initialize(new ManageUsers());
         Scheduler.getMainController().replaceContent(newContent);
         newContent.setFilter(filter);
         return newContent;
@@ -70,6 +70,10 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
     @FXML // fx:id="helpBorderPane"
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
+    private ManageUsers() {
+        
+    }
+    
     @FXML
     private void filterButtonClick(ActionEvent event) {
         LOG.entering(LOG.getName(), "filterButtonClick", event);

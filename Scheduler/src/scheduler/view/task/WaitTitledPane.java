@@ -44,6 +44,17 @@ public final class WaitTitledPane extends TitledPane {
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WaitTitledPane.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(WaitTitledPane.class.getName());
 
+    public static WaitTitledPane create() {
+        WaitTitledPane newContent = new WaitTitledPane();
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        return newContent;
+    }
+
     private Task<?> currentTask;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -58,14 +69,8 @@ public final class WaitTitledPane extends TitledPane {
     @FXML // fx:id="cancelButton"
     private Button cancelButton; // Value injected by FXMLLoader
 
-    @SuppressWarnings("LeakingThisInConstructor")
-    public WaitTitledPane() {
-        try {
-            ViewControllerLoader.initializeCustomControl(this);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
-            throw new InternalError(ex);
-        }
+    private WaitTitledPane() {
+
     }
 
     @FXML

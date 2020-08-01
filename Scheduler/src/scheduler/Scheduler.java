@@ -106,6 +106,12 @@ public final class Scheduler extends Application {
 
         // Add login view under root of scene.
         Login login = new Login();
+        try {
+            ViewControllerLoader.initializeCustomControl(login);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
         // Bind extents of login view to main view extents.
         login.setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
         login.setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
@@ -141,19 +147,6 @@ public final class Scheduler extends Application {
     }
 
     public static abstract class LoginBorderPane extends BorderPane {
-
-        @SuppressWarnings("LeakingThisInConstructor")
-        protected LoginBorderPane() {
-            if (null != currentUser) {
-                throw new IllegalStateException("Login controller cannot be instantiated after consultant is logged in");
-            }
-            try {
-                ViewControllerLoader.initializeCustomControl(this);
-            } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Error loading view", ex);
-                throw new InternalError("Error loading view", ex);
-            }
-        }
 
         /**
          * Looks up a consultant from the database and sets the current logged in consultant for the application if the password hash matches.
@@ -218,7 +211,7 @@ public final class Scheduler extends Application {
                 // Start the background timer for appointment alert checking
                 AppointmentAlertManager.INSTANCE.start();
                 // Set the initial content view
-                getMainController().replaceContent(new Overview());
+                getMainController().replaceContent(Overview.loadIntoMainContent());
             }
         }
 

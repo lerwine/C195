@@ -286,7 +286,7 @@ public final class EditCountry extends VBox implements EditItem.ModelEditorContr
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWCOUNTRY));
         } else {
             initializeEditMode();
-            WaitTitledPane pane = new WaitTitledPane();
+            WaitTitledPane pane = WaitTitledPane.create();
             pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                     .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
             waitBorderPane.startNow(pane, new ItemsLoadTask());

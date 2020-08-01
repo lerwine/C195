@@ -346,7 +346,7 @@ public class CustomerPicker extends BorderPane {
     }
 
     private WaitTitledPane createCriticalWaitTitledPane() {
-        WaitTitledPane pane = new WaitTitledPane();
+        WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         return pane;

@@ -99,7 +99,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 //    private static final Logger LOG = Logger.getLogger(ManageAppointments.class.getName());
 
     public static ManageAppointments loadIntoMainContent(AppointmentModelFilter filter) {
-        ManageAppointments newContent = new ManageAppointments();
+        ManageAppointments newContent = initialize(new ManageAppointments());
         Scheduler.getMainController().replaceContent(newContent);
         newContent.setFilter(filter);
         return newContent;
@@ -153,6 +153,10 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 
     @FXML // fx:id="helpBorderPane"
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
+
+    private ManageAppointments() {
+
+    }
 
     @FXML
     private void filterButtonClick(ActionEvent event) {

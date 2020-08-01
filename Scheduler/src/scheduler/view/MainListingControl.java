@@ -93,6 +93,16 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MainListingControl.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(MainListingControl.class.getName());
 
+    protected static <T extends MainListingControl<? extends DataAccessObject, ? extends EntityModel<? extends DataAccessObject>>> T initialize(T newContent) {
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error initializing view", ex);
+            throw new InternalError("Error initializing view", ex);
+        }
+        return newContent;
+    }
+
     private final ObjectProperty<ModelFilter<D, M, ? extends DaoFilter<D>>> filter;
     private final ObservableList<M> items;
     private final WeakEventHandlingReference<ModelEvent<D, M>> insertEventHandler;
@@ -111,19 +121,12 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
     @FXML // fx:id="listingTableView"
     private TableView<M> listingTableView; // Value injected by FXMLLoader
 
-    @SuppressWarnings("LeakingThisInConstructor")
     protected MainListingControl() {
         filter = new SimpleObjectProperty<>();
         items = FXCollections.observableArrayList();
         insertEventHandler = WeakEventHandlingReference.create(this::onItemInserted);
         updateEventHandler = WeakEventHandlingReference.create(this::onItemUpdated);
         deleteEventHandler = WeakEventHandlingReference.create(this::onItemDeleted);
-        try {
-            ViewControllerLoader.initializeCustomControl(this);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
-            throw new InternalError("Error loading view", ex);
-        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

@@ -93,16 +93,7 @@ public final class Login extends Scheduler.LoginBorderPane {
     private BooleanBinding passwordValid;
 
     public Login() {
-        super();
         stageChangeHandler = new ParentWindowChangeListener(sceneProperty());
-        stageChangeHandler.currentStageProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change", new Object[] {oldValue, newValue});
-            if (null != newValue && null != resourceBundle) {
-                LOG.fine("Setting stage title");
-                newValue.setTitle(resourceBundle.get().getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
-            }
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change");
-        });
     }
 
     @FXML
@@ -193,6 +184,15 @@ public final class Login extends Scheduler.LoginBorderPane {
         assert passwordValidationLabel != null : "fx:id=\"passwordValidationLabel\" was not injected: check your FXML file 'Login.fxml'.";
         assert loginButton != null : "fx:id=\"loginButton\" was not injected: check your FXML file 'Login.fxml'.";
         assert exitButton != null : "fx:id=\"exitButton\" was not injected: check your FXML file 'Login.fxml'.";
+
+        stageChangeHandler.currentStageProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change", new Object[]{oldValue, newValue});
+            if (null != newValue && null != resourceBundle) {
+                LOG.fine("Setting stage title");
+                newValue.setTitle(resourceBundle.get().getString(RESOURCEKEY_APPOINTMENTSCHEDULERLOGIN));
+            }
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change");
+        });
 
         ObservableList<SupportedLocale> languages = FXCollections.observableArrayList(SupportedLocale.values());
         languageComboBox.setItems(languages);

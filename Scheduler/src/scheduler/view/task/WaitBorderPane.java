@@ -164,7 +164,7 @@ public final class WaitBorderPane extends BorderPane {
     }
 
     public void schedule(Task<?> task, long delay, TimeUnit unit) {
-        schedule(new WaitTitledPane(), task, delay, unit);
+        schedule(WaitTitledPane.create(), task, delay, unit);
     }
 
     /**
@@ -184,6 +184,6 @@ public final class WaitBorderPane extends BorderPane {
     }
 
     public void startNow(Task<?> task) {
-        startNow(new WaitTitledPane(), task);
+        startNow(WaitTitledPane.create(), task);
     }
 }

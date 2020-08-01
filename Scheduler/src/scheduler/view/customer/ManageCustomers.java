@@ -49,7 +49,7 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
 //    private static final Logger LOG = Logger.getLogger(ManageCustomers.class.getName());
 
     public static ManageCustomers loadIntoMainContent(CustomerModelFilter filter) {
-        ManageCustomers newContent = new ManageCustomers();
+        ManageCustomers newContent = initialize(new ManageCustomers());
         Scheduler.getMainController().replaceContent(newContent);
         newContent.setFilter(filter);
         return newContent;
@@ -73,6 +73,10 @@ public final class ManageCustomers extends MainListingControl<CustomerDAO, Custo
     @FXML // fx:id="helpBorderPane"
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
+    private ManageCustomers() {
+        
+    }
+    
     @FXML
     private void filterButtonClick(ActionEvent event) {
         LOG.entering(LOG.getName(), "filterButtonClick", event);

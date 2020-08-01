@@ -470,7 +470,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         postalCodeTextField.setText(model.getPostalCode());
         phoneTextField.setText(model.getPhone());
 
-        WaitTitledPane pane = new WaitTitledPane();
+        WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         if (model.isNewRow()) {

@@ -318,7 +318,7 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         });
         nameTextField.setText(model.getName());
 
-        WaitTitledPane pane = new WaitTitledPane();
+        WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         if (model.isNewRow()) {

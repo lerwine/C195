@@ -360,7 +360,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 .or(changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus())))
                 .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
 
-        WaitTitledPane pane = new WaitTitledPane();
+        WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         if (model.isNewRow()) {

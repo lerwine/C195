@@ -49,7 +49,7 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
 //    private static final Logger LOG = Logger.getLogger(ManageCountries.class.getName());
 
     public static ManageCountries loadIntoMainContent(ModelFilter<CountryDAO, CountryModel, DaoFilter<CountryDAO>> filter) {
-        ManageCountries newContent = new ManageCountries();
+        ManageCountries newContent = initialize(new ManageCountries());
         Scheduler.getMainController().replaceContent(newContent);
         newContent.setFilter(filter);
         return newContent;
@@ -62,6 +62,10 @@ public final class ManageCountries extends MainListingControl<CountryDAO, Countr
     @FXML // fx:id="helpBorderPane"
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
+    private ManageCountries() {
+        
+    }
+    
     @FXML
     private void onHelpButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHelpButtonAction", event);
