@@ -210,7 +210,29 @@ public final class DateRangeController {
         withinBusinessHours = Bindings.createBooleanBinding(() -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue");
             Tuple<LocalDateTime, LocalDateTime> value = range.get();
-            boolean result = null == value || (value.getValue1().toLocalTime().compareTo(businessHoursStart) >= 0 && value.getValue2().toLocalTime().compareTo(businessHoursEnd) < 0);
+            if (null == value) {
+                LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", true);
+                return true;
+            }
+            LocalDateTime s = value.getValue1();
+            LocalDateTime e = value.getValue2();
+            switch (s.getDayOfWeek()) {
+                case SATURDAY:
+                case SUNDAY:
+                    LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", false);
+                    return false;
+                default:
+                    switch (e.getDayOfWeek()) {
+                        case SATURDAY:
+                        case SUNDAY:
+                            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", false);
+                            return false;
+                        default:
+                            break;
+                    }
+                    break;
+            }
+            boolean result = s.toLocalTime().compareTo(businessHoursStart) >= 0 && e.toLocalTime().compareTo(businessHoursEnd) < 0;
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", result);
             return result;
         }, range);
