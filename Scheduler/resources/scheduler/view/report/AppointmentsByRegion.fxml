@@ -62,6 +62,6 @@
                 <Button fx:id="runButton" disable="true" mnemonicParsing="false" onAction="#onRunButtonAction" text="Run" />
             </buttons>
         </ButtonBar>
-        <PieChart fx:id="reportPieChart" title="%appointmentRegionsByMonth" />
+        <PieChart fx:id="reportPieChart" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" title="%appointmentRegionsByMonth" VBox.vgrow="ALWAYS" />
     </children>
 </fx:root>
