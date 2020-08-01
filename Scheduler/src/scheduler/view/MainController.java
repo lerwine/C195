@@ -31,8 +31,8 @@ import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.appointment.ByMonth;
-import scheduler.view.appointment.ByWeek;
+import scheduler.view.appointment.AppointmentsByMonth;
+import scheduler.view.appointment.AppointmentsByWeek;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
@@ -147,21 +147,21 @@ public final class MainController {
     @FXML
     private void onByRegionMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onByRegionMenuItemAction", event);
-        replaceContent(new AppointmentsByRegion());
+        replaceContent(AppointmentsByRegion.create());
         LOG.exiting(LOG.getName(), "onByRegionMenuItemAction");
     }
 
     @FXML
     private void onConsultantScheduleMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onConsultantScheduleMenuItemAction", event);
-        replaceContent(new ConsultantSchedule());
+        replaceContent(ConsultantSchedule.create());
         LOG.exiting(LOG.getName(), "onConsultantScheduleMenuItemAction");
     }
 
     @FXML
     private void onTypesByMonthMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onTypesByMonthMenuItemAction", event);
-        replaceContent(new AppointmentTypesByMonth());
+        replaceContent(AppointmentTypesByMonth.create());
         LOG.exiting(LOG.getName(), "onTypesByMonthMenuItemAction");
     }
 
@@ -240,21 +240,21 @@ public final class MainController {
     @FXML
     private void onOverviewMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onOverviewMenuItemAction", event);
-        replaceContent(new Overview());
+        replaceContent(Overview.loadIntoMainContent());
         LOG.exiting(LOG.getName(), "onOverviewMenuItemAction");
     }
 
     @FXML
     private void onWeeklyCalendarMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onWeeklyCalendarMenuItemAction", event);
-        ByWeek.loadIntoMainContent(LocalDate.now());
+        AppointmentsByWeek.loadIntoMainContent(LocalDate.now());
         LOG.exiting(LOG.getName(), "onWeeklyCalendarMenuItemAction");
     }
 
     @FXML
     private void onMonthlyCalendarMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onMonthlyCalendarMenuItemAction", event);
-        ByMonth.loadIntoMainContent(YearMonth.now());
+        AppointmentsByMonth.loadIntoMainContent(YearMonth.now());
         LOG.exiting(LOG.getName(), "onMonthlyCalendarMenuItemAction");
     }
 

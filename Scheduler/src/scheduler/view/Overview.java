@@ -21,6 +21,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.fx.CustomerModel;
 import scheduler.model.fx.UserModel;
@@ -31,8 +32,8 @@ import static scheduler.view.OverviewResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.appointment.ByMonth;
-import scheduler.view.appointment.ByWeek;
+import scheduler.view.appointment.AppointmentsByMonth;
+import scheduler.view.appointment.AppointmentsByWeek;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
@@ -46,10 +47,22 @@ import scheduler.view.user.ManageUsers;
  */
 @GlobalizationResource("scheduler/view/Overview")
 @FXMLResource("/scheduler/view/Overview.fxml")
-public class Overview extends VBox {
+public final class Overview extends VBox {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Overview.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(Overview.class.getName());
+
+    public static Overview loadIntoMainContent() {
+        Overview newContent = new Overview();
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        Scheduler.getMainController().replaceContent(newContent);
+        return newContent;
+    }
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -72,24 +85,18 @@ public class Overview extends VBox {
     @FXML // fx:id="appointmentsNextMonthLabel"
     private Label appointmentsNextMonthLabel; // Value injected by FXMLLoader
 
-    @SuppressWarnings("LeakingThisInConstructor")
-    public Overview() {
-        try {
-            ViewControllerLoader.initializeCustomControl(this);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
-            throw new InternalError("Error loading view", ex);
-        }
+    private Overview() {
+
     }
 
     private void onByMonthHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onByMonthHyperlinkAction", event);
-        ByMonth.loadIntoMainContent(YearMonth.now());
+        AppointmentsByMonth.loadIntoMainContent(YearMonth.now());
     }
 
     private void onByWeekHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onByWeekHyperlinkAction", event);
-        ByWeek.loadIntoMainContent(LocalDate.now());
+        AppointmentsByWeek.loadIntoMainContent(LocalDate.now());
     }
 
     @FXML

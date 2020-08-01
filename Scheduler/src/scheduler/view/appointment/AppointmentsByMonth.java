@@ -47,6 +47,7 @@ import static scheduler.util.NodeUtil.isInShownWindow;
 import scheduler.util.ViewControllerLoader;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.MainController;
+import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 
 /**
@@ -55,13 +56,14 @@ import scheduler.view.annotations.GlobalizationResource;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
-public final class ByMonth extends HBox {
+@FXMLResource("/scheduler/view/appointment/AppointmentsByMonth.fxml")
+public final class AppointmentsByMonth extends HBox {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ByMonth.class.getName()), Level.FINE);
-//    private static final Logger LOG = Logger.getLogger(ByMonth.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByMonth.class.getName()), Level.FINE);
+//    private static final Logger LOG = Logger.getLogger(AppointmentsByMonth.class.getName());
 
-    public static ByMonth loadIntoMainContent(YearMonth month) {
-        ByMonth newContent = new ByMonth(month);
+    public static AppointmentsByMonth loadIntoMainContent(YearMonth targetMonth) {
+        AppointmentsByMonth newContent = new AppointmentsByMonth(targetMonth);
         try {
             ViewControllerLoader.initializeCustomControl(newContent);
         } catch (IOException ex) {
@@ -92,7 +94,7 @@ public final class ByMonth extends HBox {
     @FXML // fx:id="monthComboBox"
     private ComboBox<Month> monthComboBox; // Value injected by FXMLLoader
 
-    public ByMonth(YearMonth targetMonth) {
+    private AppointmentsByMonth(YearMonth targetMonth) {
         this.targetMonth = new ReadOnlyObjectWrapper<>(this, "targetMonth", (null == targetMonth) ? YearMonth.now() : targetMonth);
         modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter");
         allAppointments = FXCollections.observableArrayList();
@@ -104,7 +106,7 @@ public final class ByMonth extends HBox {
         appointmentDeleteEventHandler = WeakEventHandlingReference.create(this::onAppointmentDeleted);
     }
 
-    public ByMonth() {
+    public AppointmentsByMonth() {
         this(null);
     }
 

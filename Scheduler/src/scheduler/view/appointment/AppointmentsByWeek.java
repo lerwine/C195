@@ -47,6 +47,7 @@ import scheduler.model.ModelHelper;
 import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.util.AlertHelper;
+import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
 import static scheduler.util.NodeUtil.isInShownWindow;
 import scheduler.util.ViewControllerLoader;
@@ -61,13 +62,13 @@ import scheduler.view.annotations.GlobalizationResource;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/Calendar")
-@FXMLResource("/scheduler/view/appointment/ByWeek.fxml")
-public class ByWeek extends StackPane {
+@FXMLResource("/scheduler/view/appointment/AppointmentsByWeek.fxml")
+public class AppointmentsByWeek extends StackPane {
 
-    private static final Logger LOG = Logger.getLogger(ByWeek.class.getName());
+    private static final Logger LOG = Logger.getLogger(AppointmentsByWeek.class.getName());
 
-    public static ByWeek loadIntoMainContent(LocalDate week) {
-        ByWeek newContent = new ByWeek(week);
+    public static AppointmentsByWeek loadIntoMainContent(LocalDate week) {
+        AppointmentsByWeek newContent = new AppointmentsByWeek(week);
         try {
             ViewControllerLoader.initializeCustomControl(newContent);
         } catch (IOException ex) {
@@ -76,14 +77,6 @@ public class ByWeek extends StackPane {
         }
         Scheduler.getMainController().replaceContent(newContent);
         return newContent;
-    }
-
-    private static LocalDate atStartofWeek(LocalDate value) {
-        LocalDate d = value;
-        while (d.getDayOfWeek() != DayOfWeek.SUNDAY) {
-            d = d.minusDays(1);
-        }
-        return d;
     }
 
     private final ReadOnlyObjectWrapper<LocalDate> targetDate;
@@ -151,9 +144,9 @@ public class ByWeek extends StackPane {
     @FXML // fx:id="weekComboBox"
     private ComboBox<Integer> weekComboBox; // Value injected by FXMLLoader
 
-    public ByWeek(LocalDate targetDate) {
+    private AppointmentsByWeek(LocalDate targetDate) {
         this.targetDate = new ReadOnlyObjectWrapper<>(this, "targetDate", (null == targetDate) ? LocalDate.now() : targetDate);
-        startOfWeek = new ReadOnlyObjectWrapper<>(this, "startOfWeek", atStartofWeek(this.targetDate.get()));
+        startOfWeek = new ReadOnlyObjectWrapper<>(this, "startOfWeek", DateTimeUtil.toStartofWeek(this.targetDate.get()));
         modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter");
         allAppointments = FXCollections.observableArrayList();
         appointmentDays = FXCollections.observableArrayList();
@@ -391,7 +384,7 @@ public class ByWeek extends StackPane {
 
     private void onTargetDateChanged(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
         LOG.entering(getClass().getName(), "onTargetDayChanged", new Object[]{observable, oldValue, newValue});
-        LocalDate start = atStartofWeek(newValue);
+        LocalDate start = DateTimeUtil.toStartofWeek(newValue);
         if (!start.equals(startOfWeek.get())) {
             startOfWeek.set(start);
         }
