@@ -63,7 +63,7 @@ import scheduler.view.annotations.GlobalizationResource;
 @FXMLResource("/scheduler/view/appointment/AppointmentsByMonth.fxml")
 public final class AppointmentsByMonth extends VBox {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByMonth.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByMonth.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentsByMonth.class.getName());
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("u M", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
 
