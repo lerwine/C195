@@ -41,8 +41,8 @@ import static scheduler.view.OverviewResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.appointment.AppointmentsByMonth;
-import scheduler.view.appointment.AppointmentsByWeek;
+import scheduler.view.appointment.MonthlyCalendar;
+import scheduler.view.appointment.WeeklyCalendar;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
@@ -128,7 +128,7 @@ public final class Overview extends VBox {
     @FXML
     void onByMonthHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onByMonthHyperlinkAction", event);
-        AppointmentsByMonth.loadIntoMainContent(YearMonth.now());
+        MonthlyCalendar.loadIntoMainContent(YearMonth.now());
         LOG.exiting(LOG.getName(), "onByMonthHyperlinkAction");
     }
 
@@ -142,7 +142,7 @@ public final class Overview extends VBox {
     @FXML
     void onByWeekHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onByWeekHyperlinkAction", event);
-        AppointmentsByWeek.loadIntoMainContent(LocalDate.now());
+        WeeklyCalendar.loadIntoMainContent(LocalDate.now());
         LOG.exiting(LOG.getName(), "onByWeekHyperlinkAction");
     }
 

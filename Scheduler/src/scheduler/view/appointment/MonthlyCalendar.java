@@ -59,15 +59,15 @@ import scheduler.view.annotations.GlobalizationResource;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
-@FXMLResource("/scheduler/view/appointment/AppointmentsByMonth.fxml")
-public final class AppointmentsByMonth extends VBox {
+@FXMLResource("/scheduler/view/appointment/MonthlyCalendar.fxml")
+public final class MonthlyCalendar extends VBox {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByMonth.class.getName()), Level.FINER);
-//    private static final Logger LOG = Logger.getLogger(AppointmentsByMonth.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(MonthlyCalendar.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(MonthlyCalendar.class.getName());
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
 
-    public static AppointmentsByMonth loadIntoMainContent(YearMonth targetMonth) {
-        AppointmentsByMonth newContent = new AppointmentsByMonth(targetMonth);
+    public static MonthlyCalendar loadIntoMainContent(YearMonth targetMonth) {
+        MonthlyCalendar newContent = new MonthlyCalendar(targetMonth);
         try {
             ViewControllerLoader.initializeCustomControl(newContent);
         } catch (IOException ex) {
@@ -100,7 +100,7 @@ public final class AppointmentsByMonth extends VBox {
     @FXML // fx:id="monthComboBox"
     private ComboBox<Month> monthComboBox; // Value injected by FXMLLoader
 
-    private AppointmentsByMonth(YearMonth targetMonth) {
+    private MonthlyCalendar(YearMonth targetMonth) {
         stageChangeListener = new ParentWindowChangeListener(sceneProperty());
         stageChangeListener.currentStageProperty().addListener((observable, oldValue, newValue) -> {
             if (null != newValue) {

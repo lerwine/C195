@@ -25,7 +25,7 @@
         <HBox>
             <children>
                 <Button mnemonicParsing="false" onAction="#onPreviousWeekButtonAction" styleClass="symbol-button" text="⮘" HBox.hgrow="NEVER" />
-                <Label fx:id="weekAndMonthNameLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="January" HBox.hgrow="ALWAYS" />
+                <Label fx:id="weekAndMonthNameLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                 <Button mnemonicParsing="false" onAction="#onNextWeekButtonAction" styleClass="symbol-button" text="⮚" HBox.hgrow="NEVER" />
             </children>
             <styleClass>

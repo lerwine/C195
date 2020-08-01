@@ -57,11 +57,7 @@
                         </Menu>
                     </menus>
                 </MenuBar>
-                <AnchorPane fx:id="contentAnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-                    <padding>
-                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                    </padding>
-                </AnchorPane>
+                <AnchorPane fx:id="contentAnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
             </children>
         </VBox>
         <HelpContent fx:id="helpContent" styleClass="collapsed" />

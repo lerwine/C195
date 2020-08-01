@@ -62,15 +62,15 @@ import scheduler.view.annotations.GlobalizationResource;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 @GlobalizationResource("scheduler/view/appointment/ManageAppointments")
-@FXMLResource("/scheduler/view/appointment/AppointmentsByWeek.fxml")
-public class AppointmentsByWeek extends VBox {
+@FXMLResource("/scheduler/view/appointment/WeeklyCalendar.fxml")
+public class WeeklyCalendar extends VBox {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByWeek.class.getName()), Level.FINER);
-//    private static final Logger LOG = Logger.getLogger(AppointmentsByWeek.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(WeeklyCalendar.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(WeeklyCalendar.class.getName());
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
 
-    public static AppointmentsByWeek loadIntoMainContent(LocalDate week) {
-        AppointmentsByWeek newContent = new AppointmentsByWeek(week);
+    public static WeeklyCalendar loadIntoMainContent(LocalDate week) {
+        WeeklyCalendar newContent = new WeeklyCalendar(week);
         try {
             ViewControllerLoader.initializeCustomControl(newContent);
         } catch (IOException ex) {
@@ -147,7 +147,7 @@ public class AppointmentsByWeek extends VBox {
     @FXML // fx:id="weekComboBox"
     private ComboBox<Integer> weekComboBox; // Value injected by FXMLLoader
 
-    private AppointmentsByWeek(LocalDate targetDate) {
+    private WeeklyCalendar(LocalDate targetDate) {
         this.targetDate = new ReadOnlyObjectWrapper<>(this, "targetDate", (null == targetDate) ? LocalDate.now() : targetDate);
         startOfWeek = new ReadOnlyObjectWrapper<>(this, "startOfWeek", DateTimeUtil.toStartofWeek(this.targetDate.get()));
         modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter");

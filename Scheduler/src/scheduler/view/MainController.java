@@ -34,8 +34,8 @@ import scheduler.view.address.EditAddress;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.appointment.AppointmentsByMonth;
-import scheduler.view.appointment.AppointmentsByWeek;
+import scheduler.view.appointment.MonthlyCalendar;
+import scheduler.view.appointment.WeeklyCalendar;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
 import scheduler.view.country.ManageCountries;
@@ -254,14 +254,14 @@ public final class MainController {
     @FXML
     private void onWeeklyCalendarMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onWeeklyCalendarMenuItemAction", event);
-        AppointmentsByWeek.loadIntoMainContent(LocalDate.now());
+        WeeklyCalendar.loadIntoMainContent(LocalDate.now());
         LOG.exiting(LOG.getName(), "onWeeklyCalendarMenuItemAction");
     }
 
     @FXML
     private void onMonthlyCalendarMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onMonthlyCalendarMenuItemAction", event);
-        AppointmentsByMonth.loadIntoMainContent(YearMonth.now());
+        MonthlyCalendar.loadIntoMainContent(YearMonth.now());
         LOG.exiting(LOG.getName(), "onMonthlyCalendarMenuItemAction");
     }
 
