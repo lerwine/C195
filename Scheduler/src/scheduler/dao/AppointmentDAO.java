@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -837,6 +838,29 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         @Override
         public Class<? extends AppointmentDAO> getDaoClass() {
             return AppointmentDAO.class;
+        }
+
+        public Optional<AppointmentDAO> nextOnOrAfter(Connection connection, Timestamp start) throws SQLException {
+            LOG.entering(LOG.getName(), "nextOnOrAfter", new Object[]{connection, start});
+            Objects.requireNonNull(connection, "Connection cannot be null");
+            String sql = createDmlSelectQueryBuilder().build().append(" WHERE ").append(DbTable.APPOINTMENT).append(".").append(DbColumn.END).append(">?").toString();
+            Optional<AppointmentDAO> result;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setTimestamp(1, start);
+                LOG.fine(() -> String.format("Executing DML statement: %s", sql));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        result = Optional.of(fromResultSet(rs));
+                        LogHelper.logWarnings(connection, LOG);
+                        LOG.exiting(LOG.getName(), "nextOnOrAfter", result);
+                        return result;
+                    }
+                    LogHelper.logWarnings(connection, LOG);
+                }
+            }
+            result = Optional.empty();
+            LOG.exiting(LOG.getName(), "nextOnOrAfter", result);
+            return result;
         }
 
         public int countByRange(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {

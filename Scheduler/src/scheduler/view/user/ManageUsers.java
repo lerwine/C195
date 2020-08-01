@@ -71,9 +71,9 @@ public final class ManageUsers extends MainListingControl<UserDAO, UserModel> {
     private BorderPane helpBorderPane; // Value injected by FXMLLoader
 
     private ManageUsers() {
-        
+
     }
-    
+
     @FXML
     private void filterButtonClick(ActionEvent event) {
         LOG.entering(LOG.getName(), "filterButtonClick", event);

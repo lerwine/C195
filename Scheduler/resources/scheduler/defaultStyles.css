@@ -94,47 +94,43 @@ TextFlow .hyperlink {
     -fx-background-color: -fx-background;
 }
 
-.normal-padding {
-    -fx-padding: 8px;
-}
-
-.wide-padding,
-.view-modal-mask {
-    -fx-padding: 64px;
-}
-
-.topControlLabel {
+.boldText {
     -fx-font-weight: bold;
-    -fx-alignment: BOTTOM_LEFT;
 }
 
-.topLabeledControl {
-    -fx-alignment: TOP_LEFT;
+.normal-font,
+.normal-font .text{
+    -fx-font-size: 12px;
 }
 
-Labeled.topLabeledControl,
-Labeled.leftLabeledControl {
-    -fx-wrap-text: true;
+.small-font,
+.small-font .text,
+.small-control,
+.small-control .text {
+    -fx-font-size: 10px;
 }
 
-.leftControlLabel,
-.innerLeftControlLabel {
+.tiny-font,
+.tiny-font .text {
+    -fx-font-size: 8px;
+}
+
+.alt-dark-text  {
+    -fx-text-fill: -scheduler-alt-dark-color;
+    -fx-fill: -scheduler-alt-dark-color;
+}
+
+.refNameText {
+    -fx-text-fill: #2a3258;
+    -fx-border-color: #bfbff2;
     -fx-font-weight: bold;
-    -fx-alignment: CENTER_RIGHT;
-}
-
-Labeled.topControlLabel,
-Labeled.leftControlLabel,
-Labeled.innerLeftControlLabel {
-    -fx-wrap-text: false;
-}
-
-.innerLeftControlLabel {
-    -fx-padding: 0px 0px 0px 16px;
-}
-
-.leftLabeledControl {
-    -fx-alignment: CENTER_LEFT;
+    -fx-border-width: 1;
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+    -fx-font-size: 11px;
+    -fx-padding: 0px 2px 0px 2px;
+    -fx-background-color: #e9e9fa;
+    -fx-font-style: italic;
 }
 
 .error,
@@ -173,21 +169,93 @@ Labeled.innerLeftControlLabel {
     -fx-font-style: italic;
 }
 
-.h1 {
+.refNameText,
+.symbolText {
+    -fx-fill: -scheduler-info-color;
+    -fx-stroke: -scheduler-info-color;
+    -fx-stroke-width: 0.25;
+
+}
+
+.symbol,
+.symbol-button {
+    -fx-font-family: "Segoe UI Symbol", sans-serif;
+}
+
+.hyperlink.small-control {
+    -fx-padding: 0px;
+}
+
+Button.small-control,
+.symbol-button {
+    -fx-padding: 1px 4px 1px 4px;
+}
+
+.zero-padding {
+    -fx-padding: 0px;
+}
+
+.normal-padding {
+    -fx-padding: 8px;
+}
+
+.wide-padding,
+.view-modal-mask {
+    -fx-padding: 64px;
+}
+
+.collapsed {
+    -fx-label-padding: 0;
+    -fx-min-height: 0;
+    -fx-min-width: 0;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+    -fx-max-height: 0;
+    -fx-max-width: 0;
+    -fx-padding: 0;
+    -fx-scale-x: 0;
+    -fx-scale-y: 0;
+    visibility: collapse;
+}
+
+.view-modal-mask {
+    -fx-background-color: -scheduler-transparent-mask;
+    -fx-background-radius: 0px;
+    -fx-border-style: none;
+    -fx-border-width: 0px;
+}
+
+.casts-shadow,
+.view-modal-mask > * {
+    -fx-effect: dropshadow(three-pass-box, -scheduler-shadow, 15.0, 0.5, 7.0, 7.0);
+}
+
+.h1,
+.h1 .text,
+.h1-alt,
+.h1-alt .text {
+    -fx-font-size: 22px;
+}
+
+.h2,
+.h2 .text,
+.h2-alt,
+.h2-alt .text {
     -fx-font-size: 18px;
 }
 
-.h2 {
-    -fx-font-size: 16px;
-}
-
 .h3,
+.h3 .text,
+.h3-alt,
+.h3-alt .text,
 .month-gridpane > Label {
     -fx-font-size: 16px;
 }
 
-
-.h4 {
+.h4,
+.h4 .text,
+.h4-alt,
+.h4-alt .text {
     -fx-font-size: 14px;
 }
 
@@ -243,6 +311,236 @@ Labeled.innerLeftControlLabel {
     -fx-text-fill: -scheduler-alt-darker-color;
     -fx-fill: -scheduler-alt-darker-color;
     -fx-wrap-text: true;
+}
+
+.topControlLabel {
+    -fx-font-weight: bold;
+    -fx-alignment: BOTTOM_LEFT;
+}
+
+.topLabeledControl {
+    -fx-alignment: TOP_LEFT;
+}
+
+Labeled.topLabeledControl,
+Labeled.leftLabeledControl {
+    -fx-wrap-text: true;
+}
+
+.leftControlLabel,
+.innerLeftControlLabel {
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_RIGHT;
+}
+
+Labeled.topControlLabel,
+Labeled.leftControlLabel,
+Labeled.innerLeftControlLabel {
+    -fx-wrap-text: false;
+}
+
+.innerLeftControlLabel {
+    -fx-padding: 0px 0px 0px 16px;
+}
+
+.leftLabeledControl {
+    -fx-alignment: CENTER_LEFT;
+}
+
+.validationMessage,
+Label.leftLabeledControl,
+CheckBox.leftLabeledControl,
+RadioButton.leftLabeledControl,
+.bordered-section .message {
+    -fx-wrap-text: true;
+}
+
+.mainFxmlClass,
+.mainFxmlClass > .content,
+.bordered-section > .content,
+.view-modal-mask {
+    -fx-max-width: infinity;
+    -fx-max-height: infinity;
+}
+
+.bordered-section {
+    -fx-background-color: -fx-background;
+    -fx-background-radius: 8px;
+    -fx-border-style: solid centered;
+    -fx-border-width: 3px;
+    -fx-border-color: -scheduler-info-color;
+    -fx-border-radius: 8px;
+}
+
+.bordered-section.error {
+    -fx-border-color: -scheduler-error-color;
+}
+
+.bordered-section.warning {
+    -fx-border-color: -scheduler-warning-color;
+}
+
+.bordered-section.information {
+    -fx-border-color: -scheduler-info-color;
+}
+
+.bordered-section.progress {
+    -fx-border-color: -fx-page-indicator-hover-border;
+}
+
+.bordered-section > .content {
+    -fx-padding: 8px;
+}
+
+.bordered-section > .left {
+    -fx-padding: 8px 0px 8px 8px;
+}
+
+.bordered-section > .right {
+    -fx-padding: 8px 8px 8px 0px;
+}
+
+.header,
+.footer,
+.bordered-section > .title {
+    -fx-background-color: -scheduler-info-gradient;
+    -fx-border-style: none;
+    -fx-border-width: 0px;
+    -fx-max-width: infinity;
+    -fx-alignment: CENTER;
+    -fx-padding: 8px;
+}
+
+.header,
+.footer,
+.bordered-section > .title,
+.header .text,
+.footer .text,
+.bordered-section > .title .text {
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+}
+
+.header .button,
+.footer .button,
+.header .combo-box,
+.footer .combo-box {
+    -fx-background-color: -scheduler-alt-dark-gradient;
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+}
+
+.footer .combo-box .list-view .virtual-flow .list-cell .text {
+    -fx-text-fill: -fx-dark-text-color;
+    -fx-fill: -fx-dark-text-color;
+}
+
+.header .symbol-button,
+.footer .symbol-button,
+.header .symbol-button .text,
+.footer .symbol-button .text {
+    -fx-font-weight: bold;
+    -fx-background-color: -scheduler-alt-dark-gradient;
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+    -fx-padding: -2px 6px -2px 6px;
+}
+
+.bordered-section > .header,
+.bordered-section > .title {
+    -fx-background-radius: 8px 8px 0px 0px;
+}
+
+.bordered-section > .footer {
+    -fx-background-radius: 0px 0px 8px 8px;
+}
+
+.header.error,
+.footer.error,
+.bordered-section.error > .title,
+.bordered-section.error > .header,
+.bordered-section.error > .footer {
+    -fx-background-color: -scheduler-error-gradient;
+}
+
+.header.error,
+.footer.error,
+.bordered-section.error > .title,
+.bordered-section.error > .header,
+.bordered-section.error > .footer,
+.header.error .text,
+.footer.error .text,
+.bordered-section.error > .title .text,
+.bordered-section.error > .header .text,
+.bordered-section.error > .footer .text {
+    -fx-text-fill: -scheduler-text-color-light;
+    -fx-fill: -scheduler-text-color-light;
+}
+
+.header.warning,
+.footer.warning,
+.bordered-section.warning > .title,
+.bordered-section.warning > .header,
+.bordered-section.warning > .footer {
+    -fx-background-color: -scheduler-warning-gradient;
+}
+
+.header.warning,
+.footer.warning,
+.bordered-section.warning > .title,
+.bordered-section.warning > .header,
+.bordered-section.warning > .footer,
+.header.warning .text,
+.footer.warning .text,
+.bordered-section.warning > .title .text,
+.bordered-section.warning > .header .text,
+.bordered-section.warning > .footer .text {
+    -fx-text-fill: white;
+    -fx-fill: white;
+}
+
+.header.information,
+.footer.information,
+.bordered-section.information > .title,
+.bordered-section.information > .header,
+.bordered-section.information > .footer {
+    -fx-background-color: -scheduler-info-gradient;
+}
+
+.header.information,
+.footer.information,
+.bordered-section.information > .title,
+.bordered-section.information > .header,
+.bordered-section.information > .footer,
+.header.information .text,
+.footer.information .text,
+.bordered-section.information > .title .text,
+.bordered-section.information > .header .text,
+.bordered-section.information > .footer .text {
+    -fx-text-fill: -scheduler-text-color-lighter;
+    -fx-fill: -scheduler-text-color-lighter;
+}
+
+.header.progress,
+.footer.progress,
+.bordered-section.information > .title,
+.bordered-section.progress > .header,
+.bordered-section.progress > .footer,
+.header.progress .text,
+.footer.progress .text,
+.bordered-section.progress > .title .text,
+.bordered-section.progress > .header .text,
+.bordered-section.progress > .footer .text {
+    -fx-text-fill: -scheduler-info-color-dark;
+    -fx-fill: -scheduler-info-color-dark;
+}
+
+.header.progress,
+.footer.progress,
+.bordered-section.progress > .title,
+.bordered-section.progress > .header,
+.bordered-section.progress > .footer {
+    -fx-background-color: -scheduler-progress-gradient;
 }
 
 .tree-view.appointments .virtual-flow .clipped-container .sheet .tree-cell HBox {
@@ -334,282 +632,4 @@ Labeled.innerLeftControlLabel {
 
 .month-gridpane > VBox > TextFlow.first-item > .hyperlink {
     -fx-padding: 0px 0px 0px 2px;
-}
-
-.view-modal-mask {
-    -fx-background-color: -scheduler-transparent-mask;
-    -fx-background-radius: 0px;
-    -fx-border-style: none;
-    -fx-border-width: 0px;
-}
-
-.bordered-section {
-    -fx-background-color: -fx-background;
-    -fx-background-radius: 8px;
-    -fx-border-style: solid centered;
-    -fx-border-width: 3px;
-    -fx-border-color: -scheduler-info-color;
-    -fx-border-radius: 8px;
-}
-
-.bordered-section.error {
-    -fx-border-color: -scheduler-error-color;
-}
-
-.bordered-section.warning {
-    -fx-border-color: -scheduler-warning-color;
-}
-
-.bordered-section.information {
-    -fx-border-color: -scheduler-info-color;
-}
-
-.bordered-section.progress {
-    -fx-border-color: -fx-page-indicator-hover-border;
-}
-
-.bordered-section > .content {
-    -fx-padding: 8px;
-}
-
-.bordered-section > .left {
-    -fx-padding: 8px 0px 8px 8px;
-}
-
-.bordered-section > .right {
-    -fx-padding: 8px 8px 8px 0px;
-}
-
-.mainFxmlClass,
-.mainFxmlClass > .content,
-.bordered-section > .content,
-.view-modal-mask {
-    -fx-max-width: infinity;
-    -fx-max-height: infinity;
-}
-
-.header,
-.footer,
-.bordered-section > .title {
-    -fx-background-color: -scheduler-info-gradient;
-    -fx-border-style: none;
-    -fx-border-width: 0px;
-    -fx-max-width: infinity;
-    -fx-alignment: CENTER;
-    -fx-padding: 8px;
-}
-
-.header,
-.footer,
-.bordered-section > .title,
-.header .text,
-.footer .text,
-.bordered-section > .title .text {
-    -fx-text-fill: -scheduler-text-color-light;
-    -fx-fill: -scheduler-text-color-light;
-}
-
-.header .button,
-.footer .button,
-.header .combo-box,
-.footer .combo-box {
-    -fx-background-color: -scheduler-alt-dark-gradient;
-    -fx-text-fill: -scheduler-text-color-light;
-    -fx-fill: -scheduler-text-color-light;
-}
-.footer .combo-box .list-view .virtual-flow .list-cell .text {
-    -fx-text-fill: -fx-dark-text-color;
-    -fx-fill: -fx-dark-text-color;
-}
-
-.header .symbol-button,
-.footer .symbol-button,
-.header .symbol-button .text,
-.footer .symbol-button .text {
-    -fx-font-weight: bold;
-    -fx-background-color: -scheduler-alt-dark-gradient;
-    -fx-text-fill: -scheduler-text-color-light;
-    -fx-fill: -scheduler-text-color-light;
-    -fx-padding: -2px 6px -2px 6px;
-}
-
-.bordered-section > .header,
-.bordered-section > .title {
-    -fx-background-radius: 8px 8px 0px 0px;
-}
-
-.bordered-section > .footer {
-    -fx-background-radius: 0px 0px 8px 8px;
-}
-
-.casts-shadow,
-.view-modal-mask > * {
-    -fx-effect: dropshadow(three-pass-box, -scheduler-shadow, 15.0, 0.5, 7.0, 7.0);
-}
-
-.validationMessage,
-Label.leftLabeledControl,
-CheckBox.leftLabeledControl,
-RadioButton.leftLabeledControl,
-.bordered-section .message {
-    -fx-wrap-text: true;
-}
-
-.header.error,
-.footer.error,
-.bordered-section.error > .title,
-.bordered-section.error > .header,
-.bordered-section.error > .footer {
-    -fx-background-color: -scheduler-error-gradient;
-}
-
-.header.error,
-.footer.error,
-.bordered-section.error > .title,
-.bordered-section.error > .header,
-.bordered-section.error > .footer,
-.header.error .text,
-.footer.error .text,
-.bordered-section.error > .title .text,
-.bordered-section.error > .header .text,
-.bordered-section.error > .footer .text {
-    -fx-text-fill: -scheduler-text-color-light;
-    -fx-fill: -scheduler-text-color-light;
-}
-
-.header.warning,
-.footer.warning,
-.bordered-section.warning > .title,
-.bordered-section.warning > .header,
-.bordered-section.warning > .footer {
-    -fx-background-color: -scheduler-warning-gradient;
-}
-
-.header.warning,
-.footer.warning,
-.bordered-section.warning > .title,
-.bordered-section.warning > .header,
-.bordered-section.warning > .footer,
-.header.warning .text,
-.footer.warning .text,
-.bordered-section.warning > .title .text,
-.bordered-section.warning > .header .text,
-.bordered-section.warning > .footer .text {
-    -fx-text-fill: white;
-    -fx-fill: white;
-}
-
-.header.information,
-.footer.information,
-.bordered-section.information > .title,
-.bordered-section.information > .header,
-.bordered-section.information > .footer {
-    -fx-background-color: -scheduler-info-gradient;
-}
-
-.header.information,
-.footer.information,
-.bordered-section.information > .title,
-.bordered-section.information > .header,
-.bordered-section.information > .footer,
-.header.information .text,
-.footer.information .text,
-.bordered-section.information > .title .text,
-.bordered-section.information > .header .text,
-.bordered-section.information > .footer .text {
-    -fx-text-fill: -scheduler-text-color-lighter;
-    -fx-fill: -scheduler-text-color-lighter;
-}
-
-.header.progress,
-.footer.progress,
-.bordered-section.information > .title,
-.bordered-section.progress > .header,
-.bordered-section.progress > .footer,
-.header.progress .text,
-.footer.progress .text,
-.bordered-section.progress > .title .text,
-.bordered-section.progress > .header .text,
-.bordered-section.progress > .footer .text {
-    -fx-text-fill: -scheduler-info-color-dark;
-    -fx-fill: -scheduler-info-color-dark;
-}
-
-.header.progress,
-.footer.progress,
-.bordered-section.progress > .title,
-.bordered-section.progress > .header,
-.bordered-section.progress > .footer {
-    -fx-background-color: -scheduler-progress-gradient;
-}
-
-.alt-dark-text  {
-    -fx-text-fill: -scheduler-alt-dark-color;
-    -fx-fill: -scheduler-alt-dark-color;
-}
-
-.symbol,
-.symbol-button {
-    -fx-font-family: "Segoe UI Symbol", sans-serif;
-}
-
-.small-control,
-.small-control .text {
-    -fx-font-size: 10px;
-}
-
-.normal-font,
-.normal-font .text{
-    -fx-font-size: 12px;
-}
-
-.hyperlink.small-control {
-    -fx-padding: 0px;
-}
-Button.small-control,
-.symbol-button {
-    -fx-padding: 1px 4px 1px 4px;
-}
-
-.refNameText {
-    -fx-text-fill: #2a3258;
-    -fx-border-color: #bfbff2;
-    -fx-font-weight: bold;
-    -fx-border-width: 1;
-    -fx-border-radius: 2;
-    -fx-background-radius: 2;
-    -fx-font-size: 11px;
-    -fx-padding: 0px 2px 0px 2px;
-    -fx-background-color: #e9e9fa;
-    -fx-font-style: italic;
-}
-
-.refNameText,
-.symbolText {
-    -fx-fill: -scheduler-info-color;
-    -fx-stroke: -scheduler-info-color;
-    -fx-stroke-width: 0.25;
-
-}
-
-.boldText {
-    -fx-font-weight: bold;
-}
-
-.zero-padding {
-    -fx-padding: 0px;
-}
-
-.collapsed {
-    -fx-label-padding: 0;
-    -fx-min-height: 0;
-    -fx-min-width: 0;
-    -fx-pref-height: 0;
-    -fx-pref-width: 0;
-    -fx-max-height: 0;
-    -fx-max-width: 0;
-    -fx-padding: 0;
-    -fx-scale-x: 0;
-    -fx-scale-y: 0;
-    visibility: collapse;
 }
