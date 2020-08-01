@@ -9,12 +9,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javafx.beans.binding.DoubleBinding;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -136,6 +139,8 @@ public final class MainController {
 
     @FXML // fx:id="appointmentAlert"
     private AppointmentAlert appointmentAlert; // Value injected by FXMLLoader
+    private DoubleBinding contentWidthBinding;
+    private DoubleBinding contentHeightBinding;
 
     public MainController() {
     }
@@ -285,16 +290,33 @@ public final class MainController {
         bindExtents(waitBorderPane, rootStackPane);
         bindExtents(appointmentAlert, rootStackPane);
         LOG.exiting(LOG.getName(), "initialize");
+
+        contentWidthBinding = contentVBox.widthProperty().subtract(16);
+        contentHeightBinding = contentVBox.heightProperty().subtract(16);
     }
 
     public synchronized void replaceContent(Node newContent) {
         Node oldView = contentView;
         contentView = Objects.requireNonNull(newContent);
+        Region region;
         if (null != oldView) {
+            if (oldView instanceof Region) {
+                region = (Region) oldView;
+                region.prefWidthProperty().unbind();
+                region.prefHeightProperty().unbind();
+            }
             contentVBox.getChildren().remove(oldView);
             ((Stage) contentVBox.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
         }
         VBox.setVgrow(newContent, Priority.ALWAYS);
+        VBox.setMargin(newContent, new Insets(8));
+        if (newContent instanceof Region) {
+            region = (Region) newContent;
+            region.setMaxHeight(Region.USE_PREF_SIZE);
+            region.setMaxWidth(Region.USE_PREF_SIZE);
+            region.prefWidthProperty().bind(contentWidthBinding);
+            region.prefHeightProperty().bind(contentHeightBinding);
+        }
         contentVBox.getChildren().add(newContent);
     }
 
