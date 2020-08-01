@@ -1,40 +1,36 @@
 package scheduler.fx;
 
+import java.util.logging.Logger;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.util.Callback;
+import scheduler.util.LogHelper;
 
 /**
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
- * @todo Implement {@code scheduler.fx.WrappingTextTableCellFactory}
+ * @param <T>
  */
 public class WrappingTextTableCellFactory<T> implements Callback<TableColumn<T, String>, TableCell<T, String>> {
+
+    private static final Logger LOG = Logger.getLogger(WrappingTextTableCellFactory.class.getName());
 
     @Override
     public TableCell<T, String> call(TableColumn<T, String> param) {
         return new TableCell<T, String>() {
-//            private Text text;
+            {
+                this.setWrapText(true);
+            }
+
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                this.setWrapText(true);
-                if (item == null) {
-//                    if (null != text) {
-//                        text.wrappingWidthProperty().unbind();
-//                        text = null;
-//                    }
+                if (empty || item == null) {
                     setText("");
                 } else {
-//                    if (null == text) {
-//                        text = new Text();
-//                        //text.setStyle("-fx-text-alignment:justify;");                      
-//                        text.wrappingWidthProperty().bind(getTableColumn().widthProperty());
-//                    }
-//                    text.setText(item);
+                    LOG.finer(() -> String.format("wrapText is %s when setting %s", this.wrapTextProperty().get(), LogHelper.toLogText(item)));
                     setText(item);
                 }
-//                setGraphic(text);
             }
         };
     }
