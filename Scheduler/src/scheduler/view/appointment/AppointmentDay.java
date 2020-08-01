@@ -62,32 +62,36 @@ public class AppointmentDay {
     }
 
     public static boolean update(ListChangeListener.Change<? extends AppointmentModel> sourceChange, ObservableList<AppointmentDay> target) {
-        if (sourceChange.wasPermutated() || sourceChange.wasUpdated()) {
-            return false;
-        }
-
-        ArrayList<AppointmentDay> toAdd = new ArrayList<>();
-        ArrayList<AppointmentDay> toRemove = new ArrayList<>();
-        sourceChange.getRemoved().forEach((remitem) -> {
-            find(remitem.getPrimaryKey(), target).forEach((t) -> toRemove.add(t));
-        });
-        sourceChange.getAddedSubList().forEach((additem) -> {
-            find(additem.getPrimaryKey(), target).forEach((t) -> toRemove.add(t));
-            create(additem).forEach((t) -> toAdd.add(t));
-        });
-
-        if (toRemove.isEmpty()) {
-            if (toAdd.isEmpty()) {
-                return false;
+        boolean hasChange = false;
+        while (sourceChange.next()) {
+            if (sourceChange.wasPermutated() || sourceChange.wasUpdated()) {
+                continue;
             }
-        } else {
-            target.removeAll(toRemove);
-            if (toAdd.isEmpty()) {
-                return false;
+
+            ArrayList<AppointmentDay> toAdd = new ArrayList<>();
+            ArrayList<AppointmentDay> toRemove = new ArrayList<>();
+            sourceChange.getRemoved().forEach((remitem) -> {
+                find(remitem.getPrimaryKey(), target).forEach((t) -> toRemove.add(t));
+            });
+            sourceChange.getAddedSubList().forEach((additem) -> {
+                find(additem.getPrimaryKey(), target).forEach((t) -> toRemove.add(t));
+                create(additem).forEach((t) -> toAdd.add(t));
+            });
+
+            if (toRemove.isEmpty()) {
+                if (toAdd.isEmpty()) {
+                    continue;
+                }
+            } else {
+                target.removeAll(toRemove);
+                if (toAdd.isEmpty()) {
+                    continue;
+                }
             }
+            target.addAll(toAdd);
+            hasChange = true;
         }
-        target.addAll(toAdd);
-        return true;
+        return hasChange;
     }
 
     private final ReadOnlyObjectWrapper<LocalDate> date;
