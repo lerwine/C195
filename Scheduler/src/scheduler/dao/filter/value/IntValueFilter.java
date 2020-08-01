@@ -13,14 +13,6 @@ import scheduler.dao.filter.ComparisonOperator;
  */
 public interface IntValueFilter extends ValueFilter<Integer>, IntPredicate, IntSupplier {
 
-    @Override
-    public default void accept(PreparedStatement ps, int index) throws SQLException {
-        ps.setInt(index, getAsInt());
-    }
-
-    @Override
-    public default Integer get() { return getAsInt(); }
-
     static boolean areEqual(IntValueFilter a, IntValueFilter b) {
         return (null == a) ? null == b : (null != b && a.getAsInt() == b.getAsInt() && a.getOperator() == b.getOperator());
     }
@@ -39,83 +31,179 @@ public interface IntValueFilter extends ValueFilter<Integer>, IntPredicate, IntS
             case EQUALS:
                 return new IntValueFilter() {
                     @Override
-                    public int getAsInt() { return value; }
+                    public int getAsInt() {
+                        return value;
+                    }
+
                     @Override
-                    public ComparisonOperator getOperator() { return operator; }
+                    public ComparisonOperator getOperator() {
+                        return operator;
+                    }
+
                     @Override
-                    public boolean test(int lValue) { return lValue == value; }
+                    public boolean test(int lValue) {
+                        return lValue == value;
+                    }
+
                     @Override
-                    public int hashCode() { return hashcode; }
+                    public int hashCode() {
+                        return hashcode;
+                    }
+
                     @Override
-                    public boolean equals(Object obj) { return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj); }
+                    public boolean equals(Object obj) {
+                        return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj);
+                    }
                 };
             case NOT_EQUALS:
                 return new IntValueFilter() {
                     @Override
-                    public int getAsInt() { return value; }
+                    public int getAsInt() {
+                        return value;
+                    }
+
                     @Override
-                    public ComparisonOperator getOperator() { return operator; }
+                    public ComparisonOperator getOperator() {
+                        return operator;
+                    }
+
                     @Override
-                    public boolean test(int lValue) { return lValue != value; }
+                    public boolean test(int lValue) {
+                        return lValue != value;
+                    }
+
                     @Override
-                    public int hashCode() { return hashcode; }
+                    public int hashCode() {
+                        return hashcode;
+                    }
+
                     @Override
-                    public boolean equals(Object obj) { return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj); }
+                    public boolean equals(Object obj) {
+                        return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj);
+                    }
                 };
             case GREATER_THAN:
                 return new IntValueFilter() {
                     @Override
-                    public int getAsInt() { return value; }
+                    public int getAsInt() {
+                        return value;
+                    }
+
                     @Override
-                    public ComparisonOperator getOperator() { return operator; }
+                    public ComparisonOperator getOperator() {
+                        return operator;
+                    }
+
                     @Override
-                    public boolean test(int lValue) { return lValue > value; }
+                    public boolean test(int lValue) {
+                        return lValue > value;
+                    }
+
                     @Override
-                    public int hashCode() { return hashcode; }
+                    public int hashCode() {
+                        return hashcode;
+                    }
+
                     @Override
-                    public boolean equals(Object obj) { return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj); }
+                    public boolean equals(Object obj) {
+                        return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj);
+                    }
                 };
             case NOT_LESS_THAN:
                 return new IntValueFilter() {
                     @Override
-                    public int getAsInt() { return value; }
+                    public int getAsInt() {
+                        return value;
+                    }
+
                     @Override
-                    public ComparisonOperator getOperator() { return operator; }
+                    public ComparisonOperator getOperator() {
+                        return operator;
+                    }
+
                     @Override
-                    public boolean test(int lValue) { return lValue >= value; }
+                    public boolean test(int lValue) {
+                        return lValue >= value;
+                    }
+
                     @Override
-                    public int hashCode() { return hashcode; }
+                    public int hashCode() {
+                        return hashcode;
+                    }
+
                     @Override
-                    public boolean equals(Object obj) { return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj); }
+                    public boolean equals(Object obj) {
+                        return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj);
+                    }
                 };
             case LESS_THAN:
                 return new IntValueFilter() {
                     @Override
-                    public int getAsInt() { return value; }
+                    public int getAsInt() {
+                        return value;
+                    }
+
                     @Override
-                    public ComparisonOperator getOperator() { return operator; }
+                    public ComparisonOperator getOperator() {
+                        return operator;
+                    }
+
                     @Override
-                    public boolean test(int lValue) { return lValue < value; }
+                    public boolean test(int lValue) {
+                        return lValue < value;
+                    }
+
                     @Override
-                    public int hashCode() { return hashcode; }
+                    public int hashCode() {
+                        return hashcode;
+                    }
+
                     @Override
-                    public boolean equals(Object obj) { return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj); }
+                    public boolean equals(Object obj) {
+                        return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj);
+                    }
                 };
             case NOT_GREATER_THAN:
                 return new IntValueFilter() {
                     @Override
-                    public int getAsInt() { return value; }
+                    public int getAsInt() {
+                        return value;
+                    }
+
                     @Override
-                    public ComparisonOperator getOperator() { return operator; }
+                    public ComparisonOperator getOperator() {
+                        return operator;
+                    }
+
                     @Override
-                    public boolean test(int lValue) { return lValue <= value; }
+                    public boolean test(int lValue) {
+                        return lValue <= value;
+                    }
+
                     @Override
-                    public int hashCode() { return hashcode; }
+                    public int hashCode() {
+                        return hashcode;
+                    }
+
                     @Override
-                    public boolean equals(Object obj) { return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj); }
+                    public boolean equals(Object obj) {
+                        return null != obj && obj instanceof IntValueFilter && areEqual(this, (IntValueFilter) obj);
+                    }
                 };
             default:
                 throw new IllegalArgumentException(String.format("Operator %s cannot be applied to integer values", operator));
         }
+    }
+    
+    @Override
+    public default void accept(PreparedStatement ps, int index) throws SQLException {
+        int value = getAsInt();
+        Loggers.IVF_LOG.finer(() -> String.format("Setting parameter at index %d to %d", index, value));
+        ps.setInt(index, value);
+    }
+    
+    @Override
+    public default Integer get() {
+        return getAsInt();
     }
 }

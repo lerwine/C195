@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import scheduler.dao.filter.ComparisonOperator;
 import scheduler.util.DateTimeUtil;
+import scheduler.util.LogHelper;
 
 /**
  *
@@ -22,7 +23,9 @@ public interface TimestampValueFilter<T extends Temporal> extends ValueFilter<Ti
 
     @Override
     public default void accept(PreparedStatement ps, int index) throws SQLException {
-        ps.setTimestamp(index, get());
+        Timestamp value = get();
+        Loggers.TVF_LOG.finer(() -> String.format("Setting parameter at index %d to %s", index, LogHelper.toLogText(value)));
+        ps.setTimestamp(index, value);
     }
 
     boolean testTemporal(T value);
