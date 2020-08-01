@@ -109,7 +109,6 @@ public final class Scheduler extends Application {
         try {
             ViewControllerLoader.initializeCustomControl(login);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
         // Bind extents of login view to main view extents.

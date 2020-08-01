@@ -40,8 +40,7 @@ public class PartialCityModelImpl extends PartialModel<PartialCityDAO> implement
             name = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(dao).name(PROP_NAME).build();
             countryDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<PartialCountryDAO>create().bean(dao).name(PROP_COUNTRY).build();
         } catch (NoSuchMethodException ex) {
-            LOG.log(Level.SEVERE, "Error creating property", ex);
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Error creating property", ex);
         }
         country = new ReadOnlyObjectBindingProperty<>(this, PROP_COUNTRY, () -> CountryHelper.createModel(countryDAO.get()), countryDAO);
         countryName = new ReadOnlyStringBindingProperty(this, PROP_COUNTRYNAME, Bindings.selectString(country, CountryProperties.PROP_NAME));

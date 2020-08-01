@@ -1222,8 +1222,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 }
             } catch (SQLException ex) {
                 LogHelper.logWarnings(connection, LOG);
-                LOG.log(Level.SEVERE, String.format("Error executing DML statement: %s", sql), ex);
-                throw new Exception("Error executing DML statement", ex);
+                throw new Exception(String.format("Error executing DML statement: %s", sql), ex);
             }
             ModelEvent<D, M> resultEvent = createSuccessEvent();
             LOG.exiting(LOG.getName(), "onValidated", resultEvent);

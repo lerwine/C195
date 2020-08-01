@@ -34,8 +34,7 @@ public class PartialUserModelImpl extends PartialModel<PartialUserDAO> implement
             userName = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_USERNAME).build();
             status = ReadOnlyJavaBeanObjectPropertyBuilder.<UserStatus>create().bean(rowData).name(PROP_STATUS).build();
         } catch (NoSuchMethodException ex) {
-            LOG.log(Level.SEVERE, "Error creating property", ex);
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Error creating property", ex);
         }
         statusDisplay = new ReadOnlyStringBindingProperty(this, PROP_STATUSDISPLAY, () -> UserStatus.toDisplayValue(status.get()), status);
     }

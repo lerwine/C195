@@ -30,8 +30,7 @@ public abstract class PartialModel<T extends PartialDataAccessObject> implements
             primaryKey = ReadOnlyJavaBeanIntegerPropertyBuilder.create().bean(dao).name(PROP_PRIMARYKEY).build();
             rowState = ReadOnlyJavaBeanObjectPropertyBuilder.<DataRowState>create().bean(dao).name(PROP_ROWSTATE).build();
         } catch (NoSuchMethodException ex) {
-            LOG.log(Level.SEVERE, "Error creating property", ex);
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Error creating property", ex);
         }
     }
 

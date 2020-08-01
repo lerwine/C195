@@ -97,7 +97,6 @@ public abstract class MainListingControl<D extends DataAccessObject, M extends E
         try {
             ViewControllerLoader.initializeCustomControl(newContent);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error initializing view", ex);
             throw new InternalError("Error initializing view", ex);
         }
         return newContent;

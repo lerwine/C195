@@ -400,7 +400,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
                     LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             UserEvent resultEvent;
@@ -480,7 +479,6 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
             try {
                 count = AppointmentDAO.FACTORY.countByUser(connection, dao.getPrimaryKey(), null, null);
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
             UserEvent resultEvent;

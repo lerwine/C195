@@ -475,8 +475,7 @@ public abstract class ModelEvent<D extends DataAccessObject, M extends EntityMod
             copy = (ModelEvent<D, M>) super.copyFor(newSource, newTarget);
             copy.state = state;
         } catch (Throwable ex) {
-            LOG.log(Level.SEVERE, String.format("Failure creating copy of %s", this), ex);
-            throw new RuntimeException("Failure creating event copy", ex);
+            throw new RuntimeException(String.format("Failure creating copy of %s", this), ex);
         }
         LOG.finer(() -> String.format("Returning %s as copy of %s", copy, this));
         return copy;

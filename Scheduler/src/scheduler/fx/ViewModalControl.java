@@ -81,7 +81,6 @@ public class ViewModalControl extends Control {
         try {
             ViewControllerLoader.loadView(this, new BorderPane());
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
     }

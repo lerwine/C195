@@ -421,7 +421,6 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
                     LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
 
@@ -495,7 +494,6 @@ public final class CountryDAO extends DataAccessObject implements PartialCountry
             try {
                 count = CityDAO.FACTORY.countByCountry(dao.getPrimaryKey(), connection);
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
             CountryEvent resultEvent;

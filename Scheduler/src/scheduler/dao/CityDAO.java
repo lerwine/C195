@@ -546,7 +546,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
                     LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
 
@@ -643,7 +642,6 @@ public final class CityDAO extends DataAccessObject implements PartialCityDAO, C
             try {
                 count = AddressDAO.FACTORY.countByCity(dao.getPrimaryKey(), connection);
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, "Error checking dependencies", ex);
                 throw new OperationFailureException("Error checking dependencies", ex);
             }
             CityEvent resultEvent;

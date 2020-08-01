@@ -96,7 +96,6 @@ public class AddressPicker extends BorderPane {
         try {
             ViewControllerLoader.initializeCustomControl(this);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
     }

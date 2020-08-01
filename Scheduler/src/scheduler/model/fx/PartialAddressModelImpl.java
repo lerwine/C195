@@ -51,8 +51,7 @@ public class PartialAddressModelImpl extends PartialModel<PartialAddressDAO> imp
             postalCode = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_POSTALCODE).build();
             phone = ReadOnlyJavaBeanStringPropertyBuilder.create().bean(rowData).name(PROP_PHONE).build();
         } catch (NoSuchMethodException ex) {
-            LOG.log(Level.SEVERE, "Error creating property", ex);
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Error creating property", ex);
         }
         addressLines = new ReadOnlyStringBindingProperty(this, PROP_ADDRESSLINES,
                 () -> AddressHelper.calculateAddressLines(address1.get(), address2.get()), address1, address2);

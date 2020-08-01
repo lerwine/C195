@@ -52,8 +52,7 @@ public class PartialCustomerModelImpl extends PartialModel<PartialCustomerDAO> i
             addressDAO = ReadOnlyJavaBeanObjectPropertyBuilder.<PartialAddressDAO>create().bean(rowData).name(PROP_ADDRESS).build();
             active = ReadOnlyJavaBeanBooleanPropertyBuilder.create().bean(rowData).name(PROP_ACTIVE).build();
         } catch (NoSuchMethodException ex) {
-            LOG.log(Level.SEVERE, "Error creating property", ex);
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Error creating property", ex);
         }
         address = new ReadOnlyObjectBindingProperty<>(this, PROP_ADDRESS, () -> AddressHelper.createModel(addressDAO.get()), addressDAO);
         address1 = new ReadOnlyStringBindingProperty(this, PROP_ADDRESS1, Bindings.selectString(address, AddressProperties.PROP_ADDRESS1));

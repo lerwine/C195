@@ -200,8 +200,7 @@ public final class DateRangeController {
             businessHoursStart = AppResources.getBusinessHoursStart();
             businessHoursEnd = businessHoursStart.plusMinutes(AppResources.getBusinessHoursDuration());
         } catch (ParseException ex) {
-            Logger.getLogger(EditAppointment.class.getName()).log(Level.SEVERE, "Error parsing start business hours", ex);
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Error parsing start business hours", ex);
         }
         startValidationMessage = new ReadOnlyStringWrapper(this, "startValidationMessage", "");
         startDateTimeValue = new ReadOnlyObjectWrapper<>(this, "startDateTimeValue", null);

@@ -663,7 +663,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
                     LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             if (count > 0) {
@@ -762,7 +761,6 @@ public final class AddressDAO extends DataAccessObject implements PartialAddress
             try {
                 count = CustomerDAO.FACTORY.countByAddress(connection, dao.getPrimaryKey());
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
             AddressEvent resultEvent;

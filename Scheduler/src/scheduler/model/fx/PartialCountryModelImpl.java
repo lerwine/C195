@@ -31,8 +31,7 @@ public class PartialCountryModelImpl extends PartialModel<PartialCountryDAO> imp
         try {
             locale = ReadOnlyJavaBeanObjectPropertyBuilder.<Locale>create().bean(rowData).name(CountryDAO.PROP_LOCALE).build();
         } catch (NoSuchMethodException ex) {
-            LOG.log(Level.SEVERE, "Error creating property", ex);
-            throw new RuntimeException(ex);
+            throw new RuntimeException("Error creating property", ex);
         }
         name = new ReadOnlyStringBindingProperty(this, PROP_NAME, () -> {
             return CountryHelper.getCountryDisplayText(locale.get());

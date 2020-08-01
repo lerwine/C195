@@ -49,7 +49,6 @@ public final class WaitTitledPane extends TitledPane {
         try {
             ViewControllerLoader.initializeCustomControl(newContent);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
         return newContent;

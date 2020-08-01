@@ -67,8 +67,7 @@ public final class PwHash {
                 return true;
             }
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            // This should never occur unless there is a typo or invalid constant in the code.
-            LOG.log(Level.SEVERE, "Unexpected failure", ex);
+            // This should never occur unless there is a typo or invalid constant in the code.=
             throw new InternalException("Unexpected error generating hash", ex);
         }
 
@@ -201,8 +200,7 @@ public final class PwHash {
             Base64.Encoder enc = Base64.getEncoder();
             encodedHash.set((enc.encodeToString(sb) + enc.encodeToString(hb)).substring(0, HASHED_STRING_LENGTH));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            // This should never occur unless there is a typo or invalid constant in the code.
-            LOG.log(Level.SEVERE, "Unexpected failure", ex);
+            // This should never occur unless there is a typo or invalid constant in the code.=
             throw new InternalException("Unexpected error generating hash", ex);
         }
     }

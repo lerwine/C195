@@ -488,7 +488,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
                     LogHelper.logWarnings(connection, LOG);
                 }
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_CONFLICTS, ex);
                 throw new OperationFailureException(ERROR_CHECKING_CONFLICTS, ex);
             }
             if (count > 0) {
@@ -586,7 +585,6 @@ public final class CustomerDAO extends DataAccessObject implements PartialCustom
             try {
                 count = AppointmentDAO.FACTORY.countByCustomer(connection, dao.getPrimaryKey(), null, null);
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, ERROR_CHECKING_DEPENDENCIES, ex);
                 throw new OperationFailureException(ERROR_CHECKING_DEPENDENCIES, ex);
             }
             CustomerEvent resultEvent;

@@ -70,7 +70,6 @@ public final class Overview extends VBox {
         try {
             ViewControllerLoader.initializeCustomControl(newContent);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error loading view", ex);
             throw new InternalError("Error loading view", ex);
         }
         Scheduler.getMainController().replaceContent(newContent);
