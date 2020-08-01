@@ -873,21 +873,7 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
         }
 
         public List<AppointmentCountByType> getCountsByType(Connection connection, LocalDateTime start, LocalDateTime end) throws SQLException {
-            // SELECT COUNT(appointmentId) AS c, type FROM appointment WHERE end > '2019-12-03 05:00:00' AND start < '2020-07-30 10:05:00' GROUP BY type
-//            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS c, ")
-//                    .append(DbColumn.START.getDbName()).append(", ").append(DbColumn.END.getDbName()).append(", ")
-//                    .append(DbColumn.TYPE.getDbName())
-//                    .append(" FROM ").append(DbTable.APPOINTMENT.getDbName())
-//                    .append(" GROUP BY ").append(DbColumn.TYPE.getDbName());
-//            if (null != start) {
-//                sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
-//                if (null != end) {
-//                    sb.append(" AND ").append(DbColumn.START.getDbName()).append(" < ?");
-//                }
-//            } else if (null != end) {
-//                sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" < ?");
-//            }
-            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS c, ").append(", ").append(DbColumn.TYPE.getDbName())
+            StringBuffer sb = new StringBuffer("SELECT COUNT(").append(DbColumn.APPOINTMENT_ID.getDbName()).append(") AS c, ").append(DbColumn.TYPE.getDbName())
                     .append(" FROM ").append(DbTable.APPOINTMENT.getDbName());
             if (null != start) {
                 sb.append(" WHERE ").append(DbColumn.END.getDbName()).append(" > ?");
@@ -931,17 +917,16 @@ public final class AppointmentDAO extends DataAccessObject implements Appointmen
                     .append(" LEFT JOIN ").append(DbTable.CITY.getDbName())
                     .append(" t ON l.").append(DbColumn.CITY_ID.getDbName()).append("=t.").append(DbColumn.CITY_ID.getDbName())
                     .append(" LEFT JOIN ").append(DbTable.COUNTRY.getDbName())
-                    .append(" n on t.").append(DbColumn.COUNTRY_ID.getDbName()).append("=n.").append(DbColumn.COUNTRY_ID.getDbName())
-                    .append(" GROUP BY ").append(DbColumn.COUNTRY_NAME.getDbName());
+                    .append(" n on t.").append(DbColumn.COUNTRY_ID.getDbName()).append("=n.").append(DbColumn.COUNTRY_ID.getDbName());
             if (null != start) {
-                sb.append(" HAVING ").append(DbColumn.END.getDbName()).append(" > ?");
+                sb.append(" WHERE ").append(DbColumn.END.getDbName()).append(" > ?");
                 if (null != end) {
                     sb.append(" AND ").append(DbColumn.START.getDbName()).append(" <= ?");
                 }
             } else if (null != end) {
-                sb.append(" HAVING ").append(DbColumn.START.getDbName()).append(" <= ?");
+                sb.append(" WHERE ").append(DbColumn.START.getDbName()).append(" <= ?");
             }
-            String sql = sb.toString();
+            String sql = sb.append(" GROUP BY ").append(DbColumn.COUNTRY_NAME.getDbName()).toString();
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 int index = 0;
                 if (null != start) {
