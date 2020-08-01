@@ -106,21 +106,6 @@ public final class AppointmentsByMonth extends VBox {
         appointmentDeleteEventHandler = WeakEventHandlingReference.create(this::onAppointmentDeleted);
     }
 
-    public AppointmentsByMonth() {
-        this(null);
-    }
-
-    @FXML
-    void onItemActionRequest(AppointmentOpRequestEvent event) {
-        LOG.entering(LOG.getName(), "onItemActionRequest", event);
-        if (event.isEdit()) {
-            editItem(event.getEntityModel());
-        } else {
-            deleteItem(event.getEntityModel());
-        }
-        LOG.exiting(LOG.getName(), "onItemActionRequest");
-    }
-
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onAppointmentsTableTreeViewViewKeyReleased(KeyEvent event) {
@@ -143,6 +128,17 @@ public final class AppointmentsByMonth extends VBox {
             }
         }
         LOG.exiting(LOG.getName(), "onAppointmentsTableTreeViewViewKeyReleased");
+    }
+
+    @FXML
+    void onItemActionRequest(AppointmentOpRequestEvent event) {
+        LOG.entering(LOG.getName(), "onItemActionRequest", event);
+        if (event.isEdit()) {
+            editItem(event.getEntityModel());
+        } else {
+            deleteItem(event.getEntityModel());
+        }
+        LOG.exiting(LOG.getName(), "onItemActionRequest");
     }
 
     @FXML

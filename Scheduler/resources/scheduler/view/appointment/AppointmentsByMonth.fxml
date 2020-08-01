@@ -30,7 +30,7 @@
                 <String fx:value="header" />
             </styleClass>
         </HBox>
-        <TreeTableView fx:id="appointmentsTableTreeView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onKeyReleased="#onListingTableViewKeyReleased" onSort="#onAppointmentsTableTreeViewViewKeyReleased" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+        <TreeTableView fx:id="appointmentsTableTreeView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onKeyReleased="#onAppointmentsTableTreeViewViewKeyReleased" onSort="#onAppointmentsTableTreeViewViewKeyReleased" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
             <columns>
                 <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Date">
                     <cellValueFactory>
