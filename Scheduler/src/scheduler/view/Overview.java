@@ -114,14 +114,15 @@ public final class Overview extends VBox {
 
     @FXML // fx:id="appointmentsNextMonthLabel"
     private Label appointmentsNextMonthLabel; // Value injected by FXMLLoader
+    
     private Overview() {
         
     }
 
     @FXML
     void onAllAppointmentsHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentListHyperlinkAction", event);
-        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
+        LOG.entering(LOG.getName(), "onAllAppointmentsHyperlinkAction", event);
+        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.all());
         LOG.exiting(LOG.getName(), "onAllAppointmentsHyperlinkAction");
     }
 
