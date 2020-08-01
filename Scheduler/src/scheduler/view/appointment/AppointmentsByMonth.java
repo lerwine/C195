@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -61,6 +65,7 @@ public final class AppointmentsByMonth extends VBox {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByMonth.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(AppointmentsByMonth.class.getName());
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("u M", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
 
     public static AppointmentsByMonth loadIntoMainContent(YearMonth targetMonth) {
         AppointmentsByMonth newContent = new AppointmentsByMonth(targetMonth);
@@ -180,6 +185,7 @@ public final class AppointmentsByMonth extends VBox {
         YearMonth t = targetMonth.get();
         int y = yearSpinner.getValue();
         if (y < t.getYear()) {
+            yearSpinner.increment(t.getYear() - y);
         } else if (y > t.getYear()) {
             yearSpinner.decrement(y - t.getYear());
         }
@@ -287,6 +293,7 @@ public final class AppointmentsByMonth extends VBox {
     private void onTargetMonthChanged(ObservableValue<? extends YearMonth> observable, YearMonth oldValue, YearMonth newValue) {
         LOG.entering(getClass().getName(), "onTargetMonthChanged", new Object[]{observable, oldValue, newValue});
         LocalDate start = newValue.atDay(1);
+        monthNameLabel.setText(FORMATTER.format(newValue));
         modelFilter.set(AppointmentModelFilter.of(start, start.plusMonths(1)));
         LOG.exiting(getClass().getName(), "onTargetMonthChanged");
     }
