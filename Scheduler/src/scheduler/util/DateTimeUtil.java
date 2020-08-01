@@ -1,12 +1,12 @@
 package scheduler.util;
 
 import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDateTime;
-import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -14,6 +14,14 @@ import java.util.TimeZone;
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
 public class DateTimeUtil {
+
+    public static LocalDate toStartofWeek(LocalDate value) {
+        LocalDate d = value;
+        while (d.getDayOfWeek() != DayOfWeek.SUNDAY) {
+            d = d.minusDays(1);
+        }
+        return d;
+    }
 
     public static ZonedDateTime toUTCZonedDateTime(Timestamp timestamp) {
         return timestamp.toLocalDateTime().atZone(ZoneId.of("UTC"));
@@ -90,11 +98,11 @@ public class DateTimeUtil {
         if (null == b) {
             return false;
         }
-        
+
         if (a == b) {
             return true;
         }
-        
+
         if (a instanceof LocalDateTime) {
             if (b instanceof LocalDateTime) {
                 return a.equals(b);
@@ -112,7 +120,7 @@ public class DateTimeUtil {
         }
         throw new UnsupportedOperationException();
     }
-    
+
     @SuppressWarnings("unchecked")
     public static int compareDates(Comparable<?> a, Comparable<?> b) {
         if (null == a) {
@@ -121,11 +129,11 @@ public class DateTimeUtil {
         if (null == b) {
             return -1;
         }
-        
+
         if (a == b) {
             return 0;
         }
-        
+
         if (a instanceof LocalDateTime) {
             if (b instanceof LocalDateTime) {
                 return ((Comparable<ChronoLocalDateTime<?>>) a).compareTo((ChronoLocalDateTime<?>) b);
@@ -135,12 +143,15 @@ public class DateTimeUtil {
             }
         } else if (a instanceof Timestamp) {
             if (b instanceof Timestamp) {
-                return ((Timestamp)a).compareTo((Timestamp)b);
+                return ((Timestamp) a).compareTo((Timestamp) b);
             }
             if (b instanceof LocalDateTime) {
-                return ((Timestamp)a).compareTo(toUtcTimestamp((LocalDateTime) b));
+                return ((Timestamp) a).compareTo(toUtcTimestamp((LocalDateTime) b));
             }
         }
         throw new UnsupportedOperationException();
+    }
+
+    private DateTimeUtil() {
     }
 }
