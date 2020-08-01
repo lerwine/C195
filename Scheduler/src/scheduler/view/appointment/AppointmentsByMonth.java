@@ -65,7 +65,7 @@ public final class AppointmentsByMonth extends VBox {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByMonth.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentsByMonth.class.getName());
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("u M", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
 
     public static AppointmentsByMonth loadIntoMainContent(YearMonth targetMonth) {
         AppointmentsByMonth newContent = new AppointmentsByMonth(targetMonth);

@@ -37,7 +37,7 @@
                         <PropertyValueFactory property="date" />
                     </cellValueFactory>
                     <cellFactory>
-                        <DateTimeTableCellFactory format="E, d" />
+                        <DateTimeTableCellFactory format="eeee, d" />
                     </cellFactory>
                 </TreeTableColumn>
                 <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
