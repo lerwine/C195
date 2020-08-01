@@ -37,6 +37,17 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
 
     private static final Logger LOG = Logger.getLogger(DailyAppointmentsBorderPane.class.getName());
 
+    public static DailyAppointmentsBorderPane create(LocalDate date, Collection<AppointmentModel> appointments) {
+        DailyAppointmentsBorderPane newContent = new DailyAppointmentsBorderPane(date, appointments);
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        return newContent;
+    }
+
     private final ReadOnlyObjectWrapper<LocalDate> date;
     private final ReadOnlyListWrapper<AppointmentModel> appointments;
 
@@ -46,8 +57,7 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
     @FXML // fx:id="listingTableView"
     private TableView<AppointmentModel> listingTableView; // Value injected by FXMLLoader
 
-    @SuppressWarnings("LeakingThisInConstructor")
-    public DailyAppointmentsBorderPane(LocalDate date, Collection<AppointmentModel> appointments) {
+    private DailyAppointmentsBorderPane(LocalDate date, Collection<AppointmentModel> appointments) {
         this.date = new ReadOnlyObjectWrapper<>(Objects.requireNonNull(date));
         ObservableList<AppointmentModel> items = FXCollections.observableArrayList();
         if (null != appointments && !appointments.isEmpty()) {
@@ -60,15 +70,6 @@ public final class DailyAppointmentsBorderPane extends BorderPane {
             LOG.info("Appointments added");
         }
         this.appointments = new ReadOnlyListWrapper<>(FXCollections.unmodifiableObservableList(items));
-        try {
-            ViewControllerLoader.initializeCustomControl(this);
-        } catch (IOException ex) {
-            Logger.getLogger(DailyAppointmentsBorderPane.class.getName()).log(Level.SEVERE, "Error loading view", ex);
-        }
-    }
-
-    public DailyAppointmentsBorderPane() {
-        this(LocalDate.now(), null);
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

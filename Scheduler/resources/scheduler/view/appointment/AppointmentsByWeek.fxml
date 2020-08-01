@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.Integer?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Accordion?>
@@ -19,7 +20,7 @@
 <?import scheduler.fx.MonthNameListCellFactory?>
 <?import scheduler.fx.RelayCellValueFactory?>
 
-<VBox stylesheets="@../../defaultStyles.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="mainFxmlClass" stylesheets="@../../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <HBox>
             <children>
@@ -36,7 +37,7 @@
             <panes>
                 <TitledPane fx:id="sundayTitledPane" animated="false" text="Sunday">
                     <content>
-                        <TableView fx:id="sundayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                        <TableView fx:id="sundayTableView" onKeyReleased="#onListingTableViewKeyReleased" tableMenuButtonVisible="true">
                             <columns>
                                 <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
                                     <cellValueFactory>
@@ -79,7 +80,7 @@
                                         <PropertyValueFactory property="effectiveLocation" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="url" />
                                     </cellValueFactory>
@@ -129,12 +130,15 @@
                                     </cellFactory>
                                 </TableColumn>
                             </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
                         </TableView>
                     </content>
                 </TitledPane>
                 <TitledPane fx:id="mondayTitledPane" animated="false" layoutX="10.0" layoutY="10.0" text="Monday">
                     <content>
-                        <TableView fx:id="mondayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                        <TableView fx:id="mondayTableView" onKeyReleased="#onListingTableViewKeyReleased" tableMenuButtonVisible="true">
                             <columns>
                                 <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
                                     <cellValueFactory>
@@ -177,7 +181,7 @@
                                         <PropertyValueFactory property="effectiveLocation" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="url" />
                                     </cellValueFactory>
@@ -227,12 +231,15 @@
                                     </cellFactory>
                                 </TableColumn>
                             </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
                         </TableView>
                     </content>
                 </TitledPane>
                 <TitledPane fx:id="tuesdayTitledPane" animated="false" layoutX="10.0" layoutY="434.0" text="Tuesday">
                     <content>
-                        <TableView fx:id="tuesdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                        <TableView fx:id="tuesdayTableView" onKeyReleased="#onListingTableViewKeyReleased" tableMenuButtonVisible="true">
                             <columns>
                                 <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
                                     <cellValueFactory>
@@ -275,7 +282,7 @@
                                         <PropertyValueFactory property="effectiveLocation" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="url" />
                                     </cellValueFactory>
@@ -325,12 +332,15 @@
                                     </cellFactory>
                                 </TableColumn>
                             </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
                         </TableView>
                     </content>
                 </TitledPane>
                 <TitledPane fx:id="wednesdayTitledPane" animated="false" layoutX="10.0" layoutY="457.0" text="Wednesday">
                     <content>
-                        <TableView fx:id="wednesdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                        <TableView fx:id="wednesdayTableView" onKeyReleased="#onListingTableViewKeyReleased" tableMenuButtonVisible="true">
                             <columns>
                                 <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
                                     <cellValueFactory>
@@ -373,7 +383,7 @@
                                         <PropertyValueFactory property="effectiveLocation" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="url" />
                                     </cellValueFactory>
@@ -423,12 +433,15 @@
                                     </cellFactory>
                                 </TableColumn>
                             </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
                         </TableView>
                     </content>
                 </TitledPane>
                 <TitledPane fx:id="thursdayTitledPane" animated="false" layoutX="10.0" layoutY="480.0" text="Thursday">
                     <content>
-                        <TableView fx:id="thursdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                        <TableView fx:id="thursdayTableView" onKeyReleased="#onListingTableViewKeyReleased" tableMenuButtonVisible="true">
                             <columns>
                                 <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
                                     <cellValueFactory>
@@ -471,7 +484,7 @@
                                         <PropertyValueFactory property="effectiveLocation" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="url" />
                                     </cellValueFactory>
@@ -521,12 +534,15 @@
                                     </cellFactory>
                                 </TableColumn>
                             </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
                         </TableView>
                     </content>
                 </TitledPane>
                 <TitledPane fx:id="fridayTitledPane" animated="false" layoutX="10.0" layoutY="503.0" text="Friday">
                     <content>
-                        <TableView fx:id="fridayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                        <TableView fx:id="fridayTableView" onKeyReleased="#onListingTableViewKeyReleased" tableMenuButtonVisible="true">
                             <columns>
                                 <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
                                     <cellValueFactory>
@@ -569,7 +585,7 @@
                                         <PropertyValueFactory property="effectiveLocation" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="url" />
                                     </cellValueFactory>
@@ -619,12 +635,15 @@
                                     </cellFactory>
                                 </TableColumn>
                             </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
                         </TableView>
                     </content>
                 </TitledPane>
                 <TitledPane fx:id="saturdayTitledPane" animated="false" layoutX="10.0" layoutY="526.0" text="Saturday">
                     <content>
-                        <TableView fx:id="saturdayTableView" onKeyReleased="#onListingTableViewKeyReleased">
+                        <TableView fx:id="saturdayTableView" onKeyReleased="#onListingTableViewKeyReleased" tableMenuButtonVisible="true">
                             <columns>
                                 <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
                                     <cellValueFactory>
@@ -667,7 +686,7 @@
                                         <PropertyValueFactory property="effectiveLocation" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="%meetingUrl" visible="false">
+                                <TableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="url" />
                                     </cellValueFactory>
@@ -717,12 +736,15 @@
                                     </cellFactory>
                                 </TableColumn>
                             </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
                         </TableView>
                     </content>
                 </TitledPane>
             </panes>
         </Accordion>
-        <HBox alignment="CENTER_LEFT">
+        <HBox alignment="CENTER_LEFT" styleClass="footer">
             <children>
                 <Label styleClass="leftControlLabel" text="Year:" />
                 <Spinner fx:id="yearSpinner" styleClass="leftLabeledControl">
@@ -758,4 +780,4 @@
             </VBox.margin>
         </HBox>
     </children>
-</VBox>
+</fx:root>

@@ -1,10 +1,12 @@
 package scheduler.view.report;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,7 +30,9 @@ import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.UserModel;
 import scheduler.util.DateTimeUtil;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.clearAndSelect;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -38,7 +42,22 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/report/ConsultantSchedule.fxml")
 public class ConsultantSchedule extends VBox {
 
-    private static final Logger LOG = Logger.getLogger(ConsultantSchedule.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ConsultantSchedule.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ConsultantSchedule.class.getName());
+
+    public static ConsultantSchedule create() {
+        ConsultantSchedule newContent = new ConsultantSchedule();
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        return newContent;
+    }
+
+    private ObservableList<DailyAppointmentsBorderPane> appointmentsByDay;
+    private ObservableList<UserModel> consultantList;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -64,9 +83,9 @@ public class ConsultantSchedule extends VBox {
     @FXML // fx:id="appointmentScheduleListView"
     private ListView<DailyAppointmentsBorderPane> appointmentScheduleListView; // Value injected by FXMLLoader
 
-    private ObservableList<DailyAppointmentsBorderPane> appointmentsByDay;
+    private ConsultantSchedule() {
 
-    private ObservableList<UserModel> consultantList;
+    }
 
     @FXML
     private void onParameterAction(ActionEvent event) {
@@ -110,7 +129,7 @@ public class ConsultantSchedule extends VBox {
         consultantList = FXCollections.observableArrayList();
         consultantsComboBox.setItems(consultantList);
         appointmentScheduleListView.setItems(appointmentsByDay);
-        WaitTitledPane pane = new WaitTitledPane();
+        WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         MainController.startBusyTaskNow(pane, new InitializeTask());
@@ -130,7 +149,7 @@ public class ConsultantSchedule extends VBox {
                     byDate.put(d, al);
                 }
             });
-            byDate.keySet().stream().sorted().forEach((t) -> appointmentsByDay.add(new DailyAppointmentsBorderPane(t, byDate.get(t))));
+            byDate.keySet().stream().sorted().forEach((t) -> appointmentsByDay.add(DailyAppointmentsBorderPane.create(t, byDate.get(t))));
         }
     }
 

@@ -1,12 +1,13 @@
 package scheduler.view.report;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -17,7 +18,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.VBox;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
@@ -25,6 +25,8 @@ import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.ItemCountResult;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -34,7 +36,21 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/report/AppointmentsByRegion.fxml")
 public class AppointmentsByRegion extends VBox {
 
-    private static final Logger LOG = Logger.getLogger(AppointmentsByRegion.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByRegion.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AppointmentsByRegion.class.getName());
+
+    public static AppointmentsByRegion create() {
+        AppointmentsByRegion newContent = new AppointmentsByRegion();
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        return newContent;
+    }
+
+    ObservableList<PieChart.Data> pieChartData;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -55,7 +71,10 @@ public class AppointmentsByRegion extends VBox {
     private PieChart reportPieChart; // Value injected by FXMLLoader
 
     private LocalDate date;
-    ObservableList<PieChart.Data> pieChartData;
+
+    public AppointmentsByRegion() {
+
+    }
 
     @FXML
     private void onMonthComboBoxAction(ActionEvent event) {
@@ -78,7 +97,6 @@ public class AppointmentsByRegion extends VBox {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'AppointmentsByRegion.fxml'.";
@@ -98,13 +116,9 @@ public class AppointmentsByRegion extends VBox {
         }
         monthComboBox.setItems(monthNames);
         monthComboBox.getSelectionModel().select(date.getMonthValue() - 1);
-        yearSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(LocalDate.MIN.getYear(),
-                LocalDate.MAX.getYear(), date.getYear()));
-        yearSpinner.valueProperty().addListener((observable) -> {
-            onDateChanged(((ReadOnlyObjectProperty<Integer>) observable).get());
-        });
+        yearSpinner.valueProperty().addListener((observable, oldValue, newValue) -> onDateChanged(newValue));
 
-        WaitTitledPane pane = new WaitTitledPane();
+        WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
         MainController.startBusyTaskNow(pane, new CountLoadTask(date, monthComboBox.getValue()));

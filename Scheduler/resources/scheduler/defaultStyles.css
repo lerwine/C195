@@ -245,6 +245,25 @@ Labeled.innerLeftControlLabel {
     -fx-wrap-text: true;
 }
 
+.tree-view.appointments .virtual-flow .clipped-container .sheet .tree-cell HBox {
+    -fx-padding: 0px;
+    -fx-border-style: solid centered;
+    -fx-border-width: 0px 0px 1px 0px;
+    -fx-border-color: -scheduler-alt-dark-color;
+}
+
+.tree-view.appointments .day-group {
+    -fx-font-size: 12px;
+    -fx-text-fill: -scheduler-info-color;
+    -fx-fill: -scheduler-info-color;
+    -fx-font-weight: bold;
+    -fx-padding: 0px;
+}
+
+.tree-view.appointments .virtual-flow .clipped-container .sheet .tree-cell HBox.first-item {
+    -fx-border-width: 1px 0px 1px 0px;
+}
+
 /* The calendar cell */
 .month-gridpane > VBox {
     -fx-font-size: 10px;
@@ -391,10 +410,16 @@ Labeled.innerLeftControlLabel {
 }
 
 .header .button,
-.footer .button {
+.footer .button,
+.header .combo-box,
+.footer .combo-box {
     -fx-background-color: -scheduler-alt-dark-gradient;
     -fx-text-fill: -scheduler-text-color-light;
     -fx-fill: -scheduler-text-color-light;
+}
+.footer .combo-box .list-view .virtual-flow .list-cell .text {
+    -fx-text-fill: -fx-dark-text-color;
+    -fx-fill: -fx-dark-text-color;
 }
 
 .header .symbol-button,

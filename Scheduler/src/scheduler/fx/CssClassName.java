@@ -88,6 +88,18 @@ public enum CssClassName {
      */
     H1("h1"),
     /**
+     * The {@code "h2"} CSS class.
+     */
+    H2("h2"),
+    /**
+     * The {@code "h3"} CSS class.
+     */
+    H3("h3"),
+    /**
+     * The {@code "normal-font"} CSS class.
+     */
+    NORMAL_FONT("normal-font"),
+    /**
      * The {@code "boldText"} CSS class for bold text.
      */
     BOLD_TEXT("boldText"),
@@ -95,6 +107,14 @@ public enum CssClassName {
      * The {@code "first-item"} CSS class.
      */
     FIRST_ITEM("first-item"),
+    /**
+     * The {@code "day-group"} CSS class.
+     */
+    DAY_GROUP("day-group"),
+    /**
+     * The {@code "appointments"} CSS class.
+     */
+    APPOINTMENTS("appointments"),
     /**
      * The {@code "month-gridpane"} CSS class for bold text.
      */

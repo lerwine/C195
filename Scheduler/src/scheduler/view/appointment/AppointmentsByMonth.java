@@ -6,7 +6,6 @@ import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -27,8 +26,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableView;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
@@ -48,6 +46,7 @@ import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.isInShownWindow;
+import scheduler.util.ParentWindowChangeListener;
 import scheduler.util.ViewControllerLoader;
 import scheduler.util.WeakEventHandlingReference;
 import scheduler.view.MainController;
@@ -79,10 +78,12 @@ public final class AppointmentsByMonth extends VBox {
         return newContent;
     }
 
+    private final ParentWindowChangeListener stageChangeListener;
     private final ReadOnlyObjectWrapper<YearMonth> targetMonth;
     private final ReadOnlyObjectWrapper<AppointmentModelFilter> modelFilter;
     private final ObservableList<AppointmentModel> allAppointments;
     private final ObservableList<AppointmentDay> appointmentDays;
+    private final TreeItem<AppointmentDay> root;
     private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentInsertEventHandler;
     private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentUpdateEventHandler;
     private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentDeleteEventHandler;
@@ -90,8 +91,8 @@ public final class AppointmentsByMonth extends VBox {
     @FXML // fx:id="monthNameLabel"
     private Label monthNameLabel; // Value injected by FXMLLoader
 
-    @FXML // fx:id="appointmentsTableTreeView"
-    private TreeTableView<AppointmentDay> appointmentsTableTreeView; // Value injected by FXMLLoader
+    @FXML // fx:id="appointmentsTreeView"
+    private TreeView<AppointmentDay> appointmentsTreeView; // Value injected by FXMLLoader
 
     @FXML // fx:id="yearSpinner"
     private Spinner<Integer> yearSpinner; // Value injected by FXMLLoader
@@ -100,39 +101,23 @@ public final class AppointmentsByMonth extends VBox {
     private ComboBox<Month> monthComboBox; // Value injected by FXMLLoader
 
     private AppointmentsByMonth(YearMonth targetMonth) {
+        stageChangeListener = new ParentWindowChangeListener(sceneProperty());
+        stageChangeListener.currentStageProperty().addListener((observable, oldValue, newValue) -> {
+            if (null != newValue) {
+                newValue.setTitle("Month Calendar");
+            }
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "new", "stageChangeHandler#currentStage"), "change");
+        });
         this.targetMonth = new ReadOnlyObjectWrapper<>(this, "targetMonth", (null == targetMonth) ? YearMonth.now() : targetMonth);
         modelFilter = new ReadOnlyObjectWrapper<>(this, "modelFilter");
         allAppointments = FXCollections.observableArrayList();
         appointmentDays = FXCollections.observableArrayList();
+        root = new TreeItem<>();
         allAppointments.addListener(this::onAllAppointmentsChanged);
         modelFilter.addListener(this::onModelFilterChanged);
         appointmentInsertEventHandler = WeakEventHandlingReference.create(this::onAppointmentInserted);
         appointmentUpdateEventHandler = WeakEventHandlingReference.create(this::onAppointmentUpdated);
         appointmentDeleteEventHandler = WeakEventHandlingReference.create(this::onAppointmentDeleted);
-    }
-
-    @FXML
-    @SuppressWarnings("incomplete-switch")
-    private void onAppointmentsTableTreeViewViewKeyReleased(KeyEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentsTableTreeViewViewKeyReleased", event);
-        if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
-            TreeItem<AppointmentDay> item;
-            switch (event.getCode()) {
-                case DELETE:
-                    item = appointmentsTableTreeView.getSelectionModel().getSelectedItem();
-                    if (null != item) {
-                        deleteItem(item.getValue().getModel());
-                    }
-                    break;
-                case ENTER:
-                    item = appointmentsTableTreeView.getSelectionModel().getSelectedItem();
-                    if (null != item) {
-                        editItem(item.getValue().getModel());
-                    }
-                    break;
-            }
-        }
-        LOG.exiting(LOG.getName(), "onAppointmentsTableTreeViewViewKeyReleased");
     }
 
     @FXML
@@ -177,11 +162,12 @@ public final class AppointmentsByMonth extends VBox {
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         LOG.entering(getClass().getName(), "initialize");
-        assert monthNameLabel != null : "fx:id=\"monthNameLabel\" was not injected: check your FXML file 'ByMonth.fxml'.";
-        assert appointmentsTableTreeView != null : "fx:id=\"appointmentsTableTreeView\" was not injected: check your FXML file 'ByMonth.fxml'.";
-        assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'ByMonth.fxml'.";
-        assert monthComboBox != null : "fx:id=\"monthComboBox\" was not injected: check your FXML file 'ByMonth.fxml'.";
+        assert monthNameLabel != null : "fx:id=\"monthNameLabel\" was not injected: check your FXML file 'AppointmentsByMonth.fxml'.";
+        assert appointmentsTreeView != null : "fx:id=\"appointmentsTreeView\" was not injected: check your FXML file 'AppointmentsByMonth.fxml'.";
+        assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'AppointmentsByMonth.fxml'.";
+        assert monthComboBox != null : "fx:id=\"monthComboBox\" was not injected: check your FXML file 'AppointmentsByMonth.fxml'.";
 
+        appointmentsTreeView.setRoot(root);
         YearMonth t = targetMonth.get();
         int y = yearSpinner.getValue();
         if (y < t.getYear()) {
@@ -189,6 +175,7 @@ public final class AppointmentsByMonth extends VBox {
         } else if (y > t.getYear()) {
             yearSpinner.decrement(y - t.getYear());
         }
+        monthComboBox.setItems(FXCollections.observableArrayList(Month.values()));
         monthComboBox.getSelectionModel().select(t.getMonth());
         onTargetMonthChanged(targetMonth, null, targetMonth.get());
         targetMonth.addListener(this::onTargetMonthChanged);
@@ -293,7 +280,7 @@ public final class AppointmentsByMonth extends VBox {
     private void onTargetMonthChanged(ObservableValue<? extends YearMonth> observable, YearMonth oldValue, YearMonth newValue) {
         LOG.entering(getClass().getName(), "onTargetMonthChanged", new Object[]{observable, oldValue, newValue});
         LocalDate start = newValue.atDay(1);
-        monthNameLabel.setText(FORMATTER.format(newValue));
+        monthNameLabel.setText(String.format("Monthly Calendar: %s", FORMATTER.format(newValue)));
         modelFilter.set(AppointmentModelFilter.of(start, start.plusMonths(1)));
         LOG.exiting(getClass().getName(), "onTargetMonthChanged");
     }
@@ -306,10 +293,14 @@ public final class AppointmentsByMonth extends VBox {
     }
 
     private void onAllAppointmentsChanged(Change<? extends AppointmentModel> c) {
-        LOG.entering(getClass().getName(), "onAllAppointmentsChanged", c);
-        if (AppointmentDay.update(c, appointmentDays)) {
+        LOG.entering(getClass().getName(), "onAllAppointmentsChanged");
+        if (AppointmentDay.importSourceChanges(c, appointmentDays)) {
             appointmentDays.sort(AppointmentDay::compareByDates);
         }
+
+        ObservableList<TreeItem<AppointmentDay>> childItems = root.getChildren();
+        childItems.clear();
+        AppointmentDay.createBranches(appointmentDays).forEach((t) -> childItems.add(t));
         LOG.exiting(getClass().getName(), "onAllAppointmentsChanged");
     }
 

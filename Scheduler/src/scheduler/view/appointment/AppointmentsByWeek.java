@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -60,9 +61,9 @@ import scheduler.view.annotations.GlobalizationResource;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-@GlobalizationResource("scheduler/view/appointment/Calendar")
+@GlobalizationResource("scheduler/view/appointment/ManageAppointments")
 @FXMLResource("/scheduler/view/appointment/AppointmentsByWeek.fxml")
-public class AppointmentsByWeek extends StackPane {
+public class AppointmentsByWeek extends VBox {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentsByWeek.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentsByWeek.class.getName());
@@ -87,6 +88,7 @@ public class AppointmentsByWeek extends StackPane {
     private final ObservableList<AppointmentDay> appointmentDays;
     private final ObservableList<Integer> weekNumberOptions;
     private final HashMap<DayOfWeek, ObservableList<AppointmentModel>> itemsByDay;
+    private final HashMap<DayOfWeek, TitledPane> panesByDay;
     private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentInsertEventHandler;
     private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentUpdateEventHandler;
     private final WeakEventHandlingReference<AppointmentSuccessEvent> appointmentDeleteEventHandler;
@@ -156,13 +158,15 @@ public class AppointmentsByWeek extends StackPane {
         modelFilter.addListener(this::onModelFilterChanged);
         itemsByDay = new HashMap<>();
         for (DayOfWeek d : DayOfWeek.values()) {
-            itemsByDay.put(d, FXCollections.observableArrayList());
+            ObservableList<AppointmentModel> list = FXCollections.observableArrayList();
+            itemsByDay.put(d, list);
         }
         weekNumberOptions.addAll(1, 2, 3, 4);
         this.targetDate.addListener(this::onTargetDateChanged);
         appointmentInsertEventHandler = WeakEventHandlingReference.create(this::onAppointmentInserted);
         appointmentUpdateEventHandler = WeakEventHandlingReference.create(this::onAppointmentUpdated);
         appointmentDeleteEventHandler = WeakEventHandlingReference.create(this::onAppointmentDeleted);
+        panesByDay = new HashMap<>();
     }
 
     @FXML
@@ -178,8 +182,8 @@ public class AppointmentsByWeek extends StackPane {
 
     @FXML
     @SuppressWarnings("incomplete-switch")
-    private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased", event);
+    private void onListingTableViewKeyReleased(KeyEvent event) {
+        LOG.entering(LOG.getName(), "onListingTableViewKeyReleased", event);
         @SuppressWarnings("unchecked")
         TableView<AppointmentModel> source = (TableView<AppointmentModel>) event.getSource();
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
@@ -199,20 +203,20 @@ public class AppointmentsByWeek extends StackPane {
                     break;
             }
         }
-        LOG.exiting(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased");
+        LOG.exiting(LOG.getName(), "onListingTableViewKeyReleased");
     }
 
     @FXML
     void onNextWeekButtonAction(ActionEvent event) {
         LOG.entering(getClass().getName(), "onNextWeekButtonAction", event);
-        targetDate.set(targetDate.get().plusDays(1));
+        targetDate.set(targetDate.get().plusDays(7));
         LOG.exiting(getClass().getName(), "onNextWeekButtonAction");
     }
 
     @FXML
     void onPreviousWeekButtonAction(ActionEvent event) {
         LOG.entering(getClass().getName(), "onPreviousWeekButtonAction", event);
-        targetDate.set(targetDate.get().minusMonths(1));
+        targetDate.set(targetDate.get().minusDays(7));
         LOG.exiting(getClass().getName(), "onPreviousWeekButtonAction");
     }
 
@@ -252,6 +256,13 @@ public class AppointmentsByWeek extends StackPane {
         assert monthComboBox != null : "fx:id=\"monthComboBox\" was not injected: check your FXML file 'ByWeek.fxml'.";
         assert weekComboBox != null : "fx:id=\"weekComboBox\" was not injected: check your FXML file 'ByWeek.fxml'.";
 
+        panesByDay.put(DayOfWeek.SUNDAY, sundayTitledPane);
+        panesByDay.put(DayOfWeek.MONDAY, mondayTitledPane);
+        panesByDay.put(DayOfWeek.TUESDAY, tuesdayTitledPane);
+        panesByDay.put(DayOfWeek.WEDNESDAY, wednesdayTitledPane);
+        panesByDay.put(DayOfWeek.THURSDAY, thursdayTitledPane);
+        panesByDay.put(DayOfWeek.FRIDAY, fridayTitledPane);
+        panesByDay.put(DayOfWeek.SATURDAY, saturdayTitledPane);
         sundayTableView.setItems(itemsByDay.get(DayOfWeek.SUNDAY));
         mondayTableView.setItems(itemsByDay.get(DayOfWeek.MONDAY));
         tuesdayTableView.setItems(itemsByDay.get(DayOfWeek.TUESDAY));
@@ -266,12 +277,14 @@ public class AppointmentsByWeek extends StackPane {
         } else if (y > t.getYear()) {
             yearSpinner.decrement(y - t.getYear());
         }
+        monthComboBox.setItems(FXCollections.observableArrayList(Month.values()));
         monthComboBox.getSelectionModel().select(t.getMonth());
         y = t.getDayOfMonth() - 1;
         y = ((y - (y % 7)) / 7) + 1;
         while (weekNumberOptions.size() < y) {
             weekNumberOptions.add(weekNumberOptions.size());
         }
+        weekComboBox.setItems(weekNumberOptions);
         weekComboBox.getSelectionModel().clearAndSelect(y - 1);
 
         onStartOfWeekChanged(startOfWeek, null, startOfWeek.get());
@@ -394,7 +407,7 @@ public class AppointmentsByWeek extends StackPane {
 
     private void onStartOfWeekChanged(ObservableValue<? extends LocalDate> observable, LocalDate oldValue, LocalDate newValue) {
         LOG.entering(getClass().getName(), "onTargetMonthChanged", new Object[]{observable, oldValue, newValue});
-        weekAndMonthNameLabel.setText(String.format("Week #%d of %s", ((newValue.getDayOfMonth() - 1) / 7) + 1, FORMATTER.format(newValue)));
+        weekAndMonthNameLabel.setText(String.format("Weekly Calendar: Week #%d of %s", ((newValue.getDayOfMonth() - 1) / 7) + 1, FORMATTER.format(newValue)));
         modelFilter.set(AppointmentModelFilter.of(newValue, newValue.plusWeeks(1)));
         LOG.exiting(getClass().getName(), "onTargetMonthChanged");
     }
@@ -407,14 +420,18 @@ public class AppointmentsByWeek extends StackPane {
     }
 
     private void onAllAppointmentsChanged(ListChangeListener.Change<? extends AppointmentModel> c) {
-        LOG.entering(getClass().getName(), "onAllAppointmentsChanged", c);
-        AppointmentDay.update(c, appointmentDays);
+        LOG.entering(getClass().getName(), "onAllAppointmentsChanged");
+        AppointmentDay.importSourceChanges(c, appointmentDays);
         itemsByDay.values().forEach((t) -> t.clear());
         appointmentDays.forEach((t) -> {
             DayOfWeek dayOfWeek = t.getDate().getDayOfWeek();
             itemsByDay.get(dayOfWeek).add(t.getModel());
         });
-        itemsByDay.values().forEach((t) -> t.sort(AppointmentHelper::compareByDates));
+        itemsByDay.keySet().forEach((t) -> {
+            ObservableList<AppointmentModel> coll = itemsByDay.get(t);
+            coll.sort(AppointmentHelper::compareByDates);
+            panesByDay.get(t).setText(String.format("%s (%d)", t.getDisplayName(TextStyle.FULL, Locale.getDefault(Locale.Category.DISPLAY)), coll.size()));
+        });
         LOG.exiting(getClass().getName(), "onAllAppointmentsChanged");
     }
 

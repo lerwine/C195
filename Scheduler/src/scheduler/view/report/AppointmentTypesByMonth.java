@@ -1,5 +1,6 @@
 package scheduler.view.report;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -7,8 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -23,7 +24,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.VBox;
 import scheduler.AppResourceKeys;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
@@ -32,6 +32,8 @@ import scheduler.dao.AppointmentCountByType;
 import scheduler.dao.AppointmentDAO;
 import scheduler.model.AppointmentType;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
+import scheduler.util.ViewControllerLoader;
 import scheduler.view.MainController;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
@@ -41,7 +43,24 @@ import scheduler.view.task.WaitTitledPane;
 @FXMLResource("/scheduler/view/report/AppointmentTypesByMonth.fxml")
 public class AppointmentTypesByMonth extends VBox {
 
-    private static final Logger LOG = Logger.getLogger(AppointmentTypesByMonth.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentTypesByMonth.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(AppointmentTypesByMonth.class.getName());
+
+    public static AppointmentTypesByMonth create() {
+        AppointmentTypesByMonth newContent = new AppointmentTypesByMonth();
+        try {
+            ViewControllerLoader.initializeCustomControl(newContent);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading view", ex);
+            throw new InternalError("Error loading view", ex);
+        }
+        return newContent;
+    }
+
+    private ObservableMap<AppointmentType, String> typeToTextMap;
+    private XYChart.Series<String, Number> dataSeries;
+    private LocalDate date;
+    private NumberFormat numberFormat;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -67,10 +86,9 @@ public class AppointmentTypesByMonth extends VBox {
     @FXML // fx:id="reportNumberAxis"
     private NumberAxis reportNumberAxis; // Value injected by FXMLLoader
 
-    private ObservableMap<AppointmentType, String> typeToTextMap;
-    private XYChart.Series<String, Number> dataSeries;
-    private LocalDate date;
-    private NumberFormat numberFormat;
+    private AppointmentTypesByMonth() {
+
+    }
 
     @FXML
     private void onMonthComboBoxAction(ActionEvent event) {
@@ -93,7 +111,6 @@ public class AppointmentTypesByMonth extends VBox {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         assert yearSpinner != null : "fx:id=\"yearSpinner\" was not injected: check your FXML file 'AppointmentTypesByMonth.fxml'.";
@@ -124,13 +141,9 @@ public class AppointmentTypesByMonth extends VBox {
         //dateConverter = new LocalDateStringConverter(FormatStyle.SHORT, null, Chronology.from(d));
         numberFormat = NumberFormat.getIntegerInstance();
         monthComboBox.getSelectionModel().select(date.getMonthValue() - 1);
-        yearSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(LocalDate.MIN.getYear(),
-                LocalDate.MAX.getYear(), date.getYear()));
         reportBarChart.getData().add(dataSeries);
-        yearSpinner.valueProperty().addListener((observable) -> {
-            onDateChanged(((ReadOnlyObjectProperty<Integer>) observable).get());
-        });
-        WaitTitledPane pane = new WaitTitledPane();
+        yearSpinner.valueProperty().addListener((observable, oldValue, newValue) -> onDateChanged(newValue));
+        WaitTitledPane pane = WaitTitledPane.create();
         MainController.startBusyTaskNow(
                 pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                         .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide()),

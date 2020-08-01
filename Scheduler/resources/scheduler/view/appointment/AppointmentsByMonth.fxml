@@ -7,13 +7,10 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
-<?import javafx.scene.control.TreeTableColumn?>
-<?import javafx.scene.control.TreeTableView?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.fx.AppointmentEditTableCellFactory?>
-<?import scheduler.fx.DateTimeTableCellFactory?>
+<?import scheduler.fx.AppointmentTreeCellFactory?>
 <?import scheduler.fx.MonthNameListCell?>
 <?import scheduler.fx.MonthNameListCellFactory?>
 
@@ -27,117 +24,17 @@
             </children>
             <styleClass>
                 <String fx:value="header" />
-                <String fx:value="header" />
+                <String fx:value="h1" />
             </styleClass>
         </HBox>
-        <TreeTableView fx:id="appointmentsTableTreeView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onKeyReleased="#onAppointmentsTableTreeViewViewKeyReleased" onSort="#onAppointmentsTableTreeViewViewKeyReleased" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
-            <columns>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Date">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="date" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory format="eeee, d" />
-                    </cellFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Title">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="title" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Start">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="start" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory format="h:mm a" />
-                    </cellFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="End">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="end" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory format="h:mm a" />
-                    </cellFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Type">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="typeDisplay" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Customer">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="customerName" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Consultant">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="userName" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Location">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="effectiveLocation" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="URL" visible="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="url" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Point of Contact" visible="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="contact" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Description" visible="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="description" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created On" visible="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="createDate" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Created By" visible="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="createdBy" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated On" visible="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="lastUpdate" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <DateTimeTableCellFactory />
-                    </cellFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" minWidth="-1.0" prefWidth="-1.0" text="Updated By" visible="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="lastUpdateBy" />
-                    </cellValueFactory>
-                </TreeTableColumn>
-                <TreeTableColumn editable="false" maxWidth="-1.0" minWidth="76.0" prefWidth="76.0" sortable="false">
-                    <cellValueFactory>
-                        <PropertyValueFactory property="model" />
-                    </cellValueFactory>
-                    <cellFactory>
-                        <AppointmentEditTableCellFactory onItemActionRequest="#onItemActionRequest" />
-                    </cellFactory>
-                </TreeTableColumn>
-            </columns>
-            <columnResizePolicy>
-                <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
-        </TreeTableView>
-        <HBox alignment="CENTER_LEFT">
+        <TreeView fx:id="appointmentsTreeView" showRoot="false" styleClass="appointments" VBox.vgrow="ALWAYS">
+            <cellFactory>
+                <AppointmentTreeCellFactory onItemActionRequest="#onItemActionRequest" />
+            </cellFactory>
+        </TreeView>
+        <HBox alignment="CENTER_LEFT" styleClass="footer">
             <children>
-                <Label styleClass="leftControlLabel" text="%year" />
+                <Label styleClass="leftControlLabel" text="Year:" />
                 <Spinner fx:id="yearSpinner" styleClass="leftLabeledControl">
                     <min>
                         <Integer fx:value="1000" />
@@ -149,7 +46,7 @@
                         <Integer fx:value="2020" />
                     </initialValue>
                 </Spinner>
-                <Label styleClass="innerLeftControlLabel" text="%month" />
+                <Label styleClass="innerLeftControlLabel" text="Month:" />
                 <ComboBox fx:id="monthComboBox" styleClass="leftLabeledControl">
                     <cellFactory>
                         <MonthNameListCellFactory />

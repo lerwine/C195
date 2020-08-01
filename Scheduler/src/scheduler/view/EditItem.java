@@ -174,7 +174,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     }
 
     //<editor-fold defaultstate="collapsed" desc="Fields">
-    @SuppressWarnings("unused")
+    
     private final ParentWindowChangeListener stageChangeListener;
     private final U editorRegion;
     private final T model;

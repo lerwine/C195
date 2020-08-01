@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.Integer?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.BarChart?>
@@ -38,7 +39,17 @@
                         <Insets bottom="4.0" />
                     </GridPane.margin>
                 </Label>
-                <Spinner fx:id="yearSpinner" GridPane.rowIndex="1" />
+                <Spinner fx:id="yearSpinner" GridPane.rowIndex="1">
+                    <min>
+                        <Integer fx:value="1000" />
+                    </min>
+                    <max>
+                        <Integer fx:value="9999" />
+                    </max>
+                    <initialValue>
+                        <Integer fx:value="2020" />
+                    </initialValue>
+                </Spinner>
                 <ComboBox fx:id="monthComboBox" maxWidth="1.7976931348623157E308" onAction="#onMonthComboBoxAction" styleClass="leftLabeledControl" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 <Label fx:id="yearValidationLabel" text="%required" GridPane.columnSpan="2" GridPane.rowIndex="2">
                     <styleClass>
