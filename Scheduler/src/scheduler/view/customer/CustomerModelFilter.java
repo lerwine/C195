@@ -1,15 +1,10 @@
 package scheduler.view.customer;
 
 import java.util.function.Predicate;
-import static scheduler.AppResourceKeys.RESOURCEKEY_ACTIVECUSTOMERS;
-import static scheduler.AppResourceKeys.RESOURCEKEY_ALLCUSTOMERS;
-import static scheduler.AppResourceKeys.RESOURCEKEY_INACTIVECUSTOMERS;
-import scheduler.AppResources;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.filter.CustomerFilter;
 import scheduler.dao.filter.DaoFilterExpression;
 import scheduler.model.fx.CustomerModel;
-import scheduler.util.ResourceBundleHelper;
 import scheduler.view.ModelFilter;
 
 /**
@@ -45,21 +40,21 @@ public interface CustomerModelFilter extends ModelFilter<CustomerDAO, CustomerMo
      * @return A model filter that matches any customer.
      */
     public static CustomerModelFilter all() {
-        return CustomerModelFilter.of(AppResources.getResourceString(RESOURCEKEY_ALLCUSTOMERS),
+        return CustomerModelFilter.of("All Customers",
                 CustomerFilter.of(DaoFilterExpression.empty()),
                 (t) -> true
         );
     }
 
     public static CustomerModelFilter active() {
-        return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_ACTIVECUSTOMERS),
+        return CustomerModelFilter.of("Active Customers",
                 CustomerFilter.of(CustomerFilter.expressionOf(true)),
                 (t) -> null != t && t.isActive()
         );
     }
 
     public static CustomerModelFilter inactive() {
-        return CustomerModelFilter.of(ResourceBundleHelper.getResourceString(ManageCustomers.class, RESOURCEKEY_INACTIVECUSTOMERS),
+        return CustomerModelFilter.of("Inactive Customers",
                 CustomerFilter.of(CustomerFilter.expressionOf(false)),
                 (t) -> null != t && !t.isActive()
         );

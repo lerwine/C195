@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -47,8 +48,6 @@ import scheduler.events.CustomerSuccessEvent;
 import scheduler.events.UserSuccessEvent;
 import static scheduler.model.Appointment.MAX_LENGTH_TITLE;
 import scheduler.model.AppointmentType;
-import static scheduler.model.AppointmentType.CORPORATE_LOCATION;
-import static scheduler.model.AppointmentType.CUSTOMER_SITE;
 import scheduler.model.CorporateAddress;
 import scheduler.model.Customer;
 import scheduler.model.ModelHelper;
@@ -62,6 +61,7 @@ import scheduler.model.fx.PartialUserModel;
 import scheduler.model.fx.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.DbConnector;
+import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
@@ -84,8 +84,8 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
 public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentModel> {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
-    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
 
     public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
             Window parentWindow, boolean keepOpen, Consumer<AppointmentModel> beforeShow) throws IOException {
@@ -413,6 +413,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
         typeContext.initialize();
 
+        //<editor-fold defaultstate="collapsed" desc="Title field init">
         titleTextField.setText(model.getTitle());
         normalizedTitleBinding = BindingHelper.asNonNullAndWsNormalized(titleTextField.textProperty());
         titleValidationMessage = Bindings.when(normalizedTitleBinding.isEmpty())
@@ -424,15 +425,27 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
                 );
         titleValidationLabel.visibleProperty().bind(titleValidationMessage.isNotEmpty());
 
+        //</editor-fold>
         customerComboBox.setItems(customerModelList);
+
         userComboBox.setItems(userModelList);
 
+        //<editor-fold defaultstate="collapsed" desc="description">
         descriptionTextArea.setText(model.getDescription());
         normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
 
+        //</editor-fold>
         validationBinding = typeContext.validBinding().and(titleValidationMessage.isEmpty());
+        LOG.info(String.format("Setting valid to %s", validationBinding.get()));
         valid.set(validationBinding.get());
-        validationBinding.addListener((observable, oldValue, newValue) -> valid.set(newValue));
+        validationBinding.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("valid changed from %s to %s; modified is %s", oldValue, newValue, modified.get()));
+            valid.set(newValue);
+        });
+        modified.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("modified changed from %s to %s; valid is %s", oldValue, newValue, valid.get()));
+        });
+
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
         } else {
@@ -636,33 +649,20 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         }
 
         model.setTitle(normalizedTitleBinding.get());
-        model.setContact(typeContext.getNormalizedContact());
-        model.setUrl(typeContext.getParsedUrl().toPrimary(""));
+        model.setContact(typeContext.normalizedContactBinding().get());
+        model.setUrl(typeContext.parsedUrlBinding().get().toPrimary(""));
         model.setDescription(normalizedDescriptionBinding.get());
-        model.setCustomer(typeContext.getSelectedCustomer());
-        model.setUser(typeContext.getSelectedUser());
-        model.setType(typeContext.getSelectedType());
+        model.setCustomer(typeContext.selectedCustomerProperty().get());
+        model.setUser(typeContext.selectedUserProperty().get());
+        model.setType(typeContext.selectedTypeProperty().get());
         model.setStart(typeContext.getStartDateTimeValue());
         model.setEnd(typeContext.getEndDateTimeValue());
-        switch (typeContext.getSelectedType()) {
-            case CORPORATE_LOCATION:
-                model.setLocation(typeContext.getSelectedCorporateLocation().getName());
-                break;
-            case CUSTOMER_SITE:
-                model.setLocation(typeContext.getSelectedCustomer().getMultiLineAddress());
-                break;
-            case PHONE:
-                model.setLocation(typeContext.getNormalizedPhone());
-                break;
-            default:
-                model.setLocation(typeContext.getNormalizedLocation());
-                break;
-        }
+        model.setLocation(typeContext.daoLocationBinding().get());
         return true;
     }
 
     private synchronized void onCustomersLoaded(List<CustomerDAO> customerDaoList) {
-        CustomerModel selectedItem = typeContext.getSelectedCustomer();
+        CustomerModel selectedItem = typeContext.selectedCustomerProperty().get();
         customerModelList.clear();
         if (null != customerDaoList && !customerDaoList.isEmpty()) {
             customerDaoList.forEach((t) -> customerModelList.add(t.cachedModel(true)));
@@ -671,7 +671,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     }
 
     private synchronized void onUsersLoaded(List<UserDAO> userDaoList) {
-        UserModel selectedItem = typeContext.getSelectedUser();
+        UserModel selectedItem = typeContext.selectedUserProperty().get();
         if (null != userDaoList && !userDaoList.isEmpty()) {
             userDaoList.forEach((t) -> userModelList.add(t.cachedModel(true)));
         }
@@ -697,7 +697,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             int pk = event.getEntityModel().getPrimaryKey();
             if (customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().map((t) -> {
                 if (showActiveUsers.map((u) -> u != t.isActive()).orElse(true)) {
-                    CustomerModel selectedItem = typeContext.getSelectedCustomer();
+                    CustomerModel selectedItem = typeContext.selectedCustomerProperty().get();
                     if (null != selectedItem && selectedItem == t) {
                         customerComboBox.getSelectionModel().clearSelection();
                         customerModelList.remove(t);
@@ -720,7 +720,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
             customerModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> {
-                CustomerModel selectedItem = typeContext.getSelectedCustomer();
+                CustomerModel selectedItem = typeContext.selectedCustomerProperty().get();
                 if (null != selectedItem && selectedItem == t) {
                     customerComboBox.getSelectionModel().clearSelection();
                 }
@@ -750,7 +750,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             int pk = event.getEntityModel().getPrimaryKey();
             if (userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findAny().map((t) -> {
                 if (showActiveUsers.map((u) -> u != (t.getStatus() != UserStatus.INACTIVE)).orElse(true)) {
-                    UserModel selectedItem = typeContext.getSelectedUser();
+                    UserModel selectedItem = typeContext.selectedUserProperty().get();
                     if (null != selectedItem && selectedItem == t) {
                         userComboBox.getSelectionModel().clearSelection();
                         userModelList.remove(t);
@@ -773,7 +773,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (isInShownWindow(this)) {
             int pk = event.getEntityModel().getPrimaryKey();
             userModelList.stream().filter((t) -> t.getPrimaryKey() == pk).findFirst().ifPresent((t) -> {
-                UserModel selectedItem = typeContext.getSelectedUser();
+                UserModel selectedItem = typeContext.selectedUserProperty().get();
                 if (null != selectedItem && selectedItem == t) {
                     userComboBox.getSelectionModel().clearSelection();
                 }
@@ -785,10 +785,14 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     private void initEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
-        modified.set(false);
-        modificationBinding = typeContext.modifiedBinding().or(normalizedTitleBinding.isNotEqualTo(model.titleProperty()))
-                .or(normalizedDescriptionBinding.isNotEqualTo(model.descriptionProperty()));
-        modificationBinding.addListener((observable, oldValue, newValue) -> modified.set(newValue));
+        modificationBinding = normalizedTitleBinding.isNotEqualTo(model.titleProperty()).or(normalizedDescriptionBinding.isNotEqualTo(model.descriptionProperty()))
+                .or(typeContext.modifiedBinding());
+        modificationBinding.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("modificationBinding changed from %s to %s; valid is %s", oldValue, newValue, valid.get()));
+            modified.set(newValue);
+        });
+        LOG.info(String.format("Setting modified to %s; typeModified is %s", modificationBinding.get(), typeContext.modifiedBinding().get()));
+        modified.set(modificationBinding.get());
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

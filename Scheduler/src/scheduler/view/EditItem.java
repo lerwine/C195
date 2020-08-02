@@ -70,8 +70,8 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/EditItem.fxml")
 public final class EditItem<T extends EntityModel<?>, U extends Region & EditItem.ModelEditorController<T>> extends StackPane {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
-    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
     private static final String FIELD_NAME_WAIT_BORDER_PANE = "waitBorderPane";
     private static final String FIELD_NAME_MODEL = "model";
@@ -305,8 +305,8 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         AnchorPane.setBottomAnchor(editorRegion, 0.0);
         AnchorPane.setLeftAnchor(editorRegion, 0.0);
         contentAnchorPane.getChildren().add(editorRegion);
-        saveChangesButton.disableProperty().bind(editorRegion.validProperty().and(editorRegion.modifiedProperty().or(model.newRowProperty())).not());
         if (model.isNewRow()) {
+            saveChangesButton.disableProperty().bind(editorRegion.validProperty().not());
             deleteButton.setDisable(true);
             collapseNode(deleteButton);
             collapseNode(createdLabel);
@@ -325,10 +325,13 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
 
     private void onEditMode() {
         restoreNode(deleteButton);
+        saveChangesButton.disableProperty().bind(editorRegion.validProperty().and(editorRegion.modifiedProperty()).not());
         cancelButton.textProperty().bind(Bindings.when(editorRegion.modifiedProperty())
                 .then(resources.getString(RESOURCEKEY_CANCEL))
                 .otherwise(resources.getString(RESOURCEKEY_CLOSE))
         );
+        editorRegion.modifiedProperty().addListener((observable, oldValue, newValue) -> {
+        });
         deleteButton.setDisable(false);
         DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
         Locale.getDefault(Locale.Category.DISPLAY);
@@ -365,6 +368,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
                                 }
                             }
                         }
+                        saveChangesButton.disableProperty().unbind();
                         onEditMode();
                     } else {
                         stageChangeListener.hide();

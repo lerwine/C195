@@ -2,6 +2,7 @@ package scheduler.util;
 
 import java.io.IOException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -19,8 +20,8 @@ import scheduler.view.ViewAndController;
  */
 public class ViewControllerLoader {
 
-//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINE);
-    private static final Logger LOG = Logger.getLogger(ViewControllerLoader.class.getName());
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ViewControllerLoader.class.getName()), Level.FINE);
+//    private static final Logger LOG = Logger.getLogger(ViewControllerLoader.class.getName());
 
     // private static final String PANE_CONTROLLER_PROPERTY_KEY = "ViewControllerLoader.PaneContentController";
     private static <T extends Parent, S> ViewAndController<T, S> loadViewAndController(Class<S> controllerClass,

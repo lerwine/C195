@@ -12,8 +12,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -29,6 +27,7 @@ import scheduler.dao.AppointmentDAO;
 import static scheduler.model.Appointment.MAX_LENGTH_URL;
 import scheduler.model.AppointmentType;
 import scheduler.model.CorporateAddress;
+import scheduler.model.ModelHelper.AppointmentHelper;
 import scheduler.model.PredefinedData;
 import scheduler.model.fx.AppointmentModel;
 import scheduler.model.fx.CustomerModel;
@@ -47,7 +46,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  */
 public final class TypeContextController {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(TypeContextController.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(TypeContextController.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(TypeContextController.class.getName());
     private static final String INVALID_URL = "Invalid URL";
 
@@ -102,24 +101,10 @@ public final class TypeContextController {
     private StringBinding normalizedLocation;
     private StringBinding normalizedPhone;
     private ObjectBinding<BinarySelective<String, String>> parsedUrl;
-    private AppointmentModel model;
-    private TextField contactTextField;
-    private SingleSelectionModel<AppointmentType> typeSelectionModel;
-    private SingleSelectionModel<CorporateAddress> corporateLocationSelectionModel;
-    private StringProperty locationText;
-    private StringProperty phoneText;
-    private Label locationValidationLabel;
-    private Label contactValidationLabel;
-    private TextArea locationTextArea;
-    private ComboBox<CorporateAddress> corporateLocationComboBox;
-    private TextField phoneTextField;
-    private Label urlValidationLabel;
-    private Label implicitLocationLabel;
-    private Label locationLabel;
     private BooleanBinding valid;
     private BooleanBinding modified;
-    private StringBinding locationValueBinding;
-    private StringBinding urlStringBinding;
+    private StringBinding daoLocation;
+    private StringBinding urlString;
 
     TypeContextController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
@@ -135,64 +120,32 @@ public final class TypeContextController {
         appointmentConflicts = new AppointmentConflictsController(editAppointmentControl);
     }
 
-    public String getNormalizedContact() {
-        return normalizedContact.get();
-    }
-
     public StringBinding normalizedContactBinding() {
         return normalizedContact;
-    }
-
-    public String getNormalizedPhone() {
-        return normalizedPhone.get();
     }
 
     public StringBinding normalizedPhoneBinding() {
         return normalizedPhone;
     }
 
-    public String getNormalizedLocation() {
-        return normalizedLocation.get();
-    }
-
     public StringBinding normalizedLocationBinding() {
         return normalizedLocation;
-    }
-
-    public BinarySelective<String, String> getParsedUrl() {
-        return parsedUrl.get();
     }
 
     public ObjectBinding<BinarySelective<String, String>> parsedUrlBinding() {
         return parsedUrl;
     }
 
-    public AppointmentType getSelectedType() {
-        return selectedType.get();
-    }
-
     public ReadOnlyObjectProperty<AppointmentType> selectedTypeProperty() {
         return selectedType;
-    }
-
-    public CorporateAddress getSelectedCorporateLocation() {
-        return selectedCorporateLocation.get();
     }
 
     public ReadOnlyObjectProperty<CorporateAddress> selectedCorporateLocationProperty() {
         return selectedCorporateLocation;
     }
 
-    public CustomerModel getSelectedCustomer() {
-        return appointmentConflicts.getSelectedCustomer();
-    }
-
     public ReadOnlyObjectProperty<CustomerModel> selectedCustomerProperty() {
         return appointmentConflicts.selectedCustomerProperty();
-    }
-
-    public UserModel getSelectedUser() {
-        return appointmentConflicts.getSelectedUser();
     }
 
     public ReadOnlyObjectProperty<UserModel> selectedUserProperty() {
@@ -233,37 +186,92 @@ public final class TypeContextController {
 
     void initialize() {
         LOG.entering(LOG.getName(), "initialize");
+
         appointmentConflicts.initialize();
-        model = editAppointmentControl.getModel();
-        contactTextField = editAppointmentControl.getContactTextField();
+        AppointmentModel model = editAppointmentControl.getModel();
+
+        //<editor-fold defaultstate="collapsed" desc="contact">
+        TextField contactTextField = editAppointmentControl.getContactTextField();
         contactTextField.setText(model.getContact());
         StringProperty contactText = contactTextField.textProperty();
         normalizedContact = BindingHelper.asNonNullAndWsNormalized(contactText);
+        contactText.addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "contactTextField#text"), "changed", new Object[]{oldValue, newValue});
+            onContextSensitiveChange();
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "contactTextField#text"), "changed");
+        });
+        Label contactValidationLabel = editAppointmentControl.getContactValidationLabel();
+
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="type">
         ComboBox<AppointmentType> typeComboBox = editAppointmentControl.getTypeComboBox();
         typeComboBox.setItems(FXCollections.observableArrayList(AppointmentType.values()));
-        typeSelectionModel = typeComboBox.getSelectionModel();
+        SingleSelectionModel<AppointmentType> typeSelectionModel = typeComboBox.getSelectionModel();
         typeSelectionModel.select(model.getType());
         selectedType = typeSelectionModel.selectedItemProperty();
-        corporateLocationComboBox = editAppointmentControl.getCorporateLocationComboBox();
-        corporateLocationComboBox.setItems(corporateLocationList);
-        corporateLocationSelectionModel = corporateLocationComboBox.getSelectionModel();
-        selectedCorporateLocation = corporateLocationSelectionModel.selectedItemProperty();
-        locationLabel = editAppointmentControl.getLocationLabel();
-        locationTextArea = editAppointmentControl.getLocationTextArea();
-        locationText = locationTextArea.textProperty();
-        normalizedLocation = BindingHelper.asNonNullAndWsNormalizedMultiLine(locationText);
 
-        phoneText = editAppointmentControl.getPhoneTextField().textProperty();
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="corporateLocatio">
+        ComboBox<CorporateAddress> corporateLocationComboBox = editAppointmentControl.getCorporateLocationComboBox();
+        corporateLocationComboBox.setItems(corporateLocationList);
+        SingleSelectionModel<CorporateAddress> corporateLocationSelectionModel = corporateLocationComboBox.getSelectionModel();
+        selectedCorporateLocation = corporateLocationSelectionModel.selectedItemProperty();
+        selectedCorporateLocation.addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "corporateLocationComboBox#value"), "changed", new Object[]{oldValue, newValue});
+            onContextSensitiveChange();
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "corporateLocationComboBox#value"), "changed");
+        });
+
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="phone">
+        TextField phoneTextField = editAppointmentControl.getPhoneTextField();
+        StringProperty phoneText = phoneTextField.textProperty();
         normalizedPhone = BindingHelper.asNonNullAndWsNormalizedMultiLine(phoneText);
+        phoneText.addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "phoneTextField#text"), "changed", new Object[]{oldValue, newValue});
+            onContextSensitiveChange();
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "phoneTextField#text"), "changed");
+        });
+
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="parsedUrl">
         TextField urlTextField = editAppointmentControl.getUrlTextField();
         urlTextField.setText(model.getUrl());
         parsedUrl = Bindings.createObjectBinding(() -> calculateURL(selectedType.get(), urlTextField.textProperty().get()), selectedType, urlTextField.textProperty());
-        phoneTextField = editAppointmentControl.getPhoneTextField();
+        Label urlValidationLabel = editAppointmentControl.getUrlValidationLabel();
+        parsedUrl.get().accept((t) -> {
+            urlValidationLabel.setText("");
+            urlValidationLabel.setVisible(false);
+        }, (t) -> {
+            urlValidationLabel.setText(t);
+            urlValidationLabel.setVisible(true);
+        });
+        urlTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "urlTextField#text"), "changed", new Object[]{oldValue, newValue});
+            onUrlChanged();
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "urlTextField#text"), "changed");
+        });
+        urlString = Bindings.createStringBinding(() -> {
+            String u = parsedUrl.get().toPrimary("");
+            return (null == u) ? "" : u;
+        }, parsedUrl);
 
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="location">
+        TextArea locationTextArea = editAppointmentControl.getLocationTextArea();
+        StringProperty locationText = locationTextArea.textProperty();
+        normalizedLocation = BindingHelper.asNonNullAndWsNormalizedMultiLine(locationText);
         String location = model.getLocation();
-        locationValidationLabel = editAppointmentControl.getLocationValidationLabel();
-        contactValidationLabel = editAppointmentControl.getContactValidationLabel();
-        implicitLocationLabel = editAppointmentControl.getImplicitLocationLabel();
+        Label locationValidationLabel = editAppointmentControl.getLocationValidationLabel();
+        locationText.addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "locationTextArea#text"), "changed", new Object[]{oldValue, newValue});
+            onContextSensitiveChange();
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "locationTextArea#text"), "changed");
+        });
+        daoLocation = AppointmentHelper.daoLocationBinding(selectedType, normalizedLocation, normalizedPhone, selectedCorporateLocation, appointmentConflicts.selectedCustomerProperty(), true);
+
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="init by type">
         switch (selectedType.get()) {
             case CORPORATE_LOCATION:
                 restoreNode(corporateLocationComboBox);
@@ -278,25 +286,28 @@ public final class TypeContextController {
                 });
                 locationValidationLabel.setVisible(null == cl);
                 if (locationValidationLabel.isVisible()) {
-                    restoreLabeled(implicitLocationLabel, "(corporate location)");
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), "(corporate location)");
                 } else {
-                    restoreLabeled(implicitLocationLabel, cl.toMultiLineAddress());
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), cl.toMultiLineAddress());
                     corporateLocationSelectionModel.select(cl);
                     collapseNode(locationValidationLabel);
                 }
+                contactValidationLabel.setVisible(false);
                 break;
             case CUSTOMER_SITE:
                 locationValidationLabel.setVisible(false);
                 collapseNode(locationValidationLabel);
                 collapseNode(locationTextArea);
-                CustomerModel cm = appointmentConflicts.getSelectedCustomer();
+                CustomerModel cm = appointmentConflicts.selectedCustomerProperty().get();
                 if (null == cm) {
-                    restoreLabeled(implicitLocationLabel, "(customer site)");
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), "(customer site)");
                 } else {
-                    restoreLabeled(implicitLocationLabel, cm.getMultiLineAddress());
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), cm.getMultiLineAddress());
                 }
+                contactValidationLabel.setVisible(false);
                 break;
             case PHONE:
+                editAppointmentControl.getLocationLabel().setText("Phone:");
                 collapseNode(locationTextArea);
                 restoreNode(phoneTextField);
                 editAppointmentControl.getLocationLabel().setText(editAppointmentControl.getResources().getString(RESOURCEKEY_PHONENUMBER));
@@ -305,10 +316,12 @@ public final class TypeContextController {
                 if (!locationValidationLabel.isVisible()) {
                     collapseNode(locationValidationLabel);
                 }
+                contactValidationLabel.setVisible(false);
                 break;
             case VIRTUAL:
                 locationValidationLabel.setVisible(false);
                 collapseNode(locationValidationLabel);
+                contactValidationLabel.setVisible(false);
                 break;
             default:
                 locationTextArea.setText(location);
@@ -319,66 +332,32 @@ public final class TypeContextController {
                 contactValidationLabel.setVisible(normalizedContact.get().isEmpty());
                 break;
         }
-        urlValidationLabel = editAppointmentControl.getUrlValidationLabel();
-        parsedUrl.get().accept((t) -> {
-            urlValidationLabel.setText("");
-            urlValidationLabel.setVisible(false);
-        }, (t) -> {
-            urlValidationLabel.setText(t);
-            urlValidationLabel.setVisible(true);
-        });
+
+        //</editor-fold>
         appointmentConflicts.selectedCustomerProperty().addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "appointmentConflicts#selectedCustomer"), "changed", new Object[]{oldValue, newValue});
             onContextSensitiveChange();
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "appointmentConflicts#selectedCustomer"), "changed");
         });
-        contactText.addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "contactTextField#text"), "changed", new Object[]{oldValue, newValue});
-            onContextSensitiveChange();
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "contactTextField#text"), "changed");
-        });
-        selectedCorporateLocation.addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "corporateLocationComboBox#value"), "changed", new Object[]{oldValue, newValue});
-            onContextSensitiveChange();
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "corporateLocationComboBox#value"), "changed");
-        });
-        locationText.addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "locationTextArea#text"), "changed", new Object[]{oldValue, newValue});
-            onContextSensitiveChange();
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "locationTextArea#text"), "changed");
-        });
-        phoneText.addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "phoneTextField#text"), "changed", new Object[]{oldValue, newValue});
-            onContextSensitiveChange();
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "phoneTextField#text"), "changed");
-        });
-        urlTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "urlTextField#text"), "changed", new Object[]{oldValue, newValue});
-            onUrlChanged();
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "urlTextField#text"), "changed");
-        });
+
         valid = appointmentConflicts.validBinding()
                 .and(contactValidationLabel.visibleProperty().or(locationValidationLabel.visibleProperty()).or(urlValidationLabel.visibleProperty()).not());
-        locationValueBinding = Bindings.createStringBinding(() -> {
-            switch (selectedType.get()) {
-                case CORPORATE_LOCATION:
-                    return selectedCorporateLocation.getName();
-                case CUSTOMER_SITE:
-            CustomerModel customer = appointmentConflicts.getSelectedCustomer();
-            return (null == customer) ? "" : customer.getMultiLineAddress();
-                case PHONE:
-                    return normalizedPhone.get();
-                default:
-                    return normalizedLocation.get();
-            }
-        }, normalizedLocation, normalizedPhone, selectedCorporateLocation, appointmentConflicts.selectedCustomerProperty());
-        urlStringBinding = Bindings.createStringBinding(() -> parsedUrl.get().toPrimary(""), parsedUrl);
         modified = appointmentConflicts.modifiedBinding().or(normalizedContact.isNotEqualTo(model.contactProperty()))
-                .or(locationValueBinding.isNotEqualTo(model.locationProperty()))
-                .or(urlStringBinding.isNotEqualTo(model.urlProperty()));
-        
+                .or(daoLocation.isNotEqualTo(model.locationProperty()))
+                .or(urlString.isNotEqualTo(model.urlProperty()));
+        valid.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("valid changed from %s to %s", oldValue, newValue));
+        });
+        modified.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("modified changed from %s to %s", oldValue, newValue));
+        });
+        LOG.info(String.format("modified initial value is %s", modified.get()));
         selectedType.addListener(this::onTypeChanged);
         LOG.exiting(LOG.getName(), "initialize");
+    }
+
+    public StringBinding daoLocationBinding() {
+        return daoLocation;
     }
 
     public BooleanBinding modifiedBinding() {
@@ -394,23 +373,24 @@ public final class TypeContextController {
     }
 
     private synchronized void onContextSensitiveChange() {
+        Label locationValidationLabel = editAppointmentControl.getLocationValidationLabel();
         boolean wasInvalid = locationValidationLabel.isVisible();
         switch (selectedType.get()) {
             case CORPORATE_LOCATION:
                 CorporateAddress cl = selectedCorporateLocation.get();
                 locationValidationLabel.setVisible(null == cl);
                 if (locationValidationLabel.isVisible()) {
-                    restoreLabeled(implicitLocationLabel, "(corporate location)");
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), "(corporate location)");
                 } else {
-                    restoreLabeled(implicitLocationLabel, cl.toMultiLineAddress());
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), cl.toMultiLineAddress());
                 }
                 break;
             case CUSTOMER_SITE:
-                CustomerModel cm = appointmentConflicts.getSelectedCustomer();
+                CustomerModel cm = appointmentConflicts.selectedCustomerProperty().get();
                 if (null == cm) {
-                    restoreLabeled(implicitLocationLabel, "(customer site)");
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), "(customer site)");
                 } else {
-                    restoreLabeled(implicitLocationLabel, cm.getMultiLineAddress());
+                    restoreLabeled(editAppointmentControl.getImplicitLocationLabel(), cm.getMultiLineAddress());
                 }
                 break;
             case PHONE:
@@ -421,7 +401,7 @@ public final class TypeContextController {
                 break;
             default:
                 locationValidationLabel.setVisible(normalizedLocation.get().isEmpty());
-                contactValidationLabel.setVisible(normalizedContact.get().isEmpty());
+                editAppointmentControl.getContactValidationLabel().setVisible(normalizedContact.get().isEmpty());
                 break;
         }
         if (wasInvalid != locationValidationLabel.isVisible()) {
@@ -434,6 +414,7 @@ public final class TypeContextController {
     }
 
     private synchronized void onUrlChanged() {
+        Label urlValidationLabel = editAppointmentControl.getUrlValidationLabel();
         parsedUrl.get().accept((t) -> {
             urlValidationLabel.setText("");
             urlValidationLabel.setVisible(false);
@@ -455,21 +436,21 @@ public final class TypeContextController {
                     LOG.exiting(LOG.getName(), "onTypeChanged");
                     return;
                 }
-                collapseNode(corporateLocationComboBox);
-                collapseNode(implicitLocationLabel);
+                collapseNode(editAppointmentControl.getCorporateLocationComboBox());
+                collapseNode(editAppointmentControl.getImplicitLocationLabel());
                 break;
             case CUSTOMER_SITE:
                 if (newValue == AppointmentType.CORPORATE_LOCATION) {
-                    restoreNode(corporateLocationComboBox);
+                    restoreNode(editAppointmentControl.getCorporateLocationComboBox());
                     onContextSensitiveChange();
                     LOG.exiting(LOG.getName(), "onTypeChanged");
                     return;
                 }
-                collapseNode(implicitLocationLabel);
+                collapseNode(editAppointmentControl.getImplicitLocationLabel());
                 break;
             case PHONE:
-                collapseNode(phoneTextField);
-                locationLabel.setText(editAppointmentControl.getResources().getString(RESOURCEKEY_LOCATIONLABELTEXT));
+                collapseNode(editAppointmentControl.getPhoneTextField());
+                editAppointmentControl.getLocationLabel().setText(editAppointmentControl.getResources().getString(RESOURCEKEY_LOCATIONLABELTEXT));
                 break;
             case VIRTUAL:
                 onUrlChanged();
@@ -478,42 +459,42 @@ public final class TypeContextController {
                     LOG.exiting(LOG.getName(), "onTypeChanged");
                     return;
                 }
-                collapseNode(locationTextArea);
+                collapseNode(editAppointmentControl.getLocationTextArea());
                 break;
             default:
                 if (newValue == AppointmentType.VIRTUAL) {
-                    locationValidationLabel.setVisible(false);
-                    contactValidationLabel.setVisible(false);
+                    editAppointmentControl.getLocationValidationLabel().setVisible(false);
+                    editAppointmentControl.getContactValidationLabel().setVisible(false);
                     onContextSensitiveChange();
                     LOG.exiting(LOG.getName(), "onTypeChanged");
                     return;
                 }
-                contactValidationLabel.setVisible(false);
-                collapseNode(locationTextArea);
+                editAppointmentControl.getContactValidationLabel().setVisible(false);
+                collapseNode(editAppointmentControl.getLocationTextArea());
                 break;
         }
         switch (newValue) {
             case CORPORATE_LOCATION:
-                contactValidationLabel.setVisible(false);
-                restoreNode(corporateLocationComboBox);
+                editAppointmentControl.getContactValidationLabel().setVisible(false);
+                restoreNode(editAppointmentControl.getCorporateLocationComboBox());
                 break;
             case CUSTOMER_SITE:
-                contactValidationLabel.setVisible(false);
-                locationValidationLabel.setVisible(false);
+                editAppointmentControl.getContactValidationLabel().setVisible(false);
+                editAppointmentControl.getLocationValidationLabel().setVisible(false);
                 break;
             case PHONE:
-                contactValidationLabel.setVisible(false);
-                locationLabel.setText(editAppointmentControl.getResources().getString(RESOURCEKEY_PHONENUMBER));
-                restoreNode(phoneTextField);
+                editAppointmentControl.getContactValidationLabel().setVisible(false);
+                editAppointmentControl.getLocationLabel().setText(editAppointmentControl.getResources().getString(RESOURCEKEY_PHONENUMBER));
+                restoreNode(editAppointmentControl.getPhoneTextField());
                 break;
             case VIRTUAL:
-                locationValidationLabel.setVisible(false);
-                contactValidationLabel.setVisible(false);
-                restoreNode(locationTextArea);
+                editAppointmentControl.getLocationValidationLabel().setVisible(false);
+                editAppointmentControl.getContactValidationLabel().setVisible(false);
+                restoreNode(editAppointmentControl.getLocationTextArea());
                 onUrlChanged();
                 break;
             default:
-                restoreNode(locationTextArea);
+                restoreNode(editAppointmentControl.getLocationTextArea());
                 break;
         }
         onContextSensitiveChange();

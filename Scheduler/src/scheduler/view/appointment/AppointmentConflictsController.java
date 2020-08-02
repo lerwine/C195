@@ -9,8 +9,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -20,10 +18,8 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SingleSelectionModel;
-import javafx.scene.layout.BorderPane;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
@@ -51,7 +47,7 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
  */
 public final class AppointmentConflictsController {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentConflictsController.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentConflictsController.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentConflictsController.class.getName());
 
     private final EditAppointment editAppointmentControl;
@@ -61,22 +57,12 @@ public final class AppointmentConflictsController {
     private final ObservableList<AppointmentModel> allAppointments;
     private final ObservableList<AppointmentModel> conflictingAppointments;
     private final DateRangeController dateRange;
-    private final BooleanBinding valid;
-    private final AppointmentModel model;
+    private BooleanBinding valid;
     private BooleanBinding modified;
     private LoadParticipantsAppointmentsTask currentTask = null;
     private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
     private ReadOnlyObjectProperty<UserModel> selectedUser;
-    private Label customerValidationLabel;
-    private Label userValidationLabel;
-    private ComboBox<CustomerModel> customerComboBox;
-    private ComboBox<UserModel> userComboBox;
-    private Button checkConflictsButton;
     private ResourceBundle resources;
-    private Button showConflictsButton;
-    private Button hideConflictsButton;
-    private BorderPane appointmentConflictsBorderPane;
-    private Label startValidationLabel;
 
     AppointmentConflictsController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
@@ -86,34 +72,14 @@ public final class AppointmentConflictsController {
         allAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
         dateRange = new DateRangeController(editAppointmentControl);
-        conflictMessage.addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "conflictMessage#value"), "change", new Object[]{oldValue, newValue});
-            onStartMessageChanged(dateRange.getStartValidationMessage(), newValue, dateRange.isWithinBusinessHours());
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "conflictMessage#value"), "change");
-        });
-        dateRange.startValidationMessageProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#startValidationMessage#value"), "change", new Object[]{oldValue, newValue});
-            onStartMessageChanged(newValue, conflictMessage.get(), dateRange.isWithinBusinessHours());
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#startValidationMessage#value"), "change");
-        });
-        valid = currentParticipants.isNotNull().and(dateRange.validProperty());
-        model = editAppointmentControl.getModel();
     }
 
     public BooleanBinding modifiedBinding() {
         return modified;
     }
 
-    public CustomerModel getSelectedCustomer() {
-        return selectedCustomer.get();
-    }
-
     public ReadOnlyObjectProperty<CustomerModel> selectedCustomerProperty() {
         return selectedCustomer;
-    }
-
-    public UserModel getSelectedUser() {
-        return selectedUser.get();
     }
 
     public ReadOnlyObjectProperty<UserModel> selectedUserProperty() {
@@ -154,19 +120,17 @@ public final class AppointmentConflictsController {
 
     void initialize() {
         LOG.entering(LOG.getName(), "initialize");
+        AppointmentModel model = editAppointmentControl.getModel();
         dateRange.initialize();
         resources = editAppointmentControl.getResources();
-        customerComboBox = editAppointmentControl.getCustomerComboBox();
-        userComboBox = editAppointmentControl.getUserComboBox();
-        checkConflictsButton = editAppointmentControl.getCheckConflictsButton();
-        final SingleSelectionModel<CustomerModel> customerSelectionModel = customerComboBox.getSelectionModel();
+        final SingleSelectionModel<CustomerModel> customerSelectionModel = editAppointmentControl.getCustomerComboBox().getSelectionModel();
         selectedCustomer = customerSelectionModel.selectedItemProperty();
         selectedUser = editAppointmentControl.getUserComboBox().getSelectionModel().selectedItemProperty();
         CustomerModel customer = selectedCustomer.get();
-        customerValidationLabel = editAppointmentControl.getCustomerValidationLabel();
+        Label customerValidationLabel = editAppointmentControl.getCustomerValidationLabel();
         customerValidationLabel.setVisible(null == customer);
         UserModel user = selectedUser.get();
-        userValidationLabel = editAppointmentControl.getUserValidationLabel();
+        Label userValidationLabel = editAppointmentControl.getUserValidationLabel();
         userValidationLabel.setVisible(null == user);
         if (null != customer && null != user) {
             currentParticipants.set(Tuple.of(customer, user));
@@ -196,27 +160,42 @@ public final class AppointmentConflictsController {
             onParticipantsChanged(selectedCustomer.get(), newValue);
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "selectedUser#value"), "changed");
         });
-        checkConflictsButton.setOnAction(this::onCheckConflictsButtonAction);
-        showConflictsButton = editAppointmentControl.getShowConflictsButton();
-        showConflictsButton.setOnAction(this::onShowConflictsButtonAction);
-        hideConflictsButton = editAppointmentControl.getHideConflictsButton();
-        hideConflictsButton.setOnAction(this::onHideConflictsButtonAction);
-        appointmentConflictsBorderPane = editAppointmentControl.getAppointmentConflictsBorderPane();
-        startValidationLabel = editAppointmentControl.getStartValidationLabel();
-        modified = dateRange.modifiedBinding().or(selectedCustomer.isNotEqualTo(model.customerProperty())).or(selectedUser.isNotEqualTo(model.userProperty()));
+        conflictMessage.addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "conflictMessage#value"), "change", new Object[]{oldValue, newValue});
+            onStartMessageChanged(dateRange.getStartValidationMessage(), newValue, dateRange.isWithinBusinessHours());
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "conflictMessage#value"), "change");
+        });
+        dateRange.startValidationMessageProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#startValidationMessage#value"), "change", new Object[]{oldValue, newValue});
+            onStartMessageChanged(newValue, conflictMessage.get(), dateRange.isWithinBusinessHours());
+            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#startValidationMessage#value"), "change");
+        });
+        editAppointmentControl.getCheckConflictsButton().setOnAction(this::onCheckConflictsButtonAction);
+        editAppointmentControl.getShowConflictsButton().setOnAction(this::onShowConflictsButtonAction);
+        editAppointmentControl.getHideConflictsButton().setOnAction(this::onHideConflictsButtonAction);
+        modified = dateRange.modifiedBinding().or(ModelHelper.sameRecordBinding(selectedCustomer, model.customerProperty()))
+                .or(ModelHelper.sameRecordBinding(selectedUser, model.userProperty()));
+        valid = currentParticipants.isNotNull().and(dateRange.validProperty());
+        valid.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("valid changed from %s to %s", oldValue, newValue));
+        });
+        modified.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("modified changed from %s to %s", oldValue, newValue));
+        });
+        LOG.info(String.format("modified initial value is %s", modified.get()));
         LOG.exiting(LOG.getName(), "initialize");
     }
 
     void initialize(Task<List<AppointmentDAO>> task) {
         LOG.entering(LOG.getName(), "initialize", task);
         AppointmentModel model = editAppointmentControl.getModel();
-        clearAndSelectEntity(customerComboBox, model.getCustomer());
-        clearAndSelectEntity(userComboBox, model.getUser());
+        clearAndSelectEntity(editAppointmentControl.getCustomerComboBox(), model.getCustomer());
+        clearAndSelectEntity(editAppointmentControl.getUserComboBox(), model.getUser());
         onAppointmentsLoaded(task, false);
-        checkConflictsButton.setDisable(conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED);
+        editAppointmentControl.getCheckConflictsButton().setDisable(conflictCheckStatus.get() != ConflictCheckStatus.NOT_CHECKED);
         dateRange.rangeProperty().addListener((observable, oldValue, newValue) -> onRangeChanged(newValue, dateRange.isWithinBusinessHours()));
         conflictCheckStatus.addListener((observable, oldValue, newValue) -> {
-            checkConflictsButton.setDisable(newValue != ConflictCheckStatus.NOT_CHECKED);
+            editAppointmentControl.getCheckConflictsButton().setDisable(newValue != ConflictCheckStatus.NOT_CHECKED);
         });
         onStartMessageChanged(dateRange.getStartValidationMessage(), conflictMessage.get(), dateRange.isWithinBusinessHours());
         LOG.exiting(LOG.getName(), "initialize");
@@ -247,7 +226,7 @@ public final class AppointmentConflictsController {
                 if (null != currentTask && !currentTask.isDone()) {
                     currentTask.cancel(true);
                 }
-                checkConflictsButton.setDisable(true);
+                editAppointmentControl.getCheckConflictsButton().setDisable(true);
                 currentTask = new LoadParticipantsAppointmentsTask(currentParticipants.get(), true);
                 editAppointmentControl.getWaitBorderPane().startNow(currentTask);
                 return false;
@@ -269,7 +248,7 @@ public final class AppointmentConflictsController {
             if (null != currentTask && !currentTask.isDone()) {
                 currentTask.cancel(true);
             }
-            checkConflictsButton.setDisable(true);
+            editAppointmentControl.getCheckConflictsButton().setDisable(true);
             currentTask = new LoadParticipantsAppointmentsTask(p, false);
             editAppointmentControl.getWaitBorderPane().startNow(currentTask);
         }
@@ -279,14 +258,14 @@ public final class AppointmentConflictsController {
     private synchronized void onShowConflictsButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onShowConflictsButtonAction", event);
         if (!conflictingAppointments.isEmpty()) {
-            restoreNode(appointmentConflictsBorderPane);
+            restoreNode(editAppointmentControl.getAppointmentConflictsBorderPane());
         }
         LOG.exiting(LOG.getName(), "onShowConflictsButtonAction");
     }
 
     private synchronized void onHideConflictsButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onHideConflictsButtonAction", event);
-        collapseNode(appointmentConflictsBorderPane);
+        collapseNode(editAppointmentControl.getAppointmentConflictsBorderPane());
         LOG.exiting(LOG.getName(), "onHideConflictsButtonAction");
     }
 
@@ -305,7 +284,7 @@ public final class AppointmentConflictsController {
             if (conflictCheckStatus.get() != ConflictCheckStatus.CHECK_ERROR) {
                 conflictCheckStatus.set(ConflictCheckStatus.CHECK_ERROR);
             }
-            showConflictsButton.setDisable(true);
+            editAppointmentControl.getShowConflictsButton().setDisable(true);
             if (saveMode) {
                 EditItem<AppointmentModel, EditAppointment> editWindowRoot = editAppointmentControl.getEditWindowRoot();
                 ActionEvent event = new ActionEvent(editWindowRoot.getSaveChangesButton(), editWindowRoot);
@@ -330,7 +309,7 @@ public final class AppointmentConflictsController {
         if (null != dateRange.getRange() && null != currentParticipants.get()) {
             updateConflictingAppointments();
         } else {
-            showConflictsButton.setDisable(true);
+            editAppointmentControl.getShowConflictsButton().setDisable(true);
             if (conflictCheckStatus.get() != ConflictCheckStatus.NO_CONFLICT) {
                 conflictCheckStatus.set(ConflictCheckStatus.NO_CONFLICT);
             }
@@ -377,7 +356,7 @@ public final class AppointmentConflictsController {
             checkStatus = ConflictCheckStatus.NOT_CHECKED;
             message = (null == dateRange.getRange()) ? "" : resources.getString(RESOURCEKEY_CONFLICTDATASTALE);
         }
-        showConflictsButton.setDisable(true);
+        editAppointmentControl.getShowConflictsButton().setDisable(true);
         if (!conflictMessage.get().equals(message)) {
             conflictMessage.set(message);
         }
@@ -449,7 +428,7 @@ public final class AppointmentConflictsController {
             message = "";
             checkStatus = ConflictCheckStatus.NO_CONFLICT;
             conflictMessage.set("");
-            showConflictsButton.setDisable(true);
+            editAppointmentControl.getShowConflictsButton().setDisable(true);
         } else {
             LOG.fine(() -> String.format("%d conflicting appointments", conflictingAppointments.size()));
             checkStatus = ConflictCheckStatus.HAS_CONFLICT;
@@ -498,7 +477,7 @@ public final class AppointmentConflictsController {
                     }
                     break;
             }
-            showConflictsButton.setDisable(false);
+            editAppointmentControl.getShowConflictsButton().setDisable(false);
         }
         if (!message.equals(conflictMessage.get())) {
             conflictMessage.set(message);
@@ -510,6 +489,7 @@ public final class AppointmentConflictsController {
 
     private synchronized void onStartMessageChanged(String errorMessage, String warningMessage, boolean isWithinBusinessHours) {
         LOG.entering(LOG.getName(), "onStartMessageChanged", new Object[]{errorMessage, warningMessage, isWithinBusinessHours});
+        Label startValidationLabel = editAppointmentControl.getStartValidationLabel();
         if (errorMessage.isEmpty()) {
             if (warningMessage.isEmpty()) {
                 if (isWithinBusinessHours) {

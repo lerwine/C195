@@ -7,9 +7,14 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.value.ObservableObjectValue;
 import javafx.beans.value.ObservableValue;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -44,6 +49,7 @@ import scheduler.model.fx.PartialUserModel;
 import scheduler.model.fx.PartialUserModelImpl;
 import scheduler.model.fx.UserModel;
 import scheduler.util.DateTimeUtil;
+import scheduler.util.LogHelper;
 import static scheduler.util.ResourceBundleHelper.getResourceString;
 import scheduler.util.Values;
 import static scheduler.util.Values.appendEnum;
@@ -61,6 +67,13 @@ import static scheduler.view.appointment.EditAppointmentResourceKeys.RESOURCEKEY
  */
 public class ModelHelper {
 
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ModelHelper.class.getName()), Level.FINER);
+//    private static final Logger LOG = Logger.getLogger(ModelHelper.class.getName());
+
+    public static <T extends PartialDataEntity> BooleanBinding sameRecordBinding(ObservableObjectValue<? extends T> a, ObservableObjectValue<? extends T> b) {
+        return Bindings.createBooleanBinding(() -> areSameRecord(a.get(), b.get()), a, b);
+    }
+
     /**
      * Tests whether two {@link PartialDataEntity} objects represent the same database entity.
      *
@@ -70,23 +83,24 @@ public class ModelHelper {
      * @return {@code true} if both {@link PartialDataEntity}s represent the same database entity; otherwise, {@code false}.
      */
     public static <T extends PartialDataEntity> boolean areSameRecord(T a, T b) {
+        LOG.entering(LOG.getName(), "areSameRecord", new Object[] { a, b });
+        boolean result;
         if (null == a) {
-            return null == b;
-        }
-        if (null == b) {
+            result = null == b;
+        } else if (null == b) {
+            result = false;
+        } else if (a == b) {
+            result = true;
+        } else if (existsInDatabase(a)) {
+            result = existsInDatabase(b) && a.getPrimaryKey() == b.getPrimaryKey();
+        } else if (!existsInDatabase(b)) {
+            result = arePropertiesEqual(a, b);
+        } else {
+            LOG.exiting(LOG.getName(), "areSameRecord", false);
             return false;
         }
-        if (a == b) {
-            return true;
-        }
-        if (existsInDatabase(a)) {
-            if (existsInDatabase(b)) {
-                return a.getPrimaryKey() == b.getPrimaryKey();
-            }
-        } else if (!existsInDatabase(b)) {
-            return arePropertiesEqual(a, b);
-        }
-        return false;
+        LOG.exiting(LOG.getName(), "areSameRecord", result);
+        return result;
     }
 
     /**
@@ -426,7 +440,9 @@ public class ModelHelper {
 
     }
 
-    public static class AppointmentHelper {
+    public static final class AppointmentHelper {
+
+        private static final Logger LOG = Logger.getLogger(AppointmentHelper.class.getName());
 
         private static StringBuilder appendAppointmentPropertiesT(Appointment<Timestamp> appointment, StringBuilder builder) {
             appendTimestamp(appointment.getStart(), builder.append("; start="));
@@ -521,29 +537,38 @@ public class ModelHelper {
 
         public static String calculateEffectiveLocation(final AppointmentType type, final String customerAddress,
                 final String url, final String location) {
+            LOG.entering(LOG.getName(), "calculateEffectiveLocation", new Object[] {type, customerAddress, url, location});
+            String result;
             switch (type) {
                 case CUSTOMER_SITE:
-                    return (customerAddress.isEmpty())
+                    result = (customerAddress.isEmpty())
                             ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_CUSTOMER)
                             : customerAddress;
+                    break;
                 case VIRTUAL:
-                    return (url.isEmpty())
+                    result = (url.isEmpty())
                             ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_VIRTUAL)
                             : url;
+                    break;
                 case CORPORATE_LOCATION:
                     final CorporateAddress corporateAddress = PredefinedData.getCorporateAddress(location);
-                    return AddressHelper.calculateSingleLineAddress(corporateAddress.getAddress1(),
+                    result = AddressHelper.calculateSingleLineAddress(corporateAddress.getAddress1(),
                             corporateAddress.getAddress2(),
                             AddressHelper.calculateCityZipCountry(corporateAddress.getCity().getName(),
                                     corporateAddress.getCity().getCountry().getName(), corporateAddress.getPostalCode()),
                             corporateAddress.getPhone());
+                    break;
                 case PHONE:
-                    return (location.isEmpty())
+                    result = (location.isEmpty())
                             ? AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTTYPE_PHONE)
                             : String.format("tel: %s", location);
+                    break;
                 default:
-                    return location;
+                    result = location;
+                    break;
             }
+            LOG.exiting(LOG.getName(), "calculateEffectiveLocation", result);
+            return result;
         }
 
         public static <T extends Serializable & Comparable<? super T>> int compareByDates(final Appointment<T> a, final Appointment<T> b) {
@@ -574,6 +599,40 @@ public class ModelHelper {
                 return -1;
             }
             return x.compareTo(y);
+        }
+
+        private static String calculateDaoLocationImpl(AppointmentType type, String explicitLocation, String phone, CorporateAddress corporateLocation, CustomerModel customer) {
+            LOG.entering(LOG.getName(), "calculateDaoLocationImpl", new Object[] {type, explicitLocation, phone, corporateLocation, customer});
+            String result;
+            switch (type) {
+                case CORPORATE_LOCATION:
+                    result = (null == corporateLocation) ? "" : corporateLocation.getName();
+                    break;
+                case CUSTOMER_SITE:
+                    result = (null == customer) ? "" : customer.getMultiLineAddress();
+                    break;
+                case PHONE:
+                    result = phone;
+                    break;
+                default:
+                    result = explicitLocation;
+                    break;
+            }
+            LOG.exiting(LOG.getName(), "calculateDaoLocationImpl", result);
+            return result;
+        }
+
+        private static String calculateDaoLocation(AppointmentType type, String explicitLocation, String phone, CorporateAddress corporateLocation, CustomerModel customer) {
+            return calculateDaoLocationImpl(type, Values.asNonNullAndWsNormalizedMultiLine(explicitLocation), Values.asNonNullAndWsNormalized(phone), corporateLocation, customer);
+        }
+
+        public static StringBinding daoLocationBinding(ReadOnlyObjectProperty<AppointmentType> type, StringBinding explicitLocation, StringBinding phone, ReadOnlyObjectProperty<CorporateAddress> corporateLocation, ReadOnlyObjectProperty<CustomerModel> customer, boolean stringBindingsAlreadyNormalized) {
+            if (stringBindingsAlreadyNormalized) {
+                return Bindings.createStringBinding(() -> calculateDaoLocationImpl(type.get(), explicitLocation.get(), phone.get(), corporateLocation.get(), customer.get()),
+                        type, corporateLocation, customer, phone, explicitLocation);
+            }
+            return Bindings.createStringBinding(() -> calculateDaoLocation(type.get(), explicitLocation.get(), phone.get(), corporateLocation.get(), customer.get()),
+                    type, corporateLocation, customer, phone, explicitLocation);
         }
 
         private AppointmentHelper() {

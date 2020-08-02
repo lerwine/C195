@@ -24,8 +24,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import scheduler.AppResources;
@@ -40,7 +38,7 @@ import scheduler.util.Tuple;
  */
 public final class DateRangeController {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DateRangeController.class.getName()), Level.FINE);
+    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DateRangeController.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(DateRangeController.class.getName());
     private static final Pattern INT_PATTERN = Pattern.compile("^\\s*\\d{1,9}\\s*");
     private static final String INVALID_HOUR_NUMBER = "Invalid hour number";
@@ -185,16 +183,8 @@ public final class DateRangeController {
     private ObjectBinding<BinarySelective<Integer, String>> parsedDurationHour;
     private ObjectBinding<BinarySelective<Integer, String>> parsedDurationMinute;
     private ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeBinding;
-    private DatePicker startDatePicker;
-    private ComboBox<Boolean> amPmComboBox;
-    private TextField startHourTextField;
-    private TextField startMinuteTextField;
-    private TextField durationHourTextField;
-    private TextField durationMinuteTextField;
-    private Label endDateTimeLabel;
-    private Label durationValidationLabel;
-    private final AppointmentModel model;
-    private final BooleanBinding modified;
+    private AppointmentModel model;
+    private BooleanBinding modified;
 
     DateRangeController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
@@ -208,6 +198,7 @@ public final class DateRangeController {
         startDateTimeValue = new ReadOnlyObjectWrapper<>(this, "startDateTimeValue", null);
         endDateTimeValue = new ReadOnlyObjectWrapper<>(this, "endDateTimeValue", null);
         range = new ReadOnlyObjectWrapper<>(this, "range", null);
+        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         withinBusinessHours = Bindings.createBooleanBinding(() -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue");
             Tuple<LocalDateTime, LocalDateTime> value = range.get();
@@ -237,9 +228,6 @@ public final class DateRangeController {
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", result);
             return result;
         }, range);
-        model = editAppointmentControl.getModel();
-        modified = startDateTimeValue.isNotEqualTo(model.startProperty()).or(endDateTimeValue.isNotEqualTo(model.endProperty()));
-        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
     }
 
     public LocalDateTime getStartDateTimeValue() {
@@ -304,48 +292,46 @@ public final class DateRangeController {
 
     void initialize() {
         LOG.entering(LOG.getName(), "initialize");
-        AppointmentModel model = editAppointmentControl.getModel();
+        model = editAppointmentControl.getModel();
+        modified = startDateTimeValue.isNotEqualTo(model.startProperty()).or(endDateTimeValue.isNotEqualTo(model.endProperty()));
+        modified.addListener((observable, oldValue, newValue) -> {
+            LOG.info(String.format("modified changed from %s to %s", oldValue, newValue));
+        });
+        LOG.info(String.format("modified initial value is %s", modified.get()));
         LocalDateTime rangeStart = model.getStart();
-        startDatePicker = editAppointmentControl.getStartDatePicker();
-        startHourTextField = editAppointmentControl.getStartHourTextField();
-        startMinuteTextField = editAppointmentControl.getStartMinuteTextField();
-        durationHourTextField = editAppointmentControl.getDurationHourTextField();
-        durationMinuteTextField = editAppointmentControl.getDurationMinuteTextField();
-        amPmComboBox = editAppointmentControl.getAmPmComboBox();
-        endDateTimeLabel = editAppointmentControl.getEndDateTimeLabel();
-        durationValidationLabel = editAppointmentControl.getDurationValidationLabel();
+        TextField startHourTextField = editAppointmentControl.getStartHourTextField();
         if (null != rangeStart) {
-            startDatePicker.setValue(rangeStart.toLocalDate());
-            amPmComboBox.setItems(FXCollections.observableArrayList(Boolean.FALSE, Boolean.TRUE));
+            editAppointmentControl.getStartDatePicker().setValue(rangeStart.toLocalDate());
+            editAppointmentControl.getAmPmComboBox().setItems(FXCollections.observableArrayList(Boolean.FALSE, Boolean.TRUE));
             int hv = rangeStart.getHour();
             if (hv < 12) {
-                amPmComboBox.getSelectionModel().select(false);
+                editAppointmentControl.getAmPmComboBox().getSelectionModel().select(false);
                 startHourTextField.setText(INTN_FORMAT.format((hv > 0) ? hv : 12));
             } else {
-                amPmComboBox.getSelectionModel().select(true);
-                startHourTextField.setText(INTN_FORMAT.format((hv > 12) ? 12 : hv - 12));
+                editAppointmentControl.getAmPmComboBox().getSelectionModel().select(true);
+                startHourTextField.setText(INTN_FORMAT.format((hv > 12) ? hv - 12 : 12));
             }
-            startMinuteTextField.setText(INT2_FORMAT.format(rangeStart.getMinute()));
+            editAppointmentControl.getStartMinuteTextField().setText(INT2_FORMAT.format(rangeStart.getMinute()));
             LocalDateTime rangeEnd = model.getEnd();
             if (null != rangeEnd) {
                 long h = Duration.between(rangeStart, rangeEnd).toMinutes();
                 long m = h % 60;
-                durationHourTextField.setText(INTN_FORMAT.format((h - m) / 60));
-                durationMinuteTextField.setText(INT2_FORMAT.format(m));
+                editAppointmentControl.getDurationHourTextField().setText(INTN_FORMAT.format((h - m) / 60));
+                editAppointmentControl.getDurationMinuteTextField().setText(INT2_FORMAT.format(m));
             }
         }
         parsedStartHour = Bindings.createObjectBinding(() -> calculateHour(startHourTextField.getText(), 1, 12), startHourTextField.textProperty());
-        parsedStartMinute = Bindings.createObjectBinding(() -> calculateMinute(startMinuteTextField.getText()), startMinuteTextField.textProperty());
-        startDateTimeBinding = Bindings.createObjectBinding(() -> calculateStartDateTime(startDatePicker.getValue(), parsedStartHour.get(),
-                parsedStartMinute.get(), amPmComboBox.getSelectionModel().getSelectedItem()), startDatePicker.valueProperty(), parsedStartHour,
-                parsedStartMinute, amPmComboBox.getSelectionModel().selectedItemProperty());
-        parsedDurationHour = Bindings.createObjectBinding(() -> calculateHour(durationHourTextField.getText(), 0, 256),
-                durationHourTextField.textProperty());
-        parsedDurationMinute = Bindings.createObjectBinding(() -> calculateMinute(durationMinuteTextField.getText()),
-                durationMinuteTextField.textProperty());
+        parsedStartMinute = Bindings.createObjectBinding(() -> calculateMinute(editAppointmentControl.getStartMinuteTextField().getText()), editAppointmentControl.getStartMinuteTextField().textProperty());
+        startDateTimeBinding = Bindings.createObjectBinding(() -> calculateStartDateTime(editAppointmentControl.getStartDatePicker().getValue(), parsedStartHour.get(),
+                parsedStartMinute.get(), editAppointmentControl.getAmPmComboBox().getSelectionModel().getSelectedItem()), editAppointmentControl.getStartDatePicker().valueProperty(), parsedStartHour,
+                parsedStartMinute, editAppointmentControl.getAmPmComboBox().getSelectionModel().selectedItemProperty());
+        parsedDurationHour = Bindings.createObjectBinding(() -> calculateHour(editAppointmentControl.getDurationHourTextField().getText(), 0, 256),
+                editAppointmentControl.getDurationHourTextField().textProperty());
+        parsedDurationMinute = Bindings.createObjectBinding(() -> calculateMinute(editAppointmentControl.getDurationMinuteTextField().getText()),
+                editAppointmentControl.getDurationMinuteTextField().textProperty());
         endDateTimeBinding = Bindings.createObjectBinding(() -> calculateEndDateTime(startDateTimeValue.get(), parsedDurationHour.get(),
                 parsedDurationMinute.get()), startDateTimeValue, parsedDurationHour, parsedDurationMinute);
-        startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+        editAppointmentControl.getStartDatePicker().valueProperty().addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "startDatePicker#value"), "changed", new Object[]{oldValue, newValue});
             checkStartChange();
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "startDatePicker#value"), "changed");
@@ -355,27 +341,27 @@ public final class DateRangeController {
             checkStartChange();
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "startHourTextField#text"), "changed");
         });
-        startMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+        editAppointmentControl.getStartMinuteTextField().textProperty().addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "startMinuteTextField#text"), "changed", new Object[]{oldValue, newValue});
             checkStartChange();
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "startMinuteTextField#text"), "changed");
         });
-        amPmComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+        editAppointmentControl.getAmPmComboBox().getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "amPmComboBox#value"), "changed", new Object[]{oldValue, newValue});
             checkStartChange();
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "amPmComboBox#value"), "changed");
         });
         startDateTimeValue.addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "startDateTimeValue#value"), "changed", new Object[]{oldValue, newValue});
-            checkEndChange(Optional.of(newValue));
+            checkEndChange((null == newValue) ? Optional.empty() : Optional.of(newValue));
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "startDateTimeValue#value"), "changed");
         });
-        durationHourTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+        editAppointmentControl.getDurationHourTextField().textProperty().addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "durationHourTextField#text"), "changed", new Object[]{oldValue, newValue});
             checkEndChange(Optional.empty());
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "durationHourTextField#text"), "changed");
         });
-        durationMinuteTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+        editAppointmentControl.getDurationMinuteTextField().textProperty().addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "durationMinuteTextField#text"), "changed", new Object[]{oldValue, newValue});
             checkEndChange(Optional.empty());
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "durationMinuteTextField#text"), "changed");
@@ -418,10 +404,12 @@ public final class DateRangeController {
                     if (c) {
                         endDateTimeValue.set(t);
                         String s = DATETIME_FORMAT.format(t);
+                        Label endDateTimeLabel = editAppointmentControl.getEndDateTimeLabel();
                         if (!endDateTimeLabel.getText().equals(s)) {
                             endDateTimeLabel.setText(s);
                         }
                     }
+                    Label durationValidationLabel = editAppointmentControl.getDurationValidationLabel();
                     if (!durationValidationLabel.getText().isEmpty()) {
                         durationValidationLabel.setText("");
                     }
@@ -433,10 +421,12 @@ public final class DateRangeController {
                     }
                 },
                 (t) -> {
+                    Label endDateTimeLabel = editAppointmentControl.getEndDateTimeLabel();
                     if (!endDateTimeLabel.getText().isEmpty()) {
                         endDateTimeLabel.setText("");
                     }
                     boolean c = !t.isEmpty();
+                    Label durationValidationLabel = editAppointmentControl.getDurationValidationLabel();
                     if (durationValidationLabel.isVisible() != c) {
                         durationValidationLabel.setVisible(c);
                     }

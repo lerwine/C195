@@ -172,7 +172,7 @@ public final class ManageAppointments extends MainListingControl<AppointmentDAO,
 //            filterState = result;
 //            AlertHelper.showWarningAlert(((Button) event.getSource()).getScene().getWindow(), "Reload after filterButtonClick not implemented");
 //        }
-        // PENDING: (TODO) Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
+        // TODO: Implement scheduler.view.appointment.ManageAppointments#filterButtonClick(ActionEvent event)
         LOG.exiting(LOG.getName(), "filterButtonClick");
     }
 
