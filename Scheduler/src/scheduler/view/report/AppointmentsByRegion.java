@@ -23,7 +23,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.ItemCountResult;
-import scheduler.model.PredefinedData;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import scheduler.util.ViewControllerLoader;
@@ -71,7 +70,7 @@ public class AppointmentsByRegion extends VBox {
 
     private LocalDate date;
 
-    private AppointmentsByRegion() {
+    public AppointmentsByRegion() {
 
     }
 
@@ -138,12 +137,18 @@ public class AppointmentsByRegion extends VBox {
         protected void succeeded() {
             super.succeeded();
             List<ItemCountResult<String>> result = getValue();
-            pieChartData.clear();
-            result.forEach((t) -> {
-                PieChart.Data data = new PieChart.Data(PredefinedData.getSupportedCountryDefinition(t.getValue()).getLocale().getDisplayCountry(), t.getCount());
-                pieChartData.add(data);
-            });
-            reportPieChart.setTitle(String.format(resources.getString("appointmentRegionsForS"), monthName));
+            HashMap<String, Integer> regions = new HashMap<>();
+            result.forEach((t) -> regions.put(t.getValue(), t.getCount()));
+//            ObservableMap<String, CountryDAO.PredefinedCountryElement> countryMap = PredefinedData.getCountryMap();
+//            pieChartData.clear();
+//            countryMap.keySet().forEach((t) -> {
+//                if (regions.containsKey(t)) {
+//                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), regions.get(t)));
+//                } else {
+//                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), 0));
+//                }
+//            });
+//            reportPieChart.setTitle(String.format(resources.getString("appointmentRegionsForS"), monthName));
         }
 
         @Override
