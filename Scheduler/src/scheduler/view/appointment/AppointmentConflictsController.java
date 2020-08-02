@@ -8,6 +8,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -60,7 +61,9 @@ public final class AppointmentConflictsController {
     private final ObservableList<AppointmentModel> allAppointments;
     private final ObservableList<AppointmentModel> conflictingAppointments;
     private final DateRangeController dateRange;
-    private final ReadOnlyBooleanWrapper valid;
+    private final BooleanBinding valid;
+    private final AppointmentModel model;
+    private BooleanBinding modified;
     private LoadParticipantsAppointmentsTask currentTask = null;
     private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
     private ReadOnlyObjectProperty<UserModel> selectedUser;
@@ -80,7 +83,6 @@ public final class AppointmentConflictsController {
         currentParticipants = new ReadOnlyObjectWrapper<>(this, "currentParticipants", null);
         conflictCheckStatus = new ReadOnlyObjectWrapper<>(this, "conflictCheckStatus", ConflictCheckStatus.NO_CONFLICT);
         conflictMessage = new ReadOnlyStringWrapper(this, "conflictMessage", "");
-        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         allAppointments = FXCollections.observableArrayList();
         conflictingAppointments = FXCollections.observableArrayList();
         dateRange = new DateRangeController(editAppointmentControl);
@@ -94,16 +96,12 @@ public final class AppointmentConflictsController {
             onStartMessageChanged(newValue, conflictMessage.get(), dateRange.isWithinBusinessHours());
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#startValidationMessage#value"), "change");
         });
-        currentParticipants.addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "currentParticipants#value"), "change", new Object[]{oldValue, newValue});
-            onValidityChanged(null != newValue, dateRange.isValid());
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "currentParticipants#value"), "change");
-        });
-        dateRange.validProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "<init>", "dateRange#valid#value"), "change", new Object[]{oldValue, newValue});
-            onValidityChanged(null != currentParticipants.get(), newValue);
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "cdateRange#valid#value"), "change");
-        });
+        valid = currentParticipants.isNotNull().and(dateRange.validProperty());
+        model = editAppointmentControl.getModel();
+    }
+
+    public BooleanBinding modifiedBinding() {
+        return modified;
     }
 
     public CustomerModel getSelectedCustomer() {
@@ -150,7 +148,7 @@ public final class AppointmentConflictsController {
         return valid.get();
     }
 
-    public ReadOnlyBooleanProperty validProperty() {
+    public BooleanBinding validBinding() {
         return valid;
     }
 
@@ -205,6 +203,7 @@ public final class AppointmentConflictsController {
         hideConflictsButton.setOnAction(this::onHideConflictsButtonAction);
         appointmentConflictsBorderPane = editAppointmentControl.getAppointmentConflictsBorderPane();
         startValidationLabel = editAppointmentControl.getStartValidationLabel();
+        modified = dateRange.modifiedBinding().or(selectedCustomer.isNotEqualTo(model.customerProperty())).or(selectedUser.isNotEqualTo(model.userProperty()));
         LOG.exiting(LOG.getName(), "initialize");
     }
 
@@ -528,15 +527,6 @@ public final class AppointmentConflictsController {
         }
         startValidationLabel.setVisible(true);
         LOG.exiting(LOG.getName(), "onStartMessageChanged");
-    }
-
-    private synchronized void onValidityChanged(boolean hasParticipants, boolean hasRange) {
-        LOG.entering(LOG.getName(), "onValidityChanged", new Object[]{hasParticipants, hasRange});
-        boolean v = hasParticipants && hasRange;
-        if (v != valid.get()) {
-            valid.set(v);
-        }
-        LOG.exiting(LOG.getName(), "onValidityChanged");
     }
 
     private class LoadParticipantsAppointmentsTask extends Task<List<AppointmentDAO>> {

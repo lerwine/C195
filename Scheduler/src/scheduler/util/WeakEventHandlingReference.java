@@ -13,10 +13,11 @@ import javafx.event.WeakEventHandler;
  * @param <T> The event class for the event handler this class references.
  */
 public abstract class WeakEventHandlingReference<T extends Event> implements EventHandler<T> {
+
     public static <T extends Event> WeakEventHandlingReference<T> create(EventHandler<T> eventHandler) {
         return new WeakEventHandlingReference<T>(Objects.requireNonNull(eventHandler)) {
             private final EventHandler<T> _eventHandler = eventHandler;
-            
+
             @Override
             public void handle(T event) {
                 _eventHandler.handle(event);

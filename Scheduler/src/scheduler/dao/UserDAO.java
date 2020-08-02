@@ -46,8 +46,8 @@ import static scheduler.util.Values.asNonNullAndTrimmed;
 @DatabaseTable(DbTable.USER)
 public final class UserDAO extends DataAccessObject implements PartialUserDAO, UserEntity<Timestamp> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(UserDAO.class.getName()), Level.FINE);
-//    private static final Logger LOG = Logger.getLogger(UserDAO.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(UserDAO.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(UserDAO.class.getName());
 
     public static final FactoryImpl FACTORY = new FactoryImpl();
 
@@ -154,13 +154,16 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
     @Override
     protected void onAcceptChanges() {
+        LOG.entering(getClass().getName(), "onAcceptChanges");
         originalValues.userName = userName;
         originalValues.password = password;
         originalValues.status = status;
+        LOG.exiting(getClass().getName(), "onAcceptChanges");
     }
 
     @Override
     protected void onRejectChanges() {
+        LOG.entering(getClass().getName(), "onRejectChanges");
         String oldUserName = userName;
         String oldPassword = password;
         UserStatus oldStatus = status;
@@ -170,13 +173,14 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
         firePropertyChange(PROP_USERNAME, oldUserName, userName);
         firePropertyChange(PROP_PASSWORD, oldPassword, password);
         firePropertyChange(PROP_STATUS, oldStatus, status);
+        LOG.exiting(getClass().getName(), "onRejectChanges");
     }
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         EventDispatchChain result = FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
-        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        LOG.exiting(getClass().getName(), "buildEventDispatchChain");
         return result;
     }
 
@@ -207,8 +211,8 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
      */
     public static final class FactoryImpl extends DataAccessObject.DaoFactory<UserDAO, UserModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(FactoryImpl.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(FactoryImpl.class.getName());
 
         // This is a singleton instance
         private FactoryImpl() {
@@ -349,17 +353,17 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             EventDispatchChain result = UserModel.FACTORY.buildEventDispatchChain(super.buildEventDispatchChain(tail));
-            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            LOG.exiting(getClass().getName(), "buildEventDispatchChain");
             return result;
         }
     }
 
     public static class SaveTask extends SaveDaoTask<UserDAO, UserModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveTask.class.getName()), Level.FINE);
+        private static final Logger LOG = Logger.getLogger(SaveTask.class.getName());
 
         private static final String ANOTHER_USER_HAS_SAME_NAME = "Another consultant has the same name";
         private final String ERROR_CHECKING_CONFLICTS = "Error checking consultant name conflicts";
@@ -370,7 +374,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
-            LOG.entering(LOG.getName(), "validate", connection);
+            LOG.entering(getClass().getName(), "validate", connection);
             UserModel targetModel = getEntityModel();
             UserEvent saveEvent = UserModel.FACTORY.validateForSave(targetModel);
             if (null != saveEvent && saveEvent instanceof UserFailedEvent) {
@@ -412,7 +416,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
             } else {
                 resultEvent = null;
             }
-            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            LOG.exiting(getClass().getName(), "validate", resultEvent);
             return resultEvent;
         }
 
@@ -442,21 +446,21 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering(getClass().getName(), "succeeded");
             UserEvent event = (UserEvent) getValue();
             if (null != event && event instanceof UserSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting(getClass().getName(), "succeeded");
         }
 
     }
 
     public static final class DeleteTask extends DeleteDaoTask<UserDAO, UserModel> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteTask.class.getName()), Level.FINE);
+        private static final Logger LOG = Logger.getLogger(DeleteTask.class.getName());
 
         private static final String CANNOT_DELETE_YOUR_OWN_ACCOUNT = "Cannot delete your own account";
         private static final String REFERENCED_BY_N = "Address is referenced by %d other appointments";
@@ -469,7 +473,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected UserEvent validate(Connection connection) throws Exception {
-            LOG.entering(LOG.getName(), "validate", connection);
+            LOG.entering(getClass().getName(), "validate", connection);
             UserDAO dao = getDataAccessObject();
             if (dao == Scheduler.getCurrentUser()) {
                 return UserEvent.createDeleteInvalidEvent(getEntityModel(), this, CANNOT_DELETE_YOUR_OWN_ACCOUNT);
@@ -493,7 +497,7 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
                     resultEvent = UserEvent.createDeleteInvalidEvent(getEntityModel(), this, String.format(REFERENCED_BY_N, count));
                     break;
             }
-            LOG.exiting(LOG.getName(), "validate", resultEvent);
+            LOG.exiting(getClass().getName(), "validate", resultEvent);
             return resultEvent;
         }
 
@@ -514,13 +518,13 @@ public final class UserDAO extends DataAccessObject implements PartialUserDAO, U
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering(getClass().getName(), "succeeded");
             UserEvent event = (UserEvent) getValue();
             if (null != event && event instanceof UserSuccessEvent) {
                 getDataAccessObject().setCachedModel(getEntityModel());
             }
             super.succeeded();
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting(getClass().getName(), "succeeded");
         }
 
     }

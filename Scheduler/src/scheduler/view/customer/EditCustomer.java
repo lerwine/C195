@@ -249,6 +249,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
 
     @FXML // fx:id="addAppointmentButtonBar"
     private ButtonBar addAppointmentButtonBar; // Value injected by FXMLLoader
+    private BooleanBinding nameValid;
+    private BooleanBinding addressValid;
+    private BooleanBinding cityInvalid;
+    private StringBinding cityValidationMessage;
+    private BooleanBinding modificationBinding;
 
     //</editor-fold>
     public EditCustomer() {
@@ -287,7 +292,6 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
         initializeEditMode();
         appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
-        updateValidation();
         LOG.exiting(LOG.getName(), "onModelInserted");
     }
 
@@ -452,36 +456,19 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         selectedCity = Bindings.<CityModel>select(cityComboBox.selectionModelProperty(), "selectedItem");
 
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
-        nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.nameTextField#text", "changed", new Object[]{oldValue, newValue});
-            updateValidation();
-            LOG.exiting("scheduler.view.customer.EditCustomer.nameTextField#text", "changed");
-        });
-        BooleanBinding nameValid = nameTextField.textProperty().isNotEmpty();
+        nameValid = nameTextField.textProperty().isNotEmpty();
         nameValidationLabel.visibleProperty().bind(nameValid.not());
 
         normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
-        address1TextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.address1TextField#text", "changed", new Object[]{oldValue, newValue});
-            updateValidation();
-            LOG.exiting("scheduler.view.customer.EditCustomer.address1TextField#text", "changed");
-        });
-
         normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());
-        address2TextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.address2TextField#text", "changed", new Object[]{oldValue, newValue});
-            updateValidation();
-            LOG.exiting("scheduler.view.customer.EditCustomer.address2TextField#text", "changed");
-        });
-        BooleanBinding addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
+        addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
         addressValidationLabel.visibleProperty().bind(addressValid.not());
 
         cityComboBox.disableProperty().bind(selectedCountry.isNull());
         newCityButton.disableProperty().bind(selectedCountry.isNull());
         countryValidationLabel.visibleProperty().bind(selectedCountry.isNull());
         selectedCountry.addListener(this::onSelectedCountryChanged);
-        selectedCity.addListener(this::onSelectedCityChanged);
-        StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
+        cityValidationMessage = Bindings.createStringBinding(() -> {
             PartialCityModel<? extends PartialCityDAO> c = selectedCity.get();
             PartialCountryModel<? extends PartialCountryDAO> n = selectedCountry.get();
             if (null == n) {
@@ -489,7 +476,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             }
             return (null == c) ? "* Required" : "";
         }, selectedCity, selectedCountry);
-        BooleanBinding cityInvalid = cityValidationMessage.isNotEmpty();
+        cityInvalid = cityValidationMessage.isNotEmpty();
         cityValidationLabel.textProperty().bind(cityValidationMessage);
         cityValidationLabel.visibleProperty().bind(cityInvalid);
 
@@ -520,11 +507,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                 .or(normalizedName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.nameProperty())))
                 .or(addressChanged).or(activeTrueRadioButton.selectedProperty().isNotEqualTo(model.activeProperty()));
         validityBinding = nameValid.and(addressValid).and(cityInvalid.not());
-
+        valid.set(validityBinding.get());
+        validityBinding.addListener((observable, oldValue, newValue) -> valid.set(newValue));
         nameTextField.setText(model.getName());
         activeToggleGroup.selectToggle((model.isActive()) ? activeTrueRadioButton : activeFalseRadioButton);
         onSelectedCountryChanged(selectedCountry, null, selectedCountry.get());
-        onSelectedCityChanged(selectedCity, null, selectedCity.get());
 
         WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
@@ -551,6 +538,10 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_PASTAPPOINTMENTS), AppointmentModelFilter.of(null, today, dao)));
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         appointmentFilterComboBox.getSelectionModel().selectFirst();
+        modified.set(false);
+        modificationBinding = normalizedName.isNotEqualTo(model.nameProperty()).or(selectedAddress.isNotEqualTo(model.getAddress()))
+                .or(activeTrueRadioButton.selectedProperty().isNotEqualTo(model.activeProperty()));
+        modificationBinding.addListener((observable, oldValue, newValue) -> modified.set(newValue));
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
     }
 
@@ -562,20 +553,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         if (null != newValue) {
             CityHelper.matchesCountry(newValue.getPrimaryKey(), allCities).forEach((t) -> cityOptions.add(t));
         }
-        updateValidation();
         LOG.exiting(LOG.getName(), "onSelectedCountryChanged");
-    }
-
-    private void onSelectedCityChanged(ObservableValue<? extends PartialCityModel<? extends PartialCityDAO>> observable, PartialCityModel<? extends PartialCityDAO> oldValue,
-            PartialCityModel<? extends PartialCityDAO> newValue) {
-        LOG.entering(LOG.getName(), "onSelectedCityChanged", new Object[]{oldValue, newValue});
-        updateValidation();
-        LOG.exiting(LOG.getName(), "onSelectedCityChanged");
-    }
-
-    private void updateValidation() {
-        modified.set(changedBinding.get());
-        valid.set(validityBinding.get());
     }
 
     @Override
@@ -646,14 +624,11 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         clearAndSelectEntity(countryComboBox, country);
         clearAndSelectEntity(cityComboBox, city);
 
-        cityComboBox.setOnAction((event) -> updateValidation());
-        countryComboBox.setOnAction((event) -> updateValidation());
         CountryDAO.FACTORY.addEventFilter(CountrySuccessEvent.INSERT_SUCCESS, countryInsertEventHandler.getWeakEventHandler());
         CountryDAO.FACTORY.addEventFilter(CountrySuccessEvent.DELETE_SUCCESS, countryDeleteEventHandler.getWeakEventHandler());
         CityDAO.FACTORY.addEventFilter(CitySuccessEvent.INSERT_SUCCESS, cityInsertEventHandler.getWeakEventHandler());
         CityDAO.FACTORY.addEventFilter(CitySuccessEvent.UPDATE_SUCCESS, cityUpdateEventHandler.getWeakEventHandler());
         CityDAO.FACTORY.addEventFilter(CitySuccessEvent.DELETE_SUCCESS, cityDeleteEventHandler.getWeakEventHandler());
-        updateValidation();
     }
 
     @Override

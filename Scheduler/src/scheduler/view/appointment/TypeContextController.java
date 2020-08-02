@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -92,7 +93,6 @@ public final class TypeContextController {
     }
 
     private final EditAppointment editAppointmentControl;
-    private final ReadOnlyBooleanWrapper valid;
     private final AppointmentConflictsController appointmentConflicts;
     private final ObservableList<CorporateAddress> corporateLocationList;
     private final ObservableList<CorporateAddress> remoteLocationList;
@@ -116,10 +116,13 @@ public final class TypeContextController {
     private Label urlValidationLabel;
     private Label implicitLocationLabel;
     private Label locationLabel;
+    private BooleanBinding valid;
+    private BooleanBinding modified;
+    private StringBinding locationValueBinding;
+    private StringBinding urlStringBinding;
 
     TypeContextController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
-        valid = new ReadOnlyBooleanWrapper(this, "valid", false);
         corporateLocationList = FXCollections.observableArrayList();
         remoteLocationList = FXCollections.observableArrayList();
         PredefinedData.getCorporateAddressMap().values().forEach((t) -> {
@@ -184,8 +187,16 @@ public final class TypeContextController {
         return appointmentConflicts.getSelectedCustomer();
     }
 
+    public ReadOnlyObjectProperty<CustomerModel> selectedCustomerProperty() {
+        return appointmentConflicts.selectedCustomerProperty();
+    }
+
     public UserModel getSelectedUser() {
         return appointmentConflicts.getSelectedUser();
+    }
+
+    public ReadOnlyObjectProperty<UserModel> selectedUserProperty() {
+        return appointmentConflicts.selectedUserProperty();
     }
 
     public LocalDateTime getStartDateTimeValue() {
@@ -216,7 +227,7 @@ public final class TypeContextController {
         return valid.get();
     }
 
-    public ReadOnlyBooleanProperty validProperty() {
+    public BooleanBinding validBinding() {
         return valid;
     }
 
@@ -346,29 +357,32 @@ public final class TypeContextController {
             onUrlChanged();
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "urlTextField#text"), "changed");
         });
-        appointmentConflicts.validProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "appointmentConflicts#valid"), "changed", new Object[]{oldValue, newValue});
-            onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), newValue);
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "appointmentConflicts#valid"), "changed");
-        });
-        contactValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "contactValidationLabel#visible"), "changed", new Object[]{oldValue, newValue});
-            onValidityChanged(newValue, locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), appointmentConflicts.isValid());
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "contactValidationLabel#visible"), "changed");
-        });
-        locationValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "locationValidationLabel#visible"), "changed", new Object[]{oldValue, newValue});
-            onValidityChanged(contactValidationLabel.isVisible(), newValue, urlValidationLabel.isVisible(), appointmentConflicts.isValid());
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "locationValidationLabel#visible"), "changed");
-        });
-        urlValidationLabel.visibleProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "urlValidationLabel#visible"), "changed", new Object[]{oldValue, newValue});
-            onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), newValue, appointmentConflicts.isValid());
-            LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "urlValidationLabel#visible"), "changed");
-        });
-        onValidityChanged(contactValidationLabel.isVisible(), locationValidationLabel.isVisible(), urlValidationLabel.isVisible(), appointmentConflicts.isValid());
+        valid = appointmentConflicts.validBinding()
+                .and(contactValidationLabel.visibleProperty().or(locationValidationLabel.visibleProperty()).or(urlValidationLabel.visibleProperty()).not());
+        locationValueBinding = Bindings.createStringBinding(() -> {
+            switch (selectedType.get()) {
+                case CORPORATE_LOCATION:
+                    return selectedCorporateLocation.getName();
+                case CUSTOMER_SITE:
+            CustomerModel customer = appointmentConflicts.getSelectedCustomer();
+            return (null == customer) ? "" : customer.getMultiLineAddress();
+                case PHONE:
+                    return normalizedPhone.get();
+                default:
+                    return normalizedLocation.get();
+            }
+        }, normalizedLocation, normalizedPhone, selectedCorporateLocation, appointmentConflicts.selectedCustomerProperty());
+        urlStringBinding = Bindings.createStringBinding(() -> parsedUrl.get().toPrimary(""), parsedUrl);
+        modified = appointmentConflicts.modifiedBinding().or(normalizedContact.isNotEqualTo(model.contactProperty()))
+                .or(locationValueBinding.isNotEqualTo(model.locationProperty()))
+                .or(urlStringBinding.isNotEqualTo(model.urlProperty()));
+        
         selectedType.addListener(this::onTypeChanged);
         LOG.exiting(LOG.getName(), "initialize");
+    }
+
+    public BooleanBinding modifiedBinding() {
+        return modified;
     }
 
     void initialize(Task<List<AppointmentDAO>> task) {
@@ -416,14 +430,6 @@ public final class TypeContextController {
             } else {
                 restoreNode(locationValidationLabel);
             }
-        }
-    }
-
-    private synchronized void onValidityChanged(boolean contactIsInvalid, boolean locationIsInvalid, boolean urlIsInvalid, boolean rangesAreValid) {
-        LOG.entering(LOG.getName(), "onValidityChanged", new Object[]{contactIsInvalid, locationIsInvalid, urlIsInvalid, rangesAreValid});
-        boolean v = rangesAreValid && !(contactIsInvalid || locationIsInvalid || urlIsInvalid);
-        if (v != valid.get()) {
-            valid.set(v);
         }
     }
 

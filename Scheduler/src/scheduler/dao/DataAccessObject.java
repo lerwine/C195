@@ -69,8 +69,8 @@ import scheduler.view.task.WaitBorderPane;
  */
 public abstract class DataAccessObject extends PropertyBindable implements PartialDataAccessObject, DataEntity<Timestamp>, EventTarget {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINE);
-//    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DataAccessObject.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(DataAccessObject.class.getName());
     public static final String DEFAULT_USER_NAME = "admin";
 
     private final EventHandlerManager eventHandlerManager;
@@ -293,9 +293,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
     @Override
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
+        LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
         EventDispatchChain result = tail.append(eventHandlerManager);
-        LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+        LOG.exiting(getClass().getName(), "buildEventDispatchChain");
         return result;
     }
 
@@ -490,8 +490,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class DaoFactory<D extends DataAccessObject, M extends EntityModel<D>>
             implements EventTarget {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoFactory.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(DaoFactory.class.getName());
 
         private final EventHandlerManager eventHandlerManager;
         private final DaoCache<D> cache = new DaoCache<>();
@@ -515,7 +515,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @throws SQLException if unable to read data from the database.
          */
         public final List<D> load(Connection connection, DaoFilter<D> filter) throws SQLException {
-            LOG.entering(LOG.getName(), "load", new Object[]{connection, filter});
+            LOG.entering(getClass().getName(), "load", new Object[]{connection, filter});
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build();
             if (null != filter && !filter.isEmpty()) {
@@ -542,7 +542,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                     LogHelper.logWarnings(connection, LOG);
                 }
             }
-            LOG.exiting(LOG.getName(), "load", result);
+            LOG.exiting(getClass().getName(), "load", result);
             return result;
         }
 
@@ -593,7 +593,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          */
         @SuppressWarnings("try")
         protected final D fromResultSet(ResultSet rs) throws SQLException {
-            LOG.entering(LOG.getName(), "loadByPrimaryKey");
+            LOG.entering(getClass().getName(), "loadByPrimaryKey");
             int key = rs.getInt(getPrimaryKeyColumn().toString());
             D dao = cache.get(key, () -> {
                 D t = createNew();
@@ -623,7 +623,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
             } finally {
                 dao.firePropertyChange(PROP_ROWSTATE, oldRowState, dataAccessObject.rowState);
             }
-            LOG.exiting(LOG.getName(), "loadByPrimaryKey", dao);
+            LOG.exiting(getClass().getName(), "loadByPrimaryKey", dao);
             return dao;
         }
 
@@ -711,7 +711,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
          * @throws SQLException If unable to perform the database operation.
          */
         public final Optional<D> loadByPrimaryKey(Connection connection, int pk) throws SQLException {
-            LOG.entering(LOG.getName(), "loadByPrimaryKey", new Object[]{connection, pk});
+            LOG.entering(getClass().getName(), "loadByPrimaryKey", new Object[]{connection, pk});
             Objects.requireNonNull(connection, "Connection cannot be null");
             DmlSelectQueryBuilder builder = createDmlSelectQueryBuilder();
             StringBuffer sb = builder.build().append(" WHERE ");
@@ -734,14 +734,14 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                     if (rs.next()) {
                         result = Optional.of(fromResultSet(rs));
                         LogHelper.logWarnings(connection, LOG);
-                        LOG.exiting(LOG.getName(), "loadByPrimaryKey", result);
+                        LOG.exiting(getClass().getName(), "loadByPrimaryKey", result);
                         return result;
                     }
                     LogHelper.logWarnings(connection, LOG);
                 }
             }
             result = Optional.empty();
-            LOG.exiting(LOG.getName(), "loadByPrimaryKey", result);
+            LOG.exiting(getClass().getName(), "loadByPrimaryKey", result);
             return result;
         }
 
@@ -757,7 +757,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             return tail.append(eventHandlerManager);
         }
 
@@ -816,8 +816,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
      */
     public static abstract class DaoTask<D extends DataAccessObject, M extends EntityModel<D>> extends Task<ModelEvent<D, M>> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(DaoTask.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DaoTask.class.getName()), Level.FINE);
+        private static final Logger LOG = Logger.getLogger(DaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<D> dataAccessObject;
         private final ReadOnlyObjectWrapper<M> fxRecordModel;
@@ -881,7 +881,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
         @Override
         @SuppressWarnings("try")
         protected ModelEvent<D, M> call() throws Exception {
-            LOG.entering(LOG.getName(), "call");
+            LOG.entering(getClass().getName(), "call");
             DataAccessObject dao = getDataAccessObject();
             updateMessage(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONNECTINGTODB));
             ModelEvent<D, M> event;
@@ -900,7 +900,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                     }
                 }
             }
-            LOG.exiting(LOG.getName(), "call", event);
+            LOG.exiting(getClass().getName(), "call", event);
             return event;
         }
 
@@ -920,31 +920,31 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected void cancelled() {
-            LOG.entering(LOG.getName(), "cancelled");
+            LOG.entering(getClass().getName(), "cancelled");
             super.cancelled();
             ModelEvent<D, M> event = createCanceledEvent();
             if (null != event) {
                 LOG.finer(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
             }
-            LOG.exiting(LOG.getName(), "cancelled");
+            LOG.exiting(getClass().getName(), "cancelled");
         }
 
         @Override
         protected void failed() {
-            LOG.entering(LOG.getName(), "failed");
+            LOG.entering(getClass().getName(), "failed");
             super.failed();
             ModelEvent<D, M> event = createFaultedEvent();
             if (null != event) {
                 LOG.finer(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
             }
-            LOG.exiting(LOG.getName(), "failed");
+            LOG.exiting(getClass().getName(), "failed");
         }
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering(getClass().getName(), "succeeded");
             super.succeeded();
             ModelEvent<D, M> event = getValue();
             if (null != event) {
@@ -952,7 +952,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 LOG.finer(() -> String.format("Firing %s%n\ton %s", event, getDataAccessObject()));
                 Event.fireEvent(getDataAccessObject(), event);
             }
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting(getClass().getName(), "succeeded");
         }
 
     }
@@ -969,8 +969,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class ValidatingDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
             extends DaoTask<D, M> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(ValidatingDaoTask.class.getName()), Level.FINE);
+        private static final Logger LOG = Logger.getLogger(ValidatingDaoTask.class.getName());
 
         private final ReadOnlyObjectWrapper<DaoFactory<D, M>> daoFactory;
         private final ReadOnlyObjectWrapper<EntityModel.EntityModelFactory<D, M>> modelFactory;
@@ -1035,20 +1035,20 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected final ModelEvent<D, M> call(Connection connection) throws Exception {
-            LOG.entering(LOG.getName(), "call", connection);
+            LOG.entering(getClass().getName(), "call", connection);
             if (!validationSuccessful) {
                 LOG.finer("Validating");
                 ModelEvent<D, M> event = validate(connection);
                 if (null != event && event instanceof ModelFailedEvent) {
                     LOG.info(() -> String.format("Validation failed: %s", event));
-                    LOG.exiting(LOG.getName(), "call", event);
+                    LOG.exiting(getClass().getName(), "call", event);
                     return event;
                 }
                 validationSuccessful = true;
             }
-            LOG.exiting(LOG.getName(), "call");
+            LOG.exiting(getClass().getName(), "call");
             ModelEvent<D, M> resultEvent = (isCancelled()) ? null : onValidated(connection);
-            LOG.exiting(LOG.getName(), "call", resultEvent);
+            LOG.exiting(getClass().getName(), "call", resultEvent);
             return resultEvent;
         }
 
@@ -1084,8 +1084,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class SaveDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
             extends ValidatingDaoTask<D, M> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(SaveDaoTask.class.getName()), Level.FINE);
+        private static final Logger LOG = Logger.getLogger(SaveDaoTask.class.getName());
 
         /**
          * Creates a new {@code SaveDaoTask} for the {@link EntityModel#dataObject DataAccessObject} of a {@link EntityModel}.
@@ -1107,7 +1107,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected final ModelEvent<D, M> onValidated(Connection connection) throws Exception {
-            LOG.entering(LOG.getName(), "onValidated", connection);
+            LOG.entering(getClass().getName(), "onValidated", connection);
             D dao = getDataAccessObject();
             DaoFactory<D, M> factory = getDaoFactory();
             DataAccessObject dataObj = dao;
@@ -1225,13 +1225,13 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 throw new Exception(String.format("Error executing DML statement: %s", sql), ex);
             }
             ModelEvent<D, M> resultEvent = createSuccessEvent();
-            LOG.exiting(LOG.getName(), "onValidated", resultEvent);
+            LOG.exiting(getClass().getName(), "onValidated", resultEvent);
             return resultEvent;
         }
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering(getClass().getName(), "succeeded");
             DataAccessObject obj = getDataAccessObject();
             ModelEvent<D, M> event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
@@ -1243,7 +1243,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             }
             super.succeeded();
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting(getClass().getName(), "succeeded");
         }
 
         /**
@@ -1255,18 +1255,18 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected void cancelled() {
-            LOG.entering(LOG.getName(), "cancelled");
+            LOG.entering(getClass().getName(), "cancelled");
             getDataAccessObject().rejectChanges();
             super.cancelled();
-            LOG.exiting(LOG.getName(), "cancelled");
+            LOG.exiting(getClass().getName(), "cancelled");
         }
 
         @Override
         protected void failed() {
-            LOG.entering(LOG.getName(), "failed");
+            LOG.entering(getClass().getName(), "failed");
             getDataAccessObject().rejectChanges();
             super.failed();
-            LOG.exiting(LOG.getName(), "failed");
+            LOG.exiting(getClass().getName(), "failed");
         }
 
     }
@@ -1283,8 +1283,8 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
     public static abstract class DeleteDaoTask<D extends DataAccessObject, M extends EntityModel<D>>
             extends ValidatingDaoTask<D, M> {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(DeleteDaoTask.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(DeleteDaoTask.class.getName()), Level.FINE);
+        private static final Logger LOG = Logger.getLogger(DeleteDaoTask.class.getName());
 
         /**
          * Creates a new {@code DeleteDaoTask} for the {@link EntityModel#dataObject DataAccessObject} of a {@link EntityModel}.
@@ -1308,7 +1308,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected ModelEvent<D, M> onValidated(Connection connection) throws Exception {
-            LOG.entering(LOG.getName(), "onValidated", connection);
+            LOG.entering(getClass().getName(), "onValidated", connection);
             D dao = getDataAccessObject();
             DaoFactory<D, M> factory = getDaoFactory();
             StringBuilder sb = new StringBuilder("DELETE FROM ");
@@ -1325,9 +1325,9 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 LogHelper.logWarnings(connection, LOG);
             }
             obj.acceptChanges();
-            LOG.exiting(LOG.getName(), "onValidated");
+            LOG.exiting(getClass().getName(), "onValidated");
             ModelEvent<D, M> resultEvent = createSuccessEvent();
-            LOG.exiting(LOG.getName(), "onValidated", resultEvent);
+            LOG.exiting(getClass().getName(), "onValidated", resultEvent);
             return resultEvent;
         }
 
@@ -1340,7 +1340,7 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
 
         @Override
         protected void succeeded() {
-            LOG.entering(LOG.getName(), "succeeded");
+            LOG.entering(getClass().getName(), "succeeded");
             DataAccessObject obj = getDataAccessObject();
             ModelEvent<D, M> event = getValue();
             LOG.fine(() -> String.format("Task succeeded: %s", event));
@@ -1352,23 +1352,23 @@ public abstract class DataAccessObject extends PropertyBindable implements Parti
                 obj.firePropertyChange(PROP_ROWSTATE, getOriginalRowState(), obj.rowState);
             }
             super.succeeded();
-            LOG.exiting(LOG.getName(), "succeeded");
+            LOG.exiting(getClass().getName(), "succeeded");
         }
 
         @Override
         protected void cancelled() {
-            LOG.entering(LOG.getName(), "cancelled");
+            LOG.entering(getClass().getName(), "cancelled");
             getDataAccessObject().rejectChanges();
             super.cancelled();
-            LOG.exiting(LOG.getName(), "cancelled");
+            LOG.exiting(getClass().getName(), "cancelled");
         }
 
         @Override
         protected void failed() {
-            LOG.entering(LOG.getName(), "failed");
+            LOG.entering(getClass().getName(), "failed");
             getDataAccessObject().rejectChanges();
             super.failed();
-            LOG.exiting(LOG.getName(), "failed");
+            LOG.exiting(getClass().getName(), "failed");
         }
 
     }

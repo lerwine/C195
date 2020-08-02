@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -62,7 +62,6 @@ import scheduler.model.fx.PartialUserModel;
 import scheduler.model.fx.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.DbConnector;
-import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.clearAndSelectEntity;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
@@ -85,8 +84,8 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/appointment/EditAppointment.fxml")
 public class EditAppointment extends StackPane implements EditItem.ModelEditorController<AppointmentModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
-//    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditAppointment.class.getName()), Level.FINE);
+    private static final Logger LOG = Logger.getLogger(EditAppointment.class.getName());
 
     public static void editNew(PartialCustomerModel<? extends Customer> customer, PartialUserModel<? extends User> user,
             Window parentWindow, boolean keepOpen, Consumer<AppointmentModel> beforeShow) throws IOException {
@@ -264,6 +263,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // fx:id="hideConflictsButton"
     private Button hideConflictsButton; // Value injected by FXMLLoader
+    private BooleanBinding validationBinding;
+    private BooleanBinding modificationBinding;
 
     //</editor-fold>
     public EditAppointment() {
@@ -429,17 +430,13 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         descriptionTextArea.setText(model.getDescription());
         normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());
 
-        typeContext.validProperty().addListener((observable, oldValue, newValue) -> {
-            onValidityChanged(titleValidationMessage.get().isEmpty(), newValue);
-        });
-        titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            onValidityChanged(newValue.isEmpty(), typeContext.isValid());
-        });
-        onValidityChanged(titleValidationMessage.get().isEmpty(), typeContext.isValid());
+        validationBinding = typeContext.validBinding().and(titleValidationMessage.isEmpty());
+        valid.set(validationBinding.get());
+        validationBinding.addListener((observable, oldValue, newValue) -> valid.set(newValue));
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
         } else {
-            windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
+            initEditMode();
         }
 
         InitializationTask task = new InitializationTask();
@@ -637,6 +634,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (!typeContext.canSave()) {
             return false;
         }
+
         model.setTitle(normalizedTitleBinding.get());
         model.setContact(typeContext.getNormalizedContact());
         model.setUrl(typeContext.getParsedUrl().toPrimary(""));
@@ -678,15 +676,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             userDaoList.forEach((t) -> userModelList.add(t.cachedModel(true)));
         }
         clearAndSelectEntity(userComboBox, selectedItem);
-    }
-
-    private synchronized void onValidityChanged(boolean titleValid, boolean contextValid) {
-        LOG.entering(LOG.getName(), "onValidityChanged", new Object[]{titleValid, contextValid});
-        boolean v = titleValid && contextValid;
-        if (v != valid.get()) {
-            valid.set(v);
-        }
-        LOG.exiting(LOG.getName(), "onValidityChanged");
     }
 
     private void onCustomerInserted(CustomerSuccessEvent event) {
@@ -792,6 +781,14 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             });
         }
         LOG.exiting(LOG.getName(), "onUserDeleted");
+    }
+
+    private void initEditMode() {
+        windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
+        modified.set(false);
+        modificationBinding = typeContext.modifiedBinding().or(normalizedTitleBinding.isNotEqualTo(model.titleProperty()))
+                .or(normalizedDescriptionBinding.isNotEqualTo(model.descriptionProperty()));
+        modificationBinding.addListener((observable, oldValue, newValue) -> modified.set(newValue));
     }
 
     private class CustomerReloadTask extends Task<List<CustomerDAO>> {

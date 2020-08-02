@@ -168,7 +168,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
     private BooleanBinding showEditCityControls;
-    private BooleanBinding changedBinding;
     private BooleanBinding validityBinding;
 
     @ModelEditor
@@ -224,6 +223,10 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
     @FXML // fx:id="newCustomerButtonBar"
     private ButtonBar newCustomerButtonBar; // Value injected by FXMLLoader
+    private BooleanBinding modification;
+    private BooleanBinding cityInvalid;
+    private BooleanBinding addressValid;
+    private StringBinding cityValidationMessage;
 
     //</editor-fold>
     public EditAddress() {
@@ -252,7 +255,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         restoreNode(customersHeadingLabel);
         restoreNode(customersTableView);
         restoreNode(newCustomerButtonBar);
-        modified.set(false);
         initializeEditMode();
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.INSERT_SUCCESS, customerInsertEventHandler.getWeakEventHandler());
         CustomerModel.FACTORY.addEventHandler(CustomerSuccessEvent.UPDATE_SUCCESS, customerUpdateEventHandler.getWeakEventHandler());
@@ -411,18 +413,14 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         customersTableView.setItems(itemList);
 
         normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
-        address1TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
-
-        normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());
-        address2TextField.textProperty().addListener((observable, oldValue, newValue) -> updateValidation());
-        BooleanBinding addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
+        normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());;
+        addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
         addressValidationLabel.visibleProperty().bind(addressValid.not());
 
         selectedCountry = Bindings.select(countryListView.selectionModelProperty(), "selectedItem");
         selectedCountry.addListener(this::onSelectedCountryChanged);
         selectedCity = Bindings.select(cityListView.selectionModelProperty(), "selectedItem");
-        selectedCity.addListener(this::onSelectedCityChanged);
-        StringBinding cityValidationMessage = Bindings.createStringBinding(() -> {
+        cityValidationMessage = Bindings.createStringBinding(() -> {
             PartialCityModel<? extends PartialCityDAO> c = selectedCity.get();
             PartialCountryModel<? extends PartialCountryDAO> n = selectedCountry.get();
             String result;
@@ -434,7 +432,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
             LOG.info(() -> String.format("cityValidationMessage changing to %s", LogHelper.toLogText(result)));
             return result;
         }, selectedCity, selectedCountry);
-        BooleanBinding cityInvalid = cityValidationMessage.isNotEmpty();
+        cityInvalid = cityValidationMessage.isNotEmpty();
         cityValidationLabel.textProperty().bind(cityValidationMessage);
         cityValidationLabel.visibleProperty().bind(cityInvalid);
         showEditCityControls = cityInvalid.or(editingCity);
@@ -445,31 +443,16 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
                         Bindings.selectString(selectedCountry, Country.PROP_NAME)))
         );
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
-        postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.address.EditAddress.postalCodeTextField#text", "changed", new Object[]{oldValue, newValue});
-            modified.set(changedBinding.get());
-            LOG.exiting("scheduler.view.address.EditAddress.postalCodeTextField#text", "changed");
-        });
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneTextField.textProperty());
-        phoneTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.address.EditAddress.phoneTextField#text", "changed", new Object[]{oldValue, newValue});
-            modified.set(changedBinding.get());
-            LOG.exiting("scheduler.view.address.EditAddress.phoneTextField#text", "changed");
-        });
-
-        changedBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
-                .or(normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address1Property())))
-                .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.address2Property())))
-                .or(Bindings.createBooleanBinding(() -> !ModelHelper.areSameRecord(selectedCity.get(), model.getCity()), selectedCity, model.cityProperty()))
-                .or(normalizedPostalCode.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.postalCodeProperty())))
-                .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.phoneProperty())));
-        validityBinding = addressValid.and(cityInvalid.not());
 
         address1TextField.setText(model.getAddress1());
         address2TextField.setText(model.getAddress2());
         postalCodeTextField.setText(model.getPostalCode());
         phoneTextField.setText(model.getPhone());
-
+        validityBinding = addressValid.and(cityInvalid.not());
+        valid.set(validityBinding.get());
+        validityBinding.addListener((observable, oldValue, newValue) -> valid.set(validityBinding.get()));
+        
         WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -490,6 +473,13 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
 
     private void initializeEditMode() {
         windowTitle.set(resources.getString(RESOURCEKEY_EDITADDRESS));
+        modified.set(false);
+        modification = normalizedAddress1.isNotEqualTo(model.address1Property())
+                .or(normalizedAddress2.isNotEqualTo(model.address2Property()))
+                .or(selectedCity.isNotEqualTo(model.cityProperty()))
+                .or(normalizedPostalCode.isNotEqualTo(model.postalCodeProperty()))
+                .or(normalizedPhone.isNotEqualTo(model.phoneProperty()));
+        modification.addListener((observable, oldValue, newValue) -> modified.set(newValue));
     }
 
     private void onShowEditCityControlsChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -550,11 +540,6 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         return windowTitle.getReadOnlyProperty();
     }
 
-    private void updateValidation() {
-        modified.set(changedBinding.get());
-        valid.set(validityBinding.get());
-    }
-
     private void onSelectedCountryChanged(ObservableValue<? extends CountryModel> observable, CountryModel oldValue, CountryModel newValue) {
         LOG.entering(LOG.getName(), "onSelectedCountryChanged", new Object[]{oldValue, newValue});
         cityListView.getSelectionModel().clearSelection();
@@ -562,15 +547,7 @@ public final class EditAddress extends VBox implements EditItem.ModelEditorContr
         if (null != newValue) {
             CityHelper.matchesCountry(newValue.getPrimaryKey(), allCities).forEach((t) -> cityOptions.add(t));
         }
-        updateValidation();
         LOG.exiting(LOG.getName(), "onSelectedCountryChanged");
-    }
-
-    private void onSelectedCityChanged(ObservableValue<? extends CityModel> observable, CityModel oldValue, CityModel newValue) {
-        LOG.entering(LOG.getName(), "onSelectedCityChanged", new Object[]{oldValue, newValue});
-        LOG.fine(() -> String.format("selectedCity changed from %s to %s", oldValue, newValue));
-        updateValidation();
-        LOG.exiting(LOG.getName(), "onSelectedCityChanged");
     }
 
     private void initializeCountriesAndCities(List<CountryDAO> countryDaoList, List<CityDAO> cityDaoList, PartialCityModel<? extends PartialCityDAO> targetCity) {

@@ -2,6 +2,7 @@ package scheduler.model.fx;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -32,6 +33,8 @@ import scheduler.view.user.UserModelFilter;
 public final class UserModel extends EntityModel<UserDAO> implements PartialUserModel<UserDAO>, UserEntity<LocalDateTime> {
 
     public static final Factory FACTORY = new Factory();
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(UserModel.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(UserModel.class.getName());
 
     private final WeakEventHandlingReference<UserSuccessEvent> modelEventHandler;
     private final SimpleStringProperty userName;
@@ -50,10 +53,12 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
 
     @Override
     protected void onDaoChanged(ModelEvent<UserDAO, ? extends EntityModel<UserDAO>> event) {
+        LOG.entering(getClass().getName(), "onDaoChanged", event);
         UserDAO dao = event.getDataAccessObject();
         userName.set(dao.getUserName());
         password.set(dao.getPassword());
         status.set(dao.getStatus());
+        LOG.exiting(getClass().getName(), "onDaoChanged");
     }
 
     @Override
@@ -149,6 +154,9 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
 
     public final static class Factory extends EntityModel.EntityModelFactory<UserDAO, UserModel> {
 
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(Factory.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(Factory.class.getName());
+
         // Singleton
         private Factory() {
             super();
@@ -191,6 +199,7 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
 
         @Override
         public UserEvent validateForSave(UserModel target) {
+            LOG.entering(getClass().getName(), "validateForSave", target);
             UserDAO dao = target.dataObject();
             String message;
             if (dao.getRowState() == DataRowState.DELETED) {
@@ -208,14 +217,19 @@ public final class UserModel extends EntityModel<UserDAO> implements PartialUser
                     } else if (password.length() > MAX_LENGTH_PASSWORD) {
                         message = "Password length too long";
                     } else {
+                        LOG.exiting(getClass().getName(), "validateForSave", null);
                         return null;
                     }
                 }
             }
+            UserEvent result;
             if (dao.getRowState() == DataRowState.NEW) {
-                return UserEvent.createInsertInvalidEvent(target, this, message);
+                result = UserEvent.createInsertInvalidEvent(target, this, message);
+            } else {
+                result = UserEvent.createUpdateInvalidEvent(target, this, message);
             }
-            return UserEvent.createUpdateInvalidEvent(target, this, message);
+            LOG.exiting(getClass().getName(), "validateForSave", result);
+            return result;
         }
 
         @Override

@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -175,6 +176,8 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
 
     @FXML // fx:id="addCityButtonBar"
     private ButtonBar addCityButtonBar; // Value injected by FXMLLoader
+    private BooleanBinding modificationBinding;
+    private BooleanBinding validityBinding;
 
     //</editor-fold>
     public EditCity() {
@@ -259,13 +262,6 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
     }
 
     @FXML
-    void onCountryComboBoxAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onCountryComboBoxAction", event);
-        onChange(nameTextField.getText());
-        LOG.exiting(LOG.getName(), "onCountryComboBoxAction");
-    }
-
-    @FXML
     void onItemActionRequest(AddressOpRequestEvent event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
@@ -311,16 +307,15 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         nameValidationLabel.textProperty().bind(nameValidationMessage);
         nameValidationLabel.visibleProperty().bind(nameValidationMessage.isNotEmpty());
         countryValidationLabel.visibleProperty().bind(selectedCountry.isNull());
-        nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.city.EditCity.nameTextField#text", "changed", new Object[]{oldValue, newValue});
-            onChange(newValue);
-            LOG.exiting("scheduler.view.city.EditCity.nameTextField#text", "changed");
-        });
         nameTextField.setText(model.getName());
 
         WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
+        
+        validityBinding = nameValidationMessage.isEmpty().and(selectedCountry.isNotNull());
+        valid.set(validityBinding.get());
+        validityBinding.addListener((observable, oldValue, newValue) -> valid.set(newValue));
         if (model.isNewRow()) {
             waitBorderPane.startNow(pane, new CountriesLoadTask());
             collapseNode(addressesLabel);
@@ -367,17 +362,11 @@ public final class EditCity extends VBox implements EditItem.ModelEditorControll
         }
     }
 
-    private void onChange(String cityName) {
-        valid.set(nameValidationMessage.get().isEmpty() && null != selectedCountry.get());
-        if (model.getRowState() != DataRowState.NEW) {
-            modified.set(!(normalizedName.get().equals(Values.asNonNullAndWsNormalized(model.getName()))
-                    && ModelHelper.areSameRecord(selectedCountry.get(), model.getCountry())));
-        }
-    }
-
     private void initializeEditMode() {
         windowTitle.bind(Bindings.format(resources.getString(RESOURCEKEY_EDITCITY), nameTextField.textProperty()));
         modified.set(false);
+        modificationBinding = normalizedName.isNotEqualTo(model.nameProperty()).and(selectedCountry.isNotEqualTo(model.countryProperty()));
+        modificationBinding.addListener((observable, oldValue, newValue) -> modified.set(newValue));
     }
 
     @Override

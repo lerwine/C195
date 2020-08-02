@@ -70,8 +70,8 @@ import scheduler.view.task.WaitBorderPane;
 @FXMLResource("/scheduler/view/EditItem.fxml")
 public final class EditItem<T extends EntityModel<?>, U extends Region & EditItem.ModelEditorController<T>> extends StackPane {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINE);
-//    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditItem.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(EditItem.class.getName());
 
     private static final String FIELD_NAME_WAIT_BORDER_PANE = "waitBorderPane";
     private static final String FIELD_NAME_MODEL = "model";
@@ -229,7 +229,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
 
     @FXML
     void onCancelButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onCancelButtonAction", event);
+        LOG.entering(getClass().getName(), "onCancelButtonAction", event);
         ButtonType response;
         if (editorRegion.isModified()) {
             if (model.getRowState() == DataRowState.NEW) {
@@ -244,19 +244,19 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
                         .orElse(ButtonType.NO);
             }
             if (response != ButtonType.YES) {
-                LOG.exiting(LOG.getName(), "onCancelButtonAction");
+                LOG.exiting(getClass().getName(), "onCancelButtonAction");
                 return;
             }
         }
 
         stageChangeListener.hide();
-        LOG.exiting(LOG.getName(), "onCancelButtonAction");
+        LOG.exiting(getClass().getName(), "onCancelButtonAction");
     }
 
     @FXML
     @SuppressWarnings("unchecked")
     void onDeleteButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onDeleteButtonAction", event);
+        LOG.entering(getClass().getName(), "onDeleteButtonAction", event);
         OperationRequestEvent<?, T> deleteRequestEvent = editorRegion.modelFactory().createDeleteRequestEvent(model, resources);
         Event.fireEvent(model.dataObject(), deleteRequestEvent);
         if (deleteRequestEvent.isCanceled()) {
@@ -273,23 +273,23 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
                         }
                     });
         }
-        LOG.exiting(LOG.getName(), "onDeleteButtonAction");
+        LOG.exiting(getClass().getName(), "onDeleteButtonAction");
     }
 
     @FXML
     public void onSaveButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onSaveButtonAction", event);
+        LOG.entering(getClass().getName(), "onSaveButtonAction", event);
         if (editorRegion.applyChanges()) {
             DataAccessObject.SaveDaoTask<?, T> task = editorRegion.modelFactory().createSaveTask(model);
             task.setOnSucceeded(this::onSaveDaoTaskSucceeded);
             waitBorderPane.startNow(task);
         }
-        LOG.exiting(LOG.getName(), "onSaveButtonAction");
+        LOG.exiting(getClass().getName(), "onSaveButtonAction");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        LOG.entering(LOG.getName(), "initialize");
+        LOG.entering(getClass().getName(), "initialize");
         assert contentAnchorPane != null : "fx:id=\"contentAnchorPane\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert createdLabel != null : "fx:id=\"createdLabel\" was not injected: check your FXML file 'EditItem.fxml'.";
         assert lastUpdateLabel != null : "fx:id=\"lastUpdateLabel\" was not injected: check your FXML file 'EditItem.fxml'.";
@@ -316,7 +316,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         } else {
             onEditMode();
         }
-        LOG.exiting(LOG.getName(), "initialize");
+        LOG.exiting(getClass().getName(), "initialize");
     }
 
     public Button getSaveChangesButton() {
@@ -341,7 +341,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
     }
 
     private void onSaveDaoTaskSucceeded(WorkerStateEvent event) {
-        LOG.entering(LOG.getName(), "onSaveDaoTaskSucceeded", event);
+        LOG.entering(getClass().getName(), "onSaveDaoTaskSucceeded", event);
         @SuppressWarnings("unchecked")
         ModelEvent<?, T> modelEvent = ((DataAccessObject.SaveDaoTask<?, T>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
@@ -377,11 +377,11 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
                     throw new AssertionError(modelEvent.getOperation().name());
             }
         }
-        LOG.exiting(LOG.getName(), "onSaveDaoTaskSucceeded");
+        LOG.exiting(getClass().getName(), "onSaveDaoTaskSucceeded");
     }
 
     private void onDeleteDaoTaskSucceeded(WorkerStateEvent event) {
-        LOG.entering(LOG.getName(), "onDeleteDaoTaskSucceeded", event);
+        LOG.entering(getClass().getName(), "onDeleteDaoTaskSucceeded", event);
         @SuppressWarnings("unchecked")
         ModelEvent<?, T> modelEvent = ((DataAccessObject.DeleteDaoTask<?, T>) event.getSource()).getValue();
         if (modelEvent instanceof ModelFailedEvent) {
@@ -389,7 +389,7 @@ public final class EditItem<T extends EntityModel<?>, U extends Region & EditIte
         } else {
             stageChangeListener.hide();
         }
-        LOG.exiting(LOG.getName(), "onDeleteDaoTaskSucceeded");
+        LOG.exiting(getClass().getName(), "onDeleteDaoTaskSucceeded");
     }
 
     /**

@@ -193,6 +193,8 @@ public final class DateRangeController {
     private TextField durationMinuteTextField;
     private Label endDateTimeLabel;
     private Label durationValidationLabel;
+    private final AppointmentModel model;
+    private final BooleanBinding modified;
 
     DateRangeController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
@@ -235,11 +237,17 @@ public final class DateRangeController {
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", result);
             return result;
         }, range);
+        model = editAppointmentControl.getModel();
+        modified = startDateTimeValue.isNotEqualTo(model.startProperty()).or(endDateTimeValue.isNotEqualTo(model.endProperty()));
         valid = new ReadOnlyBooleanWrapper(this, "valid", false);
     }
 
     public LocalDateTime getStartDateTimeValue() {
         return startDateTimeValue.get();
+    }
+
+    public BooleanBinding modifiedBinding() {
+        return modified;
     }
 
     public ReadOnlyObjectProperty<LocalDateTime> startDateTimeValueProperty() {

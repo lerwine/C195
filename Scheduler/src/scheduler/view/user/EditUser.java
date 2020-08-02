@@ -60,7 +60,6 @@ import scheduler.model.fx.UserModel;
 import scheduler.observables.BindingHelper;
 import scheduler.util.AlertHelper;
 import scheduler.util.DbConnector;
-import scheduler.util.LogHelper;
 import static scheduler.util.NodeUtil.clearAndSelect;
 import static scheduler.util.NodeUtil.collapseNode;
 import static scheduler.util.NodeUtil.isInShownWindow;
@@ -108,8 +107,8 @@ import static scheduler.view.user.EditUserResourceKeys.*;
 @FXMLResource("/scheduler/view/user/EditUser.fxml")
 public final class EditUser extends VBox implements EditItem.ModelEditorController<UserModel> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINE);
-//    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditUser.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(EditUser.class.getName());
 
     public static void editNew(Window parentWindow, boolean keepOpen, Consumer<UserModel> beforeShow) throws IOException {
         UserModel model = UserDAO.FACTORY.createNew().cachedModel(true);
@@ -211,20 +210,20 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
 
     @ModelEditor
     private void onModelInserted(UserEvent event) {
-        LOG.entering(LOG.getName(), "onModelInserted", event);
+        LOG.entering(getClass().getName(), "onModelInserted", event);
         restoreNode(appointmentsFilterComboBox);
         restoreNode(appointmentsTableView);
         collapseNode(passwordLabel);
         restoreNode(changePasswordCheckBox);
         changePasswordCheckBox.setSelected(false);
         initEditMode();
-        LOG.exiting(LOG.getName(), "onModelInserted");
+        LOG.exiting(getClass().getName(), "onModelInserted");
     }
 
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased", event);
+        LOG.entering(getClass().getName(), "onAppointmentsTableViewTableViewKeyReleased", event);
         if (!(event.isAltDown() || event.isControlDown() || event.isMetaDown() || event.isShiftDown() || event.isShortcutDown())) {
             AppointmentModel item;
             switch (event.getCode()) {
@@ -242,39 +241,39 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                     break;
             }
         }
-        LOG.exiting(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased");
+        LOG.exiting(getClass().getName(), "onAppointmentsTableViewTableViewKeyReleased");
     }
 
     @FXML
     private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onDeleteAppointmentMenuItemAction", event);
+        LOG.entering(getClass().getName(), "onDeleteAppointmentMenuItemAction", event);
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             deleteAppointment(item);
         }
-        LOG.exiting(LOG.getName(), "onDeleteAppointmentMenuItemAction");
+        LOG.exiting(getClass().getName(), "onDeleteAppointmentMenuItemAction");
     }
 
     @FXML
     private void onEditAppointmentMenuItemAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onEditAppointmentMenuItemAction", event);
+        LOG.entering(getClass().getName(), "onEditAppointmentMenuItemAction", event);
         AppointmentModel item = appointmentsTableView.getSelectionModel().getSelectedItem();
         if (null != item) {
             editAppointment(item);
         }
-        LOG.exiting(LOG.getName(), "onEditAppointmentMenuItemAction");
+        LOG.exiting(getClass().getName(), "onEditAppointmentMenuItemAction");
     }
 
     @FXML
     private void onAppointmentFilterComboBoxAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentFilterComboBoxAction", event);
+        LOG.entering(getClass().getName(), "onAppointmentFilterComboBoxAction", event);
         waitBorderPane.startNow(new AppointmentReloadTask());
-        LOG.exiting(LOG.getName(), "onAppointmentFilterComboBoxAction");
+        LOG.exiting(getClass().getName(), "onAppointmentFilterComboBoxAction");
     }
 
     @FXML
     private void onItemActionRequest(AppointmentOpRequestEvent event) {
-        LOG.entering(LOG.getName(), "onItemActionRequest", event);
+        LOG.entering(getClass().getName(), "onItemActionRequest", event);
         if (event.isEdit()) {
             try {
                 EditAppointment.edit(event.getEntityModel(), getScene().getWindow());
@@ -284,12 +283,12 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         } else {
             deleteAppointment(event.getEntityModel());
         }
-        LOG.exiting(LOG.getName(), "onItemActionRequest");
+        LOG.exiting(getClass().getName(), "onItemActionRequest");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
-        LOG.entering(LOG.getName(), "initialize");
+        LOG.entering(getClass().getName(), "initialize");
         assert userNameTextField != null : "fx:id=\"userNameTextField\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert userNameErrorMessageLabel != null : "fx:id=\"userNameErrorMessageLabel\" was not injected: check your FXML file 'EditUser.fxml'.";
         assert changePasswordCheckBox != null : "fx:id=\"changePasswordCheckBox\" was not injected: check your FXML file 'EditUser.fxml'.";
@@ -339,27 +338,10 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 .otherwise("");
 
         passwordInvalid = passwordErrorMessage.isNotEmpty();
-        userNameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.user.EditUser.userNameTextField#text", "changed", new Object[]{oldValue, newValue});
-            updateValidation();
-            LOG.exiting("scheduler.view.user.EditUser.userNameTextField#text", "changed");
-        });
-        passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.user.EditUser.passwordField#text", "changed", new Object[]{oldValue, newValue});
-            updateValidation();
-            LOG.exiting("scheduler.view.user.EditUser.passwordField#text", "changed");
-        });
-        confirmPasswordField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.user.EditUser.confirmPasswordField#text", "changed", new Object[]{oldValue, newValue});
-            updateValidation();
-            LOG.exiting("scheduler.view.user.EditUser.confirmPasswordField#text", "changed");
-        });
         selectedStatus = Bindings.select(activeComboBox.selectionModelProperty(), "selectedItem");
         validationBinding = userNameInvalid.or(passwordInvalid).not();
-        modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
-                .or(changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus())))
-                .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
-
+        valid.set(validationBinding.get());
+        validationBinding.addListener((observable, oldValue, newValue) -> valid.set(newValue));
         WaitTitledPane pane = WaitTitledPane.create();
         pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())
                 .addOnCancelAcknowledged((evt) -> getScene().getWindow().hide());
@@ -377,7 +359,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             waitBorderPane.startNow(pane, new InitialLoadTask());
             initEditMode();
         }
-        LOG.exiting(LOG.getName(), "initialize");
+        LOG.exiting(getClass().getName(), "initialize");
     }
 
     private void editAppointment(AppointmentModel item) {
@@ -413,13 +395,8 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         }
     }
 
-    private void updateValidation() {
-        valid.set(validationBinding.get());
-        modified.set(modificationBinding.get());
-    }
-
     private void changePasswordCheckBoxChanged(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-        LOG.entering(LOG.getName(), "changePasswordCheckBoxChanged", new Object[]{oldValue, newValue});
+        LOG.entering(getClass().getName(), "changePasswordCheckBoxChanged", new Object[]{oldValue, newValue});
         if (newValue) {
             restoreNode(passwordField);
             restoreNode(confirmLabel);
@@ -435,8 +412,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
             collapseNode(confirmPasswordField);
             collapseNode(passwordErrorMessageLabel);
         }
-        updateValidation();
-        LOG.exiting(LOG.getName(), "changePasswordCheckBoxChanged");
+        LOG.exiting(getClass().getName(), "changePasswordCheckBoxChanged");
     }
 
     private void initEditMode() {
@@ -453,6 +429,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
         filterOptions.add(new AppointmentFilterItem(resources.getString(RESOURCEKEY_ALLAPPOINTMENTS), AppointmentModelFilter.of(dao)));
         changePasswordCheckBoxChanged(changePasswordCheckBox.selectedProperty(), false, changePasswordCheckBox.isSelected());
         changePasswordCheckBox.selectedProperty().addListener(this::changePasswordCheckBoxChanged);
+        modified.set(false);
+        modificationBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
+                .or(changePasswordCheckBox.selectedProperty().or(selectedStatus.isNotEqualTo(model.getStatus())))
+                .or(normalizedUserName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.userNameProperty())));
+        modificationBinding.addListener((observable, oldValue, newValue) -> modified.set(newValue));
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.INSERT_SUCCESS, appointmentInsertEventHandler.getWeakEventHandler());
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.UPDATE_SUCCESS, appointmentUpdateEventHandler.getWeakEventHandler());
         AppointmentModel.FACTORY.addEventHandler(AppointmentSuccessEvent.DELETE_SUCCESS, appointmentDeleteEventHandler.getWeakEventHandler());
@@ -522,7 +503,7 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
     }
 
     private synchronized void onAppointmentInserted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentInserted", event);
+        LOG.entering(getClass().getName(), "onAppointmentInserted", event);
         if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AppointmentModel appointment = event.getEntityModel();
             AppointmentFilterItem filter = selectedFilter.get();
@@ -530,11 +511,11 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 userAppointments.add(appointment);
             }
         }
-        LOG.exiting(LOG.getName(), "onAppointmentInserted");
+        LOG.exiting(getClass().getName(), "onAppointmentInserted");
     }
 
     private synchronized void onAppointmentUpdated(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentUpdated", event);
+        LOG.entering(getClass().getName(), "onAppointmentUpdated", event);
         if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AppointmentModel appointment = event.getEntityModel();
             AppointmentFilterItem filter = selectedFilter.get();
@@ -547,15 +528,15 @@ public final class EditUser extends VBox implements EditItem.ModelEditorControll
                 userAppointments.add(appointment);
             }
         }
-        LOG.exiting(LOG.getName(), "onAppointmentUpdated");
+        LOG.exiting(getClass().getName(), "onAppointmentUpdated");
     }
 
     private void onAppointmentDeleted(AppointmentSuccessEvent event) {
-        LOG.entering(LOG.getName(), "onAppointmentDeleted", event);
+        LOG.entering(getClass().getName(), "onAppointmentDeleted", event);
         if (isInShownWindow(this) && model.getRowState() != DataRowState.NEW) {
             AppointmentModel.FACTORY.find(userAppointments, event.getEntityModel()).ifPresent(userAppointments::remove);
         }
-        LOG.exiting(LOG.getName(), "onAppointmentDeleted");
+        LOG.exiting(getClass().getName(), "onAppointmentDeleted");
     }
 
     private class AppointmentFilterItem {

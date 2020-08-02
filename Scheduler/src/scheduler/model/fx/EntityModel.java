@@ -4,7 +4,6 @@ import com.sun.javafx.event.EventHandlerManager;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -28,7 +27,6 @@ import scheduler.model.DataEntity;
 import scheduler.model.ModelHelper;
 import scheduler.observables.property.ReadOnlyBooleanBindingProperty;
 import scheduler.util.DateTimeUtil;
-import scheduler.util.LogHelper;
 import scheduler.view.ModelFilter;
 
 /**
@@ -39,8 +37,8 @@ import scheduler.view.ModelFilter;
  */
 public abstract class EntityModel<T extends DataAccessObject> implements PartialEntityModel<T>, DataEntity<LocalDateTime> {
 
-    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModel.class.getName()), Level.FINE);
-//    private static final Logger LOG = Logger.getLogger(EntityModel.class.getName());
+//    private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModel.class.getName()), Level.FINER);
+    private static final Logger LOG = Logger.getLogger(EntityModel.class.getName());
 
     /**
      * The name of the 'newRow' property.
@@ -168,7 +166,7 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
     }
 
     protected void onModelEvent(ModelEvent<T, ? extends EntityModel<T>> event) {
-        LOG.entering(LOG.getName(), "onModelEvent", event);
+        LOG.entering(getClass().getName(), "onModelEvent", event);
         T dao = event.getDataAccessObject();
         rowState.set(dao.getRowState());
         lastModifiedDate.set(DateTimeUtil.toLocalDateTime(dao.getLastModifiedDate()));
@@ -182,11 +180,11 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
             case DB_UPDATE:
                 break;
             default:
-                LOG.exiting(LOG.getName(), "onModelEvent");
+                LOG.exiting(getClass().getName(), "onModelEvent");
                 return;
         }
         onDaoChanged(event);
-        LOG.exiting(LOG.getName(), "onModelEvent");
+        LOG.exiting(getClass().getName(), "onModelEvent");
     }
 
     protected abstract void onDaoChanged(ModelEvent<T, ? extends EntityModel<T>> event);
@@ -199,8 +197,8 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
     public static abstract class EntityModelFactory<D extends DataAccessObject, M extends EntityModel<D>>
             implements EventTarget {
 
-        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelFactory.class.getName()), Level.FINE);
-//        private static final Logger LOG = Logger.getLogger(EntityModelFactory.class.getName());
+//        private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EntityModelFactory.class.getName()), Level.FINER);
+        private static final Logger LOG = Logger.getLogger(EntityModelFactory.class.getName());
 
         private final EventHandlerManager eventHandlerManager;
 
@@ -301,9 +299,9 @@ public abstract class EntityModel<T extends DataAccessObject> implements Partial
 
         @Override
         public final EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-            LOG.entering(LOG.getName(), "buildEventDispatchChain", tail);
+            LOG.entering(getClass().getName(), "buildEventDispatchChain", tail);
             EventDispatchChain result = tail.append(eventHandlerManager);
-            LOG.exiting(LOG.getName(), "buildEventDispatchChain");
+            LOG.exiting(getClass().getName(), "buildEventDispatchChain");
             return result;
         }
 
