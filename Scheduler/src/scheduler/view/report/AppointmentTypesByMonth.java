@@ -142,6 +142,7 @@ public class AppointmentTypesByMonth extends VBox {
         monthComboBox.getSelectionModel().select(date.getMonthValue() - 1);
         reportBarChart.getData().add(dataSeries);
         yearSpinner.valueProperty().addListener((observable, oldValue, newValue) -> onDateChanged(newValue));
+        onDateChanged(yearSpinner.getValue());
         WaitTitledPane pane = WaitTitledPane.create();
         MainController.startBusyTaskNow(
                 pane.addOnFailAcknowledged((evt) -> getScene().getWindow().hide())

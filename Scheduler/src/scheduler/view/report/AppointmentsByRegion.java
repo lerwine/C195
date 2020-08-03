@@ -5,13 +5,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -26,8 +25,6 @@ import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
 import scheduler.AppResources;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.ItemCountResult;
-import scheduler.model.PredefinedData;
-import scheduler.model.SupportedCountryDefinition;
 import scheduler.util.DbConnector;
 import scheduler.util.LogHelper;
 import scheduler.util.ViewControllerLoader;
@@ -119,6 +116,7 @@ public class AppointmentsByRegion extends VBox {
         }
         monthComboBox.setItems(monthNames);
         monthComboBox.getSelectionModel().select(date.getMonthValue() - 1);
+        onDateChanged(yearSpinner.getValue());
         yearSpinner.valueProperty().addListener((observable, oldValue, newValue) -> onDateChanged(newValue));
 
         WaitTitledPane pane = WaitTitledPane.create();
@@ -144,14 +142,10 @@ public class AppointmentsByRegion extends VBox {
             List<ItemCountResult<String>> result = getValue();
             HashMap<String, Integer> regions = new HashMap<>();
             result.forEach((t) -> regions.put(t.getValue(), t.getCount()));
-            Map<String, SupportedCountryDefinition> countryMap = PredefinedData.getSupportedCountryDefinitionMap();
             pieChartData.clear();
-            countryMap.keySet().forEach((t) -> {
-                if (regions.containsKey(t)) {
-                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), regions.get(t)));
-                } else {
-                    pieChartData.add(new PieChart.Data(countryMap.get(t).getLocale().getDisplayCountry(), 0));
-                }
+            result.forEach((t) -> {
+                LOG.info(String.format("Adding %s:%d to pie chart data", t.getValue(), t.getCount()));
+                pieChartData.add(new PieChart.Data(Locale.forLanguageTag(t.getValue()).getDisplayCountry(), t.getCount()));
             });
             reportPieChart.setTitle(String.format(resources.getString("appointmentRegionsForS"), monthName));
         }
