@@ -6,45 +6,77 @@
 
 <TextFlow stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
     <children>
+        <Text styleClass="h1" text="Allgemeine Aufgaben" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
         <Text styleClass="h2" text="Termine anzeigen" />
-        <Text text="&#10;Über das Menü " />
+        <Text text="&#10;In der Dropdown-Liste " />
         <Text styleClass="refNameText" text="&quot;Termine&quot;" />
-        <Text text=" können Sie einen Kalender mit Terminen " />
-        <Hyperlink id="byMonthHyperlink" text="nach Monat" />
-        <Text text=" oder " />
-        <Hyperlink id="byWeekHyperlink" text="Woche" />
-        <Text text=" anzeigen oder eine filterbare" />
-        <Hyperlink id="appointmentListHyperlink" text="Liste mit Terminen anzeigen" />
-        <Text text="." />
-        <Text styleClass="h2" text="&#10;&#10;Termine hinzufügen" />
+        <Text text=" können Sie eine Liste der Termine anzeigen." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h3" text="Kalenderansichten" />
+        <Text text="&#10;Der Menüpunkt " />
+        <Hyperlink fx:id="onByWeekAction" id="onByWeekAction" text="Wochenkalender" />
+        <Text text=" zeigt einen Wochenkalender mit Terminen an, und der " />
+        <Hyperlink fx:id="onByMonthAction" id="onByMonthAction" text="Monatskalender" />
+        <Text text=" zeigt alle Termine für einen bestimmten Monat an." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h3" text="Tabellarische Auflistungen" />
+        <Text text="&#10;Der Menüpunkt " />
+        <Hyperlink fx:id="onMyCurrentAndUpcomingAction" id="onMyCurrentAndUpcomingAction" text="Meine aktuellen und bevorstehenden Termine" />
+        <Text text=" zeigt Ihre Termine für heute sowie anstehende Termine an. Der Menüpunkt " />
+        <Hyperlink fx:id="onAllAppointmentsAction" id="onAllAppointmentsAction" text="Alle Termine" />
+        <Text text=" zeigt alle Termine an." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Termine hinzufügen" />
         <Text text="&#10;Wählen Sie " />
-        <Hyperlink id="newAppointmentHyperlink" text="&quot;Neu&quot;" />
-        <Text text=" aus dem " />
-        <Text styleClass="refNameText" text="&quot;Terminmenü&quot;" />
-        <Text styleClass="h3" text="&#10;&#9;oder&#10;" />
-        <Text text="benutzen Sie das " />
+        <Hyperlink fx:id="onMyCurrentAndUpcomingAction2" id="onMyCurrentAndUpcomingAction2" text="&quot;Neu&quot;" />
+        <Text text=" aus dem Menü " />
+        <Text styleClass="refNameText" text="&quot;Termine&quot;" />
+        <Text text=" menu&#10;" />
+        <Text styleClass="h3" text="&#9;oder" />
+        <Text text="&#10;erwenden Sie das Dropdown-Menü " />
         <Text styleClass="refNameText" text="&quot;Kunden&quot;" />
-        <Text text=" - Menü einen öffnen " />
-        <Hyperlink id="customerListingHyperlink1" text="Liste der Kunden" />
-        <Text text=", öffnen Sie einen Kundendatensatz, und klicken Sie auf die " />
-        <Text styleClass="refNameText" text="&quot;Neue Termin&quot;" />
-        <Text text=" Schaltfläche am unteren Rande." />
-        <Text styleClass="h2" text="&#10;&#10;Kunden verwalten" />
-        <Text text="&#10;Verwenden Sie das " />
-        <Text styleClass="refNameText" text="&quot;Kunden&quot;" />
-        <Text text=" - Menü eine anzuzeigen " />
-        <Hyperlink id="customerListingHyperlink2" text="Liste der Kunden" />
-        <Text styleClass="h3" text="&#10;&#9;oder&#10;" />
-        <Text text="verwenden sie das " />
-        <Text styleClass="refNameText" text="&quot;Adressen verwalten&quot;" />
-        <Text text=" - Menü eine anzuzeigen " />
-        <Hyperlink id="countryListingHyperlink" text="Liste der Länder" />
-        <Text text=". Sie können dann die Stadt und die Adresse auswählen, um Kunden an dieser bestimmten Adresse anzuzeigen." />
-        <Text styleClass="h2" text="&#10;&#10;Benutzer verwalten" />
-        <Text text="&#10;Verwenden Sie das Menü " />
-        <Text styleClass="refNameText" text="&quot;Benutzer&quot;" />
         <Text text=", um eine " />
-        <Hyperlink id="userListingHyperlink" text="Liste der Benutzer" />
+        <Hyperlink fx:id="onCustomerListingAction" id="onCustomerListingAction" text="Kundenliste" />
+        <Text text="zu öffnen. Klicken Sie anschließend nach dem Öffnen des Kundendatensatzes unten auf die Schaltfläche " />
+        <Text styleClass="refNameText" text="&quot;Termin hinzufügen&quot;" />
+        <Text text="." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Terminberichterstattung" />
+        <Text text="&#10;Wählen Sie in der Dropdown-Liste " />
+        <Text styleClass="refNameText" text="&quot;Berichte&quot;" />
+        <Text text=" die Option " />
+        <Hyperlink fx:id="onTypesByMonthAction" id="onTypesByMonthAction" text="Typen nach Monat" />
+        <Text text=" aus, um ein Balkendiagramm mit der Anzahl der Termine für jeden Termintyp in einem bestimmten Monat anzuzeigen . Verwenden Sie den " />
+        <Hyperlink fx:id="onConsultantScheduleAction" id="onConsultantScheduleAction" text="Beraterplan" />
+        <Text text=", um Terminplanberichte für jeden Berater anzuzeigen. Mit der Menüoption " />
+        <Hyperlink fx:id="onByRegionAction" id="onByRegionAction" text="Termine nach Region" />
+        <Text text=" können Sie ein Kreisdiagramm der Kundennationalitäten für Termine in einem bestimmten Zeitraum erstellen." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Kunden verwalten" />
+        <Text text="&#10;Verwenden Sie das Menü " />
+        <Text styleClass="refNameText" text="&quot;Kunden&quot;" />
+        <Text text=", um eine " />
+        <Hyperlink fx:id="onCustomerListingAction2" id="onCustomerListingAction2" text="Liste der Kunden" />
+        <Text text=" anzuzeigen&#10;" />
+        <Text styleClass="h3" text="&#9;oder" />
+        <Text text="&#10;Verwenden Sie das Menü " />
+        <Text styleClass="refNameText" text="&quot;Adressen verwalten&quot;" />
+        <Text text=", um eine " />
+        <Hyperlink fx:id="onCountryListingAction" id="onCountryListingAction" text="Liste der Länder" />
+        <Text text="anzuzeigen. Sie können dann die Stadt und die Adresse auswählen, um Kunden an dieser bestimmten Adresse anzuzeigen." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Berater verwalten" />
+        <Text text="&#10;Verwenden Sie das Menü " />
+        <Text styleClass="refNameText" text="&quot;Berater&quot;" />
+        <Text text=", um eine " />
+        <Hyperlink fx:id="onUserListingAction" id="onUserListingAction" text="Liste der Berater" />
         <Text text=" anzuzeigen." />
     </children>
 </TextFlow>

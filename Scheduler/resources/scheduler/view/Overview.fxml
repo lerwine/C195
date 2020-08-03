@@ -11,12 +11,12 @@
 
 <fx:root styleClass="mainFxmlClass" stylesheets="@../defaultStyles.css" type="VBox" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label styleClass="h1" text="Upcoming Appointments" />
+        <Label styleClass="h1" text="%upcomingAppointments" />
         <TextFlow>
             <children>
-                <Text fx:id="nextAppointmentLeadText" strokeType="OUTSIDE" strokeWidth="0.0" text="Loading data. Please wait..." />
+                <Text fx:id="nextAppointmentLeadText" strokeType="OUTSIDE" strokeWidth="0.0" text="%gettingAppointmentCounts" />
                 <Hyperlink fx:id="nextAppointmentHyperlink" onAction="#onNextAppointmentHyperlinkAction" styleClass="collapsed" />
-                <Text fx:id="nextAppointmentAppendLabel" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="collapsed" text=" with " />
+                <Text fx:id="nextAppointmentAppendLabel" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="collapsed" text="%with" />
                 <Hyperlink fx:id="nextAppointmentCustomerHyperlink" onAction="#onNextAppointmentCustomerHyperlinkAction" styleClass="collapsed" />
                 <Text fx:id="nextAppointmentTerminalText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="collapsed" />
             </children>
@@ -24,20 +24,20 @@
                 <Insets />
             </VBox.margin>
         </TextFlow>
-        <Label styleClass="h2-alt" text="Upcoming Appointment Counts">
+        <Label styleClass="h2-alt" text="%upcomingAppointmentCounts">
             <VBox.margin>
                 <Insets top="8.0" />
             </VBox.margin>
         </Label>
         <HBox>
             <children>
-                <Label styleClass="leftControlLabel" text="Today:" />
+                <Label styleClass="leftControlLabel" text="%today" />
                 <Label fx:id="appointmentsTodayLabel" styleClass="leftLabeledControl" text="?">
                     <HBox.margin>
                         <Insets left="4.0" />
                     </HBox.margin>
                 </Label>
-                <Label styleClass="leftControlLabel" text="Tomorrow:">
+                <Label styleClass="leftControlLabel" text="%tomorrow">
                     <HBox.margin>
                         <Insets left="16.0" />
                     </HBox.margin>
@@ -47,7 +47,7 @@
                         <Insets left="4.0" />
                     </HBox.margin>
                 </Label>
-                <Label styleClass="leftControlLabel" text="This Week:">
+                <Label styleClass="leftControlLabel" text="%thisWeek">
                     <HBox.margin>
                         <Insets left="16.0" />
                     </HBox.margin>
@@ -57,7 +57,7 @@
                         <Insets left="4.0" />
                     </HBox.margin>
                 </Label>
-                <Label styleClass="leftControlLabel" text="Next Week:">
+                <Label styleClass="leftControlLabel" text="%nextWeek">
                     <HBox.margin>
                         <Insets left="16.0" />
                     </HBox.margin>
@@ -67,7 +67,7 @@
                         <Insets left="4.0" />
                     </HBox.margin>
                 </Label>
-                <Label styleClass="leftControlLabel" text="This Month:">
+                <Label styleClass="leftControlLabel" text="%thisMonth">
                     <HBox.margin>
                         <Insets left="16.0" />
                     </HBox.margin>
@@ -84,7 +84,7 @@
                     <children>
                         <HBox>
                             <children>
-                                <Label styleClass="leftControlLabel" text="Next Month:" />
+                                <Label styleClass="leftControlLabel" text="%nextMonth" />
                                 <Label fx:id="appointmentsNextMonthLabel" styleClass="leftLabeledControl" text="?">
                                     <HBox.margin>
                                         <Insets left="4.0" />
@@ -92,135 +92,13 @@
                                 </Label>
                             </children>
                         </HBox>
-                        <Button mnemonicParsing="false" onAction="#onRefreshButtonAction" styleClass="small-control" text="Refresh" />
+                        <Button mnemonicParsing="false" onAction="#onRefreshButtonAction" styleClass="small-control" text="%refresh" />
                     </children>
                 </VBox>
             </children>
         </HBox>
-        <Label styleClass="h1" text="Common Tasks">
-            <VBox.margin>
-                <Insets top="8.0" />
-            </VBox.margin>
-        </Label>
-        <Label styleClass="h2-alt" text="Viewing Appointments">
-            <VBox.margin>
-                <Insets top="8.0" />
-            </VBox.margin>
-        </Label>
-        <TextFlow>
-            <children>
-                <Text text="The " />
-                <Text styleClass="refNameText" text="&quot;Appointments&quot;" />
-                <Text text=" menu dropdown lets you view listings of appointments." />
-            </children>
-        </TextFlow>
-        <VBox>
-            <children>
-                <Label styleClass="h3" text="Calendar Views" />
-                <TextFlow>
-                    <children>
-                        <Text text="The " />
-                        <Hyperlink onAction="#onByWeekHyperlinkAction" text="Weekly Calendar" />
-                        <Text text=" menu item shows a weekly calendar of appointments, and " />
-                        <Hyperlink onAction="#onByMonthHyperlinkAction" text="Monthly Calendar" />
-                        <Text text=" shows all appointments for a given month." />
-                    </children>
-                </TextFlow>
-                <Label styleClass="h3" text="Tabular Listings">
-                    <VBox.margin>
-                        <Insets top="8.0" />
-                    </VBox.margin>
-                </Label>
-                <TextFlow>
-                    <children>
-                        <Text text="The " />
-                        <Hyperlink onAction="#onMyCurrentAndUpcomingHyperlinkAction" text="My Current and Upcoming Appointments" />
-                        <Text text=" menu item shows your appointments for today as well as upcoming appointments. The " />
-                        <Hyperlink onAction="#onAllAppointmentsHyperlinkAction" text="All Appointments" />
-                        <Text text=" menu item shows all appointments." />
-                    </children>
-                </TextFlow>
-            </children>
-            <VBox.margin>
-                <Insets left="16.0" />
-            </VBox.margin>
-        </VBox>
-        <Label styleClass="h2-alt" text="Adding Appointments">
-            <VBox.margin>
-                <Insets top="8.0" />
-            </VBox.margin>
-        </Label>
-        <TextFlow>
-            <children>
-                <Text text="Select " />
-                <Hyperlink onAction="#onNewAppointmentHyperlinkAction" text="&quot;New&quot;" />
-                <Text text=" from the " />
-                <Text styleClass="refNameText" text="&quot;Appointments&quot;" />
-                <Text text=" menu&#10;" />
-                <Text styleClass="h3" text="&#9;or" />
-                <Text text="&#10;Use the " />
-                <Text styleClass="refNameText" text="&quot;Customers&quot;" />
-                <Text text=" menu dropdown to open a " />
-                <Hyperlink onAction="#onCustomerListingHyperlinkAction" text="customer listing" />
-                <Text text=". Then, after opening the customer record, and click the " />
-                <Text styleClass="refNameText" text="&quot;Add Appointment&quot;" />
-                <Text text=" button at the bottom." />
-            </children>
-        </TextFlow>
-        <Label styleClass="h2-alt" text="Appointment Reporting">
-            <VBox.margin>
-                <Insets top="8.0" />
-            </VBox.margin>
-        </Label>
-        <TextFlow>
-            <children>
-                <Text text="From the " />
-                <Text styleClass="refNameText" text="&quot;Reports&quot;" />
-                <Text text=" menu dropdown, select " />
-                <Hyperlink onAction="#onTypesByMonthHyperlinkAction" text="Types by Month" />
-                <Text text=" to see a bar chart showing the number of appointments for each apointment type in a given month. Use the " />
-                <Hyperlink onAction="#onConsultantScheduleHyperlinkAction" text="Consultant Schedule" />
-                <Text text=" to see appointment schedule reports for each consultant. The " />
-                <Hyperlink onAction="#onByRegionHyperlinkAction" text="Appointments by Region" />
-                <Text text=" menu option allows you to generate a pie chart of the customer nationalities for appointments in a givcen time period." />
-            </children>
-        </TextFlow>
-        <Label styleClass="h2-alt" text="Manage Customers">
-            <VBox.margin>
-                <Insets top="8.0" />
-            </VBox.margin>
-        </Label>
-        <TextFlow>
-            <children>
-                <Text text="Use the " />
-                <Text styleClass="refNameText" text="&quot;Customers&quot;" />
-                <Text text=" menu to view a " />
-                <Hyperlink onAction="#onCustomerListingHyperlinkAction" text="list of customers" />
-                <Text text="&#10;" />
-                <Text styleClass="h3" text="&#9;or" />
-                <Text text="&#10;Use the " />
-                <Text styleClass="refNameText" text="&quot;Manage Addresses&quot;" />
-                <Text text=" menu to view a " />
-                <Hyperlink onAction="#onCountryListingHyperlinkAction" text="list of countries" />
-                <Text text=". You can then select the city and address to view customers at that specific address." />
-            </children>
-        </TextFlow>
-        <Label styleClass="h2-alt" text="Manage Consultants">
-            <VBox.margin>
-                <Insets top="8.0" />
-            </VBox.margin>
-        </Label>
-        <TextFlow>
-            <children>
-                <Text text="Use the " />
-                <Text styleClass="refNameText" text="&quot;Consultants&quot;" />
-                <Text text=" menu to view a " />
-                <Hyperlink onAction="#onUserListingHyperlinkAction" text="list of consultants" />
-                <Text text="." />
-            </children>
-        </TextFlow>
     </children>
-   <padding>
-      <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-   </padding>
+    <padding>
+        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+    </padding>
 </fx:root>

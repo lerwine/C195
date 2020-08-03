@@ -15,11 +15,15 @@ import java.util.logging.Logger;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
@@ -41,10 +45,10 @@ import static scheduler.view.OverviewResourceKeys.*;
 import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.appointment.AppointmentModelFilter;
-import scheduler.view.appointment.MonthlyCalendar;
-import scheduler.view.appointment.WeeklyCalendar;
 import scheduler.view.appointment.EditAppointment;
 import scheduler.view.appointment.ManageAppointments;
+import scheduler.view.appointment.MonthlyCalendar;
+import scheduler.view.appointment.WeeklyCalendar;
 import scheduler.view.country.ManageCountries;
 import scheduler.view.customer.EditCustomer;
 import scheduler.view.customer.ManageCustomers;
@@ -113,80 +117,13 @@ public final class Overview extends VBox {
 
     @FXML // fx:id="appointmentsNextMonthLabel"
     private Label appointmentsNextMonthLabel; // Value injected by FXMLLoader
-    
+
     private Overview() {
-        
+
     }
 
     @FXML
-    void onAllAppointmentsHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onAllAppointmentsHyperlinkAction", event);
-        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.all());
-        LOG.exiting(LOG.getName(), "onAllAppointmentsHyperlinkAction");
-    }
-
-    @FXML
-    void onByMonthHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onByMonthHyperlinkAction", event);
-        MonthlyCalendar.loadIntoMainContent(YearMonth.now());
-        LOG.exiting(LOG.getName(), "onByMonthHyperlinkAction");
-    }
-
-    @FXML
-    void onByRegionHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onByRegionHyperlinkAction", event);
-        Scheduler.getMainController().replaceContent(AppointmentsByRegion.create());
-        LOG.exiting(LOG.getName(), "onByRegionHyperlinkAction");
-    }
-
-    @FXML
-    void onByWeekHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onByWeekHyperlinkAction", event);
-        WeeklyCalendar.loadIntoMainContent(LocalDate.now());
-        LOG.exiting(LOG.getName(), "onByWeekHyperlinkAction");
-    }
-
-    @FXML
-    void onConsultantScheduleHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onConsultantScheduleHyperlinkAction", event);
-        Scheduler.getMainController().replaceContent(ConsultantSchedule.create());
-        LOG.exiting(LOG.getName(), "onConsultantScheduleHyperlinkAction");
-    }
-
-    @FXML
-    void onCountryListingHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onCountryListingHyperlinkAction", event);
-        ManageCountries.loadIntoMainContent();
-        LOG.exiting(LOG.getName(), "onCountryListingHyperlinkAction");
-    }
-
-    @FXML
-    void onCustomerListingHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onCustomerListingHyperlinkAction", event);
-        ManageCustomers.loadIntoMainContent(CustomerModel.FACTORY.getDefaultFilter());
-        LOG.exiting(LOG.getName(), "onCustomerListingHyperlinkAction");
-    }
-
-    @FXML
-    void onMyCurrentAndUpcomingHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onMyCurrentAndUpcomingHyperlinkAction", event);
-        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
-        LOG.exiting(LOG.getName(), "onMyCurrentAndUpcomingHyperlinkAction");
-    }
-
-    @FXML
-    void onNewAppointmentHyperlinkAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onNewAppointmentHyperlinkAction", event);
-        try {
-            EditAppointment.editNew(null, null, getScene().getWindow());
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error opening child window", ex);
-        }
-        LOG.exiting(LOG.getName(), "onNewAppointmentHyperlinkAction");
-    }
-
-    @FXML
-    void onNextAppointmentCustomerHyperlinkAction(ActionEvent event) {
+    private void onNextAppointmentCustomerHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNextAppointmentCustomerHyperlinkAction", event);
         PartialCustomerModel<? extends PartialCustomerDAO> customer = nextAppointment.getCustomer();
         if (customer instanceof CustomerModel) {
@@ -203,7 +140,7 @@ public final class Overview extends VBox {
     }
 
     @FXML
-    void onNextAppointmentHyperlinkAction(ActionEvent event) {
+    private void onNextAppointmentHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNextAppointmentHyperlinkAction", event);
         try {
             Window w = getScene().getWindow();
@@ -215,7 +152,7 @@ public final class Overview extends VBox {
     }
 
     @FXML
-    void onRefreshButtonAction(ActionEvent event) {
+    private void onRefreshButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onRefreshButtonAction", event);
         NodeUtil.collapseNodes(nextAppointmentHyperlink, nextAppointmentAppendLabel, nextAppointmentCustomerHyperlink, nextAppointmentTerminalText);
         nextAppointmentLeadText.setText("Loading data. Please wait...");
@@ -223,20 +160,75 @@ public final class Overview extends VBox {
         LOG.exiting(LOG.getName(), "onRefreshButtonAction");
     }
 
-    @FXML
-    void onTypesByMonthHyperlinkAction(ActionEvent event) {
+    private void onAllAppointmentsHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onAllAppointmentsHyperlinkAction", event);
+        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.all());
+        LOG.exiting(LOG.getName(), "onAllAppointmentsHyperlinkAction");
+    }
+
+    private void onByMonthHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onByMonthHyperlinkAction", event);
+        MonthlyCalendar.loadIntoMainContent(YearMonth.now());
+        LOG.exiting(LOG.getName(), "onByMonthHyperlinkAction");
+    }
+
+    private void onByRegionHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onByRegionHyperlinkAction", event);
+        Scheduler.getMainController().replaceContent(AppointmentsByRegion.create());
+        LOG.exiting(LOG.getName(), "onByRegionHyperlinkAction");
+    }
+
+    private void onByWeekHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onByWeekHyperlinkAction", event);
+        WeeklyCalendar.loadIntoMainContent(LocalDate.now());
+        LOG.exiting(LOG.getName(), "onByWeekHyperlinkAction");
+    }
+
+    private void onConsultantScheduleHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onConsultantScheduleHyperlinkAction", event);
+        Scheduler.getMainController().replaceContent(ConsultantSchedule.create());
+        LOG.exiting(LOG.getName(), "onConsultantScheduleHyperlinkAction");
+    }
+
+    private void onCountryListingHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onCountryListingHyperlinkAction", event);
+        ManageCountries.loadIntoMainContent();
+        LOG.exiting(LOG.getName(), "onCountryListingHyperlinkAction");
+    }
+
+    private void onCustomerListingHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerListingHyperlinkAction", event);
+        ManageCustomers.loadIntoMainContent(CustomerModel.FACTORY.getDefaultFilter());
+        LOG.exiting(LOG.getName(), "onCustomerListingHyperlinkAction");
+    }
+
+    private void onMyCurrentAndUpcomingHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onMyCurrentAndUpcomingHyperlinkAction", event);
+        ManageAppointments.loadIntoMainContent(AppointmentModelFilter.myCurrentAndFuture());
+        LOG.exiting(LOG.getName(), "onMyCurrentAndUpcomingHyperlinkAction");
+    }
+
+    private void onNewAppointmentHyperlinkAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onNewAppointmentHyperlinkAction", event);
+        try {
+            EditAppointment.editNew(null, null, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+        LOG.exiting(LOG.getName(), "onNewAppointmentHyperlinkAction");
+    }
+
+    private void onTypesByMonthHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onTypesByMonthHyperlinkAction", event);
         Scheduler.getMainController().replaceContent(AppointmentTypesByMonth.create());
         LOG.exiting(LOG.getName(), "onTypesByMonthHyperlinkAction");
     }
 
-    @FXML
-    void onUserListingHyperlinkAction(ActionEvent event) {
+    private void onUserListingHyperlinkAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onUserListingHyperlinkAction", event);
         ManageUsers.loadIntoMainContent(UserModel.FACTORY.getDefaultFilter());
         LOG.exiting(LOG.getName(), "onUserListingHyperlinkAction");
     }
-
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
@@ -252,6 +244,31 @@ public final class Overview extends VBox {
         assert appointmentsThisMonthLabel != null : "fx:id=\"appointmentsThisMonthLabel\" was not injected: check your FXML file 'Overview.fxml'.";
         assert appointmentsNextMonthLabel != null : "fx:id=\"appointmentsNextMonthLabel\" was not injected: check your FXML file 'Overview.fxml'.";
 
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(String.format("/scheduler/fx/Overview_%s.fxml", AppResources.getCurrentLocale().getLocale().getLanguage())),
+                resources);
+        TextFlow content;
+        try {
+            content = loader.load();
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error loading content", ex);
+            return;
+        }
+
+        ((ButtonBase) content.lookup("#onByWeekAction")).setOnAction(this::onByWeekHyperlinkAction);
+        ((ButtonBase) content.lookup("#onByMonthAction")).setOnAction(this::onByMonthHyperlinkAction);
+        ((ButtonBase) content.lookup("#onMyCurrentAndUpcomingAction")).setOnAction(this::onMyCurrentAndUpcomingHyperlinkAction);
+        ((ButtonBase) content.lookup("#onAllAppointmentsAction")).setOnAction(this::onAllAppointmentsHyperlinkAction);
+        ((ButtonBase) content.lookup("#onMyCurrentAndUpcomingAction2")).setOnAction(this::onMyCurrentAndUpcomingHyperlinkAction);
+        ((ButtonBase) content.lookup("#onCustomerListingAction")).setOnAction(this::onCustomerListingHyperlinkAction);
+        ((ButtonBase) content.lookup("#onTypesByMonthAction")).setOnAction(this::onTypesByMonthHyperlinkAction);
+        ((ButtonBase) content.lookup("#onConsultantScheduleAction")).setOnAction(this::onConsultantScheduleHyperlinkAction);
+        ((ButtonBase) content.lookup("#onByRegionAction")).setOnAction(this::onByRegionHyperlinkAction);
+        ((ButtonBase) content.lookup("#onCustomerListingAction2")).setOnAction(this::onCustomerListingHyperlinkAction);
+        ((ButtonBase) content.lookup("#onCountryListingAction")).setOnAction(this::onCountryListingHyperlinkAction);
+        ((ButtonBase) content.lookup("#onUserListingAction")).setOnAction(this::onUserListingHyperlinkAction);
+
+        VBox.setVgrow(content, Priority.ALWAYS);
+        getChildren().add(content);
         MainController.startBusyTaskNow(new OverviewLoadTask());
     }
 

@@ -6,45 +6,77 @@
 
 <TextFlow stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
     <children>
+        <Text styleClass="h1" text="Tareas comunes" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
         <Text styleClass="h2" text="Ver citas" />
-        <Text text="&#10;Desde el menú " />
+        <Text text="&#10;El menú desplegable " />
         <Text styleClass="refNameText" text="&quot;Citas&quot;" />
-        <Text text=", puede ver un calendario de citas " />
-        <Hyperlink id="byMonthHyperlink" text="por mes" />
-        <Text text=" o " />
-        <Hyperlink id="byWeekHyperlink" text="por semana" />
-        <Text text=", o puede ver una " />
-        <Hyperlink id="appointmentListHyperlink" text="lista filtrable de citas" />
-        <Text text="." />
-        <Text styleClass="h2" text="&#10;&#10;Agregar citas" />
+        <Text text=" le permite ver listados de citas." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h3" text="Vistas de calendario" />
+        <Text text="&#10;El elemento del menú " />
+        <Hyperlink fx:id="onByWeekAction" id="onByWeekAction" text="Calendario semanal" />
+        <Text text=" muestra un calendario semanal de citas, y el " />
+        <Hyperlink fx:id="onByMonthAction" id="onByMonthAction" text="Calendario mensual" />
+        <Text text=" muestra todas las citas de un mes determinado." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h3" text="Listados Tabulares" />
+        <Text text="&#10;El elemento de menú " />
+        <Hyperlink fx:id="onMyCurrentAndUpcomingAction" id="onMyCurrentAndUpcomingAction" text="Mis citas actuales y próximas" />
+        <Text text=" muestra sus citas para hoy y las próximas citas. El elemento de menú " />
+        <Hyperlink fx:id="onAllAppointmentsAction" id="onAllAppointmentsAction" text="Todas las citas" />
+        <Text text=" muestra todas las citas." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Agregar citas" />
         <Text text="&#10;Seleccione " />
-        <Hyperlink id="newAppointmentHyperlink" text="&quot;Nuevo&quot;" />
+        <Hyperlink fx:id="onMyCurrentAndUpcomingAction2" id="onMyCurrentAndUpcomingAction2" text="&quot;Nuevo&quot;" />
         <Text text=" en el menú " />
         <Text styleClass="refNameText" text="&quot;Citas&quot;" />
-        <Text styleClass="h3" text="&#10;&#9;o&#10;" />
-        <Text text="usar el menú " />
+        <Text text="&#10;" />
+        <Text styleClass="h3" text="&#9;o" />
+        <Text text="&Use el menú desplegable " />
         <Text styleClass="refNameText" text="&quot;Clientes&quot;" />
         <Text text=" para abrir una " />
-        <Hyperlink id="customerListingHyperlink1" text="lista de clientes" />
-        <Text text=", abrir un registro de clientes y hacer clic en el botón " />
+        <Hyperlink fx:id="onCustomerListingAction" id="onCustomerListingAction" text="lista de clientes" />
+        <Text text=". Luego, después de abrir el registro del cliente, y haga clic en el botón " />
         <Text styleClass="refNameText" text="&quot;Agregar cita&quot;" />
         <Text text=" en la parte inferior." />
-        <Text styleClass="h2" text="&#10;&#10;Administrar clientes" />
-        <Text text="&#10;Usar la " />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Informe de citas" />
+        <Text text="&#10;En el menú desplegable " />
+        <Text styleClass="refNameText" text="&quot;Informes&quot;" />
+        <Text text=" seleccione " />
+        <Hyperlink fx:id="onTypesByMonthAction" id="onTypesByMonthAction" text="Tipos por mes" />
+        <Text text=" para ver un gráfico de barras que muestra el número de citas para cada tipo de asignación en un mes determinado. Use el " />
+        <Hyperlink fx:id="onConsultantScheduleAction" id="onConsultantScheduleAction" text="horario del consultor" />
+        <Text text="para ver los informes del horario de citas de cada consultor. La opción de menú " />
+        <Hyperlink fx:id="onByRegionAction" id="onByRegionAction" text="Citas por región le" />
+        <Text text=" permite generar un gráfico circular de las nacionalidades de los clientes para citas en un período de tiempo determinado." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Administrar clientes" />
+        <Text text="&#10;Use el menú " />
         <Text styleClass="refNameText" text="&quot;Clientes&quot;" />
-        <Text text=" menú para ver una " />
-        <Hyperlink id="customerListingHyperlink2" text="lista de clientes" />
-        <Text styleClass="h3" text="&#10;&#9;o&#10;" />
-        <Text text="usar la " />
-        <Text styleClass="refNameText" text="&quot;gestionar direcciones&quot;" />
-        <Text text=" de menú para ver una " />
-        <Hyperlink id="countryListingHyperlink" text="lista de países" />
-        <Text text="Luego puede seleccionar la ciudad y la dirección para ver a los clientes en esa dirección específica." />
-        <Text styleClass="h2" text="&#10;&#10;Administrar usuarios" />
-        <Text text="&#10;Usar el menú " />
-        <Text styleClass="refNameText" text="&quot;Usuarios&quot;" />
         <Text text=" para ver una " />
-        <Hyperlink id="userListingHyperlink" text="lista de usuarios" />
+        <Hyperlink fx:id="onCustomerListingAction2" id="onCustomerListingAction2" text="lista de clientes" />
+        <Text text="&#10;" />
+        <Text styleClass="h3" text="&#9;o" />
+        <Text text="&#10;Use el menú " />
+        <Text styleClass="refNameText" text="&quot;Administrar direcciones&quot;" />
+        <Text text=" para ver una " />
+        <Hyperlink fx:id="onCountryListingAction" id="onCountryListingAction" text="lista de países" />
+        <Text text=". Luego puede seleccionar la ciudad y la dirección para ver a los clientes en esa dirección específica." />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        
+        <Text styleClass="h2" text="Gestionar consultores" />
+        <Text text="&#10;Use el menú " />
+        <Text styleClass="refNameText" text="&quot;Administrar direcciones&quot;" />
+        <Text text=" para ver una " />
+        <Hyperlink fx:id="onUserListingAction" id="onUserListingAction" text="lista de países" />
         <Text text="." />
     </children>
 </TextFlow>

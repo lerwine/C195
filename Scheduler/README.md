@@ -185,4 +185,44 @@ is also presented upon login in the event that the user's current locale is not 
 > Content reflects attention to detail, is organized, and focuses on the main ideas as prescribed in the task or chosen by the candidate. Terminology is pertinent, is used correctly, and effectively conveys the intended meaning. Mechanics, usage, and grammar promote accurate interpretation and understanding. 
 
 
+The **"Appointments"**  menu dropdown lets you view listings of appointments.
 
+### Calendar Views
+
+The [Weekly Calendar](#onByWeekAction)
+menu item shows a weekly calendar of appointments, and [Monthly Calendar](#onByMonthAction) shows all appointments for a given month.
+
+### Tabular Listings
+
+The [My Current and Upcoming Appointments](#onMyCurrentAndUpcomingAction)
+menu item shows your appointments for today as well as upcoming appointments. The [All Appointments](#onAllAppointmentsAction) menu item shows all appointments.
+
+## Adding Appointments
+
+Select ["New"](#onNewAppointmentAction) from the
+**"Appointments"** menu
+
+### or
+
+Use the **"Customers"** menu dropdown to open a [customer listing](#onCustomerListingAction). Then, after opening the customer record, and click the
+**"Add Appointment"** button at the bottom." />
+
+## Appointment Reporting
+
+From the **"Reports"** menu dropdown, select [Types by Month](#onTypesByMonthAction)
+to see a bar chart showing the number of appointments for each apointment type in a given month. Use the [Consultant Schedule](#onConsultantScheduleAction)
+to see appointment schedule reports for each consultant. The [Appointments by Region](#onByRegionAction)
+menu option allows you to generate a pie chart of the customer nationalities for appointments in a given time period.
+
+## Manage Customers
+
+Use the **"Customers"** menu to view a [list of customers](#onCustomerListingAction)
+
+### or
+
+Use the **"Manage Addresses"** menu to view a [list of countries](#onCountryListingAction).
+You can then select the city and address to view customers at that specific address.
+
+## Manage Consultants
+
+Use the **"Consultants"** menu to view a [list of consultants](#onUserListingAction).

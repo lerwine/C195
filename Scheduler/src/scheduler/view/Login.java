@@ -110,6 +110,11 @@ public final class Login extends Scheduler.LoginBorderPane {
         LOG.exiting(LOG.getName(), "onLoginButtonAction");
     }
 
+    @Override
+    protected SupportedLocale getSelectedLanguage() {
+        return selectedLanguage.get();
+    }
+
     private ObjectBinding<SupportedLocale> initializeLanguageBindings() {
         LOG.entering(LOG.getName(), "initializeLanguageBindings");
         selectedLanguage = Bindings.select(languageComboBox.selectionModelProperty(), "selectedItem");

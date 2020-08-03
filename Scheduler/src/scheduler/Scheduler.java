@@ -18,7 +18,7 @@ import javafx.concurrent.Task;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import static scheduler.AppResourceKeys.RESOURCEKEY_CONNECTEDTODB;
@@ -36,6 +36,7 @@ import scheduler.view.Login;
 import scheduler.view.MainController;
 import scheduler.view.Overview;
 import scheduler.view.ViewAndController;
+import scheduler.view.task.WaitBorderPane;
 
 /**
  * Main Application class for the Scheduler application.
@@ -99,10 +100,19 @@ public final class Scheduler extends Application {
     public void start(Stage stage) throws Exception {
         StageManager.setPrimaryStage(stage);
         stage.setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
-        // Load main view and controller
-        ViewAndController<StackPane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
-        StackPane mainView = mainViewAndController.getView();
-        mainController = mainViewAndController.getController();
+        StackPane stackPane = new StackPane();
+        stackPane.setMaxHeight(Region.USE_PREF_SIZE);
+        stackPane.setMaxWidth(Region.USE_PREF_SIZE);
+        stackPane.setMinHeight(Region.USE_PREF_SIZE);
+        stackPane.setMinWidth(Region.USE_PREF_SIZE);
+        stackPane.setPrefHeight(600.0);
+        stackPane.setPrefWidth(900.0);
+        stackPane.getStylesheets().add("/scheduler/defaultStyles.css");
+        stage.setScene(new Scene(stackPane));
+//        // Load main view and controller
+//        ViewAndController<StackPane, MainController> mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
+//        StackPane mainView = mainViewAndController.getView();
+//        mainController = mainViewAndController.getController();
 
         // Add login view under root of scene.
         Login login = new Login();
@@ -112,13 +122,11 @@ public final class Scheduler extends Application {
             throw new InternalError("Error loading view", ex);
         }
         // Bind extents of login view to main view extents.
-        login.setPrefSize(mainView.getPrefWidth(), mainView.getPrefHeight());
-        login.setMaxSize(mainView.getMaxWidth(), mainView.getMaxHeight());
-
-        stage.setScene(new Scene(mainView));
-        ObservableList<Node> children = mainView.getChildren();
-        children.add(1, login);
-        bindExtents(login, mainView);
+        login.setPrefSize(stackPane.getPrefWidth(), stackPane.getPrefHeight());
+        ObservableList<Node> children = stackPane.getChildren();
+        children.add(login);
+        children.add(((LoginBorderPane) login).waitBorderPane);
+        bindExtents(login, stackPane);
         stage.show();
     }
 
@@ -147,6 +155,8 @@ public final class Scheduler extends Application {
 
     public static abstract class LoginBorderPane extends BorderPane {
 
+        private final WaitBorderPane waitBorderPane = new WaitBorderPane();
+
         /**
          * Looks up a consultant from the database and sets the current logged in consultant for the application if the password hash matches.
          *
@@ -155,13 +165,15 @@ public final class Scheduler extends Application {
          * @param password The raw password provided by the consultant.
          */
         protected void tryLoginUser(LoginBorderPane loginView, String userName, String password) {
-            MainController.startBusyTaskNow(new LoginTask(loginView, userName, password, this::onLoginFailure));
+            waitBorderPane.startNow(new LoginTask(loginView, userName, password, this::onLoginFailure));
         }
 
         /**
          * This gets called when a login has failed.
          */
         protected abstract void onLoginFailure();
+
+        protected abstract SupportedLocale getSelectedLanguage();
     }
 
     // Task that connects to DB in background and validates consultant credials
@@ -169,7 +181,7 @@ public final class Scheduler extends Application {
 
         private final String userName, password;
         private final Runnable onNotSucceeded;
-        private final BorderPane loginView;
+        private final LoginBorderPane loginView;
 
         LoginTask(LoginBorderPane loginView, String userName, String password, Runnable onNotSucceeded) {
             updateTitle(AppResources.getResourceString(RESOURCEKEY_LOGGINGIN));
@@ -199,13 +211,22 @@ public final class Scheduler extends Application {
                     LOG.log(Level.SEVERE, "Error writing to log", ex);
                 }
 
-                // Remove login control from view
                 unbindExtents(loginView);
-                Pane pane = (Pane) loginView.getParent();
-                pane.getChildren().remove(loginView);
+                Scene scene = loginView.getScene();
 
+                // Load main view and controller
+                ViewAndController<StackPane, MainController> mainViewAndController;
+                try {
+                    mainViewAndController = ViewControllerLoader.loadViewAndController(MainController.class);
+                } catch (IOException ex) {
+                    LOG.log(Level.SEVERE, "Error loading main view and controller", ex);
+                    return;
+                }
+                StackPane mainView = mainViewAndController.getView();
+                scene.setRoot(mainView);
+                currentApp.mainController = mainViewAndController.getController();
                 // Update window title
-                ((Stage) pane.getScene().getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
+                ((Stage) scene.getWindow()).setTitle(AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_APPOINTMENTSCHEDULER));
 
                 // Start the background timer for appointment alert checking
                 AppointmentAlertManager.INSTANCE.start();
@@ -229,6 +250,7 @@ public final class Scheduler extends Application {
                     PwHash hash = new PwHash(result.get().getPassword(), false);
                     if (hash.test(password)) {
                         LOG.fine("Password matched");
+                        AppResources.setCurrentLocale(loginView.getSelectedLanguage());
                         currentUser = result.get();
                         Platform.runLater(() -> updateMessage(AppResources.getResourceString(RESOURCEKEY_LOGGINGIN)));
                         PredefinedData.ensureDatabaseEntries(dbConnector.getConnection());

@@ -6,45 +6,71 @@
 
 <TextFlow stylesheets="@../defaultStyles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
     <children>
+        <Text styleClass="h1" text="आम कार्य" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
         <Text styleClass="h2" text="नियुक्ति देखना" />
-        <Text text="&#10;से " />
-        <Text styleClass="refNameText" text="&quot;नियुक्ति&quot;" />
-        <Text text=" मेनू, आप नियुक्तियों का कैलेंडर देख सकते हैं " />
-        <Hyperlink id="byMonthHyperlink" text="महीने के द्वारा" />
-        <Text text=" या " />
-        <Hyperlink id="byWeekHyperlink" text="सप्ताह के द्वारा" />
-        <Text text=", या आप नियुक्तियों की एक " />
-        <Hyperlink id="appointmentListHyperlink" text="फ़िल्टर सूची देख" />
-        <Text text=" सकते हैं।" />
-        <Text styleClass="h2" text="&#10;&#10;अपॉइंटमेंट जोड़ना" />
         <Text text="&#10;" />
-        <Text styleClass="refNameText" text="&quot;अपॉइंटमेंट्स&quot;" />
-        <Text text=" मेनू से " />
-        <Hyperlink id="newAppointmentHyperlink" text="&quot;नया&quot;" />
-        <Text text=" चुनें" />
-        <Text styleClass="h3" text="&#10;&#9;या&#10;" />
-        <Hyperlink id="customerListingHyperlink1" text="ग्राहक सूची" />
+        <Text styleClass="refNameText" text="&quot;नियुक्ति&quot;" />
+        <Text text=" मेनू लटकती आप नियुक्तियों की लिस्टिंग देखने देता है।" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        <Text styleClass="h3" text="कैलेंडर दृश्य" />
+        <Text text="&#10;" />
+        <Hyperlink fx:id="onByWeekAction" id="onByWeekAction" text="साप्ताहिक कैलेंडर" />
+        <Text text=" मेनू आइटम शो नियुक्तियों की एक साप्ताहिक कैलेंडर, और " />
+        <Hyperlink fx:id="onByMonthAction" id="onByMonthAction" text="मासिक कैलेंडर" />
+        <Text text=" से पता चलता है उस माह के लिए सभी नियुक्तियों।" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        <Text styleClass="h3" text="सारणीबद्ध लिस्टिंग" />
+        <Text text="&#10;" />
+        <Hyperlink fx:id="onMyCurrentAndUpcomingAction" id="onMyCurrentAndUpcomingAction" text="मेरे वर्तमान और आने वाले अपॉइंटमेंट" />
+        <Text text=" मेनू आइटम आज के साथ-साथ आने वाले अपॉइंटमेंट के लिए अपनी नियुक्तियों को दर्शाता है। " />
+        <Hyperlink fx:id="onAllAppointmentsAction" id="onAllAppointmentsAction" text="सभी नियुक्तियां" />
+        <Text text=" मेनू आइटम सभी नियुक्तियों को दर्शाता है।" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        <Text styleClass="h2" text="अपॉइंटमेंट जोड़ना" />
+        <Text text="&#10;का चयन करें " />
+        <Hyperlink fx:id="onMyCurrentAndUpcomingAction2" id="onMyCurrentAndUpcomingAction2" text="&quot;नया&quot;" />
+        <Text text=" से " />
+        <Text styleClass="refNameText" text="&quot;नियुक्ति&quot;" />
+        <Text text=" मेनू&#10;" />
+        <Text styleClass="h3" text="&#9;या" />
+        <Text text="&#10;" />
+        <Hyperlink fx:id="onCustomerListingAction" id="onCustomerListingAction" text="ग्राहक सूची" />
         <Text text=" खोलने के लिए " />
         <Text styleClass="refNameText" text="&quot;ग्राहक&quot;" />
-        <Text text=" मेनू का उपयोग करें, ग्राहक रिकॉर्ड खोलें और सबसे नीचे स्थित " />
-        <Text styleClass="refNameText" text="&quot;अपॉइंटमेंट&quot;" />
+        <Text text=" मेनू ड्रॉपडाउन का उपयोग करें । फिर, ग्राहक रिकॉर्ड खोलने के बाद, और सबसे नीचे " />
+        <Text styleClass="refNameText" text="&quot;अपॉइंटमेंट जोड़ें&quot;" />
         <Text text=" बटन पर क्लिक करें।" />
-        <Text styleClass="h2" text="&#10;&#10;ग्राहकों को प्रबंधित करें" />
-        <Text text="&#10;का प्रयोग करें " />
-        <Text styleClass="refNameText" text="&quot;ग्राहकों&quot;" />
-        <Text text=" एक देखने के लिए मेनू " />
-        <Hyperlink id="customerListingHyperlink2" text="ग्राहकों की सूची" />
-        <Text styleClass="h3" text="&#10;&#9;या&#10;" />
-        <Text text="आप " />
-        <Hyperlink id="countryListingHyperlink" text="देशों की सूची" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        <Text styleClass="h2" text="अपॉइंटमेंट रिपोर्टिंग" />
+        <Text text="&#10;से " />
+        <Text styleClass="refNameText" text="&quot;रिपोर्ट&quot;" />
+        <Text text=" मेनू लटकती, चयन " />
+        <Hyperlink fx:id="onTypesByMonthAction" id="onTypesByMonthAction" text="माह के अनुसार प्रकार" />
+        <Text text=" किसी महीने में प्रत्येक नियुक्ति प्रकार के लिए नियुक्तियों की संख्या दिखा एक बार चार्ट को देखने के लिए। प्रत्येक सलाहकार के लिए नियुक्ति अनुसूची रिपोर्ट देखने के लिए " />
+        <Hyperlink fx:id="onConsultantScheduleAction" id="onConsultantScheduleAction" text="सलाहकार अनुसूची" />
+        <Text text=" का उपयोग करें। " />
+        <Hyperlink fx:id="onByRegionAction" id="onByRegionAction" text="क्षेत्र द्वारा नियुक्ति" />
+        <Text text=" मेनू विकल्प आप एक निश्चित समय अवधि में नियुक्तियों के लिए ग्राहक देशों के एक पाई चार्ट उत्पन्न करने के लिए अनुमति देता है।" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        <Text styleClass="h2" text="हकों को प्रबंधित करें" />
+        <Text text="&#10;" />
+        <Hyperlink fx:id="onCustomerListingAction2" id="onCustomerListingAction2" text="ग्राहकों की सूची" />
+        <Text text=" देखने के लिए " />
+        <Text styleClass="refNameText" text="&quot;ग्राहक&quot;" />
+        <Text text=" नू का उपयोग करें&#10;" />
+        <Text styleClass="h3" text="&#9;या" />
+        <Text text="&#10;" />
+        <Hyperlink fx:id="onCountryListingAction" id="onCountryListingAction" text="देशों की सूची" />
         <Text text=" देखने के लिए " />
         <Text styleClass="refNameText" text="&quot;पते प्रबंधित करें&quot;" />
-        <Text text=" मेनू देख सकते हैं। आप उस विशिष्ट पते पर ग्राहकों को देखने के लिए शहर और पते का चयन कर सकते हैं।" />
-        <Text styleClass="h2" text="&#10;&#10;उपयोगकर्ता प्रबंधित करें" />
+        <Text text="मेनू का उपयोग करें । आप उस विशिष्ट पते पर ग्राहकों को देखने के लिए शहर और पते का चयन कर सकते हैं।" />
+        <Text styleClass="tiny-font" text="&#10;&#10;" />
+        <Text styleClass="h2" text="कंसल्टेंट्स की व्यवस्था करें" />
         <Text text="&#10;" />
-        <Hyperlink id="userListingHyperlink" text="उपयोगकर्ताओं की सूची" />
+        <Hyperlink fx:id="onUserListingAction" id="onUserListingAction" text="सलाहकारों की सूची" />
         <Text text=" देखने के लिए " />
-        <Text styleClass="refNameText" text="&quot;उपयोगकर्ता&quot;" />
+        <Text styleClass="refNameText" text="&quot;कंसल्टेंट्स&quot;" />
         <Text text=" मेनू का उपयोग करें।" />
     </children>
 </TextFlow>
