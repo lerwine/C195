@@ -75,6 +75,7 @@ import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
 import scheduler.view.task.WaitBorderPane;
 
+// FIXME: Need to have an "Open" button to open the customer record
 /**
  * FXML Controller class for editing an {@link AppointmentModel}.
  *

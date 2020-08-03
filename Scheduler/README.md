@@ -21,65 +21,26 @@ is also presented upon login in the event that the user's current locale is not 
 
 > Provide the ability to add, update, and delete customer records in the database, including name, address, and phone number.
 
-### NOT EVIDENT
-
-> No code is provided to add, update, or delete customer records.
-
-### APPROACHING COMPETENCE
-
-> The application has limited functionality to add, update, or delete customer records in the database or does not include fields for customer name, address, or phone number. The code contains errors or is incomplete.
-
-### COMPETENT
-
-> The application has functionality to add, update, and delete customer records in the database, including name, address, and phone number. The code is complete and functions properly.
+The "Customer" menu drop-down can be used to add, update, and delete customer records.
 
 ## C:APPOINTMENTS
 
 > Provide the ability to add, update, and delete appointments, capturing the type of appointment and a link to the specific customer record in the database.
 
-### NOT EVIDENT
-
-> No code is provided to add, update, or delete appointments. .
-
-### APPROACHING COMPETENCE
-
-> The application code has limited functionality to add, update or delete appointments, capture the type of appointment, or link the appointments to the specific customer record in the database. The code contains errors or is incomplete.
-
-### COMPETENT
-
-> The application code has functionality to add, update, and delete appointments, capture the type of appointment, and link the appointments to the specific customer record in the database. The code is complete and functions properly.
+The "Appointments" menu drop-down can be used to add, update, and delete appointments.
+In the appointment edit screen, there is an "Open" button which can be used to open the selected customer.
 
 ## D:CALENDAR VIEWS
 
 > Provide the ability to view the calendar by month and by week.
 
-### NOT EVIDENT
-
-> Calendar views are not created, or no code is provided.
-
-### APPROACHING COMPETENCE
-
-> The application has limited functionality to view the calendar by month and by week, but the code contains errors or is incomplete.
-
-### COMPETENT
-
-> The application has functionality to view the calendar by month and by week. The code is complete and functions properly.
+The "Appointments" menu drop-down includes menu items for "Weekly Calendar" and "Monthly Calendar".
 
 ## E:TIME ZONES
 
 > Provide the ability to automatically adjust appointment times based on user time zones and daylight saving time.
 
-### NOT EVIDENT
-
-> No code is provided to adjust appointment times based on user time zones or daylight saving time.
-
-### APPROACHING COMPETENCE
-
-> The application has limited functionality to automatically adjust appointment times based on user time zones or daylight saving time. The code contains errors or is incomplete.
-
-### COMPETENT
-
-> The application has functionality to automatically adjust appointment times based on user time zones and daylight saving time. The code is complete and functions properly.
+Dates and times are stored as GMT in the database and are converted to the current local time zone when retrieved from the database.
 
 ## F:EXCEPTION CONTROL
 

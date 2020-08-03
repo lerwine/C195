@@ -408,7 +408,7 @@ RadioButton.leftLabeledControl,
     -fx-border-width: 0px;
     -fx-max-width: infinity;
     -fx-alignment: CENTER;
-    -fx-padding: 8px;
+    -fx-padding: 4px;
 }
 
 .header,
