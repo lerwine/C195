@@ -685,15 +685,20 @@ public final class AppointmentModel extends EntityModel<AppointmentDAO> implemen
                                 message = "URL not defined";
                             }
                             break;
-                        case CUSTOMER_SITE:
-                            if (Values.isNullWhiteSpaceOrEmpty(dao.getContact())) {
-                                message = "Contact not defined";
-                            }
-                            break;
-                        default:
+                        case OTHER:
                             if (Values.isNullWhiteSpaceOrEmpty(dao.getLocation())) {
                                 message = "Location not defined";
                             }
+                            if (Values.isNullWhiteSpaceOrEmpty(dao.getContact())) {
+                                message = "Point of contact not defined";
+                            }
+                            break;
+                        case PHONE:
+                            if (Values.isNullWhiteSpaceOrEmpty(dao.getLocation())) {
+                                message = "Location (phone number) not defined";
+                            }
+                            break;
+                        default:
                             break;
                     }
                     if (null == message) {
