@@ -37,6 +37,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.Scheduler;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CustomerDAO;
 import scheduler.dao.UserDAO;
@@ -95,9 +96,7 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         if (null != customer) {
             model.setCustomer(customer);
         }
-        if (null != user) {
-            model.setUser(user);
-        }
+        model.setUser((null == user) ? Scheduler.getCurrentUser().cachedModel(true) : user);
         if (null != beforeShow) {
             beforeShow.accept(model);
         }
@@ -429,6 +428,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         assert hideConflictsButton != null : "fx:id=\"hideConflictsButton\" was not injected: check your FXML file 'EditAppointment.fxml'.";
 
         typeContext.initialize();
+        customerComboBox.setItems(customerModelList);
+        userComboBox.setItems(userModelList);
 
         //<editor-fold defaultstate="collapsed" desc="Title field init">
         titleTextField.setText(model.getTitle());
@@ -443,10 +444,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         titleValidationLabel.visibleProperty().bind(titleValidationMessage.isNotEmpty());
 
         //</editor-fold>
-        customerComboBox.setItems(customerModelList);
-
-        userComboBox.setItems(userModelList);
-
         //<editor-fold defaultstate="collapsed" desc="description">
         descriptionTextArea.setText(model.getDescription());
         normalizedDescriptionBinding = BindingHelper.asNonNullAndWsNormalizedMultiLine(descriptionTextArea.textProperty());

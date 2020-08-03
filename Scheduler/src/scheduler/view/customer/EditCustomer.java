@@ -40,6 +40,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import scheduler.AppResourceKeys;
 import scheduler.AppResources;
+import scheduler.Scheduler;
 import scheduler.dao.AddressDAO;
 import scheduler.dao.AppointmentDAO;
 import scheduler.dao.CityDAO;
@@ -174,12 +175,12 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     private final WeakEventHandlingReference<CitySuccessEvent> cityUpdateEventHandler;
     private final WeakEventHandlingReference<CitySuccessEvent> cityDeleteEventHandler;
     private final WeakEventHandlingReference<AddressOpRequestEvent> addressDeleteEventHandler;
-    private ObjectBinding<AppointmentFilterItem> selectedFilter;
+    private ReadOnlyObjectProperty<AppointmentFilterItem> selectedFilter;
     private StringBinding normalizedName;
     private StringBinding normalizedAddress1;
     private StringBinding normalizedAddress2;
-    private ObjectBinding<CountryModel> selectedCountry;
-    private ObjectBinding<CityModel> selectedCity;
+    private ReadOnlyObjectProperty<CountryModel> selectedCountry;
+    private ReadOnlyObjectProperty<CityModel> selectedCity;
     private StringBinding normalizedPostalCode;
     private StringBinding normalizedPhone;
     private ObjectBinding<CityModel> modelCity;
@@ -296,14 +297,14 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
     }
 
     @FXML
-    private void onAddAppointmentButtonAction(ActionEvent event) {
-        LOG.entering(LOG.getName(), "onAddAppointmentButtonAction", event);
+    private void onNewAppointmentButtonAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onNewAppointmentButtonAction", event);
         try {
-            EditAppointment.editNew(model, null, getScene().getWindow());
+            EditAppointment.editNew(model, Scheduler.getCurrentUser().cachedModel(true), getScene().getWindow());
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error opening child window", ex);
         }
-        LOG.exiting(LOG.getName(), "onAddAppointmentButtonAction");
+        LOG.exiting(LOG.getName(), "onNewAppointmentButtonAction");
     }
 
     @FXML
@@ -451,9 +452,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         appointmentFilterComboBox.setItems(filterOptions);
         appointmentsTableView.setItems(customerAppointments);
 
-        selectedFilter = Bindings.<AppointmentFilterItem>select(appointmentFilterComboBox.selectionModelProperty(), "selectedItem");
-        selectedCountry = Bindings.<CountryModel>select(countryComboBox.selectionModelProperty(), "selectedItem");
-        selectedCity = Bindings.<CityModel>select(cityComboBox.selectionModelProperty(), "selectedItem");
+        selectedFilter = appointmentFilterComboBox.getSelectionModel().selectedItemProperty();
+        selectedCountry = countryComboBox.getSelectionModel().selectedItemProperty();
+        selectedCity = cityComboBox.getSelectionModel().selectedItemProperty();
 
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
         nameValid = nameTextField.textProperty().isNotEmpty();
@@ -542,6 +543,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         modificationBinding = normalizedName.isNotEqualTo(model.nameProperty()).or(selectedAddress.isNotEqualTo(model.getAddress()))
                 .or(activeTrueRadioButton.selectedProperty().isNotEqualTo(model.activeProperty()));
         modificationBinding.addListener((observable, oldValue, newValue) -> modified.set(newValue));
+        selectedFilter.addListener((observable, oldValue, newValue) -> waitBorderPane.startNow(new AppointmentReloadTask()));
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
     }
 
