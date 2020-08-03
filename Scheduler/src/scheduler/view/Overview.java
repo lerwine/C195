@@ -305,7 +305,7 @@ public final class Overview extends VBox {
                 StringBuilder sb = new StringBuilder();
                 nextAppointmentLeadText.setText("The ");
                 if (s.compareTo(n) > 0) {
-                    t = Duration.between(s, n);
+                    t = Duration.between(n, s);
                     nextAppointmentHyperlink.setText("next appointment");
                     nextAppointmentCustomerHyperlink.setText(nextAppointment.getCustomerName());
                     sb.append(" occurs in ");
@@ -313,7 +313,7 @@ public final class Overview extends VBox {
                     nextAppointmentHyperlink.setText("current appointment");
                     sb.append(" ends in ");
                     LocalDateTime e = nextAppointment.getEnd();
-                    t = Duration.between(e, n);
+                    t = Duration.between(n, e);
                 }
                 long i = t.toMinutes();
                 if (i == 1) {
