@@ -28,7 +28,7 @@ The "Customer" menu drop-down can be used to add, update, and delete customer re
 > Provide the ability to add, update, and delete appointments, capturing the type of appointment and a link to the specific customer record in the database.
 
 The "Appointments" menu drop-down can be used to add, update, and delete appointments.
-In the appointment edit screen, there is an "Open" button which can be used to open the selected customer.
+In the appointment edit screen, there is an "Open" button just above the customer selection drop-down, which can be used to open the selected customer.
 
 ## D:CALENDAR VIEWS
 
@@ -44,21 +44,12 @@ Dates and times are stored as GMT in the database and are converted to the curre
 
 ## F:EXCEPTION CONTROL
 
-> Write exception controls to prevent each of the following. You may use the same mechanism of exception control more than once, but you must incorporate at least  two different mechanisms of exception control.
+> Write exception controls to prevent each of the following. You may use the same mechanism of exception control more than once, but you must incorporate at least two different mechanisms of exception control.
 > - scheduling an appointment outside business hours
 > - scheduling overlapping appointments
 > - entering nonexistent or invalid customer data
 > - entering an incorrect username and password
 
-### NOT EVIDENT
-
-> No exception controls are created, or no code is provided.
-
-### APPROACHING COMPETENCE
-
-> The application code includes some exception controls but does not prevent each of the given points or uses only 1 mechanism of exception control. The code contains errors or is incomplete.
-
-### COMPETENT
 
 > The application code includes exception controls to prevent each of the given points and uses at least 2 different mechanisms. The code is complete and functions properly.
 
@@ -144,46 +135,3 @@ Dates and times are stored as GMT in the database and are converted to the curre
 ### COMPETENT
 
 > Content reflects attention to detail, is organized, and focuses on the main ideas as prescribed in the task or chosen by the candidate. Terminology is pertinent, is used correctly, and effectively conveys the intended meaning. Mechanics, usage, and grammar promote accurate interpretation and understanding. 
-
-
-The **"Appointments"**  menu dropdown lets you view listings of appointments.
-
-### Calendar Views
-
-The [Weekly Calendar](#onByWeekAction)
-menu item shows a weekly calendar of appointments, and [Monthly Calendar](#onByMonthAction) shows all appointments for a given month.
-
-### Tabular Listings
-
-The [My Current and Upcoming Appointments](#onMyCurrentAndUpcomingAction)
-menu item shows your appointments for today as well as upcoming appointments. The [All Appointments](#onAllAppointmentsAction) menu item shows all appointments.
-
-## Adding Appointments
-
-Select ["New"](#onNewAppointmentAction) from the
-**"Appointments"** menu
-
-### or
-
-Use the **"Customers"** menu dropdown to open a [customer listing](#onCustomerListingAction). Then, after opening the customer record, and click the
-**"Add Appointment"** button at the bottom." />
-
-## Appointment Reporting
-
-From the **"Reports"** menu dropdown, select [Types by Month](#onTypesByMonthAction)
-to see a bar chart showing the number of appointments for each apointment type in a given month. Use the [Consultant Schedule](#onConsultantScheduleAction)
-to see appointment schedule reports for each consultant. The [Appointments by Region](#onByRegionAction)
-menu option allows you to generate a pie chart of the customer nationalities for appointments in a given time period.
-
-## Manage Customers
-
-Use the **"Customers"** menu to view a [list of customers](#onCustomerListingAction)
-
-### or
-
-Use the **"Manage Addresses"** menu to view a [list of countries](#onCountryListingAction).
-You can then select the city and address to view customers at that specific address.
-
-## Manage Consultants
-
-Use the **"Consultants"** menu to view a [list of consultants](#onUserListingAction).
