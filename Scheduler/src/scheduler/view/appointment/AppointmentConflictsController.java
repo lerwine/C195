@@ -123,6 +123,7 @@ public final class AppointmentConflictsController {
         AppointmentModel model = editAppointmentControl.getModel();
         dateRange.initialize();
         resources = editAppointmentControl.getResources();
+        editAppointmentControl.getConflictingAppointmentsTableView().setItems(conflictingAppointments);
         final SingleSelectionModel<CustomerModel> customerSelectionModel = editAppointmentControl.getCustomerComboBox().getSelectionModel();
         selectedCustomer = customerSelectionModel.selectedItemProperty();
         selectedUser = editAppointmentControl.getUserComboBox().getSelectionModel().selectedItemProperty();

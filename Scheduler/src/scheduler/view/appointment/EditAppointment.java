@@ -605,6 +605,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         return appointmentConflictsBorderPane;
     }
 
+    public TableView<AppointmentModel> getConflictingAppointmentsTableView() {
+        return conflictingAppointmentsTableView;
+    }
+
     @Override
     public EntityModel.EntityModelFactory<AppointmentDAO, AppointmentModel> modelFactory() {
         return AppointmentModel.FACTORY;
