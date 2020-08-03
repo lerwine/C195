@@ -70,6 +70,14 @@
                                 <Insets />
                             </HBox.margin>
                         </Label>
+                        <Button fx:id="customerEditButton" alignment="CENTER" contentDisplay="TEXT_ONLY" disable="true" graphicTextGap="0.0" mnemonicParsing="false" onAction="#onCustomerEditButtonAction" styleClass="small-control" text="">
+                            <font>
+                                <Font name="Segoe UI Symbol" size="10.0" />
+                            </font>
+                            <opaqueInsets>
+                                <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                            </opaqueInsets>
+                        </Button>
                         <Button alignment="CENTER" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" mnemonicParsing="false" onAction="#onCustomerDropDownOptionsButtonAction" styleClass="small-control" text="">
                             <font>
                                 <Font name="Segoe UI Symbol" size="10.0" />

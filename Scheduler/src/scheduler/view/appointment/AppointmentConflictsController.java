@@ -139,11 +139,15 @@ public final class AppointmentConflictsController {
         selectedCustomer.addListener((observable, oldValue, newValue) -> {
             LOG.entering(LogHelper.toLambdaSourceClass(LOG, "initialize", "selectedCustomer#value"), "changed", new Object[]{oldValue, newValue});
             if (null == newValue) {
+                editAppointmentControl.getCustomerEditButton().setDisable(true);
                 if (!customerValidationLabel.isVisible()) {
                     customerValidationLabel.setVisible(true);
                 }
-            } else if (customerValidationLabel.isVisible()) {
-                customerValidationLabel.setVisible(false);
+            } else {
+                editAppointmentControl.getCustomerEditButton().setDisable(false);
+                if (customerValidationLabel.isVisible()) {
+                    customerValidationLabel.setVisible(false);
+                }
             }
             onParticipantsChanged(newValue, selectedUser.get());
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "selectedCustomer#value"), "changed");

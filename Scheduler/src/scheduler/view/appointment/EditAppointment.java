@@ -73,6 +73,7 @@ import scheduler.view.annotations.FXMLResource;
 import scheduler.view.annotations.GlobalizationResource;
 import scheduler.view.annotations.ModelEditor;
 import static scheduler.view.appointment.EditAppointmentResourceKeys.*;
+import scheduler.view.customer.EditCustomer;
 import scheduler.view.task.WaitBorderPane;
 
 // FIXME: Need to have an "Open" button to open the customer record
@@ -135,6 +136,8 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
     private Optional<Boolean> showActiveCustomers;
     private Optional<Boolean> showActiveUsers;
     private boolean editingUserOptions;
+    private BooleanBinding validationBinding;
+    private BooleanBinding modificationBinding;
 
     @ModelEditor
     private EditItem<AppointmentModel, EditAppointment> editWindowRoot;
@@ -153,6 +156,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // fx:id="titleValidationLabel"
     private Label titleValidationLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="customerEditButton"
+    private Button customerEditButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="customerComboBox"
     private ComboBox<CustomerModel> customerComboBox; // Value injected by FXMLLoader
@@ -264,8 +270,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     @FXML // fx:id="hideConflictsButton"
     private Button hideConflictsButton; // Value injected by FXMLLoader
-    private BooleanBinding validationBinding;
-    private BooleanBinding modificationBinding;
 
     //</editor-fold>
     public EditAppointment() {
@@ -308,6 +312,18 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         dropdownOptionsBorderPane.minHeightProperty().bind(heightProperty());
         dropdownOptionsBorderPane.prefHeightProperty().bind(heightProperty());
         LOG.exiting(LOG.getName(), "onCustomerDropDownOptionsButtonAction");
+    }
+
+    @FXML
+    void onCustomerEditButtonAction(ActionEvent event) {
+        LOG.entering(LOG.getName(), "onCustomerEditButtonAction", event);
+        try {
+            Window w = getScene().getWindow();
+            EditCustomer.edit(typeContext.selectedCustomerProperty().get(), w);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+        LOG.exiting(LOG.getName(), "onCustomerEditButtonAction");
     }
 
     @FXML
@@ -464,6 +480,10 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
 
     public ResourceBundle getResources() {
         return resources;
+    }
+
+    public Button getCustomerEditButton() {
+        return customerEditButton;
     }
 
     public ComboBox<CustomerModel> getCustomerComboBox() {
