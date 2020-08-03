@@ -37,22 +37,22 @@
                         <Insets left="4.0" />
                     </HBox.margin>
                 </Label>
-                <Label styleClass="leftControlLabel" text="This Week:">
-                    <HBox.margin>
-                        <Insets left="16.0" />
-                    </HBox.margin>
-                </Label>
-                <Label fx:id="appointmentsThisWeekLabel" styleClass="leftLabeledControl" text="?">
-                    <HBox.margin>
-                        <Insets left="4.0" />
-                    </HBox.margin>
-                </Label>
                 <Label styleClass="leftControlLabel" text="Tomorrow:">
                     <HBox.margin>
                         <Insets left="16.0" />
                     </HBox.margin>
                 </Label>
                 <Label fx:id="appointmentsTomorrowLabel" styleClass="leftLabeledControl" text="?">
+                    <HBox.margin>
+                        <Insets left="4.0" />
+                    </HBox.margin>
+                </Label>
+                <Label styleClass="leftControlLabel" text="This Week:">
+                    <HBox.margin>
+                        <Insets left="16.0" />
+                    </HBox.margin>
+                </Label>
+                <Label fx:id="appointmentsThisWeekLabel" styleClass="leftLabeledControl" text="?">
                     <HBox.margin>
                         <Insets left="4.0" />
                     </HBox.margin>
@@ -111,7 +111,7 @@
             <children>
                 <Text text="The " />
                 <Text styleClass="refNameText" text="&quot;Appointments&quot;" />
-                <Text text=" menu dropdown lets you view listings of appointments.;" />
+                <Text text=" menu dropdown lets you view listings of appointments." />
             </children>
         </TextFlow>
         <VBox>

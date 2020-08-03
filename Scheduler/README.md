@@ -8,21 +8,14 @@
 
 ### Main offices
 
+Names and Addresses for main offices are stored in the XML-formatted resource file [resources\scheduler\StaticAddresses.xml](resources\scheduler\StaticAddresses.xml). This file is loaded and parsed by [src\scheduler\model\PredefinedData.java](src\scheduler\model\PredefinedData.java). These addresses will appear as selectable options in the [Appointment Edit Control](src\scheduler\view\appointment\EditAppointment.java) when the [Corporate Location Appointment Type](src\scheduler\model\AppointmentType.java) is selected.
+
 ## A:LOG-IN FORM
 
 > Create a log-in form that can determine the user’s location and translate log-in and error control messages (e.g., “The username and password did not match.”) into two languages.
 
-### NOT EVIDENT
-
-> A log-in form is not created, or no code is provided.
-
-### APPROACHING COMPETENCE
-
-> The log-in form has limited functionality to determine the user’s location or translate log-in and error control messages into 2 languages, but the code contains errors or is incomplete.
-
-### COMPETENT
-
-> The log-in form has functionality to determine the user’s location and translate log-in and error control messages into 2 languages. The code is complete and functions properly.
+The [Login Control](src\scheduler\view\Login.java) detects which option from the [Supported Locale enumeration](src\scheduler\SupportedLocale.java) best matches the default system locale. A combobox
+is also presented upon login in the event that the user's current locale is not among any of the supported locales.
 
 ## B:CUSTOMER RECORDS
 
@@ -190,3 +183,6 @@
 ### COMPETENT
 
 > Content reflects attention to detail, is organized, and focuses on the main ideas as prescribed in the task or chosen by the candidate. Terminology is pertinent, is used correctly, and effectively conveys the intended meaning. Mechanics, usage, and grammar promote accurate interpretation and understanding. 
+
+
+
