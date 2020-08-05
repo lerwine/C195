@@ -373,13 +373,7 @@ public final class Values {
         StringBuffer sb = new StringBuffer(asNonNullAndWsNormalized(lines[0]));
         for (int i = 1; i < lines.length; i++) {
             sb.append("\n");
-            Matcher matcher = REGEX_NON_NORMAL_WHITESPACES.matcher(value);
-            if (matcher.find()) {
-                do {
-                    matcher.appendReplacement(sb, Matcher.quoteReplacement(" "));
-                } while (matcher.find());
-                matcher.appendTail(sb);
-            }
+            sb.append(asNonNullAndWsNormalized(lines[i]));
         }
         return sb.toString();
     }
