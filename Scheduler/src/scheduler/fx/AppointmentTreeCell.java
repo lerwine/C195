@@ -4,10 +4,7 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.value.ObservableValue;
@@ -47,10 +44,11 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentTreeCell.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentTreeCell.class.getName());
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("eeee, d", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
+//    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("eeee, d", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
 
     private final WeakReference<AppointmentTreeCellFactory> cellFactory;
-    private final DateTimeFormatter formatter;
+    private final DateTimeFormatter dateFormatter;
+    private final DateTimeFormatter timeFormatter;
     private final VBox branchGraphic;
     private final HBox leafGraphic;
     private final OverviewTextFlow overviewTextFlow;
@@ -60,11 +58,12 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
     private AppointmentDay boundModel;
     private Region currentGraphic = null;
 
-    public AppointmentTreeCell(AppointmentTreeCellFactory factory) {
+    public AppointmentTreeCell(AppointmentTreeCellFactory factory, boolean excludeUserName) {
         LOG.entering(getClass().getName(), "<init>", factory);
         cellFactory = new WeakReference<>(factory);
-        formatter = Objects.requireNonNull(factory.getFormatter());
-        overviewTextFlow = new OverviewTextFlow();
+        dateFormatter = factory.getDateFormatter();
+        timeFormatter = factory.getTimeFormatter();
+        overviewTextFlow = new OverviewTextFlow(excludeUserName);
         locationHBox = new LocationHBox();
         editButton = NodeUtil.createSymbolButton(SymbolText.EDIT, this::onOpenButtonAction);
         editButton.setMinWidth(USE_PREF_SIZE);
@@ -200,6 +199,8 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
         private final Text startDateTimeText;
         private final Text toText;
         private final Text endDateTimeText;
+        private final Text commaText;
+        private final Text userNameText;
         private final Text withText;
         private final Text customerNameText;
         private final Text colonText;
@@ -208,12 +209,20 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
         private final WeakChangeHandlingReference<LocalDateTime> endChangeListener;
         private final WeakChangeHandlingReference<String> titleChangeListener;
         private final WeakChangeHandlingReference<String> customerNameChangeListener;
+        private final WeakChangeHandlingReference<String> userNameChangeListener;
 
-        OverviewTextFlow() {
+        OverviewTextFlow(boolean excludeUserName) {
             LOG.entering(getClass().getName(), "<init>");
             startDateTimeText = NodeUtil.createText(CssClassName.BOLD_TEXT);
             toText = NodeUtil.createText(" to ");
             endDateTimeText = NodeUtil.createText(CssClassName.BOLD_TEXT);
+            if (excludeUserName) {
+                commaText = null;
+                userNameText = null;
+            } else {
+                commaText = NodeUtil.createText(", ");
+                userNameText = NodeUtil.createText(CssClassName.BOLD_TEXT);
+            }
             withText = NodeUtil.createText(" with ");
             customerNameText = NodeUtil.createText(CssClassName.BOLD_TEXT);
             colonText = NodeUtil.createText(": ");
@@ -221,6 +230,11 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
             startChangeListener = WeakChangeHandlingReference.<LocalDateTime>of(this::onStartChanged);
             endChangeListener = WeakChangeHandlingReference.<LocalDateTime>of(this::onEndChanged);
             customerNameChangeListener = WeakChangeHandlingReference.<String>of(this::onCustomerNameChanged);
+            if (excludeUserName) {
+                userNameChangeListener = null;
+            } else {
+                userNameChangeListener = WeakChangeHandlingReference.<String>of(this::onUserNameChanged);
+            }
             titleChangeListener = WeakChangeHandlingReference.<String>of(this::onTitleChanged);
             LOG.exiting(getClass().getName(), "<init>");
         }
@@ -229,28 +243,48 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
             LOG.entering(getClass().getName(), "initialize");
             NodeUtil.addCssClass(this, CssClassName.SMALL_CONTROL);
             ObservableList<Node> children = getChildren();
-            children.addAll(
-                    startDateTimeText,
-                    toText,
-                    endDateTimeText,
-                    withText,
-                    customerNameText,
-                    colonText,
-                    appointmentTitleText
-            );
+            if (null == userNameText) {
+                children.addAll(
+                        startDateTimeText,
+                        toText,
+                        endDateTimeText,
+                        withText,
+                        customerNameText,
+                        colonText,
+                        appointmentTitleText
+                );
+            } else {
+                children.addAll(
+                        startDateTimeText,
+                        toText,
+                        endDateTimeText,
+                        commaText,
+                        userNameText,
+                        withText,
+                        customerNameText,
+                        colonText,
+                        appointmentTitleText
+                );
+            }
             LOG.exiting(getClass().getName(), "initialize");
         }
 
         private synchronized void onStartChanged(ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) {
             LOG.entering(getClass().getName(), "onStartChanged", new Object[]{observable, oldValue, newValue});
-            startDateTimeText.setText((null == newValue) ? "(unspecified)" : formatter.format(newValue));
+            startDateTimeText.setText((null == newValue) ? "(unspecified)" : timeFormatter.format(newValue));
             LOG.exiting(getClass().getName(), "onStartChanged");
         }
 
         private synchronized void onEndChanged(ObservableValue<? extends LocalDateTime> observable, LocalDateTime oldValue, LocalDateTime newValue) {
             LOG.entering(getClass().getName(), "onEndChanged", new Object[]{observable, oldValue, newValue});
-            endDateTimeText.setText((null == newValue) ? "(unspecified)" : formatter.format(newValue));
+            endDateTimeText.setText((null == newValue) ? "(unspecified)" : timeFormatter.format(newValue));
             LOG.exiting(getClass().getName(), "onEndChanged");
+        }
+
+        private synchronized void onUserNameChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            LOG.entering(getClass().getName(), "onUserNameChanged", new Object[]{observable, oldValue, newValue});
+            userNameText.setText((null == newValue) ? "" : newValue);
+            LOG.exiting(getClass().getName(), "onUserNameChanged");
         }
 
         private synchronized void onCustomerNameChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -273,6 +307,9 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
                 model.endProperty().addListener(endChangeListener.getWeakListener());
                 model.titleProperty().addListener(titleChangeListener.getWeakListener());
                 model.customerNameProperty().addListener(customerNameChangeListener.getWeakListener());
+                if (null != userNameChangeListener) {
+                    model.userNameProperty().addListener(userNameChangeListener.getWeakListener());
+                }
             }
             LOG.exiting(getClass().getName(), "bindAll");
         }
@@ -281,7 +318,12 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
             LOG.entering(getClass().getName(), "onModelChanged");
             AppointmentModel model = boundModel.getModel();
             if (null != model) {
-                NodeUtil.restoreNodes(toText, endDateTimeText, withText, customerNameText, colonText, appointmentTitleText);
+                if (null == userNameText) {
+                    NodeUtil.restoreNodes(toText, endDateTimeText, withText, customerNameText, colonText, appointmentTitleText);
+                } else {
+                    NodeUtil.restoreNodes(toText, endDateTimeText, commaText, userNameText, withText, customerNameText, colonText, appointmentTitleText);
+                    onUserNameChanged(model.userNameProperty(), "", model.getUserName());
+                }
                 appointmentTitleText.setText(model.getTitle());
                 onStartChanged(model.startProperty(), null, model.getStart());
                 onEndChanged(model.endProperty(), null, model.getEnd());
@@ -290,8 +332,13 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
                 endDateTimeText.setText("");
                 customerNameText.setText("");
                 appointmentTitleText.setText("");
-                NodeUtil.collapseNodes(toText, endDateTimeText, withText, customerNameText, colonText, appointmentTitleText);
-                startDateTimeText.setText(FORMATTER.format(boundModel.getDate()));
+                if (null == userNameText) {
+                    NodeUtil.collapseNodes(toText, endDateTimeText, withText, customerNameText, colonText, appointmentTitleText);
+                } else {
+                    userNameText.setText("");
+                    NodeUtil.collapseNodes(toText, endDateTimeText, commaText, userNameText, withText, customerNameText, colonText, appointmentTitleText);
+                }
+                startDateTimeText.setText(dateFormatter.format(boundModel.getDate()));
             }
             LOG.exiting(getClass().getName(), "onModelChanged");
         }
@@ -304,6 +351,9 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
                 model.endProperty().removeListener(endChangeListener.getWeakListener());
                 model.titleProperty().removeListener(titleChangeListener.getWeakListener());
                 model.customerNameProperty().removeListener(customerNameChangeListener.getWeakListener());
+                if (null != userNameChangeListener) {
+                    model.userNameProperty().removeListener(userNameChangeListener.getWeakListener());
+                }
             }
             LOG.exiting(getClass().getName(), "unbindAll");
         }
@@ -313,6 +363,9 @@ public class AppointmentTreeCell extends TreeCell<AppointmentDay> {
             startDateTimeText.setText("");
             endDateTimeText.setText("");
             appointmentTitleText.setText("");
+            if (null != userNameText) {
+                userNameText.setText("");
+            }
             customerNameText.setText("");
             LOG.exiting(getClass().getName(), "resetAll");
         }

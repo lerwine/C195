@@ -4,10 +4,17 @@ import com.sun.javafx.event.EventHandlerManager;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.NamedArg;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
@@ -28,13 +35,20 @@ public class AppointmentTreeCellFactory implements Callback<TreeView<Appointment
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentTreeCellFactory.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentTreeCellFactory.class.getName());
 
-    private final DateTimeFormatter formatter;
     private final EventHandlerManager eventHandlerManager;
     private final ObjectProperty<EventHandler<AppointmentOpRequestEvent>> onItemActionRequest;
 
-    public AppointmentTreeCellFactory() {
+    private final BooleanProperty userNameExcluded;
+    private final StringProperty timeFormat;
+    private final StringProperty dateFormat;
+    private DateTimeFormatter dateFormatter;
+    private DateTimeFormatter timeFormatter;
+
+    public AppointmentTreeCellFactory(@NamedArg("userNameExcluded") boolean userNameExcluded, @NamedArg("dateFormat") String dateFormat, @NamedArg("timeFormat") String timeFormat) {
         LOG.entering(getClass().getName(), "<init>");
-        formatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault());
+        this.userNameExcluded = new SimpleBooleanProperty(this, "userNameExcluded", userNameExcluded);
+        this.dateFormat = new SimpleStringProperty(this, "dateFormat", dateFormat);
+        this.timeFormat = new SimpleStringProperty(this, "timeFormat", timeFormat);
         eventHandlerManager = new EventHandlerManager(this);
         onItemActionRequest = new SimpleObjectProperty<>(this, "onItemActionRequest");
         onItemActionRequest.addListener((observable, oldValue, newValue) -> {
@@ -45,11 +59,55 @@ public class AppointmentTreeCellFactory implements Callback<TreeView<Appointment
                 eventHandlerManager.addEventHandler(AppointmentOpRequestEvent.APPOINTMENT_OP_REQUEST, newValue);
             }
         });
+        this.dateFormat.addListener(this::onDateFormatChanged);
+        this.timeFormat.addListener(this::onTimeFormatChanged);
+        onDateFormatChanged(this.dateFormat, null, this.dateFormat.get());
+        onTimeFormatChanged(this.timeFormat, null, this.timeFormat.get());
         LOG.exiting(getClass().getName(), "<init>");
     }
 
-    DateTimeFormatter getFormatter() {
-        return formatter;
+    public boolean isUserNameExcluded() {
+        return userNameExcluded.get();
+    }
+
+    public void setUserNameExcluded(boolean value) {
+        userNameExcluded.set(value);
+    }
+
+    public BooleanProperty userNameExcludedProperty() {
+        return userNameExcluded;
+    }
+
+    public String getTimeFormat() {
+        return timeFormat.get();
+    }
+
+    public void setTimeFormat(String value) {
+        timeFormat.set(value);
+    }
+
+    public StringProperty timeFormatProperty() {
+        return timeFormat;
+    }
+
+    public String getDateFormat() {
+        return dateFormat.get();
+    }
+
+    public void setDateFormat(String value) {
+        dateFormat.set(value);
+    }
+
+    public StringProperty dateFormatProperty() {
+        return dateFormat;
+    }
+
+    DateTimeFormatter getDateFormatter() {
+        return dateFormatter;
+    }
+
+    DateTimeFormatter getTimeFormatter() {
+        return timeFormatter;
     }
 
     public EventHandler<AppointmentOpRequestEvent> getOnItemActionRequest() {
@@ -67,7 +125,7 @@ public class AppointmentTreeCellFactory implements Callback<TreeView<Appointment
     @Override
     public TreeCell<AppointmentDay> call(TreeView<AppointmentDay> param) {
         LOG.entering(LOG.getName(), "call", param);
-        AppointmentTreeCell tableCell = new AppointmentTreeCell(this);
+        AppointmentTreeCell tableCell = new AppointmentTreeCell(this, userNameExcluded.get());
         LOG.exiting(getClass().getName(), "call", tableCell);
         return tableCell;
     }
@@ -94,6 +152,20 @@ public class AppointmentTreeCellFactory implements Callback<TreeView<Appointment
 
     public void removeEventFilter(EventType<AppointmentOpRequestEvent> type, EventHandler<? super AppointmentOpRequestEvent> eventHandler) {
         eventHandlerManager.removeEventFilter(type, eventHandler);
+    }
+
+    private void onDateFormatChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        if (null == newValue || newValue.trim().isEmpty())
+            dateFormatter = DateTimeFormatter.ofPattern("eeee, d", Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
+        else
+            dateFormatter = DateTimeFormatter.ofPattern(newValue, Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
+    }
+
+    private void onTimeFormatChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        if (null == newValue || newValue.trim().isEmpty())
+            timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault());
+        else
+            timeFormatter = DateTimeFormatter.ofPattern(newValue, Locale.getDefault(Locale.Category.FORMAT)).withZone(ZoneId.systemDefault());
     }
 
 }

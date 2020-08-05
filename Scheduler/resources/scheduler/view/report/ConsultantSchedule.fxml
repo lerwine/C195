@@ -4,14 +4,17 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import scheduler.fx.DailyAppointmentsListCellFactory?>
+<?import scheduler.fx.AppointmentTreeCellFactory?>
+<?import scheduler.fx.DateTimeTableCellFactory?>
+<?import scheduler.fx.RelayCellValueFactory?>
 <?import scheduler.fx.UserListCell?>
 <?import scheduler.fx.UserListCellFactory?>
 
@@ -63,10 +66,10 @@
                 <Button fx:id="runButton" mnemonicParsing="false" onAction="#onRunButtonAction" text="%run" />
             </buttons>
         </ButtonBar>
-        <ListView fx:id="appointmentScheduleListView" VBox.vgrow="ALWAYS">
+        <TreeView fx:id="appointmentsTreeView" showRoot="false" styleClass="appointments" VBox.vgrow="ALWAYS">
             <cellFactory>
-                <DailyAppointmentsListCellFactory />
+                <AppointmentTreeCellFactory onItemActionRequest="#onItemActionRequest" userNameExcluded="true" dateFormat="eeee, d MMMM" />
             </cellFactory>
-        </ListView>
+        </TreeView>
     </children>
 </fx:root>

@@ -29,7 +29,7 @@
         </HBox>
         <TreeView fx:id="appointmentsTreeView" showRoot="false" styleClass="appointments" VBox.vgrow="ALWAYS">
             <cellFactory>
-                <AppointmentTreeCellFactory onItemActionRequest="#onItemActionRequest" />
+                <AppointmentTreeCellFactory onItemActionRequest="#onItemActionRequest" userNameExcluded="false" />
             </cellFactory>
         </TreeView>
         <HBox alignment="CENTER_LEFT" styleClass="footer">

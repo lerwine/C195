@@ -23,7 +23,7 @@ import scheduler.util.LogHelper;
  *
  * @author Leonard T. Erwine (Student ID 356334) &lt;lerwine@wgu.edu&gt;
  */
-public class AppointmentDay {
+public final class AppointmentDay {
 
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(AppointmentDay.class.getName()), Level.FINER);
 //    private static final Logger LOG = Logger.getLogger(AppointmentDay.class.getName());
@@ -53,6 +53,7 @@ public class AppointmentDay {
 
         return map.keySet().stream().sorted().map((t) -> {
             TreeItem<AppointmentDay> a = new TreeItem<>(new AppointmentDay(null, t));
+            a.setExpanded(true);
             ObservableList<TreeItem<AppointmentDay>> c = a.getChildren();
             c.addAll(map.get(t));
             if (!c.isEmpty()) {
