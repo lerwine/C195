@@ -458,7 +458,6 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         modified.addListener((observable, oldValue, newValue) -> {
             LOG.info(String.format("modified changed from %s to %s; valid is %s", oldValue, newValue, valid.get()));
         });
-
         if (model.isNewRow()) {
             windowTitle.set(resources.getString(RESOURCEKEY_ADDNEWAPPOINTMENT));
         } else {
@@ -808,11 +807,15 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
         windowTitle.set(resources.getString(RESOURCEKEY_EDITAPPOINTMENT));
         modificationBinding = normalizedTitleBinding.isNotEqualTo(model.titleProperty()).or(normalizedDescriptionBinding.isNotEqualTo(model.descriptionProperty()))
                 .or(typeContext.modifiedBinding());
-        modificationBinding.addListener((observable, oldValue, newValue) -> {
-            LOG.info(String.format("modificationBinding changed from %s to %s; valid is %s", oldValue, newValue, valid.get()));
-            modified.set(newValue);
-        });
         LOG.info(String.format("Setting modified to %s; typeModified is %s", modificationBinding.get(), typeContext.modifiedBinding().get()));
+        modificationBinding.addListener((observable, oldValue, newValue) -> {
+            LOG.fine(() -> String.format("modificationBinding changed from %s to %s", oldValue, newValue));
+            modified.set(modificationBinding.get());
+        });
+        LOG.fine(() -> String.format("Setting modified to %s", modificationBinding.get()));
+
+        LOG.info(String.format("daoLocation is %s", typeContext.daoLocationBinding().get()));
+        LOG.info(String.format("model.location is %s", model.locationProperty().get()));
         modified.set(modificationBinding.get());
     }
 
@@ -975,6 +978,9 @@ public class EditAppointment extends StackPane implements EditItem.ModelEditorCo
             UserModel.FACTORY.addEventHandler(UserSuccessEvent.UPDATE_SUCCESS, userUpdateEventHandler.getWeakEventHandler());
             UserModel.FACTORY.addEventHandler(UserSuccessEvent.DELETE_SUCCESS, userDeleteEventHandler.getWeakEventHandler());
             typeContext.initialize(task);
+            if (!model.isNewRow()) {
+                modified.set(modificationBinding.get());
+            }
         }
 
         @Override

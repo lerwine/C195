@@ -57,11 +57,11 @@ public final class AppointmentConflictsController {
     private final ObservableList<AppointmentModel> conflictingAppointments;
     private final DateRangeController dateRange;
     private BooleanBinding valid;
-    private BooleanBinding modified;
     private LoadParticipantsAppointmentsTask currentTask = null;
     private ReadOnlyObjectProperty<CustomerModel> selectedCustomer;
     private ReadOnlyObjectProperty<UserModel> selectedUser;
     private ResourceBundle resources;
+    private BooleanBinding modified;
 
     AppointmentConflictsController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
@@ -76,7 +76,7 @@ public final class AppointmentConflictsController {
     public BooleanBinding modifiedBinding() {
         return modified;
     }
-
+    
     public ReadOnlyObjectProperty<CustomerModel> selectedCustomerProperty() {
         return selectedCustomer;
     }
@@ -177,16 +177,12 @@ public final class AppointmentConflictsController {
         editAppointmentControl.getCheckConflictsButton().setOnAction(this::onCheckConflictsButtonAction);
         editAppointmentControl.getShowConflictsButton().setOnAction(this::onShowConflictsButtonAction);
         editAppointmentControl.getHideConflictsButton().setOnAction(this::onHideConflictsButtonAction);
-        modified = dateRange.modifiedBinding().or(ModelHelper.sameRecordBinding(selectedCustomer, model.customerProperty()))
-                .or(ModelHelper.sameRecordBinding(selectedUser, model.userProperty()));
         valid = currentParticipants.isNotNull().and(dateRange.validProperty());
         valid.addListener((observable, oldValue, newValue) -> {
             LOG.info(String.format("valid changed from %s to %s", oldValue, newValue));
         });
-        modified.addListener((observable, oldValue, newValue) -> {
-            LOG.info(String.format("modified changed from %s to %s", oldValue, newValue));
-        });
-        LOG.info(String.format("modified initial value is %s", modified.get()));
+        modified = ModelHelper.sameRecordBinding(selectedCustomer, model.customerProperty()).and(ModelHelper.sameRecordBinding(selectedUser, model.userProperty())).not()
+                .or(dateRange.modifiedBinding());
         LOG.exiting(LOG.getName(), "initialize");
     }
 

@@ -102,9 +102,9 @@ public final class TypeContextController {
     private StringBinding normalizedPhone;
     private ObjectBinding<BinarySelective<String, String>> parsedUrl;
     private BooleanBinding valid;
-    private BooleanBinding modified;
     private StringBinding daoLocation;
     private StringBinding urlString;
+    private BooleanBinding modified;
 
     TypeContextController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
@@ -176,6 +176,10 @@ public final class TypeContextController {
         return appointmentConflicts.getConflictCheckStatus();
     }
 
+    public BooleanBinding modifiedBinding() {
+        return modified;
+    }
+    
     public boolean isValid() {
         return valid.get();
     }
@@ -268,7 +272,8 @@ public final class TypeContextController {
             onContextSensitiveChange();
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "locationTextArea#text"), "changed");
         });
-        daoLocation = AppointmentHelper.daoLocationBinding(selectedType, normalizedLocation, normalizedPhone, selectedCorporateLocation, appointmentConflicts.selectedCustomerProperty(), true);
+        daoLocation = AppointmentHelper.daoLocationBinding(selectedType, normalizedLocation, normalizedPhone, selectedCorporateLocation,
+                appointmentConflicts.selectedCustomerProperty(), true);
 
         //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="init by type">
@@ -340,28 +345,22 @@ public final class TypeContextController {
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "initialize", "appointmentConflicts#selectedCustomer"), "changed");
         });
 
+        LOG.info(String.format("daoLocation is %s", daoLocation.get()));
+        LOG.info(String.format("model.location is %s", model.locationProperty().get()));
+        modified = selectedType.isNotEqualTo(model.typeProperty()).or(daoLocation.isNotEqualTo(model.locationProperty()))
+                .or(normalizedContact.isNotEqualTo(model.contactProperty())).or(urlString.isNotEqualTo(model.urlProperty())).or(appointmentConflicts.modifiedBinding());
+        
         valid = appointmentConflicts.validBinding()
                 .and(contactValidationLabel.visibleProperty().or(locationValidationLabel.visibleProperty()).or(urlValidationLabel.visibleProperty()).not());
-        modified = appointmentConflicts.modifiedBinding().or(normalizedContact.isNotEqualTo(model.contactProperty()))
-                .or(daoLocation.isNotEqualTo(model.locationProperty()))
-                .or(urlString.isNotEqualTo(model.urlProperty()));
         valid.addListener((observable, oldValue, newValue) -> {
             LOG.info(String.format("valid changed from %s to %s", oldValue, newValue));
         });
-        modified.addListener((observable, oldValue, newValue) -> {
-            LOG.info(String.format("modified changed from %s to %s", oldValue, newValue));
-        });
-        LOG.info(String.format("modified initial value is %s", modified.get()));
         selectedType.addListener(this::onTypeChanged);
         LOG.exiting(LOG.getName(), "initialize");
     }
 
     public StringBinding daoLocationBinding() {
         return daoLocation;
-    }
-
-    public BooleanBinding modifiedBinding() {
-        return modified;
     }
 
     void initialize(Task<List<AppointmentDAO>> task) {

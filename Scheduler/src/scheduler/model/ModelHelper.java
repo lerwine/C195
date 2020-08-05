@@ -626,7 +626,8 @@ public class ModelHelper {
             return calculateDaoLocationImpl(type, Values.asNonNullAndWsNormalizedMultiLine(explicitLocation), Values.asNonNullAndWsNormalized(phone), corporateLocation, customer);
         }
 
-        public static StringBinding daoLocationBinding(ReadOnlyObjectProperty<AppointmentType> type, StringBinding explicitLocation, StringBinding phone, ReadOnlyObjectProperty<CorporateAddress> corporateLocation, ReadOnlyObjectProperty<CustomerModel> customer, boolean stringBindingsAlreadyNormalized) {
+        public static StringBinding daoLocationBinding(ReadOnlyObjectProperty<AppointmentType> type, StringBinding explicitLocation, StringBinding phone,
+                ReadOnlyObjectProperty<CorporateAddress> corporateLocation, ReadOnlyObjectProperty<CustomerModel> customer, boolean stringBindingsAlreadyNormalized) {
             if (stringBindingsAlreadyNormalized) {
                 return Bindings.createStringBinding(() -> calculateDaoLocationImpl(type.get(), explicitLocation.get(), phone.get(), corporateLocation.get(), customer.get()),
                         type, corporateLocation, customer, phone, explicitLocation);
@@ -893,27 +894,27 @@ public class ModelHelper {
                         if (c.isEmpty()) {
                             return (p.isEmpty()) ? "" : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
                         }
-                        return (p.isEmpty()) ? c : String.format("%s%n%s %s", c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                        return (p.isEmpty()) ? c : String.format("%s\n%s %s", c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
                     }
                     if (c.isEmpty()) {
-                        return (p.isEmpty()) ? a2 : String.format("%s%n%s %s", a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                        return (p.isEmpty()) ? a2 : String.format("%s\n%s %s", a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
                     }
-                    return (p.isEmpty()) ? String.format("%s%n%s", a2, c)
-                            : String.format("%s%n%s%n%s %s", a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                    return (p.isEmpty()) ? String.format("%s\n%s", a2, c)
+                            : String.format("%s\n%s\n%s %s", a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
                 }
                 if (a2.isEmpty()) {
                     if (c.isEmpty()) {
-                        return (p.isEmpty()) ? a1 : String.format("%s%n%s %s", a1, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                        return (p.isEmpty()) ? a1 : String.format("%s\n%s %s", a1, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
                     }
-                    return (p.isEmpty()) ? String.format("%s%n%s", a1, c)
-                            : String.format("%s%n%s%n%s %s", a1, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                    return (p.isEmpty()) ? String.format("%s\n%s", a1, c)
+                            : String.format("%s\n%s\n%s %s", a1, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
                 }
                 if (c.isEmpty()) {
-                    return (p.isEmpty()) ? String.format("%s%n%s", a1, a2)
-                            : String.format("%s%n%s%n%s %s", a1, a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                    return (p.isEmpty()) ? String.format("%s\n%s", a1, a2)
+                            : String.format("%s\n%s\n%s %s", a1, a2, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
                 }
-                return (p.isEmpty()) ? String.format("%s%n%s%n%s", a1, a2, c)
-                        : String.format("%s%n%s%n%s%n%s %s", a1, a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
+                return (p.isEmpty()) ? String.format("%s\n%s\n%s", a1, a2, c)
+                        : String.format("%s\n%s\n%s\n%s %s", a1, a2, c, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), p);
             }, address1, address2, cityZipCountry, phone);
         }
 
@@ -928,7 +929,7 @@ public class ModelHelper {
             if ((line1 = asNonNullAndWsNormalized(line1)).isEmpty()) {
                 return asNonNullAndWsNormalized(line2);
             }
-            return ((line2 = asNonNullAndWsNormalized(line2)).isEmpty()) ? line1 : String.format("%s%n%s", line1, line2);
+            return ((line2 = asNonNullAndWsNormalized(line2)).isEmpty()) ? line1 : String.format("%s\n%s", line1, line2);
         }
 
         /**
@@ -977,15 +978,15 @@ public class ModelHelper {
                     return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? ""
                             : String.format("%s %s", getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
                 }
-                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? cityZipCountry : String.format("%s%n%s %s", cityZipCountry,
+                return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? cityZipCountry : String.format("%s\n%s %s", cityZipCountry,
                         getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
             }
             if (cityZipCountry.isEmpty()) {
                 return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? address
-                        : String.format("%s%n%s %s", address, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
+                        : String.format("%s\n%s %s", address, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
             }
-            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? String.format("%s%n%s", address, cityZipCountry)
-                    : String.format("%s%n%s%n%s %s", address, cityZipCountry, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
+            return ((phone = asNonNullAndWsNormalized(phone)).isEmpty()) ? String.format("%s\n%s", address, cityZipCountry)
+                    : String.format("%s\n%s\n%s %s", address, cityZipCountry, getResourceString(EditAddress.class, RESOURCEKEY_PHONENUMBER), phone);
         }
 
         /**

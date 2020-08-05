@@ -183,8 +183,8 @@ public final class DateRangeController {
     private ObjectBinding<BinarySelective<Integer, String>> parsedDurationHour;
     private ObjectBinding<BinarySelective<Integer, String>> parsedDurationMinute;
     private ObjectBinding<BinarySelective<LocalDateTime, String>> endDateTimeBinding;
-    private AppointmentModel model;
     private BooleanBinding modified;
+    private AppointmentModel model;
 
     DateRangeController(EditAppointment editAppointmentControl) {
         this.editAppointmentControl = editAppointmentControl;
@@ -230,12 +230,12 @@ public final class DateRangeController {
         }, range);
     }
 
-    public LocalDateTime getStartDateTimeValue() {
-        return startDateTimeValue.get();
-    }
-
     public BooleanBinding modifiedBinding() {
         return modified;
+    }
+    
+    public LocalDateTime getStartDateTimeValue() {
+        return startDateTimeValue.get();
     }
 
     public ReadOnlyObjectProperty<LocalDateTime> startDateTimeValueProperty() {
@@ -293,11 +293,6 @@ public final class DateRangeController {
     void initialize() {
         LOG.entering(LOG.getName(), "initialize");
         model = editAppointmentControl.getModel();
-        modified = startDateTimeValue.isNotEqualTo(model.startProperty()).or(endDateTimeValue.isNotEqualTo(model.endProperty()));
-        modified.addListener((observable, oldValue, newValue) -> {
-            LOG.info(String.format("modified changed from %s to %s", oldValue, newValue));
-        });
-        LOG.info(String.format("modified initial value is %s", modified.get()));
         LocalDateTime rangeStart = model.getStart();
         TextField startHourTextField = editAppointmentControl.getStartHourTextField();
         if (null != rangeStart) {
@@ -373,6 +368,7 @@ public final class DateRangeController {
         });
         checkStartChange();
         checkEndChange(Optional.empty());
+        modified = startDateTimeValue.isNotEqualTo(model.startProperty()).or(endDateTimeValue.isNotEqualTo(model.endProperty()));
         LOG.exiting(LOG.getName(), "initialize");
     }
 
