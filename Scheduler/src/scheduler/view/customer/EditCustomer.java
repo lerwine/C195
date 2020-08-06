@@ -127,10 +127,11 @@ import scheduler.view.task.WaitTitledPane;
 @GlobalizationResource("scheduler/view/customer/EditCustomer")
 @FXMLResource("/scheduler/view/customer/EditCustomer.fxml")
 public final class EditCustomer extends VBox implements EditItem.ModelEditorController<CustomerModel> {
-
+    //<editor-fold defaultstate="collapsed" desc="Static Members">
+    
     private static final Logger LOG = LogHelper.setLoggerAndHandlerLevels(Logger.getLogger(EditCustomer.class.getName()), Level.FINE);
 //    private static final Logger LOG = Logger.getLogger(EditCustomer.class.getName());
-
+    
     public static void editNew(PartialAddressModel<? extends PartialAddressDAO> address, Window parentWindow, boolean keepOpen, Consumer<CustomerModel> beforeShow) throws IOException {
         CustomerModel model = CustomerModel.FACTORY.getDaoFactory().createNew().cachedModel(true);
         if (null != address) {
@@ -141,19 +142,20 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         EditItem.showAndWait(parentWindow, EditCustomer.class, model, keepOpen);
     }
-
+    
     public static void editNew(PartialAddressModel<? extends PartialAddressDAO> address, Window parentWindow, boolean keepOpen) throws IOException {
         editNew(address, parentWindow, keepOpen, null);
     }
-
+    
     public static void edit(CustomerModel model, Window parentWindow, ThrowableConsumer<Stage, IOException> beforeShow) throws IOException {
         EditItem.showAndWait(parentWindow, EditCustomer.class, model, false, beforeShow);
     }
-
+    
     public static void edit(CustomerModel model, Window parentWindow) throws IOException {
         edit(model, parentWindow, null);
     }
-
+    
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="Instance Fields">
     private final ReadOnlyBooleanWrapper valid;
     private final ReadOnlyBooleanWrapper modified;
@@ -279,7 +281,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         cityDeleteEventHandler = WeakEventHandlingReference.create(this::onCityDeleted);
         addressDeleteEventHandler = WeakEventHandlingReference.create(this::onAddressDeleteRequest);
     }
-
+    
+    //<editor-fold defaultstate="collapsed" desc="FXML Event Handler Methods">
+    
     @ModelEditor
     private void onModelInserted(CustomerEvent event) {
         LOG.entering(LOG.getName(), "onModelInserted", event);
@@ -295,7 +299,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         appointmentFilterComboBox.setOnAction(this::onAppointmentFilterComboBoxAction);
         LOG.exiting(LOG.getName(), "onModelInserted");
     }
-
+    
     @FXML
     private void onNewAppointmentButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewAppointmentButtonAction", event);
@@ -306,7 +310,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         LOG.exiting(LOG.getName(), "onNewAppointmentButtonAction");
     }
-
+    
     @FXML
     @SuppressWarnings("incomplete-switch")
     private void onAppointmentsTableViewTableViewKeyReleased(KeyEvent event) {
@@ -330,7 +334,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         LOG.exiting(LOG.getName(), "onAppointmentsTableViewTableViewKeyReleased");
     }
-
+    
     @FXML
     private void onDeleteAppointmentMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onDeleteAppointmentMenuItemAction", event);
@@ -340,7 +344,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         LOG.exiting(LOG.getName(), "onDeleteAppointmentMenuItemAction");
     }
-
+    
     @FXML
     private void onEditAppointmentMenuItemAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onEditAppointmentMenuItemAction", event);
@@ -350,41 +354,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         LOG.exiting(LOG.getName(), "onEditAppointmentMenuItemAction");
     }
-
-    private void editItem(AppointmentModel item) {
-        try {
-            EditAppointment.edit(item, getScene().getWindow());
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error opening child window", ex);
-        }
-    }
-
-    private void deleteItem(AppointmentModel target) {
-        AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(target, this, true);
-        Event.fireEvent(target.dataObject(), deleteRequestEvent);
-        Stage stage = (Stage) getScene().getWindow();
-        if (deleteRequestEvent.isCanceled()) {
-            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
-        } else {
-            AlertHelper.showWarningAlert(stage, LOG,
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
-                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
-                if (t == ButtonType.YES) {
-                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(target);
-                    task.setOnSucceeded((e) -> {
-                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
-                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
-                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
-                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
-                        }
-                    });
-                    waitBorderPane.startNow(task);
-                }
-            });
-        }
-
-    }
-
+    
     @FXML
     private void onItemActionRequest(AppointmentOpRequestEvent event) {
         LOG.entering(LOG.getName(), "onItemActionRequest", event);
@@ -395,7 +365,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         LOG.exiting(LOG.getName(), "onItemActionRequest");
     }
-
+    
     @FXML
     private void onNewCityButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCityButtonAction", event);
@@ -406,7 +376,7 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         LOG.exiting(LOG.getName(), "onNewCityButtonAction");
     }
-
+    
     @FXML
     private void onNewCountryButtonAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onNewCountryButtonAction", event);
@@ -417,17 +387,21 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         }
         LOG.exiting(LOG.getName(), "onNewCountryButtonAction");
     }
-
+    
     @FXML
     private void onAppointmentFilterComboBoxAction(ActionEvent event) {
         LOG.entering(LOG.getName(), "onAppointmentFilterComboBoxAction", event);
         waitBorderPane.startNow(new AppointmentReloadTask());
         LOG.exiting(LOG.getName(), "onAppointmentFilterComboBoxAction");
     }
-
+    
+    //</editor-fold>
+    
     @FXML // This method is called by the FXMLLoader when initialization is complete
     private void initialize() {
         LOG.entering(LOG.getName(), "initialize");
+        //<editor-fold defaultstate="collapsed" desc="Assertion checks">
+        
         assert nameTextField != null : "fx:id=\"nameTextField\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert nameValidationLabel != null : "fx:id=\"nameValidationLabel\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert activeTrueRadioButton != null : "fx:id=\"activeTrueRadioButton\" was not injected: check your FXML file 'EditCustomer.fxml'.";
@@ -446,7 +420,9 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         assert appointmentFilterComboBox != null : "fx:id=\"appointmentFilterComboBox\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert appointmentsTableView != null : "fx:id=\"appointmentsTableView\" was not injected: check your FXML file 'EditCustomer.fxml'.";
         assert addAppointmentButtonBar != null : "fx:id=\"addAppointmentButtonBar\" was not injected: check your FXML file 'EditCustomer.fxml'.";
-
+        
+        //</editor-fold>
+        
         cityComboBox.setItems(cityOptions);
         countryComboBox.setItems(allCountries);
         appointmentFilterComboBox.setItems(filterOptions);
@@ -456,19 +432,43 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         selectedCountry = countryComboBox.getSelectionModel().selectedItemProperty();
         selectedCity = cityComboBox.getSelectionModel().selectedItemProperty();
 
+        // Binding which returns a trimmed string from the customer name text field with all whitespace characters normalized to a single space character.
+        // The value from this binding will be used to determine if the customer name field is valid,
+        // and as the value to store in the customer model object when it is saved.
         normalizedName = BindingHelper.asNonNullAndWsNormalized(nameTextField.textProperty());
-        nameValid = nameTextField.textProperty().isNotEmpty();
+
+        // Binding which returns true when a non-empty value is contained in the customer name text field.
+        // The value from this binding determines the visibility of the user name validation label, and also used as part of the overall validation binding.
+        nameValid = normalizedName.isNotEmpty();
+        
+        // Makes the name validation error label visible when the name text field is empty or contains only non-whitspace characters.
         nameValidationLabel.visibleProperty().bind(nameValid.not());
 
+        // Binding which returns a trimmed string from the first address line text field with all whitespace characters normalized to a single space character.
+        // The value from this binding will be used as the value to store in the customer model object.
         normalizedAddress1 = BindingHelper.asNonNullAndWsNormalized(address1TextField.textProperty());
+        
+        // Binding which returns a trimmed string from the second address line text field with all whitespace characters normalized to a single space character.
+        // The value from this binding will be used as the value to store in the customer model object.
         normalizedAddress2 = BindingHelper.asNonNullAndWsNormalized(address2TextField.textProperty());
+
+        // Binding which returns true when a non-empty value is contained in either the first or second address line text field.
+        // The value from this binding determines the visibility of the address validation label, and also used as part of the overall validation binding.
         addressValid = normalizedAddress1.isNotEmpty().or(normalizedAddress2.isNotEmpty());
+
+        // Makes the address validation error label visible when both the first and second address line text fields are empty or contain only non-whitspace characters.
         addressValidationLabel.visibleProperty().bind(addressValid.not());
 
+        // Disables the city combo box when no country is selected.
         cityComboBox.disableProperty().bind(selectedCountry.isNull());
+
+        // Disables the 'new city' button when no country is selected.
         newCityButton.disableProperty().bind(selectedCountry.isNull());
+
+        // Makes the country validation error label visible when no country is selected.
         countryValidationLabel.visibleProperty().bind(selectedCountry.isNull());
-        selectedCountry.addListener(this::onSelectedCountryChanged);
+
+        // Calculates the validation message to display for the city combo box.
         cityValidationMessage = Bindings.createStringBinding(() -> {
             PartialCityModel<? extends PartialCityDAO> c = selectedCity.get();
             PartialCountryModel<? extends PartialCountryDAO> n = selectedCountry.get();
@@ -477,24 +477,30 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
             }
             return (null == c) ? "* Required" : "";
         }, selectedCity, selectedCountry);
+
+        // If the city validation message binding returns a non-empty string, then the the city is not valid.
         cityInvalid = cityValidationMessage.isNotEmpty();
+
+        // Bind the result of the city validation message to the city validation error label.
         cityValidationLabel.textProperty().bind(cityValidationMessage);
+
+        // Makes the city validation error label visible when the validation message is not empty.
         cityValidationLabel.visibleProperty().bind(cityInvalid);
 
+        // Binding which returns a trimmed string from the postal code text field with all whitespace characters normalized to a single space character.
+        // The value from this binding will be used to determine if the postal code is valid,
+        // and as the value to store in the related address model object when it is saved.
         normalizedPostalCode = BindingHelper.asNonNullAndWsNormalized(postalCodeTextField.textProperty());
-        postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.postalCodeTextField#text", "changed", new Object[]{oldValue, newValue});
-            modified.set(changedBinding.get());
-            LOG.exiting("scheduler.view.customer.EditCustomer.postalCodeTextField#text", "changed");
-        });
+        
+        // Binding which returns a trimmed string from the phone number text field with all whitespace characters normalized to a single space character.
+        // The value from this binding will be used to determine if the phone number is valid,
+        // and as the value to store in the related address model object when it is saved.
         normalizedPhone = BindingHelper.asNonNullAndWsNormalized(phoneNumberTextField.textProperty());
-        phoneNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LOG.entering("scheduler.view.customer.EditCustomer.phoneNumberTextField#text", "changed", new Object[]{oldValue, newValue});
-            modified.set(changedBinding.get());
-            LOG.exiting("scheduler.view.customer.EditCustomer.phoneNumberTextField#text", "changed");
-        });
 
+        // A binding which returns the nested city model of the customer's address.
         modelCity = Bindings.select(model.addressProperty(), AddressModel.PROP_CITY);
+
+        // Returns true if any address-related properties are different than the address model associated with the customer model.
         addressChanged = normalizedAddress1.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                 AddressModel.PROP_ADDRESS1)))
                 .or(normalizedAddress2.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
@@ -504,10 +510,28 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
                         AddressModel.PROP_POSTALCODE))))
                 .or(normalizedPhone.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(Bindings.selectString(selectedAddress,
                         AddressModel.PROP_PHONE))));
+
+        // Returns true if there are any changes that need to be saved to the model.
         changedBinding = model.rowStateProperty().isEqualTo(DataRowState.NEW)
                 .or(normalizedName.isNotEqualTo(BindingHelper.asNonNullAndWsNormalized(model.nameProperty())))
                 .or(addressChanged).or(activeTrueRadioButton.selectedProperty().isNotEqualTo(model.activeProperty()));
+
+        // Returns true if all fields are valid. This binding is used to calculate the overall binding, which determines whether the "save" button can be enabled.
         validityBinding = nameValid.and(addressValid).and(cityInvalid.not());
+
+        selectedCountry.addListener(this::onSelectedCountryChanged);
+
+        postalCodeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.customer.EditCustomer.postalCodeTextField#text", "changed", new Object[]{oldValue, newValue});
+            modified.set(changedBinding.get());
+            LOG.exiting("scheduler.view.customer.EditCustomer.postalCodeTextField#text", "changed");
+        });
+        phoneNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            LOG.entering("scheduler.view.customer.EditCustomer.phoneNumberTextField#text", "changed", new Object[]{oldValue, newValue});
+            modified.set(changedBinding.get());
+            LOG.exiting("scheduler.view.customer.EditCustomer.phoneNumberTextField#text", "changed");
+        });
+
         valid.set(validityBinding.get());
         validityBinding.addListener((observable, oldValue, newValue) -> valid.set(newValue));
         nameTextField.setText(model.getName());
@@ -545,6 +569,40 @@ public final class EditCustomer extends VBox implements EditItem.ModelEditorCont
         modificationBinding.addListener((observable, oldValue, newValue) -> modified.set(newValue));
         selectedFilter.addListener((observable, oldValue, newValue) -> waitBorderPane.startNow(new AppointmentReloadTask()));
         windowTitle.set(resources.getString(RESOURCEKEY_EDITCUSTOMER));
+    }
+
+    private void editItem(AppointmentModel item) {
+        try {
+            EditAppointment.edit(item, getScene().getWindow());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error opening child window", ex);
+        }
+    }
+
+    private void deleteItem(AppointmentModel target) {
+        AppointmentOpRequestEvent deleteRequestEvent = new AppointmentOpRequestEvent(target, this, true);
+        Event.fireEvent(target.dataObject(), deleteRequestEvent);
+        Stage stage = (Stage) getScene().getWindow();
+        if (deleteRequestEvent.isCanceled()) {
+            AlertHelper.showWarningAlert(stage, deleteRequestEvent.getCancelMessage(), ButtonType.OK);
+        } else {
+            AlertHelper.showWarningAlert(stage, LOG,
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_CONFIRMDELETE),
+                    AppResources.getResourceString(AppResourceKeys.RESOURCEKEY_AREYOUSUREDELETE), ButtonType.YES, ButtonType.NO).ifPresent((t) -> {
+                if (t == ButtonType.YES) {
+                    DataAccessObject.DeleteDaoTask<AppointmentDAO, AppointmentModel> task = AppointmentModel.FACTORY.createDeleteTask(target);
+                    task.setOnSucceeded((e) -> {
+                        AppointmentEvent appointmentEvent = (AppointmentEvent) task.getValue();
+                        if (null != appointmentEvent && appointmentEvent instanceof AppointmentFailedEvent) {
+                            scheduler.util.AlertHelper.showWarningAlert(getScene().getWindow(), "Delete Failure",
+                                    ((ModelFailedEvent<AppointmentDAO, AppointmentModel>) appointmentEvent).getMessage(), ButtonType.OK);
+                        }
+                    });
+                    waitBorderPane.startNow(task);
+                }
+            });
+        }
+
     }
 
     private void onSelectedCountryChanged(ObservableValue<? extends PartialCountryModel<? extends PartialCountryDAO>> observable,
