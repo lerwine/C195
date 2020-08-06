@@ -224,7 +224,9 @@ public final class DateRangeController {
                     }
                     break;
             }
-            boolean result = s.toLocalTime().compareTo(businessHoursStart) >= 0 && e.toLocalTime().compareTo(businessHoursEnd) <= 0;
+            LocalTime st = s.toLocalTime();
+            LocalTime et = e.toLocalTime();
+            boolean result = st.compareTo(et) <= 0 && s.toLocalTime().compareTo(businessHoursStart) >= 0 && e.toLocalTime().compareTo(businessHoursEnd) <= 0;
             LOG.exiting(LogHelper.toLambdaSourceClass(LOG, "<init>", "withinBusinessHours"), "computeValue", result);
             return result;
         }, range);
